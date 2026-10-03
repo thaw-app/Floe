@@ -10,7 +10,7 @@ Floe is an early project with one maintainer, hosted in the [`thaw-app`](https:/
 2. **Direction:** The maintainer decides on roadmap, licensing, security policy and breaking product behavior. The [TODO list](https://github.com/thaw-app/Floe#todo) in the README is the current roadmap.
 3. **Consensus preferred:** The maintainer and contributors seek rough consensus in issues and pull requests before a decision is made.
 4. **Organization:** The repository belongs to the `thaw-app` organization, so the organization's owners can administer it if the maintainer is unavailable.
-5. **Security:** Vulnerability handling follows the [organization Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md) and [Floe security notes](../docs/SECURITY_NOTES.md). Public discussion of unfixed vulnerabilities is not appropriate.
+5. **Security:** Vulnerability handling follows the [organization Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md). Public discussion of unfixed vulnerabilities is not appropriate.
 
 Forking remains always available under the GPL-3.0 license; governance here only describes how *this* project operates.
 
@@ -20,7 +20,7 @@ Forking remains always available under the GPL-3.0 license; governance here only
 | --- | --- | --- |
 | **Maintainer** | [@diazdesandi](https://github.com/diazdesandi) | Product and roadmap decisions; review and merge of pull requests; issue triage; CI; Code of Conduct enforcement |
 | **Organization owner** | [@stonerl](https://github.com/stonerl), [@nightah](https://github.com/nightah), [@diazdesandi](https://github.com/diazdesandi) | Admin of [`thaw-app`](https://github.com/thaw-app): org settings, membership, org-owned repositories |
-| **Contributor** | Anyone submitting issues, pull requests or docs | Follow [contributor notes](../docs/CONTRIBUTOR_NOTES.md) and the [organization Code of Conduct](https://github.com/thaw-app/.github/blob/main/.github/CODE_OF_CONDUCT.md) |
+| **Contributor** | Anyone submitting issues, pull requests or docs | Follow [Thaw/Floe contribution policy](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md) and the [organization Code of Conduct](https://github.com/thaw-app/.github/blob/main/.github/CODE_OF_CONDUCT.md) |
 | **Security contact** | Maintainer (via [private vulnerability reporting](https://github.com/thaw-app/Floe/security/advisories/new)) | Acknowledge and coordinate vulnerability reports |
 
 ## Community channels
@@ -51,8 +51,7 @@ Floe has one maintainer today. Because the repository is owned by the `thaw-app`
 
 ## Related documents
 
-- [Contributor notes](../docs/CONTRIBUTOR_NOTES.md)
+- [Contributing](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md)
 - [Code of Conduct](https://github.com/thaw-app/.github/blob/main/.github/CODE_OF_CONDUCT.md)
 - [Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md)
-- [Floe security notes](../docs/SECURITY_NOTES.md)
 - [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md)

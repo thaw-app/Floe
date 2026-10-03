@@ -80,7 +80,7 @@ Floe is early. There are no releases yet, so build it from source, and the list 
 
 ## Contributing
 
-Read the [organization contribution policy](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md) and [Floe contributor notes](docs/CONTRIBUTOR_NOTES.md). Security reporting follows the [organization Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md); Floe's support window and extension trust model are in [security notes](docs/SECURITY_NOTES.md).
+Read the shared [Thaw/Floe contribution policy](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md), [Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md), and [Code of Conduct](https://github.com/thaw-app/.github/blob/main/.github/CODE_OF_CONDUCT.md). Build commands and tests are in [Development](docs/DEVELOPMENT.md).
 
 ## Acknowledgments
 
