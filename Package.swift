@@ -26,6 +26,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-async-algorithms", exact: "1.1.3"),
         // Only swift-async-algorithms uses this. Held back because 1.7 does not build with the Xcode 27 beta.
         .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
+        .package(path: "Vendor/FendCore"),
     ],
     targets: [
         .executableTarget(
@@ -39,6 +40,7 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "FendCore", package: "FendCore"),
             ],
             resources: [.process("Resources")],
             swiftSettings: concurrency
@@ -47,9 +49,14 @@ let package = Package(
         // framework beside the bundle, three levels above the bundle's binary, and adds no rpath for it.
         .testTarget(
             name: "FloeTests",
-            dependencies: ["Floe"],
+            dependencies: [
+                "Floe",
+                .product(name: "FendCore", package: "FendCore"),
+            ],
             swiftSettings: concurrency,
-            linkerSettings: [.unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@loader_path/../../.."])]
+            linkerSettings: [
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@loader_path/../../.."])
+            ]
         ),
     ]
 )

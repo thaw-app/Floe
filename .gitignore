@@ -4,6 +4,8 @@ node_modules/
 xcuserdata/
 *.xcworkspace/xcuserdata/
 .vscode/
+.swiftpm/
 extensions/hacker-news/
 coverage/
 *.profraw
+*.xcframework

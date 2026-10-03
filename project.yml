@@ -36,6 +36,8 @@ packages:
   swift-collections:
     url: https://github.com/apple/swift-collections
     exactVersion: 1.6.0
+  FendCore:
+    path: Vendor/FendCore
 
 settings:
   base:
@@ -80,6 +82,14 @@ targets:
         product: Algorithms
       - package: swift-async-algorithms
         product: AsyncAlgorithms
+      - package: FendCore
+    preBuildScripts:
+      - name: Build Fend
+        basedOnDependencyAnalysis: false
+        script: |
+          if [ ! -d "$SRCROOT/Vendor/FendCore/Frameworks/CFendCore.xcframework" ]; then
+            "$SRCROOT/scripts/build-fend.sh"
+          fi
     postBuildScripts:
       - name: Embed Runtime
         basedOnDependencyAnalysis: false

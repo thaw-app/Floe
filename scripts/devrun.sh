@@ -69,6 +69,11 @@ say "Installing runtime dependencies…"
 # No package here needs an install script, so none are allowed to run.
 (cd runtime && bun install --ignore-scripts --frozen-lockfile >/dev/null 2>&1 || bun install --ignore-scripts >/dev/null)
 
+if [ ! -d "Vendor/FendCore/Frameworks/CFendCore.xcframework" ]; then
+    say "Building Fend Core xcframework…"
+    ./scripts/build-fend.sh
+fi
+
 if command -v xcodegen >/dev/null 2>&1; then
     say "Regenerating $PROJECT from project.yml…"
     xcodegen generate --quiet
@@ -112,5 +117,5 @@ if [[ "$LAUNCH" -eq 1 ]]; then
     open "$DEST"
     say "Running '$APP_NAME' ($CONFIG). Press ⌃⌥Space to toggle it; quit from its menu bar icon."
 else
-    say "Installed '$APP_NAME' ($CONFIG). Start it with: open \"$DEST\""
+    say "Installed '$APP_NAME' ($CONFIG) to $DEST without launching."
 fi
