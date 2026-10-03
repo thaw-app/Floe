@@ -115,49 +115,11 @@ jobs:
 
       - name: Resolve release notes
         id: notes
-        env:
-          TAG: ${{ steps.meta.outputs.tag }}
-          RELEASE_NOTES_INPUT: ${{ inputs.release_notes }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import os
-          import re
-          import uuid
-
-          tag = os.environ["TAG"]
-          notes = os.environ.get("RELEASE_NOTES_INPUT", "")
-          source = "release_notes input"
-
-          # Without manual notes, use this tag's CHANGELOG.md section ("## [x.y.z]" to
-          # the next "## ") from the checked-out release tag.
-          changelog = "CHANGELOG.md" if os.path.isfile("CHANGELOG.md") else None
-          if not notes.strip() and changelog:
-              text = open(changelog, encoding="utf-8").read()
-              heading = re.compile(
-                  r"^##\s+\[?" + re.escape(tag) + r"\]?.*$", re.MULTILINE
-              )
-              match = heading.search(text)
-              if match:
-                  rest = text[match.end():]
-                  next_heading = re.search(r"^##\s+", rest, re.MULTILINE)
-                  section = rest[: next_heading.start()] if next_heading else rest
-                  notes = section.strip()
-                  source = changelog
-              else:
-                  source = f"GitHub-generated (no {changelog} section for {tag})"
-          elif not notes.strip():
-              source = "GitHub-generated (no release_notes input, no CHANGELOG.md)"
-
-          notes = notes.strip()
-          delimiter = f"notes_{uuid.uuid4().hex}"
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-              f.write(f"body<<{delimiter}\n{notes}\n{delimiter}\n")
-              f.write(f"generate={'false' if notes else 'true'}\n")
-              f.write(f"source={source}\n")
-
-          print(f"Release notes source: {source}")
-          PY
+        uses: thaw-app/org-ci/actions/release-notes@d6dce882eeefd199062c21ef6eb646428a255568
+        with:
+          tag: ${{ steps.meta.outputs.tag }}
+          release-notes: ${{ inputs.release_notes }}
+          changelog-paths: CHANGELOG.md
 
       # Installs to ~/.bun/bin/bun, one of the places the Embed Runtime build
       # phase looks for the Bun it copies into the app. This is the Bun that ships.
