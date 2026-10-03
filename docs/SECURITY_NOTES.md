@@ -1,6 +1,6 @@
-# Security Policy
+# Floe security notes
 
-Thank you for helping keep Floe secure.
+The [organization Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md) defines private reporting and coordinated disclosure. These notes describe Floe's support window, extension trust model, and dependency checks.
 
 ## Supported Versions
 
@@ -18,7 +18,7 @@ Floe is a launcher for macOS that runs Raycast extensions. There are no releases
 - Local-first: Floe does not require an account and does not operate a first-party tracking or analytics backend.
 - Explicit permissions: features that need Accessibility, such as opening a menu bar item's menu, ask via normal macOS TCC prompts and do not work without those grants.
 - Password preferences of extensions are stored in the Keychain.
-- Coordinated disclosure: a private reporting channel (below).
+- Coordinated disclosure: a private reporting channel in the organization Security Policy.
 
 ### You cannot expect
 
@@ -43,31 +43,9 @@ Floe is a launcher for macOS that runs Raycast extensions. There are no releases
 - Issues solely in third-party macOS components, Bun, or other apps, unless Floe needs a specific mitigation.
 - Social engineering of maintainers outside the product.
 
-## Reporting a Vulnerability
+## Response expectations
 
-Please **do not** report security vulnerabilities through public GitHub issues or on Discord.
-
-Use [GitHub Private Vulnerability Reporting](https://github.com/thaw-app/Floe/security/advisories/new).
-
-If private vulnerability reporting is unavailable, contact the maintainer privately via the contact method on their [GitHub profile](https://github.com/diazdesandi).
-
-Include:
-
-- A detailed description of the vulnerability.
-- Steps to reproduce.
-- Your macOS version and the Floe version and commit from the About page.
-- Potential impact.
-
-## Vulnerability response process
-
-1. Acknowledge the report (best effort; Floe has one maintainer).
-2. Triage severity and exploitability.
-3. Fix on a private branch when needed.
-4. Credit reporters in the advisory unless they request anonymity.
-5. Disclose via GitHub Security Advisories after a fix is available or per coordinated timing with the reporter.
-6. Ask reporters to keep issues confidential until the fix is on `main`.
-
-Timelines depend on complexity and whether an OS update is also required.
+Floe has one maintainer; acknowledgement is best effort without a fixed response deadline. Include the version and commit from the About page in private reports. Disclosure follows the organization policy after the fix reaches `main`, or at a coordinated time. Timelines depend on complexity and whether an OS update is required.
 
 ## Dependency SCA policy
 
@@ -107,7 +85,7 @@ Rules for maintainers:
 
 ### Related docs
 
-- Contributor expectations: [CONTRIBUTING.md](CONTRIBUTING.md) (§ SCA / SAST)
+- Contributor expectations: [Contributor notes](CONTRIBUTOR_NOTES.md#checks)
 
 ## Public vulnerability history
 

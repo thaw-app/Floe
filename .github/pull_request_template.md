@@ -58,7 +58,7 @@ What does this PR change or add, and why?
 - [ ] If I changed `project.yml`, I ran `xcodegen generate` and committed `Floe.xcodeproj`.
 - [ ] I've noted which macOS versions I tested on.
 - [ ] I've updated documentation as needed.
-- [ ] If this PR changes dependencies / lockfiles (`Package.resolved`, `runtime/bun.lock`, Actions pins, etc.), `dependency-sca` is green, or any `.github/osv-scanner.toml` suppression includes both `reason` and `ignoreUntil` (see [SECURITY.md](SECURITY.md) § Dependency SCA policy).
+- [ ] If this PR changes dependencies / lockfiles (`Package.resolved`, `runtime/bun.lock`, Actions pins, etc.), `dependency-sca` is green, or any `.github/osv-scanner.toml` suppression includes both `reason` and `ignoreUntil` (see [security notes](../docs/SECURITY_NOTES.md#dependency-sca-policy)).
 
 Checks run:
 
