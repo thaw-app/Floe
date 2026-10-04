@@ -174,6 +174,7 @@ struct RootItemTests {
         #expect(RootItem.command(command).id == "command:hacker-news/frontpage")
         #expect(RootItem.menuBarSearch.id == "builtin:menubar-search")
         #expect(RootItem.settings.id == "settings")
+        #expect(RootItem.calculator(expression: "2 + 2", result: "4").id == "calculator")
     }
 
     @Test func titlesSubtitlesAndKinds() {
@@ -187,6 +188,9 @@ struct RootItemTests {
         #expect(RootItem.menuBarSearch.kind == "Floe")
         #expect(RootItem.settings.title == "Floe Settings")
         #expect(RootItem.settings.kind == "Floe")
+        #expect(RootItem.calculator(expression: "2 + 2", result: "4").title == "4")
+        #expect(RootItem.calculator(expression: "2 + 2", result: "4").subtitle == nil)
+        #expect(RootItem.calculator(expression: "2 + 2", result: "4").kind == "Calculator")
     }
 
     @Test func settingsKeysCoverEverythingThatCanHaveAnAliasOrHotkey() {
@@ -194,15 +198,18 @@ struct RootItemTests {
         #expect(RootItem.command(command).settingsKey == "hacker-news/frontpage", "commands keep the key used before apps had one")
         #expect(RootItem.menuBarSearch.settingsKey == RootItem.menuBarSearchKey)
         #expect(RootItem.settings.settingsKey == nil)
+        #expect(RootItem.calculator(expression: "2 + 2", result: "4").settingsKey == nil)
     }
 
     @Test func onlyAppsAreApps() {
         #expect(Fixture.app("Safari").isApp)
         #expect(RootItem.command(command).isApp == false)
         #expect(RootItem.settings.isApp == false)
+        #expect(RootItem.calculator(expression: "2 + 2", result: "4").isApp == false)
     }
 
     @Test func resultsTakeTheirIdentifierFromTheItem() {
         #expect(RootResult(item: .settings, section: "Commands").id == "settings")
+        #expect(RootResult(item: .calculator(expression: "2 + 2", result: "4"), section: nil).id == "calculator")
     }
 }

@@ -87,8 +87,7 @@ struct ItemActionTests {
 
     @Test func aResultThatIsGoneNextTimeHasNoFavoriteToggle() throws {
         let model = makeModel()
-        let answer = try #require(Calculator.evaluate("2+2"))
-        #expect(titles(model.rootActions(for: .calculator(answer))) == ["Open"])
+        #expect(titles(model.rootActions(for: .calculator(expression: "2+2", result: "4"))) == ["Open"])
         #expect(titles(model.rootActions(for: .searchFiles("notes"))) == ["Open"])
         #expect(titles(model.rootActions(for: .system(.toggleMute))).last == "Add to Favorites")
     }

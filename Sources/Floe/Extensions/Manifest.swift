@@ -209,7 +209,7 @@ enum RootItem: Identifiable {
     case fileSearch
     case searchFiles(String)
     case settings
-    case calculator(CalculatorResult)
+    case calculator(expression: String, result: String, error: String? = nil, attributedResult: AttributedString? = nil)
     case system(SystemCommand)
     case settingsPane(SystemSettingsPane)
     /// Something Thaw does when asked through its `thaw://` links.
@@ -290,7 +290,8 @@ enum RootItem: Identifiable {
         case .fileSearch: String(localized: "Search Files", bundle: .floe)
         case let .searchFiles(query): String(localized: "Search Files for \"\(query)\"", bundle: .floe, comment: "The placeholder is what the user typed.")
         case .settings: String(localized: "Floe Settings", bundle: .floe)
-        case let .calculator(result): result.value
+        case .calculator(_, let result, let error, _):
+            error ?? (result.isEmpty ? String(localized: "Calculator", bundle: .floe) : result)
         case let .system(command): command.title
         case let .settingsPane(pane): pane.title
         case let .note(action, text): action.title(text: text)
@@ -323,8 +324,6 @@ enum RootItem: Identifiable {
             return command.extensionTitle
         case let .script(script):
             return script.displayPackage
-        case let .calculator(result):
-            return result.detail.map { "\(result.expression) · \($0)" } ?? result.expression
         case let .emoji(entry):
             return entry.character
         case let .quicklink(link, _, _, _):
@@ -387,5 +386,10 @@ enum RootItem: Identifiable {
         case .sshHost: "SSH"
         case .shortcut: String(localized: "Shortcut", bundle: .floe, comment: "The kind of a result, shown beside its title. Here one made in Apple's Shortcuts app.")
         }
+    }
+
+    var isCalculator: Bool {
+        if case .calculator = self { return true }
+        return false
     }
 }

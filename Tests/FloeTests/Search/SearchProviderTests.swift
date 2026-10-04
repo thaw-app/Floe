@@ -149,11 +149,11 @@ struct SearchProviderTests {
     }
 
     @Test func theMergePutsSectionedRowsFirstThenPinnedThenRankedThenAppended() throws {
-        let answer = try #require(Calculator.evaluate("2+2"))
+        let answer = RootItem.calculator(expression: "2+2", result: "4")
         let providers: [any SearchProvider] = [
             Fixed(fixed: SearchContribution(appended: [RootResult(item: .searchFiles("saf"), section: nil)])),
             Fixed(fixed: SearchContribution(ranked: [Fixture.app("Safari")])),
-            Fixed(fixed: SearchContribution(pinned: [RootResult(item: .calculator(answer), section: "Calculator")])),
+            Fixed(fixed: SearchContribution(pinned: [RootResult(item: answer, section: "Calculator")])),
             Fixed(fixed: SearchContribution(sectioned: [RootResult(item: .event(event("Standup", startsIn: 0)), section: "Today")])),
         ]
         let results = RootSearch.results(for: context("saf"), providers: providers)

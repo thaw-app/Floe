@@ -161,8 +161,8 @@ struct TypedLocationSearchProviderTests {
     ])
     func whatTheCalculatorAnswersIsNeverAlsoOfferedAsAnAddressOrAPath(typed: String) {
         let pinned = provider.contribution(for: context(typed)).pinned
-        #expect(Calculator.evaluate(typed) == nil || pinned.isEmpty)
-        #expect(Calculator.evaluate(typed) != nil || pinned.count == 1)
+        #expect(Calculator.shared.evaluatePreview(typed) == nil || pinned.isEmpty)
+        #expect(Calculator.shared.evaluatePreview(typed) != nil || pinned.count == 1)
     }
 
     // MARK: In the launcher
