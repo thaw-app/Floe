@@ -8,7 +8,16 @@
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+if [[ -d "$SCRIPT_DIR/rust" ]]; then
+    FEND_DIR="$SCRIPT_DIR"
+    REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+elif [[ -d "$SCRIPT_DIR/../Vendor/FendCore/rust" ]]; then
+    REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+    FEND_DIR="$REPO_ROOT/Vendor/FendCore"
+else
+    REPO_ROOT="$(pwd)"
+    FEND_DIR="$REPO_ROOT/Vendor/FendCore"
+fi
 cd "$REPO_ROOT"
 
 say() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
@@ -60,9 +69,9 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-RUST_DIR="$REPO_ROOT/Vendor/FendCore/rust"
-INCLUDE_DIR="$REPO_ROOT/Vendor/FendCore/include"
-FRAMEWORKS_DIR="$REPO_ROOT/Vendor/FendCore/Frameworks"
+RUST_DIR="$FEND_DIR/rust"
+INCLUDE_DIR="$FEND_DIR/include"
+FRAMEWORKS_DIR="$FEND_DIR/Frameworks"
 OUTPUT_XCFRAMEWORK="$FRAMEWORKS_DIR/CFendCore.xcframework"
 
 if [[ $CLEAN -eq 1 ]]; then

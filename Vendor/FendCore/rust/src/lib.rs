@@ -9,11 +9,47 @@ pub struct FendContext {
     inner: Context,
 }
 
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FendSpanKind {
+    Number = 0,
+    BuiltInFunction = 1,
+    Keyword = 2,
+    String = 3,
+    Date = 4,
+    Whitespace = 5,
+    Ident = 6,
+    Boolean = 7,
+    Other = 8,
+}
+
+impl From<fend_core::SpanKind> for FendSpanKind {
+    fn from(kind: fend_core::SpanKind) -> Self {
+        match kind {
+            fend_core::SpanKind::Number => Self::Number,
+            fend_core::SpanKind::BuiltInFunction => Self::BuiltInFunction,
+            fend_core::SpanKind::Keyword => Self::Keyword,
+            fend_core::SpanKind::String => Self::String,
+            fend_core::SpanKind::Date => Self::Date,
+            fend_core::SpanKind::Whitespace => Self::Whitespace,
+            fend_core::SpanKind::Ident => Self::Ident,
+            fend_core::SpanKind::Boolean => Self::Boolean,
+            _ => Self::Other,
+        }
+    }
+}
+
+pub struct FendSpanInternal {
+    string: CString,
+    kind: FendSpanKind,
+}
+
 pub struct FendResult {
     is_ok: bool,
     value: Option<CString>,
     error: Option<CString>,
     is_empty: bool,
+    spans: Vec<FendSpanInternal>,
 }
 
 pub struct FendCompletions {
@@ -129,6 +165,7 @@ pub unsafe extern "C" fn fend_evaluate(
                     value: None,
                     error: Some(err_msg),
                     is_empty: false,
+                    spans: Vec::new(),
                 }));
             }
         };
@@ -138,11 +175,20 @@ pub unsafe extern "C" fn fend_evaluate(
                 let main_res = res.get_main_result();
                 let is_empty = res.output_is_empty();
                 let val_cstring = CString::new(main_res).unwrap_or_default();
+                let spans = res
+                    .get_main_result_spans()
+                    .filter(|s| !s.string().is_empty())
+                    .map(|s| FendSpanInternal {
+                        string: CString::new(s.string()).unwrap_or_default(),
+                        kind: FendSpanKind::from(s.kind()),
+                    })
+                    .collect();
                 Box::into_raw(Box::new(FendResult {
                     is_ok: true,
                     value: Some(val_cstring),
                     error: None,
                     is_empty,
+                    spans,
                 }))
             }
             Err(err) => {
@@ -152,6 +198,7 @@ pub unsafe extern "C" fn fend_evaluate(
                     value: None,
                     error: Some(err_cstring),
                     is_empty: false,
+                    spans: Vec::new(),
                 }))
             }
         }
@@ -181,6 +228,7 @@ pub unsafe extern "C" fn fend_evaluate_preview(
                     value: None,
                     error: Some(err_msg),
                     is_empty: false,
+                    spans: Vec::new(),
                 }));
             }
         };
@@ -189,11 +237,20 @@ pub unsafe extern "C" fn fend_evaluate_preview(
         let main_res = res.get_main_result();
         let is_empty = res.output_is_empty();
         let val_cstring = CString::new(main_res).unwrap_or_default();
+        let spans = res
+            .get_main_result_spans()
+            .filter(|s| !s.string().is_empty())
+            .map(|s| FendSpanInternal {
+                string: CString::new(s.string()).unwrap_or_default(),
+                kind: FendSpanKind::from(s.kind()),
+            })
+            .collect();
         Box::into_raw(Box::new(FendResult {
             is_ok: true,
             value: Some(val_cstring),
             error: None,
             is_empty,
+            spans,
         }))
     }));
     result.unwrap_or(ptr::null_mut())
@@ -232,6 +289,33 @@ pub unsafe extern "C" fn fend_result_get_error(res: *const FendResult) -> *const
         .and_then(|r| r.error.as_ref())
         .map(|s| s.as_ptr())
         .unwrap_or(ptr::null())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn fend_result_get_span_count(res: *const FendResult) -> usize {
+    res.as_ref().map(|r| r.spans.len()).unwrap_or(0)
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn fend_result_get_span_string(
+    res: *const FendResult,
+    index: usize,
+) -> *const c_char {
+    res.as_ref()
+        .and_then(|r| r.spans.get(index))
+        .map(|s| s.string.as_ptr())
+        .unwrap_or(ptr::null())
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn fend_result_get_span_kind(
+    res: *const FendResult,
+    index: usize,
+) -> FendSpanKind {
+    res.as_ref()
+        .and_then(|r| r.spans.get(index))
+        .map(|s| s.kind)
+        .unwrap_or(FendSpanKind::Other)
 }
 
 #[no_mangle]
@@ -294,4 +378,63 @@ pub extern "C" fn fend_get_version() -> *const c_char {
         CString::new(fend_core::get_version()).unwrap_or_default()
     });
     c_str.as_ptr()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_evaluate_spans() {
+        unsafe {
+            let ctx = fend_context_new();
+            assert!(!ctx.is_null());
+
+            let query = CString::new("1 + 1").unwrap();
+            let res = fend_evaluate(ctx, query.as_ptr());
+            assert!(!res.is_null());
+            assert!(fend_result_is_ok(res));
+            assert!(!fend_result_is_empty(res));
+
+            let val = CStr::from_ptr(fend_result_get_value(res)).to_str().unwrap();
+            assert_eq!(val, "2");
+
+            let count = fend_result_get_span_count(res);
+            assert_eq!(count, 1);
+            let s0 = CStr::from_ptr(fend_result_get_span_string(res, 0)).to_str().unwrap();
+            assert_eq!(s0, "2");
+            assert_eq!(fend_result_get_span_kind(res, 0), FendSpanKind::Number);
+
+            fend_result_free(res);
+            fend_context_free(ctx);
+        }
+    }
+
+    #[test]
+    fn test_preview_spans() {
+        unsafe {
+            let ctx = fend_context_new();
+            assert!(!ctx.is_null());
+
+            let query = CString::new("5 ft in meters").unwrap();
+            let res = fend_evaluate_preview(ctx, query.as_ptr());
+            assert!(!res.is_null());
+            assert!(fend_result_is_ok(res));
+            assert!(!fend_result_is_empty(res));
+
+            let count = fend_result_get_span_count(res);
+            assert_eq!(count, 2);
+
+            let s0 = CStr::from_ptr(fend_result_get_span_string(res, 0)).to_str().unwrap();
+            assert_eq!(s0, "1.524");
+            assert_eq!(fend_result_get_span_kind(res, 0), FendSpanKind::Number);
+
+            let s1 = CStr::from_ptr(fend_result_get_span_string(res, 1)).to_str().unwrap();
+            assert_eq!(s1, " meters");
+            assert_eq!(fend_result_get_span_kind(res, 1), FendSpanKind::Ident);
+
+            fend_result_free(res);
+            fend_context_free(ctx);
+        }
+    }
 }

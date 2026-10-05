@@ -29,8 +29,10 @@ public final class FendContext: @unchecked Sendable {
     }
 
     /// Evaluate an expression and mutate context state (e.g. variable assignments).
+    /// Returns the evaluation result containing the formatted text and syntactic spans.
     /// Throws `FendError.evaluationFailed` if the expression syntax or calculation is invalid.
-    public func evaluate(_ query: String) throws -> FendCalculationResult {
+    @discardableResult
+    public func evaluate(_ query: String) throws -> FendResult {
         lock.lock()
         defer { lock.unlock() }
         guard let ptr = rawPointer else {
@@ -43,33 +45,44 @@ public final class FendContext: @unchecked Sendable {
         defer { fend_result_free(rawResult) }
 
         if fend_result_is_ok(rawResult) {
-            let value = fend_result_get_value(rawResult).map { String(cString: $0) } ?? ""
-            let isEmpty = fend_result_is_empty(rawResult)
-            return FendCalculationResult(value: value, isEmpty: isEmpty)
+            return extractResult(from: rawResult)
         } else {
             let errorMsg = fend_result_get_error(rawResult).map { String(cString: $0) } ?? "Evaluation error"
             throw FendError.evaluationFailed(errorMsg)
         }
     }
 
+    /// Evaluate an expression and return only the formatted result text.
+    @_disfavoredOverload
+    @discardableResult
+    public func evaluate(_ query: String) throws -> String {
+        let result: FendResult = try evaluate(query)
+        return result.string
+    }
+
     /// Evaluate an expression as a non-mutating preview.
     /// Does not alter context variables. If the expression is incomplete or invalid,
     /// returns an empty result instead of throwing.
-    public func preview(_ query: String) -> FendCalculationResult {
+    public func preview(_ query: String) -> FendResult {
         lock.lock()
         defer { lock.unlock() }
         guard let ptr = rawPointer else {
-            return FendCalculationResult(value: "", isEmpty: true)
+            return FendResult(string: "", spans: [], isEmpty: true)
         }
 
         guard let rawResult = fend_evaluate_preview(ptr, query) else {
-            return FendCalculationResult(value: "", isEmpty: true)
+            return FendResult(string: "", spans: [], isEmpty: true)
         }
         defer { fend_result_free(rawResult) }
 
-        let value = fend_result_get_value(rawResult).map { String(cString: $0) } ?? ""
-        let isEmpty = fend_result_is_empty(rawResult)
-        return FendCalculationResult(value: value, isEmpty: isEmpty)
+        return extractResult(from: rawResult)
+    }
+
+    /// Evaluate an expression as a non-mutating preview returning only the formatted text.
+    @_disfavoredOverload
+    public func preview(_ query: String) -> String {
+        let result: FendResult = preview(query)
+        return result.string
     }
 
     /// Serialize variables stored in this context to binary data.
@@ -120,5 +133,35 @@ public final class FendContext: @unchecked Sendable {
         guard status == 0 else {
             throw FendError.deserializationFailed
         }
+    }
+
+    private func extractResult(from rawResult: OpaquePointer) -> FendResult {
+        let fullString = fend_result_get_value(rawResult).map { String(cString: $0) } ?? ""
+        let isEmpty = fend_result_is_empty(rawResult)
+        let spanCount = fend_result_get_span_count(rawResult)
+
+        var spans: [FendSpan] = []
+        spans.reserveCapacity(spanCount)
+
+        var currentIndex = fullString.startIndex
+        for i in 0..<spanCount {
+            guard let cStr = fend_result_get_span_string(rawResult, i) else { continue }
+            let spanString = String(cString: cStr)
+            let cKind = fend_result_get_span_kind(rawResult, i)
+            let kind = FendSpan.Kind(cKind)
+
+            let range: Range<String.Index>?
+            if fullString[currentIndex...].hasPrefix(spanString),
+               let nextIndex = fullString.index(currentIndex, offsetBy: spanString.count, limitedBy: fullString.endIndex) {
+                range = currentIndex..<nextIndex
+                currentIndex = nextIndex
+            } else {
+                range = nil
+            }
+
+            spans.append(FendSpan(string: spanString, kind: kind, range: range))
+        }
+
+        return FendResult(string: fullString, spans: spans, isEmpty: isEmpty)
     }
 }

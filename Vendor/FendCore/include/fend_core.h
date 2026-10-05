@@ -69,6 +69,28 @@ const char* _Nullable fend_result_get_value(const FendResult* _Nonnull result);
 /// Returns the error message string if evaluation failed, or NULL.
 const char* _Nullable fend_result_get_error(const FendResult* _Nonnull result);
 
+/// Classification of syntax tokens in evaluated fend expressions.
+typedef enum FendSpanKind {
+    FEND_SPAN_NUMBER = 0,
+    FEND_SPAN_BUILT_IN_FUNCTION = 1,
+    FEND_SPAN_KEYWORD = 2,
+    FEND_SPAN_STRING = 3,
+    FEND_SPAN_DATE = 4,
+    FEND_SPAN_WHITESPACE = 5,
+    FEND_SPAN_IDENT = 6,
+    FEND_SPAN_BOOLEAN = 7,
+    FEND_SPAN_OTHER = 8,
+} FendSpanKind;
+
+/// Returns the number of spans in the result.
+size_t fend_result_get_span_count(const FendResult* _Nonnull result);
+
+/// Returns the text of the span at `index`, or NULL if index is out of bounds.
+const char* _Nullable fend_result_get_span_string(const FendResult* _Nonnull result, size_t index);
+
+/// Returns the kind of the span at `index`, or FEND_SPAN_OTHER if index is out of bounds.
+FendSpanKind fend_result_get_span_kind(const FendResult* _Nonnull result, size_t index);
+
 /// Opaque completions container.
 typedef struct FendCompletions FendCompletions;
 

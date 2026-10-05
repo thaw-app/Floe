@@ -3,6 +3,13 @@ import Foundation
 
 /// Main entry point for interacting with the `fend-core` calculation engine.
 public enum Fend {
+    public typealias Result = FendResult
+    public typealias Span = FendSpan
+    public typealias SpanKind = FendSpanKind
+    public typealias Completion = FendCompletion
+    public typealias Context = FendContext
+    public typealias Error = FendError
+
     /// Returns the underlying fend-core library version.
     public static var version: String {
         String(cString: fend_get_version())
@@ -18,17 +25,32 @@ public enum Fend {
     }()
 
     /// Evaluate an expression using the shared context.
-    /// Returns the formatted result text on success, or throws `FendError`.
+    /// Returns the evaluation result containing the formatted result text and styled spans, or throws `FendError`.
+    @discardableResult
+    public static func evaluate(_ query: String) throws -> FendResult {
+        try sharedContext.evaluate(query)
+    }
+
+    /// Evaluate an expression using the shared context and return only the formatted result text.
+    @_disfavoredOverload
     @discardableResult
     public static func evaluate(_ query: String) throws -> String {
-        let result = try sharedContext.evaluate(query)
-        return result.value
+        let result: FendResult = try evaluate(query)
+        return result.string
     }
 
     /// Evaluate an expression as a non-mutating preview.
-    /// Returns the formatted preview string, or empty string if incomplete/invalid.
+    /// Returns the evaluation result containing the formatted preview text and styled spans,
+    /// or an empty result if incomplete/invalid.
+    public static func preview(_ query: String) -> FendResult {
+        sharedContext.preview(query)
+    }
+
+    /// Evaluate an expression as a non-mutating preview returning only the formatted text.
+    @_disfavoredOverload
     public static func preview(_ query: String) -> String {
-        sharedContext.preview(query).value
+        let result: FendResult = preview(query)
+        return result.string
     }
 
     /// Get autocompletions for a given input prefix.

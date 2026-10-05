@@ -20,3 +20,9 @@ public enum FendError: LocalizedError, Equatable, Sendable {
         }
     }
 }
+
+extension FendError: CustomStringConvertible {
+    public var description: String {
+        errorDescription ?? "Unknown FendError"
+    }
+}
