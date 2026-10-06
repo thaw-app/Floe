@@ -152,23 +152,17 @@ struct CalculatorTests {
     @Test func precisionLimitingAndScientificNotation() {
         // Numbers up to 16 digits remain in standard decimal notation
         #expect(calculator.evaluatePreview("1234567890123456 + 0") == "1234567890123456")
-        #expect(Calculator.formatResult("1234567890123456") == "1234567890123456")
 
-        // Numbers exceeding 16 digits switch to scientific notation with at most 10 digits and ≈ symbol when rounded
-        #expect(calculator.evaluatePreview("2^100") == "≈ 1.2676506e+30")
-        #expect(calculator.evaluatePreview("10^50") == "1e+50")
-        #expect(calculator.evaluatePreview("2^1000") == "≈ 1.071508607e+301")
+        // The result is the text Return copies, so it keeps every digit however long. The view shortens what it draws.
+        #expect(calculator.evaluatePreview("2^100") == "1267650600228229401496703205376")
+        #expect(calculator.evaluatePreview("10^50") == "100000000000000000000000000000000000000000000000000")
+        #expect(calculator.evaluatePreview("2^1000") == "10715086071862673209484250490600018105614048117055336074437503883703510511249361224931983788156958581275946729175531468251871452856923140435984577574698574803934567774824230985421074605062371141877954182153046474983581941267398767559165543946077062914571196477686542167660429831652624386837205668069376")
 
-        // 17-digit number rounds to 10 significant digits in scientific notation with ≈ symbol
-        #expect(calculator.evaluatePreview("12345678901234567 + 0") == "≈ 1.23456789e+16")
-        #expect(Calculator.formatResult("12345678901234567") == "≈ 1.23456789e+16")
+        #expect(calculator.evaluatePreview("12345678901234567 + 0") == "12345678901234567")
 
-        // Large numbers with units retain unit suffix
-        #expect(calculator.evaluatePreview("12345678901234567890 m to km") == "≈ 1.23456789e+16 km")
+        #expect(calculator.evaluatePreview("12345678901234567890 m to km") == "12345678901234567.89 km")
 
-        // Very small numbers exceeding 16 digits switch to scientific notation
-        #expect(calculator.evaluatePreview("10^-20") == "1e-20")
-        #expect(Calculator.formatResult("0.000000000000000000000001") == "1e-24")
+        #expect(calculator.evaluatePreview("10^-20") == "0.00000000000000000001")
     }
 
     @Test func mathEvaluationsWork() {
@@ -208,10 +202,10 @@ struct CalculatorTests {
         #expect(calculator.evaluatePreview("0o77") == "63")
 
         // Large numbers exceeding 64-bit bounds convert without overflow or fallthrough
-        #expect(calculator.evaluatePreview("0x1000000000000000") == "≈ 1.152921505e+18")
-        #expect(calculator.evaluatePreview("0x10000000000000000") == "≈ 1.844674407e+19")
-        #expect(calculator.evaluatePreview("0b10000000000000000000000000000000000000000000000000000000000000000") == "≈ 1.844674407e+19")
-        #expect(calculator.evaluatePreview("0o2000000000000000000000") == "≈ 1.844674407e+19")
+        #expect(calculator.evaluatePreview("0x1000000000000000") == "1152921504606846976")
+        #expect(calculator.evaluatePreview("0x10000000000000000") == "18446744073709551616")
+        #expect(calculator.evaluatePreview("0b10000000000000000000000000000000000000000000000000000000000000000") == "18446744073709551616")
+        #expect(calculator.evaluatePreview("0o2000000000000000000000") == "18446744073709551616")
 
         // Formatter displays scientific notation with base subscripts or powers
         let preview16 = try #require(calculator.evaluatePreview("0x1000000000000000"))
@@ -286,10 +280,13 @@ struct CalculatorTests {
 
     @Test func calculationTimeout() {
         // Calculation timeout with a very long calculation
-        let preview = calculator.evaluatePreview("10000000!", timeoutMs: 1)
+        let preview = calculator.evaluatePreview("10000000!")
         #expect(preview != nil)
         #expect(preview?.result == "")
         #expect(preview?.error == "Calculation timed out")
+        // Not a factorial: this one runs into fend's own limit, and is told apart from an expression that is merely wrong.
+        #expect(calculator.evaluatePreview("3^3^3^3^3")?.error == "Calculation timed out")
+        #expect(calculator.evaluatePreview("3^^3")?.error != "Calculation timed out")
     }
 
     @Test func userInputScientificNotationFormatting() {
@@ -622,5 +619,59 @@ struct CalculatorTests {
 
         let mibByteEquals = calculator.evaluatePreview("1 MiB =")
         #expect(mibByteEquals?.result == "1 MiB")
+    }
+
+    @Test(arguments: [
+        ("arcsin(0.5)", "asin(0.5)"),
+        ("arccos(0.9)", "acos(0.9)"),
+        ("ArcTan(1)", "atan(1)"),
+        ("arcsinh(1)", "asinh(1)"),
+        ("arcsin ( arccos ( arctan ( tan ( cos ( sin ( 9 ) ) ) ) ) )", "asin(acos(atan(tan(cos(sin(9))))))"),
+    ])
+    func anInverseFunctionAnswersToItsWrittenOutName(written: String, short: String) throws {
+        let answer = try #require(calculator.evaluatePreview(short)?.result)
+        #expect(!answer.isEmpty)
+        #expect(calculator.evaluatePreview(written)?.result == answer)
+    }
+
+    @Test(arguments: [
+        ("2 pi", "≈ 6.2831853072"), ("1E3", "1000"), ("5 mod 3", "2"), ("exp(1)", "≈ 2.7182818285"), ("13¹³", "302875106592253"),
+    ])
+    func whatFendAnswersIsACalculationWhenItHasANumberInIt(typed: String, answer: String) {
+        #expect(calculator.evaluatePreview(typed)?.result == answer)
+    }
+
+    @Test(arguments: [
+        "3d", "1password", "7zip", "2fa", "mp3", "h264", "x86", "win 11", "ps5", "s3", "k8s", "i18n", "web 3", "v2",
+        "localhost:3000", "192.168.1.1", "10.0.0.1:8080", "github.com/foo", "report 2024", "iphone 15", "macos 27", "top 10",
+        "24h", "1080p", "5g", "wifi 6", "covid 19", "3m", "1 on 1", "v1.2.3", "12:30", "5pm", "ticket #123", "9to5mac",
+        "google chrome", "day one", "a b", "hour minute", "c", "m", "notes",
+    ])
+    func anOrdinarySearchIsNotACalculation(typed: String) {
+        #expect(calculator.evaluatePreview(typed) == nil)
+    }
+
+    @Test(arguments: [
+        ("asin(2)", "≈ 1.5707963268 - 1.3169578969i", "1.3169578969"),
+        ("sqrt(-2i)", "≈ 1.0000000000 - 1.0000000000i", "1.0000000000i"),
+        ("4^i", "≈ 0.1834569747 + 0.9830277404i", "0.9830277404"),
+    ])
+    func aComplexAnswerKeepsItsImaginaryPart(typed: String, copied: String, drawn: String) throws {
+        let preview = try #require(calculator.evaluatePreview(typed))
+        #expect(preview.result == copied)
+        #expect(String(preview.attributedResult.characters).contains(drawn), "drawn as \(String(preview.attributedResult.characters))")
+    }
+
+    @Test func theCopiedResultKeepsEveryDigitAndTheDrawnOneIsShortened() throws {
+        let preview = try #require(calculator.evaluatePreview("123456789 * 987654321"))
+        #expect(preview.result == "121932631112635269")
+        let drawn = String(preview.attributedResult.characters)
+        #expect(drawn.hasPrefix("≈"), "drawn as \(drawn)")
+        #expect(!drawn.contains("121932631112635269"))
+    }
+
+    @Test(arguments: [("1 second second", "1 second^2"), ("1 lightyear / second", "1 lightyear/second"), ("90 minutes in hours", "1.5 hours")])
+    func aUnitWrittenOutStaysAWord(typed: String, answer: String) {
+        #expect(calculator.evaluatePreview(typed)?.result == answer)
     }
 }

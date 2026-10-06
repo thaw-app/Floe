@@ -25,14 +25,12 @@ extension CalculatorFormatter {
     /// Finds the degree n if a decimal string corresponds to a known unit fraction 1/n.
     private static func rootDegree(forDecimal decStr: String) -> String? {
         let trimmed = decStr.hasPrefix(".") ? ("0" + decStr) : decStr
-        if let ctx = fendContext {
-            if let res = try? ctx.evaluate("\(trimmed) to frac") {
-                let frac = res.value.trimmingCharacters(in: .whitespaces)
-                if frac.range(of: #"^1\/([0-9]+)$"#, options: .regularExpression) != nil {
-                    let parts = frac.split(separator: "/")
-                    if parts.count == 2 {
-                        return String(parts[1]).trimmingCharacters(in: .whitespaces)
-                    }
+        if let ctx = fendContext, let res = try? ctx.evaluate("\(trimmed) to frac") {
+            let frac = res.value.trimmingCharacters(in: .whitespaces)
+            if frac.range(of: #"^1\/([0-9]+)$"#, options: .regularExpression) != nil {
+                let parts = frac.split(separator: "/")
+                if parts.count == 2 {
+                    return String(parts[1]).trimmingCharacters(in: .whitespaces)
                 }
             }
         }

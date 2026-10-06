@@ -9,6 +9,7 @@ Parts of it come from other projects and keep their own terms. This folder holds
 | Code ported from Thaw | `Sources/Floe/Thaw`, `Vendor/ThawUI`, `Vendor/ThawConcurrency` | GPL-3.0 | [`Thaw-GPL-3.0`](Thaw-GPL-3.0) |
 | Code ported from Droppy Code | `Sources/Floe/DroppyCode` | AGPL-3.0 with attribution terms | [`DroppyCode-LICENSE`](DroppyCode-LICENSE), [`DroppyCode-THIRD_PARTY_NOTICES.md`](DroppyCode-THIRD_PARTY_NOTICES.md) |
 | Sample extensions | `extensions` | Each extension's own | In each extension's folder |
+| Test cases copied from fend | `Tests/FloeTests/Fixtures/FendIntegrationCorpus.swift` | MIT | [`fend-MIT`](fend-MIT) |
 
 Section 13 of the GPL-3.0 allows combining GPL-3.0 code with AGPL-3.0 code in one program, which is how
 Thaw's files and Floe's sit together. Each ported file says in its header where it came from and what Floe

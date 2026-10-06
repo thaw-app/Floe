@@ -41,6 +41,8 @@
 		<string>https://discord.gg/KDfWjWDnR4</string>
 		<key>droppyCode</key>
 		<string>https://gitlab.com/droppyformac1/droppy-code</string>
+		<key>fend</key>
+		<string>https://github.com/printfn/fend</string>
 		<key>raycastExtensions</key>
 		<string>https://github.com/raycast/extensions</string>
 		<key>react</key>

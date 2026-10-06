@@ -42,6 +42,7 @@ enum Credits {
         Credit(name: "swift-numerics", detail: "Used by swift-algorithms. Apache-2.0.", link: "swiftNumerics", group: .library),
         Credit(name: "swift-async-algorithms", detail: "Waits for typing and folder changes to settle. Apache-2.0.", link: "swiftAsyncAlgorithms", group: .library),
         Credit(name: "swift-collections", detail: "Used by swift-async-algorithms. Apache-2.0.", link: "swiftCollections", group: .library),
+        Credit(name: "fend", detail: "Calculates and converts units in the search. MIT.", link: "fend", group: .library),
         Credit(name: "Bun", detail: "Runs extensions. MIT.", link: "bun", group: .library),
         Credit(name: "React", detail: "Renders extensions. MIT.", link: "react", group: .library),
         Credit(name: "react-reconciler", detail: "Turns what an extension renders into Floe's views. MIT.", link: "react", group: .library),

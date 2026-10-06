@@ -11,13 +11,13 @@ import Foundation
 import SwiftUI
 
 /// Represents the preview state of a calculation query.
-public struct CalculationPreview: Equatable, ExpressibleByStringLiteral, CustomStringConvertible {
-    public let result: String
-    public let spans: [FendSpan]
-    public let attributedResult: AttributedString
-    public let error: String?
+struct CalculationPreview: Equatable {
+    let result: String
+    let spans: [FendSpan]
+    let attributedResult: AttributedString
+    let error: String?
 
-    public init(
+    init(
         result: String = "",
         spans: [FendSpan] = [],
         attributedResult: AttributedString? = nil,
@@ -29,47 +29,68 @@ public struct CalculationPreview: Equatable, ExpressibleByStringLiteral, CustomS
         self.error = error
     }
 
-    public init(stringLiteral value: String) {
-        self.init(result: value, spans: [], attributedResult: nil, error: nil)
-    }
-
-    public var description: String {
-        result
-    }
-
-    public static func == (lhs: CalculationPreview, rhs: String) -> Bool {
-        lhs.result == rhs
-    }
-
-    public static func == (lhs: String, rhs: CalculationPreview) -> Bool {
-        lhs == rhs.result
-    }
-
-    public static func == (lhs: CalculationPreview, rhs: CalculationPreview) -> Bool {
+    static func == (lhs: CalculationPreview, rhs: CalculationPreview) -> Bool {
         lhs.result == rhs.result && lhs.error == rhs.error
     }
 }
 
 /// Wraps FendContext to provide mathematical and unit conversion evaluations.
-public final class Calculator: @unchecked Sendable {
-    public static let shared = Calculator()
+final class Calculator: @unchecked Sendable {
+    static let shared = Calculator()
 
     private let lock = NSLock()
     private var context: FendContext?
+    /// The last text asked about and its answer: two search providers ask about the same text on every keystroke.
+    private var remembered: (query: String, preview: CalculationPreview?)?
+    private let rememberedLock = NSLock()
 
-    public init() {
+    init() {
         self.context = try? FendContext()
     }
 
     /// Evaluates the query for live preview in the search launcher.
     /// Returns `nil` if the query does not appear to be a calculation request or if it fails evaluation.
     /// Returns `CalculationPreview(result: "", error: ...)` for incomplete expressions, invalid unit conversions, or timeouts so the calculator block stays visible.
-    public func evaluatePreview(_ query: String, timeoutMs: UInt64 = 500) -> CalculationPreview? {
+    func evaluatePreview(_ query: String) -> CalculationPreview? {
+        let last = rememberedLock.withLock { remembered }
+        if let last, last.query == query {
+            return last.preview
+        }
+        let preview = computePreview(query)
+        rememberedLock.withLock { remembered = (query, preview) }
+        return preview
+    }
+
+    /// Text the patterns do not know is a calculation when it has a number in it and fend answers something else: "2 pi", "1E3".
+    /// Words alone stay out, since fend reads "day one" as a day, and so does a lambda, which is how "localhost:3000" reads.
+    private func isAnsweredByFend(_ typed: String) -> Bool {
+        guard !typed.hasPrefix("/"), !typed.hasPrefix("~"), !typed.contains("="), !typed.contains(":") else { return false }
+        guard typed.contains(where: \.isNumber) else { return false }
+        let answer = lock.withLock { context?.preview(normalizeExpressionForEvaluation(typed)) }
+        guard let answer, !answer.isEmpty else { return false }
+        let spelled: (String) -> String = { $0.filter { !$0.isWhitespace }.lowercased() }
+        return spelled(answer.string) != spelled(typed)
+    }
+
+    /// An answer as the preview holds it: the text to copy and the text to draw, from the same spans.
+    private static func shown(_ spans: [FendSpan], for query: String) -> CalculationPreview {
+        CalculationPreview(
+            result: formatResult(spans: spans, query: query),
+            spans: spans,
+            attributedResult: CalculatorFormatter.formatResult(spans: spans, query: query)
+        )
+    }
+
+    private static var timedOut: CalculationPreview {
+        CalculationPreview(result: "", error: String(localized: "Calculation timed out", bundle: .floe, comment: "Shown in place of a calculator result that would take too long."))
+    }
+
+    private func computePreview(_ query: String) -> CalculationPreview? {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
 
         // Must look like a calculator query (contains operators, units, digits, base prefixes, or trailing '=')
-        guard looksLikeCalculatorQuery(trimmed) else { return nil }
+        guard looksLikeCalculatorQuery(trimmed) || isAnsweredByFend(trimmed) else { return nil }
 
         var exprToEvaluate = trimmed
         if trimmed.hasSuffix("=") {
@@ -84,18 +105,7 @@ public final class Calculator: @unchecked Sendable {
 
         // Automatic non-decimal base conversion (e.g. 0x..., 0b..., 0o...)
         if isNonBaseTenNumber(exprToEvaluate) {
-            if let decimalResult = evaluateNonBaseTenToDecimal(exprToEvaluate) {
-                let spans = [FendSpan(string: decimalResult, kind: .number)]
-                let resultStr = Self.formatResult(spans: spans, query: exprToEvaluate)
-                let attributed = CalculatorFormatter.formatResult(spans: spans, query: exprToEvaluate)
-                return CalculationPreview(
-                    result: resultStr,
-                    spans: spans,
-                    attributedResult: attributed,
-                    error: nil
-                )
-            }
-            return nil
+            return evaluateNonBaseTenToDecimal(exprToEvaluate).map { Self.shown([FendSpan(string: $0, kind: .number)], for: exprToEvaluate) }
         }
 
         lock.lock()
@@ -105,40 +115,29 @@ public final class Calculator: @unchecked Sendable {
 
         let normalized = normalizeExpressionForEvaluation(exprToEvaluate)
 
+        // A factorial this large runs into fend's time limit twice, in the preview and in the fallback: say so without waiting.
         if let match = normalized.range(of: #"([0-9]+)\s*!"#, options: .regularExpression) {
             let numStr = normalized[match].replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces)
-            if let n = Int(numStr), n >= 10000 || timeoutMs < 50 {
-                return CalculationPreview(result: "", error: String(localized: "Calculation timed out", bundle: .floe, comment: "Shown in place of a calculator result that would take too long."))
+            if let n = Int(numStr), n >= 10000 {
+                return Self.timedOut
             }
         }
 
         // Try evaluating with fend preview
         let res = context.preview(normalized)
         if !res.isEmpty {
-            let resultStr = Self.formatResult(spans: res.spans, query: exprToEvaluate)
-            let attributed = CalculatorFormatter.formatResult(spans: res.spans, query: exprToEvaluate)
-            return CalculationPreview(
-                result: resultStr,
-                spans: res.spans,
-                attributedResult: attributed,
-                error: nil
-            )
+            return Self.shown(res.spans, for: exprToEvaluate)
         }
 
         // Some preview calls return empty value for valid queries (e.g. 10^50), try evaluate as fallback
-        do {
-            let evalRes = try context.evaluate(normalized)
-            if !evalRes.isEmpty {
-                let resultStr = Self.formatResult(spans: evalRes.spans, query: exprToEvaluate)
-                let attributed = CalculatorFormatter.formatResult(spans: evalRes.spans, query: exprToEvaluate)
-                return CalculationPreview(
-                    result: resultStr,
-                    spans: evalRes.spans,
-                    attributedResult: attributed,
-                    error: nil
-                )
-            }
-        } catch {}
+        let evaluated = Result { try context.evaluate(normalized) as FendResult }
+        if case let .success(evalRes) = evaluated, !evalRes.isEmpty {
+            return Self.shown(evalRes.spans, for: exprToEvaluate)
+        }
+        // The word fend's wrapper stops an evaluation with when its time is up.
+        if case .failure(FendError.evaluationFailed("interrupted")) = evaluated {
+            return Self.timedOut
+        }
 
         // Check if query is an invalid unit conversion
         if let unitError = unitConversionErrorMessage(exprToEvaluate, error: nil) {
@@ -154,12 +153,16 @@ public final class Calculator: @unchecked Sendable {
     }
 
     /// Normalizes mathematical symbols (like √, ∛, ∜, ×, ÷, −) into standard syntax supported by fend.
-    public func normalizeExpressionForEvaluation(_ query: String) -> String {
+    func normalizeExpressionForEvaluation(_ query: String) -> String {
         var s = query
         s = s.replacingOccurrences(of: "⁄", with: "/")
         s = s.replacingOccurrences(of: "×", with: "*")
         s = s.replacingOccurrences(of: "÷", with: "/")
         s = s.replacingOccurrences(of: "−", with: "-")
+        // fend names the inverse functions asin, acos and atan; "arcsin" and the rest are the same, written out.
+        s = CalculatorFormatter.replacePattern(s, pattern: #"\b[aA][rR][cC]((?i:sin|cos|tan)[hH]?)\b"#) { groups in
+            "a" + groups[1].lowercased()
+        }
 
         // ∛(x) or ∛(x or ∛x -> cbrt(x)
         s = s.replacingOccurrences(of: #"∛\(([^)]+)\)?"#, with: "cbrt($1)", options: .regularExpression)
@@ -170,20 +173,16 @@ public final class Calculator: @unchecked Sendable {
         s = s.replacingOccurrences(of: #"∜([a-zA-Z0-9_.]+)"#, with: "($1)^(1/4)", options: .regularExpression)
 
         // ⁿ√x -> (x)^(1/n)
-        let supToAscii: [Character: Character] = [
-            "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
-            "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
-            "ⁿ": "n",
-        ]
-        s = CalculatorFormatter.replacePattern(s, pattern: #"([⁰¹²³⁴⁵⁶⁷⁸⁹]+)√\(([^)]+)\)?"#) { match, full in
-            let sup = (full as NSString).substring(with: match.range(at: 1))
-            let inner = (full as NSString).substring(with: match.range(at: 2))
+        let supToAscii = CalculatorFormatter.supToAscii
+        s = CalculatorFormatter.replacePattern(s, pattern: #"([⁰¹²³⁴⁵⁶⁷⁸⁹]+)√\(([^)]+)\)?"#) { groups in
+            let sup = groups[1]
+            let inner = groups[2]
             let asciiDigits = String(sup.map { supToAscii[$0] ?? $0 })
             return "(\(inner))^(1/\(asciiDigits))"
         }
-        s = CalculatorFormatter.replacePattern(s, pattern: #"([⁰¹²³⁴⁵⁶⁷⁸⁹]+)√([a-zA-Z0-9_.]+)"#) { match, full in
-            let sup = (full as NSString).substring(with: match.range(at: 1))
-            let inner = (full as NSString).substring(with: match.range(at: 2))
+        s = CalculatorFormatter.replacePattern(s, pattern: #"([⁰¹²³⁴⁵⁶⁷⁸⁹]+)√([a-zA-Z0-9_.]+)"#) { groups in
+            let sup = groups[1]
+            let inner = groups[2]
             let asciiDigits = String(sup.map { supToAscii[$0] ?? $0 })
             return "(\(inner))^(1/\(asciiDigits))"
         }
@@ -192,10 +191,10 @@ public final class Calculator: @unchecked Sendable {
         s = s.replacingOccurrences(of: #"√\(([^)]+)\)?"#, with: "sqrt($1)", options: .regularExpression)
         s = s.replacingOccurrences(of: #"√([a-zA-Z0-9_.]+)"#, with: "sqrt($1)", options: .regularExpression)
 
-        // Normalize unit powers like m² -> m^2
-        s = s.replacingOccurrences(of: "²", with: "^2")
-        s = s.replacingOccurrences(of: "³", with: "^3")
-        s = s.replacingOccurrences(of: "⁴", with: "^4")
+        // A run of raised digits is one power: m² -> m^2, 13¹³ -> 13^13
+        s = CalculatorFormatter.replacePattern(s, pattern: "[⁰¹²³⁴⁵⁶⁷⁸⁹]+") { groups in
+            "^" + String(groups[0].map { CalculatorFormatter.supToAscii[$0] ?? $0 })
+        }
 
         // Normalize any remaining superscripts and subscripts back to ASCII
         s = String(s.map { CalculatorFormatter.supToAscii[$0] ?? CalculatorFormatter.subToAscii[$0] ?? $0 })
@@ -204,7 +203,7 @@ public final class Calculator: @unchecked Sendable {
     }
 
     /// Checks if a query is a non-base-10 literal like `0xff`, `0b1010`, `0o77`.
-    public func isNonBaseTenNumber(_ query: String) -> Bool {
+    func isNonBaseTenNumber(_ query: String) -> Bool {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if trimmed.hasPrefix("0x"), trimmed.count > 2 {
             let hexDigits = trimmed.dropFirst(2).filter { $0 != "_" }
@@ -221,40 +220,10 @@ public final class Calculator: @unchecked Sendable {
         return false
     }
 
-    /// Converts an arbitrary-precision non-negative integer string in a given radix (2, 8, 16) to a decimal string representation.
-    public static func convertRadixToDecimalString(_ digits: String, radix: Int) -> String? {
-        let clean = digits.filter { $0 != "_" }
-        guard !clean.isEmpty else { return nil }
-        var resultDigits = [0]
-        for ch in clean {
-            guard let val = ch.hexDigitValue, val < radix else { return nil }
-            var carry = val
-            for i in 0 ..< resultDigits.count {
-                let product = resultDigits[i] * radix + carry
-                resultDigits[i] = product % 10
-                carry = product / 10
-            }
-            while carry > 0 {
-                resultDigits.append(carry % 10)
-                carry /= 10
-            }
-        }
-        return resultDigits.reversed().map(String.init).joined()
-    }
-
-    /// Converts a non-base-10 literal to its decimal string representation.
+    /// The decimal value of a number written in another base, which fend works out however long it is.
     private func evaluateNonBaseTenToDecimal(_ query: String) -> String? {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if trimmed.hasPrefix("0x") {
-            let hex = String(trimmed.dropFirst(2))
-            return Self.convertRadixToDecimalString(hex, radix: 16)
-        } else if trimmed.hasPrefix("0b") {
-            let bin = String(trimmed.dropFirst(2))
-            return Self.convertRadixToDecimalString(bin, radix: 2)
-        } else if trimmed.hasPrefix("0o") {
-            let oct = String(trimmed.dropFirst(2))
-            return Self.convertRadixToDecimalString(oct, radix: 8)
-        }
-        return nil
+        let literal = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let answer = lock.withLock { context?.preview("\(literal) to decimal") }
+        return answer.flatMap { $0.isEmpty ? nil : $0.string }
     }
 }

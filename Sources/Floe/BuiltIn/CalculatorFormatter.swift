@@ -11,7 +11,7 @@ import Foundation
 import SwiftUI
 
 /// Rich text formatter for calculator user inputs and outputs.
-public enum CalculatorFormatter {
+enum CalculatorFormatter {
     private static let supMap: [Character: Character] = [
         "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
         "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
@@ -40,24 +40,19 @@ public enum CalculatorFormatter {
         "v": "ᵥ", "x": "ₓ",
     ]
 
-    public static let supToAscii: [Character: Character] = {
-        var map = [Character: Character]()
-        for (k, v) in supMap {
-            map[v] = k
-        }
-        return map
-    }()
+    /// Two letters share one raised form, as "c" and "C" do. The plainer one is taken, the same one on every run.
+    static let supToAscii = Dictionary(supMap.map { ($1, $0) }, uniquingKeysWith: plainer)
+    static let subToAscii = Dictionary(subMap.map { ($1, $0) }, uniquingKeysWith: plainer)
 
-    public static let subToAscii: [Character: Character] = {
-        var map = [Character: Character]()
-        for (k, v) in subMap {
-            map[v] = k
+    private static nonisolated func plainer(_ one: Character, _ other: Character) -> Character {
+        if one.isASCII != other.isASCII {
+            return one.isASCII ? one : other
         }
-        return map
-    }()
+        return max(one, other)
+    }
 
     /// Known common units to format compound unit fractions.
-    public static func isRecognizedUnit(_ unit: String) -> Bool {
+    static func isRecognizedUnit(_ unit: String) -> Bool {
         let stripped = unit.replacingOccurrences(of: #"[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻ⁿ]+"#, with: "", options: .regularExpression)
         let lower = stripped.lowercased()
         let units: Set = [
@@ -88,30 +83,30 @@ public enum CalculatorFormatter {
     }
 
     /// Formats compound units with division signs to render with a slash `/` without spaces instead of a division symbol `÷`.
-    public static func formatUnitFractions(_ text: String) -> String {
+    static func formatUnitFractions(_ text: String) -> String {
         let pattern = #"(?:(?<=[^a-zA-Zµ°])|^)([a-zA-Zµ°]+[⁰¹²³⁴⁵⁶⁷⁸⁹]*)[ \t]*[\/⁄][ \t]*([a-zA-Zµ°]+[⁰¹²³⁴⁵⁶⁷⁸⁹]*)(?=[^a-zA-Zµ°0-9]|$)"#
-        return replacePattern(text, pattern: pattern) { match, full in
-            let lhs = (full as NSString).substring(with: match.range(at: 1))
-            let rhs = (full as NSString).substring(with: match.range(at: 2))
+        return replacePattern(text, pattern: pattern) { groups in
+            let lhs = groups[1]
+            let rhs = groups[2]
             if isRecognizedUnit(lhs), isRecognizedUnit(rhs) {
                 return "\(lhs)/\(rhs)"
             }
-            return (full as NSString).substring(with: match.range)
+            return groups[0]
         }
     }
 
-    public static let bibitUnits: [String: String] = [
+    static let bibitUnits: [String: String] = [
         "kib": "Kib", "mib": "Mib", "gib": "Gib", "tib": "Tib",
         "pib": "Pib", "eib": "Eib", "zib": "Zib", "yib": "Yib",
     ]
 
-    public static let bibyteUnits: [String: String] = [
+    static let bibyteUnits: [String: String] = [
         "kib": "KiB", "mib": "MiB", "gib": "GiB", "tib": "TiB",
         "pib": "PiB", "eib": "EiB", "zib": "ZiB", "yib": "YiB",
     ]
 
     /// Normalizes the casing of an individual unit word, preserving -bibit (e.g. Mib) vs -bibyte (e.g. MiB).
-    public static func normalizeUnitCasing(_ word: String) -> String {
+    static func normalizeUnitCasing(_ word: String) -> String {
         let lower = word.lowercased()
         if let bibit = bibitUnits[lower] {
             if word.hasSuffix("B") {
@@ -124,14 +119,14 @@ public enum CalculatorFormatter {
     }
 
     /// Normalizes all unit words within a unit string (handling compound units such as `Mib/s`, `kW/m²`, etc.).
-    public static func normalizeUnitString(_ unitStr: String) -> String {
-        replacePattern(unitStr, pattern: #"\b[a-zA-Z]+\b"#) { match, full in
-            let word = (full as NSString).substring(with: match.range)
+    static func normalizeUnitString(_ unitStr: String) -> String {
+        replacePattern(unitStr, pattern: #"\b[a-zA-Z]+\b"#) { groups in
+            let word = groups[0]
             return normalizeUnitCasing(word)
         }
     }
 
-    public static let unitCasing: [String: String] = [
+    static let unitCasing: [String: String] = [
         // Power
         "w": "W", "kw": "kW", "mw": "MW", "gw": "GW", "hp": "hp",
         // Energy
@@ -148,8 +143,9 @@ public enum CalculatorFormatter {
         // Volume
         "l": "L", "ml": "mL", "cl": "cL", "dl": "dL",
         // Time
-        "s": "s", "sec": "s", "second": "s", "seconds": "s", "min": "min", "minute": "min", "minutes": "min",
-        "h": "h", "hr": "h", "hour": "h", "hours": "hours", "d": "d", "day": "day", "days": "days",
+        // A unit fend wrote out as a word stays that word: "second" became "s" where "hours" stayed "hours".
+        "s": "s", "sec": "s", "min": "min",
+        "h": "h", "hr": "h", "d": "d", "day": "day", "days": "days",
         "wk": "wk", "week": "week", "weeks": "weeks", "yr": "yr", "year": "year", "years": "years",
         "ms": "ms", "ns": "ns",
         // Pressure
@@ -167,18 +163,28 @@ public enum CalculatorFormatter {
         "kph": "km/h", "mph": "mph",
     ]
 
+    /// The base a number's own prefix names: 16 for 0x, 2 for 0b, 8 for 0o.
+    static func prefixBase(of number: String) -> Int? {
+        switch number.prefix(2).lowercased() {
+        case "0x": 16
+        case "0b": 2
+        case "0o": 8
+        default: nil
+        }
+    }
+
     /// Converts characters to superscript unicode characters.
-    public static func toSuperscript(_ s: String) -> String {
+    static func toSuperscript(_ s: String) -> String {
         String(s.map { supMap[$0] ?? $0 })
     }
 
     /// Converts characters to subscript unicode characters.
-    public static func toSubscript(_ s: String) -> String {
+    static func toSubscript(_ s: String) -> String {
         String(s.map { subMap[$0] ?? $0 })
     }
 
     /// Determines if a query specifies a target base (e.g. `to binary` -> 2, `to hex` -> 16, `to octal` -> 8, `to base 16` -> 16).
-    public static func targetBase(from query: String) -> Int? {
+    static func targetBase(from query: String) -> Int? {
         let pattern = #"(?:\b(?:to|in|as|into)\s+)(?:base\s+([0-9]+)|(binary|bin|hexadecimal|hex|octal|oct|decimal|dec))\b"#
         guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return nil }
         let ns = query as NSString
@@ -203,7 +209,7 @@ public enum CalculatorFormatter {
     }
 
     /// Groups digits with a separator, e.g. groupSize: 4 for binary/hex, 3 for decimal/octal.
-    public static func groupDigits(_ digits: String, groupSize: Int, separator: String) -> String {
+    static func groupDigits(_ digits: String, groupSize: Int, separator: String) -> String {
         guard digits.count > groupSize else { return digits }
         var result = ""
         let chars = Array(digits)

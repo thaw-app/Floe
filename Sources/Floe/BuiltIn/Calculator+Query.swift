@@ -53,7 +53,8 @@ extension Calculator {
         // Common math constants or functions
         let mathPrefixes = [
             "pi", "tau", "e", "sqrt", "cbrt", "sin", "cos", "tan", "asin", "acos", "atan",
-            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "ln", "log", "log2", "log10",
+            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+            "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh", "ln", "log", "log2", "log10",
             "abs", "floor", "ceil", "round",
         ]
         for prefix in mathPrefixes {
@@ -62,71 +63,14 @@ extension Calculator {
             }
         }
 
-        // Check for conversion keywords like "to", "in", "as"
-        let conversionPatterns = [
-            #"\bto\b"#,
-            #"\bin\b"#,
-            #"\binto\b"#,
-            #"\bas\b"#,
-        ]
-        // Must have some number or unit expression
-        for pattern in conversionPatterns where lower.range(of: pattern, options: .regularExpression) != nil {
+        // A conversion keyword anywhere, which also covers one the query ends on: "10 W to"
+        if lower.range(of: #"\b(to|in|into|as)\b"#, options: .regularExpression) != nil {
             return true
         }
 
-        // Query ending with conversion keyword like "10 W to" or "10W to "
-        if lower.range(of: #"\b(to|in|into|as)\s*$"#, options: .regularExpression) != nil {
-            return true
-        }
-
-        // Contains mathematical operators (+, -, *, /, ^, %, √, ∛, ∜, sqrt, cbrt)
-        let hasOperator = query.contains("+") ||
-            query.contains("-") ||
-            query.contains("−") ||
-            query.contains("*") ||
-            query.contains("×") ||
-            query.contains("/") ||
-            query.contains("÷") ||
-            query.contains("⁄") ||
-            query.contains("^") ||
-            query.contains("%") ||
-            query.contains("√") ||
-            query.contains("∛") ||
-            query.contains("∜") ||
-            query.contains("sqrt") ||
-            query.contains("cbrt")
-
-        if hasOperator {
-            // Must contain at least one digit or identifier
-            return query.contains(where: { $0.isNumber || $0.isLetter })
-        }
-
-        return false
-    }
-
-    /// Known common units to avoid activating calculator on arbitrary text.
-    private func isRecognizedUnit(_ unit: String) -> Bool {
-        let units: Set = [
-            // Power & Energy
-            "w", "kw", "mw", "gw", "hp", "j", "kj", "mj", "gj", "cal", "kcal", "wh", "kwh", "mwh", "ev", "btu",
-            // Mass & Weight
-            "g", "kg", "mg", "ug", "µg", "lb", "lbs", "oz", "t", "ton", "tons", "tonne", "tonnes", "st", "stone",
-            // Length & Distance
-            "m", "km", "cm", "mm", "um", "µm", "nm", "pm", "mi", "mile", "miles", "yd", "yard", "yards", "ft", "foot", "feet", "in", "inch", "inches",
-            // Area & Volume
-            "sqm", "sqft", "acre", "acres", "ha", "hectare", "hectares", "l", "ml", "cl", "dl", "gal", "gallon", "gallons", "qt", "pt", "cup", "cups", "tbsp", "tsp", "floz",
-            // Time
-            "s", "sec", "second", "seconds", "min", "minute", "minutes", "h", "hr", "hour", "hours", "d", "day", "days", "wk", "week", "weeks", "yr", "year", "years", "ms", "us", "ns",
-            // Temperature
-            "c", "f", "k", "celsius", "fahrenheit", "kelvin", "°c", "°f",
-            // Speed & Pressure
-            "kph", "kmh", "mph", "mps", "knot", "knots", "pa", "kpa", "mpa", "bar", "mbar", "psi", "atm", "torr",
-            // Digital
-            "b", "kb", "mb", "gb", "tb", "pb", "kib", "mib", "gib", "tib", "bit", "kbit", "mbit", "gbit", "byte", "bytes",
-            // Electricity & Waves
-            "v", "kv", "mv", "a", "ma", "ka", "ohm", "ohms", "hz", "khz", "mhz", "ghz", "rad", "deg",
-        ]
-        return units.contains(unit.lowercased())
+        // An operator needs a digit or a name beside it
+        let hasOperator = query.contains(where: { "+-−*×/÷⁄^%√∛∜".contains($0) }) || query.contains("sqrt") || query.contains("cbrt")
+        return hasOperator && query.contains(where: { $0.isNumber || $0.isLetter })
     }
 
     /// Checks if expression is incomplete and awaiting more input.

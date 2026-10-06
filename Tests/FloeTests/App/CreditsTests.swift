@@ -13,7 +13,7 @@ import Testing
 struct CreditsTests {
     @Test func theListNamesWhatFloeIsBuiltFrom() {
         let names = Credits.all.map(\.name)
-        for expected in ["Thaw", "Droppy Code", "CompactSlider", "Bun", "React", "react-reconciler", "Raycast extensions"] {
+        for expected in ["Thaw", "Droppy Code", "CompactSlider", "fend", "Bun", "React", "react-reconciler", "Raycast extensions"] {
             #expect(names.contains(expected), "\(expected)")
         }
     }

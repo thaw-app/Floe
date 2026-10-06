@@ -69,7 +69,7 @@ say "Installing runtime dependencies…"
 # No package here needs an install script, so none are allowed to run.
 (cd runtime && bun install --ignore-scripts --frozen-lockfile >/dev/null 2>&1 || bun install --ignore-scripts >/dev/null)
 
-if [ ! -d "Vendor/FendCore/Frameworks/CFendCore.xcframework" ]; then
+if [[ ! -d "Vendor/FendCore/Frameworks/CFendCore.xcframework" ]]; then
     say "Building Fend Core xcframework…"
     ./scripts/build-fend.sh
 fi

@@ -10,312 +10,203 @@ import FendCore
 import Foundation
 import SwiftUI
 
-public extension CalculatorFormatter {
-    /// Formats calculation result spans directly into a styled AttributedString.
-    /// Uses syntactic spans from FendCore without raw text regex parsing.
-    static func formatResult(
-        spans: [FendSpan],
-        query: String? = nil,
-        locale: Locale = .current
-    ) -> AttributedString {
-        guard !spans.isEmpty else { return AttributedString() }
+extension CalculatorFormatter {
+    /// How a piece of a result is coloured when it is drawn.
+    enum Tone {
+        case figure, quiet, unmarked
+    }
 
-        var hasApprox = false
-        var targetBase = query.flatMap { targetBase(from: $0) }
+    /// A run of a result's text.
+    struct ResultPiece: Equatable {
+        var text: String
+        var tone: Tone = .figure
+    }
 
-        var contentSpans: [FendSpan] = []
-        for span in spans {
-            let str = span.string
-            if str.hasPrefix("approx. ") || str.hasPrefix("approx.") || str.hasPrefix("≈ ") || str.hasPrefix("≈") {
-                hasApprox = true
-            } else {
-                contentSpans.append(span)
+    /// The text Return copies keeps every digit. The text the view draws is shortened and grouped as the locale groups.
+    enum ResultStyle {
+        case copied
+        case drawn(Locale)
+    }
+
+    /// A result as pieces, from the spans fend returns. One reading for the copied text and the drawn one.
+    static func resultPieces(spans: [FendSpan], query: String?, style: ResultStyle) -> [ResultPiece] {
+        var isApproximate = spans.contains { isApproximationMark($0.string) }
+        let content = spans.filter { !isApproximationMark($0.string) }
+        guard !content.isEmpty else { return [] }
+
+        let pieces: [ResultPiece]
+        if let base = base(of: content, query: query), base != 10 {
+            guard let number = content.firstIndex(where: { $0.kind == .number }) else {
+                return approximation(isApproximate) + [ResultPiece(text: content.map(\.string).joined())]
             }
+            pieces = piecesInBase(base, content: content, number: number, style: style, isApproximate: &isApproximate)
+        } else {
+            pieces = decimalPieces(content, style: style, isApproximate: &isApproximate)
         }
+        return approximation(isApproximate) + pieces
+    }
 
-        guard !contentSpans.isEmpty else { return AttributedString() }
-
-        // Infer base from spans if not explicitly specified
-        if targetBase == nil || targetBase == 10 {
-            if let first = contentSpans.first(where: { $0.kind == .number }) {
-                let s = first.string
-                if s.hasPrefix("0x") || s.hasPrefix("0X") {
-                    targetBase = 16
-                } else if s.hasPrefix("0b") || s.hasPrefix("0B") {
-                    targetBase = 2
-                } else if s.hasPrefix("0o") || s.hasPrefix("0O") {
-                    targetBase = 8
-                }
+    /// Formats calculation result spans into the styled text the view draws.
+    static func formatResult(spans: [FendSpan], query: String? = nil, locale: Locale = .current) -> AttributedString {
+        resultPieces(spans: spans, query: query, style: .drawn(locale)).reduce(into: AttributedString()) { text, piece in
+            var run = AttributedString(piece.text)
+            switch piece.tone {
+            case .figure: run.foregroundColor = .primary
+            case .quiet: run.foregroundColor = .secondary
+            case .unmarked: break
             }
+            text.append(run)
         }
+    }
 
-        let groupingSep = locale.groupingSeparator ?? " "
-        let decimalSep = locale.decimalSeparator ?? "."
+    // MARK: Reading the spans
 
-        // Non-decimal base formatting
-        if let base = targetBase, base != 10 {
-            let baseSubscript = toSubscript("\(base)")
-            guard let numIndex = contentSpans.firstIndex(where: { $0.kind == .number }) else {
-                var attr = AttributedString(contentSpans.map(\.string).joined())
-                attr.foregroundColor = .primary
-                return attr
-            }
+    private static func isApproximationMark(_ text: String) -> Bool {
+        text.hasPrefix("approx.") || text.hasPrefix("≈")
+    }
 
-            var digits = contentSpans[numIndex].string.trimmingCharacters(in: .whitespaces)
-            var sign = ""
-            if digits.hasPrefix("-") || digits.hasPrefix("−") {
-                sign = "−"
-                digits = String(digits.dropFirst()).trimmingCharacters(in: .whitespaces)
-            }
-            if digits.hasSuffix(baseSubscript) {
-                digits = String(digits.dropLast(baseSubscript.count)).trimmingCharacters(in: .whitespaces)
-            }
-            if digits.hasPrefix("0x") || digits.hasPrefix("0X") ||
-                digits.hasPrefix("0b") || digits.hasPrefix("0B") ||
-                digits.hasPrefix("0o") || digits.hasPrefix("0O")
-            {
-                digits = String(digits.dropFirst(2))
-            }
+    private static func approximation(_ isApproximate: Bool) -> [ResultPiece] {
+        isApproximate ? [ResultPiece(text: "≈ ", tone: .quiet)] : []
+    }
 
-            let (formatted, wasRounded) = Calculator.formatBaseNumber(digits, base: base, maxDigits: 16, sciNotDigits: 10)
-            if wasRounded {
-                hasApprox = true
-            }
-
-            var attr = AttributedString()
-            if hasApprox {
-                var approxAttr = AttributedString("≈ ")
-                approxAttr.foregroundColor = .secondary
-                attr.append(approxAttr)
-            }
-            if !sign.isEmpty {
-                var signAttr = AttributedString(sign)
-                signAttr.foregroundColor = .secondary
-                attr.append(signAttr)
-            }
-
-            if formatted.contains(" × ") {
-                let parts = formatted.components(separatedBy: " × ")
-                var lhs = AttributedString(parts[0])
-                lhs.foregroundColor = .primary
-                var times = AttributedString(" × ")
-                times.foregroundColor = .secondary
-                var rhs = AttributedString(parts[1])
-                rhs.foregroundColor = .primary
-                attr.append(lhs)
-                attr.append(times)
-                attr.append(rhs)
-            } else {
-                let groupSize = (base == 16 || base == 2) ? 4 : 3
-                let cleanDigits = digits.filter { $0 != " " && String($0) != groupingSep }
-                let grouped = cleanDigits.count <= 16
-                    ? groupDigits(base == 16 ? cleanDigits.uppercased() : cleanDigits, groupSize: groupSize, separator: groupingSep)
-                    : (base == 16 ? cleanDigits.uppercased() : cleanDigits)
-                var numAttr = AttributedString(grouped)
-                numAttr.foregroundColor = .primary
-                var subAttr = AttributedString(baseSubscript)
-                subAttr.foregroundColor = .primary
-                attr.append(numAttr)
-                attr.append(subAttr)
-            }
-
-            // Append remaining spans (such as units)
-            var needsLeadingSpace = true
-            for (idx, span) in contentSpans.enumerated() {
-                guard idx != numIndex else { continue }
-                switch span.kind {
-                case .identifier:
-                    var unitStr = span.string
-                    unitStr = unitStr.replacingOccurrences(of: " / ", with: "/")
-                    unitStr = formatUnitFractions(unitStr)
-                    let trimmed = unitStr.trimmingCharacters(in: .whitespaces)
-                    let hasLeadingSpace = unitStr.hasPrefix(" ")
-                    let cased = (hasLeadingSpace ? " " : "") + normalizeUnitString(trimmed)
-                    if needsLeadingSpace, !cased.hasPrefix(" ") {
-                        attr.append(AttributedString(" "))
-                    }
-                    var unitAttr = AttributedString(cased)
-                    unitAttr.foregroundColor = .primary
-                    attr.append(unitAttr)
-                    needsLeadingSpace = cased.hasSuffix(" ")
-
-                case .whitespace:
-                    attr.append(AttributedString(span.string))
-                    needsLeadingSpace = false
-
-                case .other:
-                    var sym = span.string
-                    if sym == "*" {
-                        sym = " × "
-                    } else if sym == "/" {
-                        sym = " ÷ "
-                    } else if sym == "-" {
-                        sym = " − "
-                    }
-                    var symAttr = AttributedString(sym)
-                    symAttr.foregroundColor = .secondary
-                    attr.append(symAttr)
-                    needsLeadingSpace = sym.hasSuffix(" ")
-
-                case .keyword:
-                    var kwAttr = AttributedString(span.string)
-                    kwAttr.foregroundColor = .secondary
-                    attr.append(kwAttr)
-                    needsLeadingSpace = span.string.hasSuffix(" ")
-
-                default:
-                    var defAttr = AttributedString(span.string)
-                    defAttr.foregroundColor = .primary
-                    attr.append(defAttr)
-                    needsLeadingSpace = span.string.hasSuffix(" ")
-                }
-            }
-
-            return attr
+    /// The base the query asks for, or the one the first number's own prefix names.
+    private static func base(of content: [FendSpan], query: String?) -> Int? {
+        let asked = query.flatMap { targetBase(from: $0) }
+        if asked == nil || asked == 10, let first = content.first(where: { $0.kind == .number }), let named = prefixBase(of: first.string) {
+            return named
         }
+        return asked
+    }
 
-        // Decimal formatting
-        var attr = AttributedString()
-        if hasApprox {
-            var approxAttr = AttributedString("≈ ")
-            approxAttr.foregroundColor = .secondary
-            attr.append(approxAttr)
+    /// A unit as Floe writes it: no spaces round a division, fractions joined, and the casing of its symbol.
+    private static func unitText(_ span: FendSpan) -> String {
+        let unit = formatUnitFractions(span.string.replacingOccurrences(of: " / ", with: "/"))
+        return (unit.hasPrefix(" ") ? " " : "") + normalizeUnitString(unit.trimmingCharacters(in: .whitespaces))
+    }
+
+    private static func symbolText(_ symbol: String) -> String {
+        switch symbol {
+        case "*": " × "
+        case "/": " ÷ "
+        case "-": " − "
+        default: symbol
         }
+    }
 
-        for span in contentSpans {
-            switch span.kind {
-            case .number:
-                let (formattedNum, truncated) = Calculator.formatNumber(span.string, maxDigits: 16, sciNotDigits: 10)
-                if truncated, !hasApprox {
-                    var approxAttr = AttributedString("≈ ")
-                    approxAttr.foregroundColor = .secondary
-                    attr = approxAttr + attr
-                    hasApprox = true
-                }
+    // MARK: Decimal
 
-                if let eRange = formattedNum.range(of: #"[eE][+-]?[0-9]+"#, options: .regularExpression) {
-                    let mantissa = String(formattedNum[..<eRange.lowerBound])
-                    var expStr = String(formattedNum[eRange])
-                    expStr.removeFirst()
-                    if expStr.hasPrefix("+") {
-                        expStr.removeFirst()
-                    }
-
-                    let supExp = toSuperscript(expStr)
-
-                    if mantissa == "1" || mantissa == "+1" {
-                        var tenAttr = AttributedString("10\(supExp)")
-                        tenAttr.foregroundColor = .primary
-                        attr.append(tenAttr)
-                    } else if mantissa == "-1" || mantissa == "−1" {
-                        var signAttr = AttributedString("−")
-                        signAttr.foregroundColor = .secondary
-                        var tenAttr = AttributedString("10\(supExp)")
-                        tenAttr.foregroundColor = .primary
-                        attr.append(signAttr)
-                        attr.append(tenAttr)
-                    } else {
-                        var intPart = mantissa
-                        var fracPart: String?
-                        if let dotIdx = mantissa.firstIndex(of: ".") {
-                            intPart = String(mantissa[..<dotIdx])
-                            fracPart = String(mantissa[mantissa.index(after: dotIdx)...])
-                        }
-                        intPart = groupDigits(intPart, groupSize: 3, separator: groupingSep)
-                        let groupedMantissa = fracPart.map { "\(intPart)\(decimalSep)\($0)" } ?? intPart
-
-                        var mantissaAttr = AttributedString(groupedMantissa)
-                        mantissaAttr.foregroundColor = .primary
-                        var timesAttr = AttributedString(" × ")
-                        timesAttr.foregroundColor = .secondary
-                        var expAttr = AttributedString("10\(supExp)")
-                        expAttr.foregroundColor = .primary
-
-                        attr.append(mantissaAttr)
-                        attr.append(timesAttr)
-                        attr.append(expAttr)
-                    }
-                } else {
-                    var intPart = formattedNum
-                    var fracPart: String?
-                    if let dotIdx = formattedNum.firstIndex(of: ".") {
-                        intPart = String(formattedNum[..<dotIdx])
-                        fracPart = String(formattedNum[formattedNum.index(after: dotIdx)...])
-                    }
-                    intPart = groupDigits(intPart, groupSize: 3, separator: groupingSep)
-                    let groupedNum = fracPart.map { "\(intPart)\(decimalSep)\($0)" } ?? intPart
-
-                    var numAttr = AttributedString(groupedNum)
-                    numAttr.foregroundColor = .primary
-                    attr.append(numAttr)
-                }
-
-            case .identifier:
-                var unitStr = span.string
-                unitStr = unitStr.replacingOccurrences(of: " / ", with: "/")
-                unitStr = formatUnitFractions(unitStr)
-                let trimmed = unitStr.trimmingCharacters(in: .whitespaces)
-                let hasLeadingSpace = unitStr.hasPrefix(" ")
-                let cased = (hasLeadingSpace ? " " : "") + normalizeUnitString(trimmed)
-                var unitAttr = AttributedString(cased)
-                unitAttr.foregroundColor = .primary
-                attr.append(unitAttr)
-
-            case .whitespace:
-                attr.append(AttributedString(span.string))
-
-            case .other:
-                var sym = span.string
-                if sym == "*" {
-                    sym = " × "
-                } else if sym == "/" {
-                    sym = " ÷ "
-                } else if sym == "-" {
-                    sym = " − "
-                }
-                var symAttr = AttributedString(sym)
-                symAttr.foregroundColor = .secondary
-                attr.append(symAttr)
-
-            case .keyword:
-                var kwAttr = AttributedString(span.string)
-                kwAttr.foregroundColor = .secondary
-                attr.append(kwAttr)
-
+    private static func decimalPieces(_ content: [FendSpan], style: ResultStyle, isApproximate: inout Bool) -> [ResultPiece] {
+        content.flatMap { span -> [ResultPiece] in
+            switch (span.kind, style) {
+            case (.number, .copied):
+                // The digits are fend's, all of them.
+                return [ResultPiece(text: span.string)]
+            case let (.number, .drawn(locale)):
+                let (number, wasShortened) = Calculator.formatNumber(span.string, maxDigits: 16, sciNotDigits: 10)
+                isApproximate = isApproximate || wasShortened
+                return drawnNumber(number, locale: locale)
+            case (.identifier, _):
+                return [ResultPiece(text: unitText(span))]
+            case (.whitespace, _):
+                return [ResultPiece(text: span.string, tone: .unmarked)]
+            case (.other, .drawn):
+                return [ResultPiece(text: symbolText(span.string), tone: .quiet)]
+            case (.keyword, .drawn):
+                return [ResultPiece(text: span.string, tone: .quiet)]
             default:
-                var defAttr = AttributedString(span.string)
-                defAttr.foregroundColor = .primary
-                attr.append(defAttr)
+                return [ResultPiece(text: span.string)]
             }
         }
-
-        return attr
     }
 
-    /// Formats a FendResult directly into a styled AttributedString.
-    static func formatResult(
-        result: FendResult,
-        query: String? = nil,
-        locale: Locale = .current
-    ) -> AttributedString {
-        formatResult(spans: result.spans, query: query, locale: locale)
+    /// A decimal as it is drawn: digits in the locale's groups, and a power of ten where it was shortened to one.
+    private static func drawnNumber(_ number: String, locale: Locale) -> [ResultPiece] {
+        guard let exponent = number.range(of: #"[eE][+-]?[0-9]+"#, options: .regularExpression) else {
+            return [ResultPiece(text: grouped(number, locale: locale))]
+        }
+        let mantissa = String(number[..<exponent.lowerBound])
+        let power = ResultPiece(text: "10" + toSuperscript(String(number[exponent].dropFirst().trimmingPrefix("+"))))
+        switch mantissa {
+        case "1", "+1": return [power]
+        case "-1", "−1": return [ResultPiece(text: "−", tone: .quiet), power]
+        default: return [ResultPiece(text: grouped(mantissa, locale: locale)), ResultPiece(text: " × ", tone: .quiet), power]
+        }
     }
 
-    /// Formats calculation result spans directly into a plain String with system numbering grouping.
-    static func formatResultString(
-        spans: [FendSpan],
-        query: String? = nil,
-        locale: Locale = .current
-    ) -> String {
-        String(formatResult(spans: spans, query: query, locale: locale).characters)
+    static func grouped(_ number: String, locale: Locale) -> String {
+        let parts = number.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
+        let whole = groupDigits(String(parts[0]), groupSize: 3, separator: locale.groupingSeparator ?? " ")
+        return parts.count > 1 ? whole + (locale.decimalSeparator ?? ".") + parts[1] : whole
     }
 
-    /// Formats a FendResult directly into a plain String with system numbering grouping.
-    static func formatResultString(
-        result: FendResult,
-        query: String? = nil,
-        locale: Locale = .current
-    ) -> String {
-        formatResultString(spans: result.spans, query: query, locale: locale)
+    // MARK: Another base
+
+    private static func piecesInBase(_ base: Int, content: [FendSpan], number: Int, style: ResultStyle, isApproximate: inout Bool) -> [ResultPiece] {
+        let mark = toSubscript("\(base)")
+        var digits = content[number].string.trimmingCharacters(in: .whitespaces)
+        let isNegative = digits.hasPrefix("-") || digits.hasPrefix("−")
+        if isNegative {
+            digits = String(digits.dropFirst()).trimmingCharacters(in: .whitespaces)
+        }
+        if digits.hasSuffix(mark) {
+            digits = String(digits.dropLast(mark.count)).trimmingCharacters(in: .whitespaces)
+        }
+        if prefixBase(of: digits) != nil {
+            digits = String(digits.dropFirst(2))
+        }
+        let (written, wasShortened) = Calculator.formatBaseNumber(digits, base: base, maxDigits: 16, sciNotDigits: 10)
+        isApproximate = isApproximate || wasShortened
+
+        let sign = isNegative ? [ResultPiece(text: "−", tone: style.isDrawn ? .quiet : .figure)] : []
+        return sign + numberInBase(base, digits: digits, written: written, mark: mark, style: style) + piecesAfterNumber(content, number: number, style: style)
+    }
+
+    private static func numberInBase(_ base: Int, digits: String, written: String, mark: String, style: ResultStyle) -> [ResultPiece] {
+        guard case let .drawn(locale) = style else { return [ResultPiece(text: written)] }
+        if let times = written.range(of: " × ") {
+            return [ResultPiece(text: String(written[..<times.lowerBound])), ResultPiece(text: " × ", tone: .quiet), ResultPiece(text: String(written[times.upperBound...]))]
+        }
+        let separator = locale.groupingSeparator ?? " "
+        let clean = digits.filter { $0 != " " && String($0) != separator }
+        let shown = base == 16 ? clean.uppercased() : clean
+        let groups = clean.count <= 16 ? groupDigits(shown, groupSize: base == 16 || base == 2 ? 4 : 3, separator: separator) : shown
+        return [ResultPiece(text: groups + mark)]
+    }
+
+    /// What follows a number in another base, a unit most often, set off by one space.
+    private static func piecesAfterNumber(_ content: [FendSpan], number: Int, style _: ResultStyle) -> [ResultPiece] {
+        var pieces: [ResultPiece] = []
+        var needsSpace = true
+        for (index, span) in content.enumerated() where index != number {
+            switch span.kind {
+            case .identifier:
+                let unit = unitText(span)
+                if needsSpace, !unit.hasPrefix(" ") {
+                    pieces.append(ResultPiece(text: " ", tone: .unmarked))
+                }
+                pieces.append(ResultPiece(text: unit))
+                needsSpace = unit.hasSuffix(" ")
+            case .whitespace:
+                pieces.append(ResultPiece(text: span.string, tone: .unmarked))
+                needsSpace = false
+            case .other:
+                let symbol = symbolText(span.string)
+                pieces.append(ResultPiece(text: symbol, tone: .quiet))
+                needsSpace = symbol.hasSuffix(" ")
+            default:
+                pieces.append(ResultPiece(text: span.string, tone: span.kind == .keyword ? .quiet : .figure))
+                needsSpace = span.string.hasSuffix(" ")
+            }
+        }
+        return pieces
+    }
+}
+
+private extension CalculatorFormatter.ResultStyle {
+    var isDrawn: Bool {
+        if case .drawn = self {
+            return true
+        }
+        return false
     }
 }

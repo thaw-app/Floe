@@ -13,6 +13,7 @@ Floe has no translations yet, so this one lists who builds the app and what it i
 from the files that pin them, so run it again after changing a dependency:
     Package.resolved      Swift packages
     runtime/package.json  the extension runtime's packages
+    Vendor/FendCore/rust/Cargo.lock  the Rust crates behind the calculator
 Links come from FloeLinks in project.yml, the one place the app's web links are kept.
 
 Every path is fixed and relative to the repository, so the script reads and writes nowhere else.
@@ -28,6 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PROJECT = ROOT / "project.yml"
 SWIFT_PINS = ROOT / "Package.resolved"
 RUNTIME_MANIFEST = ROOT / "runtime" / "package.json"
+CARGO_PINS = ROOT / "Vendor" / "FendCore" / "rust" / "Cargo.lock"
 MARKDOWN = ROOT / "CREDITS.md"
 SWIFT = ROOT / "Sources" / "Floe" / "App" / "Credits.swift"
 
@@ -39,9 +41,9 @@ class Dependency(NamedTuple):
     license: str
     # What Floe uses it for, as a sentence without the final period.
     use: str
-    # Where the version comes from: "swift", "runtime" or "" for none.
+    # Where the version comes from: "swift", "runtime", "cargo" or "" for none.
     source: str = ""
-    # The Package.resolved identity or package.json name to look up.
+    # The Package.resolved identity, package.json name or crate name to look up.
     key: str = ""
     # Left out of the credits until its version can be found, for dependencies still being added.
     optional: bool = False
@@ -82,6 +84,7 @@ DEPENDENCIES = [
                "Waits for typing and folder changes to settle", "swift", "swift-async-algorithms"),
     Dependency("swift-collections", "swiftCollections", APACHE_2, "Used by swift-async-algorithms",
                "swift", "swift-collections"),
+    Dependency("fend", "fend", "MIT", "Calculates and converts units in the search", "cargo", "fend-core"),
     Dependency("Bun", "bun", "MIT", "Runs extensions"),
     Dependency("React", "react", "MIT", "Renders extensions", "runtime", "react"),
     Dependency("react-reconciler", "react", "MIT", "Turns what an extension renders into Floe's views",
@@ -129,7 +132,14 @@ def runtime_version(name: str) -> Optional[str]:
     return manifest.get("dependencies", {}).get(name)
 
 
-VERSION_READERS = {"swift": swift_version, "runtime": runtime_version}
+def cargo_version(crate: str) -> Optional[str]:
+    """The version Cargo.lock pins a crate at."""
+    lock = CARGO_PINS.read_text(encoding="utf-8")
+    match = re.search(rf'^name = "{re.escape(crate)}"\nversion = "([^"]+)"', lock, re.M)
+    return match.group(1) if match else None
+
+
+VERSION_READERS = {"swift": swift_version, "runtime": runtime_version, "cargo": cargo_version}
 
 
 def version_of(dependency: Dependency) -> Optional[str]:

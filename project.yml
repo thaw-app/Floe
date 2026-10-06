@@ -143,6 +143,7 @@ targets:
           swiftAsyncAlgorithms: https://github.com/apple/swift-async-algorithms
           swiftCollections: https://github.com/apple/swift-collections
           swiftSystem: https://github.com/apple/swift-system
+          fend: https://github.com/printfn/fend
         # Filled in from git by the Embed Runtime step.
         GitCommitSHA: unknown
         CFBundleShortVersionString: "0.1.0"
