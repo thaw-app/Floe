@@ -53,7 +53,7 @@ struct SelectableRootRow: View {
     let item: RootItem
 
     var body: some View {
-        if case .calculator(let expression, let resultText, let errorText, let attributedResult) = item {
+        if case let .calculator(expression, resultText, errorText, attributedResult) = item {
             CalculatorBlockView(
                 expression: expression,
                 result: resultText,

@@ -6,9 +6,9 @@
 //  Licensed under the GNU GPLv3
 
 import FendCore
+@testable import Floe
 import Foundation
 import Testing
-@testable import Floe
 
 struct FendIntegrationTests {
     @Test func fendVersionIsAvailable() {

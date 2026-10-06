@@ -7,19 +7,14 @@
 
 import AppKit
 import FendCore
+@testable import Floe
 import Foundation
 import SwiftUI
 import Testing
-@testable import Floe
 
 @MainActor
 struct CalculatorTests {
     private let calculator = Calculator()
-
-    
-
-
-    
 
     @Test func unitFractionRendering() {
         // Plain string format keeps units rendering normally with slash / instead of division symbol ÷
@@ -54,6 +49,7 @@ struct CalculatorTests {
             Issue.record("Expected non-nil reversePreview for 100 km/h to mph")
         }
     }
+
     @Test func eagerRadicalRendering() {
         // sqrt(x eagerly renders like sqrt(x)
         #expect(CalculatorFormatter.formatString("sqrt(x") == "√x")
@@ -147,7 +143,6 @@ struct CalculatorTests {
         #expect(calculator.evaluatePreview("cbrt(8)")?.result == "2")
     }
 
-
     @Test func approximationSymbolReplacement() {
         #expect(calculator.evaluatePreview("pi") == "≈ 3.1415926536")
         #expect(calculator.evaluatePreview("1/3") == "≈ 0.3333333333")
@@ -200,7 +195,7 @@ struct CalculatorTests {
         #expect(calculator.evaluatePreview("5 m") == nil)
     }
 
-    @Test func nonBaseTenPrefixedNumbers() {
+    @Test func nonBaseTenPrefixedNumbers() throws {
         // Lone prefixes without digits must not activate
         #expect(calculator.evaluatePreview("0x") == nil)
         #expect(calculator.evaluatePreview("0b") == nil)
@@ -219,9 +214,9 @@ struct CalculatorTests {
         #expect(calculator.evaluatePreview("0o2000000000000000000000") == "≈ 1.844674407e+19")
 
         // Formatter displays scientific notation with base subscripts or powers
-        let preview16 = calculator.evaluatePreview("0x1000000000000000")!
+        let preview16 = try #require(calculator.evaluatePreview("0x1000000000000000"))
         #expect(CalculatorFormatter.formatString(preview16.result) == "≈ 1.152921505 × 10¹⁸")
-        let preview17 = calculator.evaluatePreview("0x10000000000000000")!
+        let preview17 = try #require(calculator.evaluatePreview("0x10000000000000000"))
         #expect(CalculatorFormatter.formatString(preview17.result) == "≈ 1.844674407 × 10¹⁹")
     }
 
@@ -333,7 +328,6 @@ struct CalculatorTests {
         let errorHeight = hostError.fittingSize.height
         #expect(normalHeight == errorHeight, Comment(rawValue: "Normal height \(normalHeight) vs Error height \(errorHeight)"))
     }
-
 
     @Test func normalizationOfSpacesAndUnits() {
         #expect(CalculatorFormatter.formatString("1*2") == "1 × 2")
@@ -477,9 +471,9 @@ struct CalculatorTests {
         #expect(CalculatorFormatter.formatString("0xabcdef01234567890") == "≈ A.BCDEF0123₁₆ × 16¹⁶")
     }
 
-    @Test func outputDisplayUsesSyntacticSpans() {
+    @Test func outputDisplayUsesSyntacticSpans() throws {
         // CalculationPreview preserves FendCore spans
-        let preview = calculator.evaluatePreview("5 ft in meters")!
+        let preview = try #require(calculator.evaluatePreview("5 ft in meters"))
         #expect(!preview.spans.isEmpty)
         #expect(preview.spans.contains { $0.kind == .number && $0.string == "1.524" })
         #expect(preview.spans.contains { $0.kind == .identifier && $0.string.contains("meters") })
@@ -497,7 +491,7 @@ struct CalculatorTests {
         }
 
         // Approximation span styling
-        let approxPreview = calculator.evaluatePreview("1/3")!
+        let approxPreview = try #require(calculator.evaluatePreview("1/3"))
         #expect(approxPreview.spans.contains { $0.string.hasPrefix("approx.") })
         #expect(approxPreview.result == "≈ 0.3333333333")
         let approxAttr = approxPreview.attributedResult
@@ -512,7 +506,7 @@ struct CalculatorTests {
         let customSpans = [
             FendSpan(string: "approx. ", kind: .identifier),
             FendSpan(string: "42", kind: .number),
-            FendSpan(string: " km / h", kind: .identifier)
+            FendSpan(string: " km / h", kind: .identifier),
         ]
         let formatted = Calculator.formatResult(spans: customSpans)
         #expect(formatted == "≈ 42 km/h")
@@ -530,7 +524,7 @@ struct CalculatorTests {
         }
     }
 
-    @Test func nonDecimalOutputsPreserveUnitsAndDrawSubscriptsInNumberStyle() {
+    @Test func nonDecimalOutputsPreserveUnitsAndDrawSubscriptsInNumberStyle() throws {
         let sep = Locale.current.groupingSeparator ?? " "
 
         // 1. Non-decimal outputs preserve units in canonical result
@@ -544,7 +538,7 @@ struct CalculatorTests {
         #expect(hexBytesPreview?.result == "FF₁₆ bytes")
 
         // 2. Subscript is drawn in number style (.primary), NOT operator style (.secondary)
-        let hexPreview = calculator.evaluatePreview("255 to hex")!
+        let hexPreview = try #require(calculator.evaluatePreview("255 to hex"))
         #expect(hexPreview.result == "FF₁₆")
         let hexAttr = hexPreview.attributedResult
         if let numRange = hexAttr.range(of: "FF") {
@@ -555,7 +549,7 @@ struct CalculatorTests {
         }
 
         // 3. Subscripts with units in attributedResult are drawn in number style and units in primary
-        let hexMeterAttr = hexMeterPreview!.attributedResult
+        let hexMeterAttr = try #require(hexMeterPreview?.attributedResult)
         #expect(String(hexMeterAttr.characters) == "64₁₆ meters")
         if let numRange = hexMeterAttr.range(of: "64") {
             #expect(hexMeterAttr[numRange].foregroundColor == .primary)
@@ -570,7 +564,7 @@ struct CalculatorTests {
         // 4. Binary with units and grouping
         let largeBinUnitPreview = calculator.evaluatePreview("256 meters to binary")
         #expect(largeBinUnitPreview?.result == "100000000₂ meters")
-        let largeBinAttr = largeBinUnitPreview!.attributedResult
+        let largeBinAttr = try #require(largeBinUnitPreview?.attributedResult)
         #expect(String(largeBinAttr.characters) == "1\(sep)0000\(sep)0000₂ meters")
         if let subRange = largeBinAttr.range(of: "₂") {
             #expect(largeBinAttr[subRange].foregroundColor == .primary)

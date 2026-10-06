@@ -290,7 +290,7 @@ enum RootItem: Identifiable {
         case .fileSearch: String(localized: "Search Files", bundle: .floe)
         case let .searchFiles(query): String(localized: "Search Files for \"\(query)\"", bundle: .floe, comment: "The placeholder is what the user typed.")
         case .settings: String(localized: "Floe Settings", bundle: .floe)
-        case .calculator(_, let result, let error, _):
+        case let .calculator(_, result, error, _):
             error ?? (result.isEmpty ? String(localized: "Calculator", bundle: .floe) : result)
         case let .system(command): command.title
         case let .settingsPane(pane): pane.title
@@ -389,7 +389,9 @@ enum RootItem: Identifiable {
     }
 
     var isCalculator: Bool {
-        if case .calculator = self { return true }
+        if case .calculator = self {
+            return true
+        }
         return false
     }
 }
