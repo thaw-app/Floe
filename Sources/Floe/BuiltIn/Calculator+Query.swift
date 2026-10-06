@@ -52,7 +52,7 @@ extension Calculator {
 
         // Common math constants or functions
         let mathPrefixes = [
-            "pi", "tau", "e", "sqrt", "cbrt", "sin", "cos", "tan", "asin", "acos", "atan",
+            "pi", "π", "tau", "τ", "e", "sqrt", "cbrt", "sin", "cos", "tan", "asin", "acos", "atan",
             "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
             "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh", "ln", "log", "log2", "log10",
             "abs", "floor", "ceil", "round",

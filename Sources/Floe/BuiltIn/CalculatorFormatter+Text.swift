@@ -12,7 +12,7 @@ import SwiftUI
 
 extension CalculatorFormatter {
     /// Formats a plain string representation of an expression or calculation result.
-    static func formatString(_ text: String, locale: Locale = .current) -> String {
+    static func formatString(_ text: String, locale: Locale = .current, convertExponentsToUnicode: Bool = true) -> String {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if s.hasPrefix("approx.") {
             s = "≈ " + s.dropFirst(7).trimmingCharacters(in: .whitespaces)
@@ -22,10 +22,13 @@ extension CalculatorFormatter {
         s = withSubscripts(s)
         s = withUnitsSetOff(s)
         s = withLongNumbersShortened(s)
-        s = withPowersOfTen(s)
+        s = withPowersOfTen(s, convertExponentsToUnicode: convertExponentsToUnicode)
         s = formatRootFunctions(s)
         s = formatPowerRoots(s)
-        s = withRaisedExponents(s)
+        s = withPi(s)
+        if convertExponentsToUnicode {
+            s = withRaisedExponents(s)
+        }
         s = withUnitsCased(s)
         s = formatUnitFractions(s)
         s = withOperatorsSpaced(s)
@@ -78,9 +81,10 @@ extension CalculatorFormatter {
     }
 
     /// 1.267e+30 -> 1.267 × 10³⁰, 1e+50 -> 10⁵⁰
-    private static func withPowersOfTen(_ text: String) -> String {
+    private static func withPowersOfTen(_ text: String, convertExponentsToUnicode: Bool = true) -> String {
         replacePattern(text, pattern: #"\b([+-]?[0-9]+(?:\.[0-9]+)?)[eE]([+-]?[0-9]+)\b"#) { groups in
-            let power = "10" + toSuperscript(String(groups[2].trimmingPrefix("+")))
+            let rawExp = String(groups[2].trimmingPrefix("+"))
+            let power = convertExponentsToUnicode ? ("10" + toSuperscript(rawExp)) : ("10^" + rawExp)
             switch groups[1] {
             case "1": return power
             case "-1": return "−" + power
@@ -96,6 +100,10 @@ extension CalculatorFormatter {
     }
 
     /// A unit takes the casing of its symbol, except a word that a base below the line follows.
+    static func withPi(_ text: String) -> String {
+        replacePattern(text, pattern: #"(?<![a-zA-Z])[pP][iI](?![a-zA-Z])"#) { _ in "π" }
+    }
+
     private static func withUnitsCased(_ text: String) -> String {
         replacePattern(text, pattern: #"\b[a-zA-Z]+\b(?![₀-₉])"#) { groups in normalizeUnitCasing(groups[0]) }
     }
@@ -105,7 +113,9 @@ extension CalculatorFormatter {
             (#"[ \t]*\*[ \t]*"#, " × "),
             (#"(?<![a-zA-Zµ°])[ \t]*\/[ \t]*(?![a-zA-Zµ°])"#, " ÷ "),
             (#"[ \t]*\+[ \t]*"#, " + "),
-            (#"(\S)[ \t]*-[ \t]*(\S)"#, "$1 − $2"),
+            (#"(?<!\^)(\S)[ \t]*-[ \t]*(\S)"#, "$1 − $2"),
+            (#"\^-[ \t]*"#, "^−"),
+            (#"\([ \t]*-[ \t]*"#, "(−"),
             (#"^-[ \t]*"#, "−"),
             (#"[ \t]*=[ \t]*"#, " = "),
             (#"[ \t]*≈[ \t]*"#, " ≈ "),
@@ -152,46 +162,226 @@ extension CalculatorFormatter {
         return result + source.substring(from: end)
     }
 
-    /// Formats an expression or result into an `AttributedString` where operators and conversion keywords are styled in gray.
+    private struct FormattedSegment {
+        let text: String
+        let isSuperscript: Bool
+    }
+
+    private static func isFollowedByRadical(_ str: String, at index: String.Index) -> Bool {
+        var scan = str.index(after: index)
+        while scan < str.endIndex {
+            let ch = str[scan]
+            if ch == "√" { return true }
+            if supToAscii[ch] != nil {
+                scan = str.index(after: scan)
+            } else {
+                return false
+            }
+        }
+        return false
+    }
+
+    private static func isSpaceOrTab(_ c: Character) -> Bool {
+        c == " " || c == "\t"
+    }
+
+    private static func isSign(_ c: Character) -> Bool {
+        c == "+" || c == "-" || c == "−"
+    }
+
+    private static func isExponentTokenChar(_ c: Character) -> Bool {
+        c.isLetter || c.isNumber || c == "."
+    }
+
+    private static func isSuperscript(in s: String, at index: String.Index) -> Bool {
+        supToAscii[s[index]] != nil && !isFollowedByRadical(s, at: index)
+    }
+
+    private static func isSpecialExponentStart(in s: String, at index: String.Index) -> Bool {
+        s[index] == "^" || isSuperscript(in: s, at: index)
+    }
+
+    private static func parseParenthesizedExponent(
+        in s: String,
+        openParen: String.Index
+    ) -> (segment: FormattedSegment?, nextIndex: String.Index) {
+        let contentStart = s.index(after: openParen)
+        var depth = 1
+        var parenScan = contentStart
+
+        while parenScan < s.endIndex {
+            let c = s[parenScan]
+            if c == "(" {
+                depth += 1
+            } else if c == ")" {
+                depth -= 1
+                if depth == 0 {
+                    let expContent = String(s[contentStart ..< parenScan])
+                    let segment = expContent.isEmpty ? nil : FormattedSegment(text: expContent, isSuperscript: true)
+                    return (segment, s.index(after: parenScan))
+                }
+            }
+            parenScan = s.index(after: parenScan)
+        }
+
+        let expContent = String(s[contentStart...])
+        let segment = expContent.isEmpty ? nil : FormattedSegment(text: expContent, isSuperscript: true)
+        return (segment, s.endIndex)
+    }
+
+    private static func parseSimpleExponent(
+        in s: String,
+        startingAt scan: String.Index
+    ) -> (segment: FormattedSegment, nextIndex: String.Index)? {
+        var tokenScan = scan
+        if isSign(s[tokenScan]) {
+            tokenScan = s.index(after: tokenScan)
+            while tokenScan < s.endIndex, isSpaceOrTab(s[tokenScan]) {
+                tokenScan = s.index(after: tokenScan)
+            }
+        }
+        while tokenScan < s.endIndex, isExponentTokenChar(s[tokenScan]) {
+            tokenScan = s.index(after: tokenScan)
+        }
+        guard tokenScan > scan else { return nil }
+        let expContent = String(s[scan ..< tokenScan]).filter { !isSpaceOrTab($0) }
+        return (FormattedSegment(text: expContent, isSuperscript: true), tokenScan)
+    }
+
+    private static func parseCaret(
+        in s: String,
+        at currentIndex: String.Index
+    ) -> (segment: FormattedSegment?, nextIndex: String.Index) {
+        var scan = s.index(after: currentIndex)
+        while scan < s.endIndex, isSpaceOrTab(s[scan]) {
+            scan = s.index(after: scan)
+        }
+
+        if scan < s.endIndex {
+            if s[scan] == "(" {
+                return parseParenthesizedExponent(in: s, openParen: scan)
+            }
+            if let result = parseSimpleExponent(in: s, startingAt: scan) {
+                return result
+            }
+        }
+
+        return (FormattedSegment(text: "^", isSuperscript: false), s.index(after: currentIndex))
+    }
+
+    private static func parseUnicodeSuperscripts(
+        in s: String,
+        startingAt currentIndex: String.Index
+    ) -> (segment: FormattedSegment, nextIndex: String.Index) {
+        var scan = currentIndex
+        var converted = ""
+        while scan < s.endIndex, let ascii = supToAscii[s[scan]], !isFollowedByRadical(s, at: scan) {
+            converted.append(ascii)
+            scan = s.index(after: scan)
+        }
+        return (FormattedSegment(text: converted, isSuperscript: true), scan)
+    }
+
+    private static func parseSegments(from s: String) -> [FormattedSegment] {
+        var segments: [FormattedSegment] = []
+        var currentIndex = s.startIndex
+
+        while currentIndex < s.endIndex {
+            let ch = s[currentIndex]
+
+            // 1. Explicit caret exponent: ^(...) or ^token
+            if ch == "^" {
+                let (segment, nextIndex) = parseCaret(in: s, at: currentIndex)
+                if let segment {
+                    segments.append(segment)
+                }
+                currentIndex = nextIndex
+                continue
+            }
+
+            // 2. Unicode superscripts that aren't radical degrees
+            if isSuperscript(in: s, at: currentIndex) {
+                let (segment, nextIndex) = parseUnicodeSuperscripts(in: s, startingAt: currentIndex)
+                segments.append(segment)
+                currentIndex = nextIndex
+                continue
+            }
+
+            // 3. Regular text: accumulate until next exponent or unicode superscript
+            let regStart = currentIndex
+            while currentIndex < s.endIndex, !isSpecialExponentStart(in: s, at: currentIndex) {
+                currentIndex = s.index(after: currentIndex)
+            }
+            if currentIndex > regStart {
+                segments.append(FormattedSegment(text: String(s[regStart ..< currentIndex]), isSuperscript: false))
+            }
+        }
+
+        return segments
+    }
+
+    private static func formatSegment(_ segment: FormattedSegment, operatorChars: Set<Character>) -> AttributedString {
+        var segAttr = AttributedString(segment.text)
+        segAttr.foregroundColor = .primary
+
+        if segment.isSuperscript {
+            segAttr.font = .system(size: 16, weight: .bold)
+            segAttr.baselineOffset = 8
+            segAttr.appKit.superscript = 1
+        }
+
+        for idx in segAttr.characters.indices where operatorChars.contains(segAttr.characters[idx]) {
+            segAttr[idx ..< segAttr.characters.index(after: idx)].foregroundColor = .secondary
+        }
+
+        return segAttr
+    }
+
+    private static func styleRadicalIndices(in attr: inout AttributedString) {
+        for idx in attr.characters.indices where attr.characters[idx] == "√" {
+            var backIdx = idx
+            while backIdx > attr.startIndex {
+                let prevIdx = attr.characters.index(before: backIdx)
+                let prevChar = attr.characters[prevIdx]
+                if "⁰¹²³⁴⁵⁶⁷⁸⁹ⁿᵏⁱˣʸ".contains(prevChar) {
+                    attr[prevIdx ..< backIdx].foregroundColor = .secondary
+                    backIdx = prevIdx
+                } else {
+                    break
+                }
+            }
+        }
+    }
+
+    private static func styleConversionKeywords(in attr: inout AttributedString) {
+        let plain = String(attr.characters)
+        guard let regex = try? NSRegularExpression(pattern: #"(?<!\d\s)(?<!\d)\bin\b|\b(to|into|as)\b"#) else { return }
+        let nsString = plain as NSString
+        let matches = regex.matches(in: plain, range: NSRange(location: 0, length: nsString.length))
+        for match in matches {
+            if let range = Range(match.range, in: plain),
+               let attrRange = Range(range, in: attr)
+            {
+                attr[attrRange].foregroundColor = .secondary
+            }
+        }
+    }
+
+    /// Formats an expression or result into an `AttributedString` where operators and conversion keywords are styled in gray,
+    /// and exponents are rendered using actual superscripts (baseline offset and smaller font) rather than unicode superscripts.
     static func format(_ text: String, locale: Locale = .current) -> AttributedString {
-        let formattedString = formatString(text, locale: locale)
-        var attr = AttributedString(formattedString)
-        attr.foregroundColor = .primary
+        let formattedString = formatString(text, locale: locale, convertExponentsToUnicode: false)
+        let segments = parseSegments(from: formattedString)
+        var attr = AttributedString()
 
-        let operatorChars: Set<Character> = ["+", "−", "×", "÷", "=", "≈", "√", "∛", "∜"]
+        let operatorChars: Set<Character> = ["+", "−", "×", "÷", "/", "*", "^", "=", "≈", "√", "∛", "∜", "⁄"]
 
-        for idx in attr.characters.indices {
-            let char = attr.characters[idx]
-            if operatorChars.contains(char) {
-                attr[idx ..< attr.characters.index(after: idx)].foregroundColor = .secondary
-                if char == "√" {
-                    var backIdx = idx
-                    while backIdx > attr.startIndex {
-                        let prevIdx = attr.characters.index(before: backIdx)
-                        let prevChar = attr.characters[prevIdx]
-                        if "⁰¹²³⁴⁵⁶⁷⁸⁹ⁿᵏⁱˣʸ".contains(prevChar) {
-                            attr[prevIdx ..< backIdx].foregroundColor = .secondary
-                            backIdx = prevIdx
-                        } else {
-                            break
-                        }
-                    }
-                }
-            }
+        for segment in segments {
+            attr.append(formatSegment(segment, operatorChars: operatorChars))
         }
 
-        // Color conversion keywords (to, into, as, and 'in' when not preceded by digits)
-        if let regex = try? NSRegularExpression(pattern: #"(?<!\d\s)(?<!\d)\bin\b|\b(to|into|as)\b"#) {
-            let nsString = formattedString as NSString
-            let matches = regex.matches(in: formattedString, range: NSRange(location: 0, length: nsString.length))
-            for match in matches {
-                if let range = Range(match.range, in: formattedString),
-                   let attrRange = Range(range, in: attr)
-                {
-                    attr[attrRange].foregroundColor = .secondary
-                }
-            }
-        }
+        styleRadicalIndices(in: &attr)
+        styleConversionKeywords(in: &attr)
 
         return attr
     }

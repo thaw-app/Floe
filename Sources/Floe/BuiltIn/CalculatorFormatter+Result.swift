@@ -81,7 +81,9 @@ extension CalculatorFormatter {
     /// A unit as Floe writes it: no spaces round a division, fractions joined, and the casing of its symbol.
     private static func unitText(_ span: FendSpan) -> String {
         let unit = formatUnitFractions(span.string.replacingOccurrences(of: " / ", with: "/"))
-        return (unit.hasPrefix(" ") ? " " : "") + normalizeUnitString(unit.trimmingCharacters(in: .whitespaces))
+        let normalized = normalizeUnitString(unit.trimmingCharacters(in: .whitespaces))
+        let written = withPi(normalized)
+        return (unit.hasPrefix(" ") ? " " : "") + written
     }
 
     private static func symbolText(_ symbol: String) -> String {

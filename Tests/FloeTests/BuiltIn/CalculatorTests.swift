@@ -368,6 +368,102 @@ struct CalculatorTests {
         }
     }
 
+    @Test func actualSuperscriptFormatting() {
+        // 1. Complex exponent with operators: e^(i * pi)
+        let eAttr = CalculatorFormatter.format("e^(i * pi)")
+        #expect(String(eAttr.characters) == "ei × π")
+        if let eRange = eAttr.range(of: "e") {
+            #expect(eAttr[eRange].baselineOffset == nil || eAttr[eRange].baselineOffset == 0)
+            #expect(eAttr[eRange].foregroundColor == .primary)
+        }
+        if let iRange = eAttr.range(of: "i") {
+            #expect(eAttr[iRange].baselineOffset == 8)
+            #expect(eAttr[iRange].font == .system(size: 16, weight: .bold))
+            #expect(eAttr[iRange].foregroundColor == .primary)
+        }
+        if let multRange = eAttr.range(of: "×") {
+            #expect(eAttr[multRange].baselineOffset == 8)
+            #expect(eAttr[multRange].font == .system(size: 16, weight: .bold))
+            #expect(eAttr[multRange].foregroundColor == .secondary)
+        }
+        if let piRange = eAttr.range(of: "π") {
+            #expect(eAttr[piRange].baselineOffset == 8)
+            #expect(eAttr[piRange].font == .system(size: 16, weight: .bold))
+            #expect(eAttr[piRange].foregroundColor == .primary)
+        }
+
+        // 2. Simple exponent: 2^10
+        let pAttr = CalculatorFormatter.format("2^10")
+        #expect(String(pAttr.characters) == "210")
+        if let baseRange = pAttr.range(of: "2") {
+            #expect(pAttr[baseRange].baselineOffset == nil || pAttr[baseRange].baselineOffset == 0)
+        }
+        if let expRange = pAttr.range(of: "10") {
+            #expect(pAttr[expRange].baselineOffset == 8)
+            #expect(pAttr[expRange].font == .system(size: 16, weight: .bold))
+        }
+
+        // 3. Parenthesized exponent with addition: 2^(x + 1)
+        let sumAttr = CalculatorFormatter.format("2^(x + 1)")
+        #expect(String(sumAttr.characters) == "2x + 1")
+        if let plusRange = sumAttr.range(of: "+") {
+            #expect(sumAttr[plusRange].baselineOffset == 8)
+            #expect(sumAttr[plusRange].foregroundColor == .secondary)
+        }
+
+        // 4. Negative exponent: 2^-5
+        let negAttr = CalculatorFormatter.format("2^-5")
+        #expect(String(negAttr.characters) == "2−5")
+        if let minusRange = negAttr.range(of: "−") {
+            #expect(negAttr[minusRange].baselineOffset == 8)
+            #expect(negAttr[minusRange].foregroundColor == .secondary)
+        }
+
+        // 5. Existing unicode superscripts converted to actual superscripts: x²
+        let uniAttr = CalculatorFormatter.format("x²")
+        #expect(String(uniAttr.characters) == "x2")
+        if let exp2Range = uniAttr.range(of: "2") {
+            #expect(uniAttr[exp2Range].baselineOffset == 8)
+            #expect(uniAttr[exp2Range].font == .system(size: 16, weight: .bold))
+        }
+    }
+
+    @Test @MainActor func testSuperscriptSwiftUIRendering() {
+        let attr = CalculatorFormatter.format("e^(i * pi)")
+        let renderer = ImageRenderer(content: Text(attr).font(.system(size: 26, weight: .bold)))
+        #expect(renderer.nsImage != nil)
+    }
+
+    @Test func piSymbolFormatting() {
+        #expect(CalculatorFormatter.formatString("pi") == "π")
+        #expect(CalculatorFormatter.formatString("Pi") == "π")
+        #expect(CalculatorFormatter.formatString("PI") == "π")
+        #expect(CalculatorFormatter.formatString("2 * pi") == "2 × π")
+        #expect(CalculatorFormatter.formatString("2pi") == "2 π")
+        #expect(CalculatorFormatter.formatString("pi / 2") == "π ÷ 2")
+        #expect(CalculatorFormatter.formatString("pi^2") == "π²")
+        #expect(CalculatorFormatter.formatString("sin(pi)") == "sin(π)")
+        #expect(CalculatorFormatter.formatString("cos(pi / 3)") == "cos(π ÷ 3)")
+        #expect(CalculatorFormatter.formatString("sqrt(pi)") == "√π")
+
+        // Words containing "pi" must not be affected
+        #expect(CalculatorFormatter.formatString("spin") == "spin")
+        #expect(CalculatorFormatter.formatString("rapid") == "rapid")
+        #expect(CalculatorFormatter.formatString("piece") == "piece")
+        #expect(CalculatorFormatter.formatString("pilot") == "pilot")
+        #expect(CalculatorFormatter.formatString("pin") == "pin")
+        #expect(CalculatorFormatter.formatString("pie") == "pie")
+
+        // Query check and evaluation with pi and π
+        #expect(calculator.looksLikeCalculatorQuery("π"))
+        #expect(calculator.looksLikeCalculatorQuery("π * 2"))
+        #expect(calculator.looksLikeCalculatorQuery("π / 2"))
+        #expect(calculator.evaluatePreview("pi") == "≈ 3.1415926536")
+        #expect(calculator.evaluatePreview("π") == "≈ 3.1415926536")
+        #expect(calculator.evaluatePreview("2 * π") == "≈ 6.2831853072")
+        #expect(calculator.evaluatePreview("2π") == "≈ 6.2831853072")
+    }
+
     @Test func exponentsInSuperscript() {
         #expect(CalculatorFormatter.formatString("2^10") == "2¹⁰")
         #expect(CalculatorFormatter.formatString("10^50") == "10⁵⁰")

@@ -212,6 +212,7 @@ final class Calculator: @unchecked Sendable {
         s = s.replacingOccurrences(of: "×", with: "*")
         s = s.replacingOccurrences(of: "÷", with: "/")
         s = s.replacingOccurrences(of: "−", with: "-")
+        s = s.replacingOccurrences(of: "π", with: "pi")
         // fend names the inverse functions asin, acos and atan; "arcsin" and the rest are the same, written out.
         s = CalculatorFormatter.replacePattern(s, pattern: #"\b[aA][rR][cC]((?i:sin|cos|tan)[hH]?)\b"#) { groups in
             "a" + groups[1].lowercased()
