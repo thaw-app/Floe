@@ -245,7 +245,7 @@ pub unsafe extern "C" fn fend_evaluate_preview(
             }
         };
 
-        let res = fend_core::evaluate_preview_with_interrupt(query_str, &mut ctx.inner, &Deadline::from_now());
+        let res = fend_core::evaluate_preview_with_interrupt(query_str, &ctx.inner, &Deadline::from_now());
         let main_res = res.get_main_result();
         let is_empty = res.output_is_empty();
         let val_cstring = CString::new(main_res).unwrap_or_default();
@@ -460,11 +460,16 @@ mod tests {
             let query = CString::new("10000000!").unwrap();
             let started = Instant::now();
             let res = fend_evaluate(ctx, query.as_ptr());
-            let preview = fend_evaluate_preview(ctx, query.as_ptr());
-            assert!(started.elapsed() < Duration::from_secs(5));
-
+            assert!(started.elapsed() < Duration::from_secs(2));
             assert!(!res.is_null());
             assert!(!fend_result_is_ok(res));
+
+            // A preview never fails: one that ran out of time comes back empty.
+            let started = Instant::now();
+            let preview = fend_evaluate_preview(ctx, query.as_ptr());
+            assert!(started.elapsed() < Duration::from_secs(2));
+            assert!(!preview.is_null());
+            assert!(fend_result_is_empty(preview));
 
             fend_result_free(res);
             fend_result_free(preview);

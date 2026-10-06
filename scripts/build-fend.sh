@@ -82,6 +82,10 @@ fi
 # longer does this by itself, and a build machine may have another version as its default.
 if command -v rustup >/dev/null 2>&1; then
     CHANNEL=$(sed -n 's/^channel = "\(.*\)"$/\1/p' "$RUST_DIR/rust-toolchain.toml")
+    if [[ -z "$CHANNEL" ]]; then
+        echo "error: no channel found in $RUST_DIR/rust-toolchain.toml" >&2
+        exit 1
+    fi
     say "Using Rust $CHANNEL..."
     rustup toolchain install "$CHANNEL" --profile minimal --no-self-update \
         --target aarch64-apple-darwin --target x86_64-apple-darwin >/dev/null
@@ -111,9 +115,11 @@ if [[ $SUPPORTS_X86_64 -eq 1 ]]; then
         -output "$UNIVERSAL_LIB"
     TARGET_LIB="$UNIVERSAL_LIB"
 else
-    say "Building native host static library (aarch64-apple-darwin)..."
-    (cd "$RUST_DIR" && "$CARGO_BIN" build --target aarch64-apple-darwin "${CARGO_FLAGS[@]}")
-    TARGET_LIB="$RUST_DIR/target/aarch64-apple-darwin/$MODE/libfend_core_c.a"
+    # Without the other target's standard library, the library is built for this Mac alone.
+    HOST_TRIPLE=$(cd "$RUST_DIR" && rustc -vV | awk '/^host:/ {print $2}')
+    say "Building native host static library ($HOST_TRIPLE)..."
+    (cd "$RUST_DIR" && "$CARGO_BIN" build --target "$HOST_TRIPLE" "${CARGO_FLAGS[@]}")
+    TARGET_LIB="$RUST_DIR/target/$HOST_TRIPLE/$MODE/libfend_core_c.a"
 fi
 
 if [[ ! -f "$TARGET_LIB" ]]; then

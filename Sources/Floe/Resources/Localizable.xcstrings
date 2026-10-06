@@ -1,30 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    ";sig" : {
-
-    },
-    "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {
-
-    },
-    "(no output)" : {
-      "comment" : "Shown in place of what a script printed when it printed nothing."
-    },
-    "@raycast.argument%lld isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}." : {
-      "comment" : "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument."
-    },
     "%@" : {
-      "shouldTranslate" : false
-    },
-    "%@ · %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ · %2$@"
-          }
-        }
-      },
       "shouldTranslate" : false
     },
     "%@ (default)" : {
@@ -42,6 +19,9 @@
     "%@ failed" : {
       "comment" : "The placeholder is the name of a command."
     },
+    "%@ failed. Open it in Shortcuts to see why." : {
+      "comment" : "The placeholder is the name of a shortcut, and Shortcuts is the app."
+    },
     "%@ failed: %@" : {
       "comment" : "The first placeholder is the name of a script, the second is the reason.\nThe first placeholder is the name of a shortcut and the second is what the Shortcuts tool said.",
       "localizations" : {
@@ -52,9 +32,6 @@
           }
         }
       }
-    },
-    "%@ failed. Open it in Shortcuts to see why." : {
-      "comment" : "The placeholder is the name of a shortcut, and Shortcuts is the app."
     },
     "%@ is a launcher for your apps and commands. It runs Raycast extensions and searches your menu bar." : {
       "comment" : "The placeholder is the name of this app."
@@ -108,6 +85,17 @@
         }
       }
     },
+    "%@ to %@" : {
+      "comment" : "Both placeholders are names of units, as in Kilometers to Miles.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ to %2$@"
+          }
+        }
+      }
+    },
     "%@ to %@ · %@" : {
       "comment" : "The first two placeholders are the times an event starts and ends, and the third is the name of a calendar.",
       "localizations" : {
@@ -121,6 +109,17 @@
     },
     "%@ was not found on your PATH." : {
       "comment" : "The placeholder is the name of a command, and PATH is the shell variable and stays as written."
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      },
+      "shouldTranslate" : false
     },
     "%@, %@" : {
       "localizations" : {
@@ -284,28 +283,11 @@
         }
       }
     },
-    "↵ Open" : {
-
+    "(no output)" : {
+      "comment" : "Shown in place of what a script printed when it printed nothing."
     },
-    "⌘⇧C copies details · Esc goes back" : {
-
-    },
-    "⌘⇧C Copy Path" : {
-
-    },
-    "⌘Y Quick Look" : {
-
-    },
-    "0.5 pt" : {
-
-    },
+    "0.5 pt" : {},
     "0°" : {
-      "shouldTranslate" : false
-    },
-    "4 pt" : {
-
-    },
-    "5%" : {
       "shouldTranslate" : false
     },
     "100%" : {
@@ -314,18 +296,44 @@
     "360°" : {
       "shouldTranslate" : false
     },
-    "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
-
+    "4 pt" : {},
+    "5%" : {
+      "shouldTranslate" : false
     },
-    "A command line tool you are signed in to" : {
-
+    ";sig" : {},
+    "@raycast.argument%lld isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}." : {
+      "comment" : "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument."
     },
+    "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {},
+    "A command line tool you are signed in to" : {},
     "A follow-up in Ask AI sends the earlier questions and answers of that conversation again, to the same place. Floe keeps them in memory until the answer view closes and saves none of it." : {
       "comment" : "Ask AI is the name of the feature that answers a question in the launcher."
     },
-    "A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place." : {
-
+    "A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place." : {},
+    "AI" : {
+      "comment" : "The heading over the settings for artificial intelligence.\nThe kind of a result, shown beside its title. Short for artificial intelligence."
     },
+    "AI can't answer yet. %@ is not installed. Install it and sign in, or choose another tool." : {
+      "comment" : "The placeholder is the name of a command line tool such as claude."
+    },
+    "AI can't answer yet. Install claude, codex, opencode or pi and sign in." : {
+      "comment" : "The names claude, codex, opencode and pi are commands and stay as written."
+    },
+    "AI can't answer yet. It needs a model and an API key." : {},
+    "AI can't answer yet. It needs a model." : {},
+    "AI can't answer yet. It needs an API key." : {},
+    "AI can't answer yet. It needs an address that starts with http:// or https:// and a model." : {},
+    "AI can't answer yet. It needs an address that starts with http:// or https:// and an API key." : {},
+    "AI can't answer yet. It needs an address that starts with http:// or https://, a model and an API key." : {},
+    "AI can't answer yet. It needs an address that starts with http:// or https://." : {},
+    "AI is set to answer with %@, which is not installed. Install it and sign in, or choose another tool under Settings › General › AI." : {
+      "comment" : "The placeholder is the name of a command line tool such as claude."
+    },
+    "AI is set to use an API, but its address, model or key is missing. Fill them in under Settings › General › AI." : {},
+    "AI needs a command line tool to answer: claude, codex, opencode or pi, installed and signed in." : {
+      "comment" : "The names claude, codex, opencode and pi are commands and stay as written."
+    },
+    "API key" : {},
     "About" : {
       "comment" : "The name of a settings page."
     },
@@ -341,12 +349,7 @@
         }
       }
     },
-    "About Floe" : {
-
-    },
-    "about this mac, serial number" : {
-      "comment" : "Words that find the About pane of System Settings, separated by commas."
-    },
+    "About Floe" : {},
     "Accessibility" : {
       "comment" : "The macOS permission named Accessibility."
     },
@@ -362,12 +365,7 @@
         }
       }
     },
-    "Accessibility is off" : {
-
-    },
-    "accounts, guest user" : {
-      "comment" : "Words that find the Users & Groups pane of System Settings, separated by commas."
-    },
+    "Accessibility is off" : {},
     "Acknowledgements" : {
       "comment" : "The title of the window that lists what Floe is built from, and the menu item that opens it."
     },
@@ -377,96 +375,20 @@
     "Actions" : {
       "comment" : "The label beside the shortcut that opens the menu of things to do with the selected result."
     },
-    "Actions…" : {
-
-    },
-    "Add to Favorites" : {
-
-    },
-    "Add to Menu Bar" : {
-
-    },
-    "add to note" : {
-      "comment" : "A search keyword for the row that adds text to a note. Lowercase."
-    },
-    "Added to Favorites" : {
-
-    },
-    "Added to Menu Bar" : {
-
-    },
+    "Actions…" : {},
+    "Add to Favorites" : {},
+    "Add to Menu Bar" : {},
+    "Added to Favorites" : {},
+    "Added to Menu Bar" : {},
     "Address" : {
       "comment" : "The web address of an AI service."
     },
     "Adds up to three files that Spotlight finds by name. The search runs on this Mac and nothing leaves it. Type “files” and a name to see every match." : {
       "comment" : "“files” is a word the user types. It is a command and stays in English."
     },
-    "After 5 minutes" : {
-
-    },
-    "After 30 seconds" : {
-
-    },
-    "After 90 seconds" : {
-
-    },
-    "AI" : {
-      "comment" : "The heading over the settings for artificial intelligence.\nThe kind of a result, shown beside its title. Short for artificial intelligence."
-    },
-    "AI can't answer yet. %@ is not installed. Install it and sign in, or choose another tool." : {
-      "comment" : "The placeholder is the name of a command line tool such as claude."
-    },
-    "AI can't answer yet. Install claude, codex, opencode or pi and sign in." : {
-      "comment" : "The names claude, codex, opencode and pi are commands and stay as written."
-    },
-    "AI can't answer yet. It needs a model and an API key." : {
-
-    },
-    "AI can't answer yet. It needs a model." : {
-
-    },
-    "AI can't answer yet. It needs an address that starts with http:// or https:// and a model." : {
-
-    },
-    "AI can't answer yet. It needs an address that starts with http:// or https:// and an API key." : {
-
-    },
-    "AI can't answer yet. It needs an address that starts with http:// or https://, a model and an API key." : {
-
-    },
-    "AI can't answer yet. It needs an address that starts with http:// or https://." : {
-
-    },
-    "AI can't answer yet. It needs an API key." : {
-
-    },
-    "AI is set to answer with %@, which is not installed. Install it and sign in, or choose another tool under Settings › General › AI." : {
-      "comment" : "The placeholder is the name of a command line tool such as claude."
-    },
-    "AI is set to use an API, but its address, model or key is missing. Fill them in under Settings › General › AI." : {
-
-    },
-    "AI needs a command line tool to answer: claude, codex, opencode or pi, installed and signed in." : {
-      "comment" : "The names claude, codex, opencode and pi are commands and stay as written."
-    },
-    "ai, api, base url, endpoint, openai, openrouter, z.ai, server, host, service" : {
-      "comment" : "Words that find the Address setting in the settings search, separated by commas."
-    },
-    "ai, api, key, token, secret, keychain, openai" : {
-      "comment" : "Words that find the API key setting in the settings search, separated by commas."
-    },
-    "ai, api, model, gpt, openai, opencode, pi" : {
-      "comment" : "Words that find the Model setting in the settings search, separated by commas."
-    },
-    "ai, ask, claude, codex, opencode, pi, openai, openrouter, z.ai, apple intelligence, ollama, lm studio, local, model, llm, assistant, provider" : {
-      "comment" : "Words that find the Answer AI requests with setting in the settings search, separated by commas."
-    },
-    "ai, command line, cli, terminal, agent, claude, codex, opencode, pi, automatic" : {
-      "comment" : "Words that find the Tool setting in the settings search, separated by commas."
-    },
-    "ai, local, on device, offline, cloud, private, apple intelligence, ollama, ask" : {
-      "comment" : "Words that find the Only use AI that runs on this Mac setting in the settings search, separated by commas."
-    },
+    "After 30 seconds" : {},
+    "After 5 minutes" : {},
+    "After 90 seconds" : {},
     "AirDrop & Handoff (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -479,65 +401,32 @@
         }
       }
     },
-    "airdrop, handoff, airplay, continuity" : {
-      "comment" : "Words that find the AirDrop & Handoff pane of System Settings, separated by commas."
-    },
-    "alerts, banners" : {
-      "comment" : "Words that find the Notifications pane of System Settings, separated by commas."
-    },
     "Alias" : {
       "comment" : "A short name typed in the search to find a command."
     },
-    "Aliases and hotkeys for apps" : {
-
-    },
-    "Aliases and hotkeys for apps." : {
-
-    },
-    "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports." : {
-
-    },
-    "Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out." : {
-
-    },
+    "Aliases and hotkeys for apps" : {},
+    "Aliases and hotkeys for apps." : {},
+    "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports." : {},
+    "Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out." : {},
     "All day · %@" : {
       "comment" : "The placeholder is the name of a calendar."
     },
-    "Allow access" : {
-
-    },
-    "Allow Floe to Change Thaw Settings" : {
-
-    },
-    "Allow it in System Settings, Privacy and Security, Automation." : {
-
-    },
-    "An OpenAI-compatible API" : {
-
-    },
+    "Allow Floe to Change Thaw Settings" : {},
+    "Allow access" : {},
+    "Allow it in System Settings, Privacy and Security, Automation." : {},
+    "An OpenAI-compatible API" : {},
     "Angle" : {
       "comment" : "The direction of a gradient, in degrees."
     },
+    "Another App" : {},
     "Another address" : {
       "comment" : "A choice in a list of AI services: one the user types the address of."
     },
-    "Another App" : {
-
-    },
-    "Another snippet uses that keyword." : {
-
-    },
-    "Answer AI requests with" : {
-
-    },
-    "Answer its AI requests with" : {
-
-    },
+    "Another snippet uses that keyword." : {},
+    "Answer AI requests with" : {},
+    "Answer its AI requests with" : {},
     "Antinote isn't installed" : {
       "comment" : "Antinote is the name of an app."
-    },
-    "API key" : {
-
     },
     "App" : {
       "comment" : "A label before the name of the app a copied thing came from."
@@ -557,14 +446,9 @@
         }
       }
     },
-    "appearance, glass, tint, colour, color, gradient, border, shadow, theme, style" : {
-      "comment" : "Words that find the Appearance page in the settings search, separated by commas."
-    },
+    "Append to Current Note" : {},
     "Append “%@” to Current Note" : {
       "comment" : "The placeholder is the text added to the note."
-    },
-    "Append to Current Note" : {
-
     },
     "Apple Account (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -578,36 +462,14 @@
         }
       }
     },
-    "apple id, icloud" : {
-      "comment" : "Words that find the Apple Account pane of System Settings, separated by commas."
-    },
-    "apple intelligence" : {
-      "comment" : "Words that find the Siri pane of System Settings, separated by commas."
-    },
-    "Apple Intelligence declined to answer that." : {
-
-    },
-    "Apple Intelligence doesn't work in that language yet." : {
-
-    },
-    "Apple Intelligence doesn't work in this Mac's language yet." : {
-
-    },
-    "Apple Intelligence is busy. Try again in a moment." : {
-
-    },
-    "Apple Intelligence is still getting its model ready. Try again in a while." : {
-
-    },
-    "Apple Intelligence isn't available right now." : {
-
-    },
-    "Apple Intelligence, on this Mac" : {
-
-    },
-    "Apple Shortcuts" : {
-
-    },
+    "Apple Intelligence declined to answer that." : {},
+    "Apple Intelligence doesn't work in that language yet." : {},
+    "Apple Intelligence doesn't work in this Mac's language yet." : {},
+    "Apple Intelligence is busy. Try again in a moment." : {},
+    "Apple Intelligence is still getting its model ready. Try again in a while." : {},
+    "Apple Intelligence isn't available right now." : {},
+    "Apple Intelligence, on this Mac" : {},
+    "Apple Shortcuts" : {},
     "AppleCare & Warranty (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -620,44 +482,24 @@
         }
       }
     },
-    "applecare, coverage" : {
-      "comment" : "Words that find the AppleCare & Warranty pane of System Settings, separated by commas."
-    },
     "Application" : {
       "comment" : "The kind of a result, shown beside its title."
     },
     "Applications" : {
       "comment" : "The name of a settings page."
     },
-    "apps, alias, hotkey, shortcut, keyboard, filter" : {
-      "comment" : "Words that find the Applications page in the settings search, separated by commas."
-    },
     "Arguments for %@." : {
       "comment" : "The placeholder is the name of a command."
-    },
-    "arrow, down, downarrow" : {
-      "comment" : "Words that find the symbol ↓, separated by commas."
-    },
-    "arrow, left, leftarrow" : {
-      "comment" : "Words that find the symbol ←, separated by commas."
-    },
-    "arrow, right, rightarrow" : {
-      "comment" : "Words that find the symbol →, separated by commas."
-    },
-    "arrow, up, uparrow" : {
-      "comment" : "Words that find the symbol ↑, separated by commas."
     },
     "Ask" : {
       "comment" : "A verb on a button: send the question to AI."
     },
-    "Ask a follow-up…" : {
-      "comment" : "The prompt of the field above an AI answer, where the next question about it is typed."
-    },
-    "Ask Again" : {
-
-    },
     "Ask AI “%@”" : {
       "comment" : "The placeholder is the question the user typed."
+    },
+    "Ask Again" : {},
+    "Ask a follow-up…" : {
+      "comment" : "The prompt of the field above an AI answer, where the next question about it is typed."
     },
     "Asks each running browser (%@) for its open tabs and matches their titles and addresses. macOS asks for permission the first time, once per browser. The list stays on this Mac. Type “tabs” and a word to see every match." : {
       "comment" : "The placeholder is a list of browser names. “tabs” is a word the user types. It is a command and stays in English."
@@ -665,20 +507,11 @@
     "Automatic" : {
       "comment" : "The choice that lets Floe pick the command line tool that answers."
     },
-    "Automatic updates" : {
-
-    },
-    "Automatic uses the first one installed: claude, codex, opencode, then pi. Accounts and keys stay in the tool." : {
-
-    },
-    "Automatically check for updates" : {
-
-    },
+    "Automatic updates" : {},
+    "Automatic uses the first one installed: claude, codex, opencode, then pi. Accounts and keys stay in the tool." : {},
+    "Automatically check for updates" : {},
     "Back" : {
       "comment" : "A button that returns to the search."
-    },
-    "backup" : {
-      "comment" : "Words that find the Time Machine pane of System Settings, separated by commas."
     },
     "Battery (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -698,24 +531,11 @@
     "Border" : {
       "comment" : "The line drawn around the launcher panel."
     },
-    "border, outline, stroke, edge, width" : {
-      "comment" : "Words that find the Border setting in the settings search, separated by commas."
-    },
     "Browser" : {
       "comment" : "The kind of app that opens web pages, as the label of the picker that chooses one."
     },
-    "Browser Tab" : {
-
-    },
-    "Browser Tabs" : {
-
-    },
-    "browser, web browser, default browser, web, links, web address, quicklink, preferred app, default app" : {
-      "comment" : "Words that find the Browser setting in the settings search, separated by commas."
-    },
-    "browser, web, links" : {
-      "comment" : "Words that find the rows of the browser app in the search, separated by commas."
-    },
+    "Browser Tab" : {},
+    "Browser Tabs" : {},
     "Build" : {
       "comment" : "A label before the build number of this app."
     },
@@ -725,29 +545,17 @@
     "Bun isn't installed" : {
       "comment" : "Bun is the name of a tool."
     },
-    "Bun not found. Install it with brew install bun." : {
-
-    },
+    "Bun not found. Install it with brew install bun." : {},
     "Bun was not found. Install it with brew install bun." : {
       "comment" : "Bun is the name of a tool. brew install bun is a command and stays as written."
     },
-    "Bun, bundled with the app" : {
-
+    "Bun, bundled with the app" : {},
+    "Bytes" : {
+      "comment" : "A unit of data size, named in the plural."
     },
-    "bun, javascript, node, engine" : {
-      "comment" : "Words that find the Runtime setting in the settings search, separated by commas."
-    },
-    "caffeinate, awake, prevent sleep, no sleep" : {
-      "comment" : "Words that find the Toggle Keep Awake command, separated by commas."
-    },
-    "Calculator" : {
-
-    },
+    "Calculator" : {},
     "Calendar" : {
       "comment" : "Stands in for the name of a calendar that has none."
-    },
-    "calendar, today, meetings, events, agenda, next meeting" : {
-      "comment" : "Words that bring up the events of today and tomorrow when typed, separated by commas."
     },
     "Cancel" : {
       "comment" : "A button that stops what is under way, such as recording a keyboard shortcut."
@@ -758,32 +566,21 @@
     "Caution" : {
       "comment" : "The heading of a cautionary note in the release notes."
     },
+    "Celsius" : {
+      "comment" : "A unit of temperature."
+    },
+    "Centimeters" : {
+      "comment" : "A unit of length, named in the plural."
+    },
+    "Check Automatically" : {},
+    "Check Manually" : {},
+    "Check Now" : {},
     "Check and download" : {
       "comment" : "Automatic updates: check, and download what is found."
     },
-    "Check Automatically" : {
-
-    },
-    "check for updates, update, updates, automatic, upgrade, new version" : {
-      "comment" : "Words that find the Automatically check for updates setting in the settings search, separated by commas."
-    },
-    "Check for Updates…" : {
-
-    },
-    "Check Manually" : {
-
-    },
-    "Check Now" : {
-
-    },
+    "Check for Updates…" : {},
     "Check only" : {
       "comment" : "Automatic updates: check, and do not download."
-    },
-    "check, checkmark, done, yes, tick" : {
-      "comment" : "Words that find the symbol ✅, separated by commas."
-    },
-    "check, checkmark, tick" : {
-      "comment" : "Words that find the symbol ✓, separated by commas."
     },
     "Checking asks %@ whether a newer version exists. Floe asked before it started doing this." : {
       "comment" : "The placeholder is the address of a server."
@@ -794,30 +591,15 @@
     "Choose" : {
       "comment" : "A verb on a button: pick the selected line."
     },
-    "Choose a clipboard app in Settings" : {
-
-    },
-    "Choose an App" : {
-
-    },
-    "Choose Another" : {
-
-    },
-    "Choose…" : {
-
-    },
-    "Claude stopped before finishing." : {
-
-    },
+    "Choose Another" : {},
+    "Choose a clipboard app in Settings" : {},
+    "Choose an App" : {},
+    "Choose…" : {},
+    "Claude stopped before finishing." : {},
     "Clear" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
-    "Clear clipboard history" : {
-
-    },
-    "Clear History" : {
-
-    },
+    "Clear History" : {},
     "Clear Shortcut" : {
       "comment" : "Spoken for the button that removes a keyboard shortcut.",
       "extractionState" : "extracted_with_value",
@@ -830,44 +612,25 @@
         }
       }
     },
+    "Clear clipboard history" : {},
     "Click Item" : {
       "comment" : "A button that clicks the selected menu bar item."
     },
     "Clipboard" : {
       "comment" : "The kind of a result, shown beside its title.\nThe kind of app that keeps a clipboard history, as the label of the picker that chooses one."
     },
-    "Clipboard History" : {
-
-    },
+    "Clipboard History" : {},
     "Clipboard history is handled by %@. Floe saves no copies." : {
       "comment" : "The placeholder is the name of an app."
     },
-    "Clipboard history is handled by another app. Floe saves no copies." : {
-
-    },
-    "Clipboard history is off" : {
-
-    },
-    "clipboard, clipboard manager, clipboard history, raycast, link, url, preferred app, default app" : {
-      "comment" : "Words that find the Clipboard app setting in the settings search, separated by commas."
-    },
-    "clipboard, copies, paste" : {
-      "comment" : "Words that find the rows of the clipboard app in the search, separated by commas."
-    },
-    "clipboard, history, clear, delete, remove, copies" : {
-      "comment" : "Words that find the Clear clipboard history setting in the settings search, separated by commas."
-    },
-    "clipboard, history, copy, paste, copies, pin, clear" : {
-      "comment" : "Words that find the Save clipboard history setting in the settings search, separated by commas."
-    },
+    "Clipboard history is handled by another app. Floe saves no copies." : {},
+    "Clipboard history is off" : {},
     "Clone failed" : {
       "comment" : "What went wrong while installing an extension. Clone is the git operation."
     },
+    "Close Window" : {},
     "Close this window and start using %@" : {
       "comment" : "The placeholder is the name of this app."
-    },
-    "Close Window" : {
-
     },
     "Color" : {
       "comment" : "The label of a color picker."
@@ -884,9 +647,7 @@
     "Compact" : {
       "comment" : "A launcher layout: only the search field until you type."
     },
-    "Configure Extension…" : {
-
-    },
+    "Configure Extension…" : {},
     "Connect" : {
       "comment" : "A verb on a button: open an SSH connection to the host."
     },
@@ -896,9 +657,7 @@
     "Continue" : {
       "comment" : "The button that goes to the next step of the welcome window."
     },
-    "Continue Without Menu Bar Search" : {
-
-    },
+    "Continue Without Menu Bar Search" : {},
     "Contribute" : {
       "comment" : "A button that opens the project page for people who want to help."
     },
@@ -923,66 +682,27 @@
     "Copied %@" : {
       "comment" : "Shown briefly after copying. The placeholder is what was copied, such as a file name.\nThe placeholder is the text that was copied."
     },
-    "Copied Address" : {
-
-    },
-    "Copied Answer" : {
-
-    },
-    "Copied error details" : {
-
-    },
-    "Copied Path" : {
-
-    },
-    "Copied. Press ⌘V to paste." : {
-
-    },
-    "Copies you make show up here." : {
-
-    },
+    "Copied Address" : {},
+    "Copied Answer" : {},
+    "Copied Path" : {},
+    "Copied error details" : {},
+    "Copied. Press ⌘V to paste." : {},
+    "Copies you make show up here." : {},
     "Copy" : {
       "comment" : "A button that copies the selected entry.\nA verb: put the selection on the clipboard."
     },
-    "Copy Address" : {
-
-    },
-    "Copy Answer" : {
-
-    },
-    "Copy Bundle Identifier" : {
-
-    },
-    "Copy Details" : {
-
-    },
-    "Copy File" : {
-
-    },
-    "Copy Host Name" : {
-
-    },
-    "Copy Name" : {
-
-    },
-    "Copy Path" : {
-
-    },
-    "Copy SSH Command" : {
-
-    },
-    "Copy the version, build and commit for a bug report" : {
-
-    },
-    "Copy version information" : {
-
-    },
-    "copyright" : {
-      "comment" : "Words that find the symbol ©, separated by commas."
-    },
-    "Could not find the extensions folder in the Raycast repository." : {
-
-    },
+    "Copy Address" : {},
+    "Copy Answer" : {},
+    "Copy Bundle Identifier" : {},
+    "Copy Details" : {},
+    "Copy File" : {},
+    "Copy Host Name" : {},
+    "Copy Name" : {},
+    "Copy Path" : {},
+    "Copy SSH Command" : {},
+    "Copy the version, build and commit for a bug report" : {},
+    "Copy version information" : {},
+    "Could not find the extensions folder in the Raycast repository." : {},
     "Could not install \"%@\": %@" : {
       "comment" : "The first placeholder is an extension's name, the second is the reason.",
       "localizations" : {
@@ -994,26 +714,19 @@
         }
       }
     },
-    "Could not list the extensions in the Raycast repository." : {
-
-    },
-    "Could not load the extension store." : {
-
-    },
-    "Could not read the repository commit" : {
-
-    },
-    "Couldn't change the sound" : {
-
-    },
-    "Couldn't keep your Mac awake" : {
-
-    },
+    "Could not list the extensions in the Raycast repository." : {},
+    "Could not load the extension store." : {},
+    "Could not read the repository commit" : {},
+    "Couldn't change the sound" : {},
+    "Couldn't keep your Mac awake" : {},
     "Couldn't load the store: %@" : {
       "comment" : "The placeholder is the reason."
     },
     "Couldn't move %@ to the Trash" : {
       "comment" : "The placeholder is a file name."
+    },
+    "Couldn't open %@ in Shortcuts. Open the Shortcuts app and look for it there." : {
+      "comment" : "The placeholder is the name of a shortcut, and Shortcuts is the app."
     },
     "Couldn't open %@ in Shortcuts: %@" : {
       "comment" : "The first placeholder is the name of a shortcut and the second is what the Shortcuts tool said.",
@@ -1026,48 +739,27 @@
         }
       }
     },
-    "Couldn't open %@ in Shortcuts. Open the Shortcuts app and look for it there." : {
-      "comment" : "The placeholder is the name of a shortcut, and Shortcuts is the app."
-    },
     "Couldn't open the connection in %@" : {
       "comment" : "The placeholder is the name of a terminal app."
     },
-    "Couldn't read the Finder selection" : {
-
-    },
+    "Couldn't read the Finder selection" : {},
     "Couldn't save the note in Notes" : {
       "comment" : "Notes is Apple's notes app."
     },
-    "Couldn't transfer settings" : {
-
-    },
-    "Couldn't turn Wi-Fi off" : {
-
-    },
-    "Couldn't turn Wi-Fi on" : {
-
-    },
+    "Couldn't transfer settings" : {},
+    "Couldn't turn Wi-Fi off" : {},
+    "Couldn't turn Wi-Fi on" : {},
     "Credits" : {
       "comment" : "The title of the page that thanks contributors."
     },
-    "cross, x, no, wrong, delete" : {
-      "comment" : "Words that find the symbol ❌, separated by commas."
+    "Cups" : {
+      "comment" : "A unit of volume, named in the plural."
     },
     "Cut" : {
       "comment" : "A verb in the Edit menu: remove the selection and put it on the clipboard."
     },
-    "Dark appearance" : {
-
-    },
-    "dark mode, light mode, accent color, liquid glass" : {
-      "comment" : "Words that find the Appearance pane of System Settings, separated by commas."
-    },
-    "dark mode, light mode, appearance, theme" : {
-      "comment" : "Words that find the Toggle Dark Mode command, separated by commas."
-    },
-    "Data Folder" : {
-
-    },
+    "Dark appearance" : {},
+    "Data Folder" : {},
     "Date & Time (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1080,36 +772,26 @@
         }
       }
     },
-    "day" : {
-      "comment" : "The unit written after a number of days."
+    "Days" : {
+      "comment" : "A unit of time, named in the plural."
     },
-    "Default Browser" : {
-
-    },
+    "Default Browser" : {},
     "Default Browser (%@)" : {
       "comment" : "The placeholder is the name of an app."
     },
-    "Default for Text Files" : {
-
-    },
+    "Default for Text Files" : {},
     "Default for Text Files (%@)" : {
       "comment" : "The placeholder is the name of an app."
     },
     "Delete" : {
       "comment" : "A button that removes a copy from the history."
     },
+    "Delete Quicklink" : {},
+    "Delete this quicklink?" : {},
     "Delete “%@”?" : {
       "comment" : "The placeholder is the name of the thing about to be deleted."
     },
-    "Delete Quicklink" : {
-
-    },
-    "Delete this quicklink?" : {
-
-    },
-    "Delete…" : {
-
-    },
+    "Delete…" : {},
     "Desktop & Dock (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1122,15 +804,10 @@
         }
       }
     },
-    "desktop picture, background" : {
-      "comment" : "Words that find the Wallpaper pane of System Settings, separated by commas."
-    },
     "Detail" : {
       "comment" : "A label before a line that describes a copied thing, such as its length."
     },
-    "Detailed logging" : {
-
-    },
+    "Detailed logging" : {},
     "Device Management (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1146,9 +823,6 @@
     "Diagnostics" : {
       "comment" : "The heading over the logging settings."
     },
-    "disk space" : {
-      "comment" : "Words that find the Storage pane of System Settings, separated by commas."
-    },
     "Displays (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1160,15 +834,6 @@
           }
         }
       }
-    },
-    "do not disturb, dnd" : {
-      "comment" : "Words that find the Focus pane of System Settings, separated by commas."
-    },
-    "dock, icon, menu bar, hide, app switcher" : {
-      "comment" : "Words that find the Show in Dock setting in the settings search, separated by commas."
-    },
-    "dock, stage manager, mission control, hot corners, widgets" : {
-      "comment" : "Words that find the Desktop & Dock pane of System Settings, separated by commas."
     },
     "Done" : {
       "comment" : "The button that closes the welcome window."
@@ -1185,38 +850,19 @@
         }
       }
     },
-    "Download and install updates automatically" : {
-
-    },
-    "downtime, app limits" : {
-      "comment" : "Words that find the Screen Time pane of System Settings, separated by commas."
-    },
-    "Draw a border" : {
-
-    },
-    "Drop shadow" : {
-
-    },
+    "Download and install updates automatically" : {},
+    "Draw a border" : {},
+    "Drop shadow" : {},
     "Dynamic Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
-    "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {
-
-    },
+    "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {},
     "Edit" : {
       "comment" : "The title of the Edit menu in the menu bar."
     },
-    "Edit Name" : {
-
-    },
+    "Edit Name" : {},
     "Editor" : {
       "comment" : "The kind of app that edits text files, as the label of the picker that chooses one."
-    },
-    "editor, edit, code, finder selection" : {
-      "comment" : "Words that find the rows of the editor app in the search, separated by commas."
-    },
-    "editor, text editor, code, open in editor, preferred app, default app" : {
-      "comment" : "Words that find the Editor setting in the settings search, separated by commas."
     },
     "Effect" : {
       "comment" : "The label of the picker that chooses how the glass background looks."
@@ -1224,116 +870,53 @@
     "Emoji" : {
       "comment" : "The kind of a result, shown beside its title."
     },
-    "Emoji & Symbols" : {
-
-    },
-    "Empty the Trash? This can't be undone." : {
-
-    },
+    "Emoji & Symbols" : {},
     "Empty Trash" : {
       "comment" : "A command that empties the Trash."
     },
-    "empty trash, trash, delete trash" : {
-      "comment" : "Words that find the Empty Trash command, separated by commas."
-    },
+    "Empty the Trash? This can't be undone." : {},
     "Enabled" : {
       "comment" : "A column heading over switches that turn commands on."
     },
-    "End color" : {
-
-    },
-    "energy, power, low power mode" : {
-      "comment" : "Words that find the Battery pane of System Settings, separated by commas."
-    },
-    "Enter a keyword." : {
-
-    },
-    "Enter a name." : {
-
-    },
-    "Enter a URL with a scheme, like https://." : {
-
-    },
+    "End color" : {},
+    "Enter a URL with a scheme, like https://." : {},
+    "Enter a keyword." : {},
+    "Enter a name." : {},
     "Enter these again:\n%@" : {
       "comment" : "The placeholder is a list of password fields, one on each line."
     },
-    "erase, migration" : {
-      "comment" : "Words that find the Transfer or Reset pane of System Settings, separated by commas."
-    },
-    "Esc to cancel" : {
-
-    },
-    "ethernet, dns, proxy, firewall" : {
-      "comment" : "Words that find the Network pane of System Settings, separated by commas."
-    },
-    "euro, money, currency" : {
-      "comment" : "Words that find the symbol €, separated by commas."
-    },
+    "Esc to cancel" : {},
     "Event" : {
       "comment" : "The kind of a result, shown beside its title. Here a calendar event."
     },
-    "Every permission is optional" : {
-
-    },
-    "exit code %d" : {
-      "comment" : "The reason a script failed, when it printed nothing. The placeholder is a number."
-    },
-    "Expand keywords as you type" : {
-
-    },
+    "Every permission is optional" : {},
+    "Expand keywords as you type" : {},
     "Expansion" : {
       "comment" : "The heading over the settings for text that expands as you type."
     },
-    "Export or import settings" : {
-
-    },
-    "export, import, backup, transfer, move, file, restore" : {
-      "comment" : "Words that find the Export or import settings setting in the settings search, separated by commas."
-    },
-    "Export…" : {
-
-    },
+    "Export or import settings" : {},
+    "Export…" : {},
     "Extended" : {
       "comment" : "A launcher layout: the list is always shown."
     },
-    "Extended always shows the list. Compact shows only the search bar until you type." : {
-
-    },
+    "Extended always shows the list. Compact shows only the search bar until you type." : {},
     "Extension \"%@\" was not found in the Raycast repository." : {
       "comment" : "The placeholder is an extension's name."
     },
-    "Extension Commands in the Menu Bar" : {
-
-    },
-    "Extension error" : {
-
-    },
+    "Extension Commands in the Menu Bar" : {},
     "Extension Store" : {
       "comment" : "The name of a settings page."
     },
-    "extension, enabled, enable, disable" : {
-      "comment" : "Words that find an extension in the settings search, separated by commas."
-    },
+    "Extension error" : {},
     "Extensions" : {
       "comment" : "The heading over the settings for extensions."
     },
-    "Extensions come from the Raycast store's open source repository. Floe installs them with Bun; some need Raycast features Floe doesn't have yet." : {
-
-    },
-    "Extensions folder" : {
-
-    },
-    "Extensions Folder" : {
-
-    },
-    "Extensions that ask AI a question get their answer from here." : {
-
-    },
-    "fallback, default, search, results" : {
-      "comment" : "Words that find the Use as fallback setting in the settings search, separated by commas."
-    },
-    "fallback, fallbacks, order, reorder, default, results, bottom" : {
-      "comment" : "Words that find the Fallbacks setting in the settings search, separated by commas."
+    "Extensions Folder" : {},
+    "Extensions come from the Raycast store's open source repository. Floe installs them with Bun; some need Raycast features Floe doesn't have yet." : {},
+    "Extensions folder" : {},
+    "Extensions that ask AI a question get their answer from here." : {},
+    "Fahrenheit" : {
+      "comment" : "A unit of temperature."
     },
     "Fallbacks" : {
       "comment" : "A section title above the searches offered when nothing else matches.\nQuicklinks offered under the results of every search."
@@ -1350,104 +933,63 @@
         }
       }
     },
-    "family sharing" : {
-      "comment" : "Words that find the Family pane of System Settings, separated by commas."
-    },
     "Favorite" : {
       "comment" : "A verb on a button: add the selected result to the favorites."
     },
     "Favorites" : {
       "comment" : "A section title above the results the user marked as favorites."
     },
-    "Fetching release notes is off, so this is the last copy fetched." : {
-
+    "Feet" : {
+      "comment" : "A unit of length, named in the plural."
     },
-    "Fetching release notes is off." : {
-
-    },
+    "Fetching release notes is off, so this is the last copy fetched." : {},
+    "Fetching release notes is off." : {},
     "File" : {
       "comment" : "A kind of copied thing.\nThe kind of a result, shown beside its title."
-    },
-    "file search, spotlight, documents, source" : {
-      "comment" : "Words that find the Files setting in the settings search, separated by commas."
     },
     "Files" : {
       "comment" : "Files on this Mac, as a source of search results.\nThe kind of a result, shown beside its title."
     },
-    "Files you open will show up here." : {
-
-    },
+    "Files you open will show up here." : {},
     "Fill in %@." : {
       "comment" : "The placeholder is a list of the names of the fields left empty."
     },
-    "Filter applications" : {
-
-    },
+    "Filter applications" : {},
     "Find" : {
       "comment" : "A button that puts the cursor in the settings search field."
     },
-    "Find a menu bar item by name and open its menu. This is the one feature that needs Accessibility." : {
-
-    },
-    "Find an item in the menu bar and open its menu." : {
-
-    },
-    "Find the items in your menu bar and read their names." : {
-
-    },
-    "finder, directory, location, path, install, show in finder" : {
-      "comment" : "Words that find the Extensions folder setting in the settings search, separated by commas."
-    },
+    "Find a menu bar item by name and open its menu. This is the one feature that needs Accessibility." : {},
+    "Find an item in the menu bar and open its menu." : {},
+    "Find the items in your menu bar and read their names." : {},
     "Finds the shortcuts you made in the Shortcuts app by name and runs the one you pick. Floe asks the Shortcuts command line tool for the names each time the launcher opens. The list stays on this Mac and is not saved. Type “shortcuts” and a space to see them all." : {
       "comment" : "“shortcuts” is a word the user types. It is a command and stays in English."
-    },
-    "fingerprint, login password" : {
-      "comment" : "Words that find the Touch ID & Password pane of System Settings, separated by commas."
-    },
-    "fire, flame, hot, lit" : {
-      "comment" : "Words that find the symbol 🔥, separated by commas."
     },
     "Floe" : {
       "comment" : "Floe is the name of this app."
     },
-    "Floe can't answer that request." : {
-
-    },
-    "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {
-
-    },
-    "Floe isn't running yet. Open Floe and try again." : {
-
-    },
-    "Floe lists the items apps put in the menu bar." : {
-
-    },
+    "Floe Settings" : {},
+    "Floe can't answer that request." : {},
+    "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {},
+    "Floe isn't running yet. Open Floe and try again." : {},
+    "Floe lists the items apps put in the menu bar." : {},
     "Floe needs Accessibility to list your menu bar items" : {
       "comment" : "Accessibility is the name of a permission in System Settings."
     },
-    "Floe needs Accessibility to list your menu bar items." : {
-
-    },
-    "Floe needs Automation access to read the Finder selection. Turn it on under System Settings › Privacy & Security › Automation, then try again. (-1743)" : {
-
-    },
+    "Floe needs Accessibility to list your menu bar items." : {},
+    "Floe needs Automation access to read the Finder selection. Turn it on under System Settings › Privacy & Security › Automation, then try again. (-1743)" : {},
     "Floe needs permission to control %@." : {
       "comment" : "The placeholder is the name of an app, or of two."
     },
     "Floe needs permission to list %@'s tabs" : {
       "comment" : "The placeholder is the name of a browser."
     },
-    "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal." : {
-
-    },
+    "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal." : {},
     "Floe renders List, Grid, Detail and Form." : {
       "comment" : "List, Grid, Detail and Form are names from the extension API and stay as written."
     },
-    "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {
-
-    },
-    "Floe Settings" : {
-
+    "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {},
+    "Fluid Ounces" : {
+      "comment" : "A unit of volume, named in the plural."
     },
     "Focus (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1461,33 +1003,19 @@
         }
       }
     },
-    "Follow Thaw's Appearance" : {
-
-    },
-    "Follow Thaw's menu bar appearance" : {
-
-    },
-    "Follow-up questions" : {
-
-    },
-    "For an extension that handles private text, a source on this Mac keeps its questions here." : {
-
-    },
+    "Follow Thaw's Appearance" : {},
+    "Follow Thaw's menu bar appearance" : {},
+    "Follow-up questions" : {},
+    "For an extension that handles private text, a source on this Mac keeps its questions here." : {},
+    "Force Quit" : {},
+    "Force Quit…" : {},
     "Force “%@” to quit?" : {
       "comment" : "The placeholder is an app's name."
-    },
-    "Force Quit" : {
-
-    },
-    "Force Quit…" : {
-
     },
     "Forced %@ to quit" : {
       "comment" : "The placeholder is an app's name."
     },
-    "Free and open source" : {
-
-    },
+    "Free and open source" : {},
     "From Raycast · %lld commands" : {
       "comment" : "The placeholder is how many commands an extension has.",
       "localizations" : {
@@ -1511,8 +1039,9 @@
         }
       }
     },
-    "Full changelog" : {
-
+    "Full changelog" : {},
+    "Gallons" : {
+      "comment" : "A unit of volume, named in the plural."
     },
     "Game Controllers (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1541,41 +1070,24 @@
         }
       }
     },
-    "gestures, tap to click" : {
-      "comment" : "Words that find the Trackpad pane of System Settings, separated by commas."
-    },
-    "Get Thaw" : {
-
-    },
-    "Getting the selected text needs Accessibility access. Turn it on under System Settings › Privacy & Security › Accessibility." : {
-
+    "Get Thaw" : {},
+    "Getting the selected text needs Accessibility access. Turn it on under System Settings › Privacy & Security › Accessibility." : {},
+    "Gigabytes" : {
+      "comment" : "A unit of data size, named in the plural."
     },
     "Glass" : {
       "comment" : "The heading over the settings for the launcher's glass material."
     },
-    "Glass Effect" : {
-
-    },
-    "glass, liquid, dynamic, clear, regular, effect, material" : {
-      "comment" : "Words that find the Glass Effect setting in the settings search, separated by commas."
-    },
+    "Glass Effect" : {},
     "Gradient" : {
       "comment" : "A background tint choice: two colors blended."
     },
-    "Grant Access" : {
-
+    "Grams" : {
+      "comment" : "A unit of mass, named in the plural."
     },
+    "Grant Access" : {},
     "Granted" : {
       "comment" : "Said of a permission the user has given."
-    },
-    "headphones, pair" : {
-      "comment" : "Words that find the Bluetooth pane of System Settings, separated by commas."
-    },
-    "heart, love" : {
-      "comment" : "Words that find the symbol ❤, separated by commas."
-    },
-    "heart, suit, hearts" : {
-      "comment" : "Words that find the symbol ♥, separated by commas."
     },
     "Help translate" : {
       "comment" : "A button that opens the page where volunteers translate this app."
@@ -1583,14 +1095,9 @@
     "Hide" : {
       "comment" : "An action that hides a running app's windows."
     },
-    "Hide Floe" : {
-
-    },
+    "Hide Floe" : {},
     "Hide Other Apps" : {
       "comment" : "A command that hides every app but the one in front."
-    },
-    "hide, hide other apps, hide others" : {
-      "comment" : "Words that find the Hide Other Apps command, separated by commas."
     },
     "History" : {
       "comment" : "A label before the controls for the clipboard history."
@@ -1598,48 +1105,32 @@
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
     },
-    "hotkey, shortcut, keyboard, global, toggle, show, launcher, summon" : {
-      "comment" : "Words that find the Open Floe setting in the settings search, separated by commas."
+    "Hours" : {
+      "comment" : "A unit of time, named in the plural."
     },
-    "hotkey, shortcut, keyboard, menu bar, status items, icons" : {
-      "comment" : "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."
-    },
-    "How Floe works" : {
-
-    },
-    "How long a closed launcher keeps the command you had open." : {
-
-    },
+    "How Floe works" : {},
+    "How long a closed launcher keeps the command you had open." : {},
     "Image" : {
       "comment" : "A copied picture."
     },
     "Immediately" : {
       "comment" : "A choice for when something happens: with no delay."
     },
-    "Import…" : {
-
-    },
     "Important" : {
       "comment" : "The heading of an important note in the release notes."
     },
-    "In the menu bar" : {
-
+    "Import…" : {},
+    "In the menu bar" : {},
+    "Inches" : {
+      "comment" : "A unit of length, named in the plural."
     },
-    "Include extensions installed in Raycast" : {
-
-    },
+    "Include extensions installed in Raycast" : {},
     "Install" : {
       "comment" : "A button that installs an extension."
     },
-    "Install extensions from the Raycast store" : {
-
-    },
-    "Install Thaw and its actions appear in the search." : {
-
-    },
-    "Install, update and remove extensions from the Raycast store." : {
-
-    },
+    "Install Thaw and its actions appear in the search." : {},
+    "Install extensions from the Raycast store" : {},
+    "Install, update and remove extensions from the Raycast store." : {},
     "Installed" : {
       "comment" : "Said of an extension that is already installed."
     },
@@ -1655,24 +1146,17 @@
         }
       }
     },
-    "Join the Discord" : {
-
-    },
+    "Join the Discord" : {},
     "Keep %@ up to date?" : {
       "comment" : "The placeholder is the name of this app."
     },
-    "Keeping your Mac awake" : {
-
+    "Keeping your Mac awake" : {},
+    "Keeps text, links, images and files you copy." : {},
+    "Keeps text, links, images and files you copy. Pins survive Clear." : {},
+    "Kelvin" : {
+      "comment" : "A unit of temperature."
     },
-    "Keeps text, links, images and files you copy." : {
-
-    },
-    "Keeps text, links, images and files you copy. Pins survive Clear." : {
-
-    },
-    "Kept in the Keychain" : {
-
-    },
+    "Kept in the Keychain" : {},
     "Keyboard (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1685,32 +1169,31 @@
         }
       }
     },
-    "keyboard shortcuts, input sources, dictation, text replacements" : {
-      "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
-    },
     "Keyword" : {
       "comment" : "The word typed in the search to use a quicklink or a snippet."
     },
-    "keyword, abbreviation, prefix, trigger" : {
-      "comment" : "Words that find the Keyword setting in the settings search, separated by commas."
+    "Keywords and fallbacks for web search" : {},
+    "Keywords and fallbacks for web search." : {},
+    "Keywords can't contain spaces." : {},
+    "Keywords cannot contain spaces." : {},
+    "Keywords need at least 2 characters." : {},
+    "Kilobytes" : {
+      "comment" : "A unit of data size, named in the plural."
     },
-    "Keywords and fallbacks for web search" : {
-
+    "Kilograms" : {
+      "comment" : "A unit of mass, named in the plural."
     },
-    "Keywords and fallbacks for web search." : {
-
+    "Kilometers" : {
+      "comment" : "A unit of length, named in the plural."
     },
-    "Keywords can't contain spaces." : {
-
-    },
-    "Keywords cannot contain spaces." : {
-
-    },
-    "Keywords need at least 2 characters." : {
-
+    "Kilometers Per Hour" : {
+      "comment" : "A unit of speed, named in the plural."
     },
     "Kind" : {
       "comment" : "A label before the kind of a file or copied thing, such as Image."
+    },
+    "LM Studio, on this Mac" : {
+      "comment" : "LM Studio is the name of an app."
     },
     "Language & Region (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1727,48 +1210,28 @@
     "Last checked %@" : {
       "comment" : "The placeholder is a date and time."
     },
-    "Last opened" : {
-
-    },
-    "Launch at Login" : {
-
-    },
-    "Launcher" : {
-
-    },
-    "Launcher layout" : {
-
-    },
+    "Last opened" : {},
+    "Launch at Login" : {},
+    "Launcher" : {},
+    "Launcher layout" : {},
     "Layout" : {
       "comment" : "The heading over the settings for how the launcher is arranged."
-    },
-    "layout, compact, extended, size, search bar, list" : {
-      "comment" : "Words that find the Launcher layout setting in the settings search, separated by commas."
     },
     "Licenses" : {
       "comment" : "The title of the page with the licenses of what Floe is built from."
     },
-    "Light appearance" : {
-
-    },
-    "lightning, bolt, zap, fast" : {
-      "comment" : "Words that find the symbol ⚡, separated by commas."
-    },
+    "Light appearance" : {},
     "Link" : {
       "comment" : "A kind of copied thing.\nA web style link that opens an app, as a choice in a picker and as the label of its field."
     },
     "Liquid Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
-    "LM Studio, on this Mac" : {
-      "comment" : "LM Studio is the name of an app."
+    "Liters" : {
+      "comment" : "A unit of volume, named in the plural."
     },
-    "Loading extensions…" : {
-
-    },
-    "Loading…" : {
-
-    },
+    "Loading extensions…" : {},
+    "Loading…" : {},
     "Lock Screen" : {
       "comment" : "A command that locks the screen."
     },
@@ -1784,24 +1247,11 @@
         }
       }
     },
-    "lock, screen" : {
-      "comment" : "Words that find the Lock Screen command, separated by commas."
-    },
-    "Log files" : {
-
-    },
     "Log Out" : {
       "comment" : "A command that logs the user out."
     },
-    "Log out now?" : {
-
-    },
-    "log out, logout, sign out" : {
-      "comment" : "Words that find the Log Out command, separated by commas."
-    },
-    "log, logs, logging, diagnostics, debug, troubleshoot, slow, report" : {
-      "comment" : "Words that find the Detailed logging setting in the settings search, separated by commas."
-    },
+    "Log files" : {},
+    "Log out now?" : {},
     "Login Items (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1814,38 +1264,39 @@
         }
       }
     },
-    "macOS already uses this shortcut" : {
-
-    },
-    "macos update, upgrade" : {
-      "comment" : "Words that find the Software Update pane of System Settings, separated by commas."
-    },
-    "mail accounts, google, exchange" : {
-      "comment" : "Words that find the Internet Accounts pane of System Settings, separated by commas."
-    },
-    "Match System" : {
-
-    },
-    "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {
-
-    },
-    "menu bar" : {
-      "comment" : "Words that find the Control Center pane of System Settings, separated by commas."
+    "Match System" : {},
+    "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {},
+    "Megabytes" : {
+      "comment" : "A unit of data size, named in the plural."
     },
     "Menu Bar" : {
       "comment" : "The heading over every menu bar item.\nThe kind of a result, shown beside its title."
     },
-    "Menu Bar Commands" : {
-
+    "Menu Bar Commands" : {},
+    "Menu Bar Items" : {},
+    "Meters" : {
+      "comment" : "A unit of length, named in the plural."
     },
-    "Menu Bar Items" : {
-
+    "Meters Per Second" : {
+      "comment" : "A unit of speed, named in the plural."
     },
-    "menu bar, keyword, abbreviation, short name" : {
-      "comment" : "Words that find the Alias setting in the settings search, separated by commas."
+    "Miles" : {
+      "comment" : "A unit of length, named in the plural."
+    },
+    "Miles Per Hour" : {
+      "comment" : "A unit of speed, named in the plural."
+    },
+    "Milliliters" : {
+      "comment" : "A unit of volume, named in the plural."
+    },
+    "Millimeters" : {
+      "comment" : "A unit of length, named in the plural."
     },
     "Minimize" : {
       "comment" : "The Window menu item that puts the window in the Dock."
+    },
+    "Minutes" : {
+      "comment" : "A unit of time, named in the plural."
     },
     "Missing @raycast.schemaVersion. Add `# @raycast.schemaVersion 1`." : {
       "comment" : "The text between the backticks, and the word that starts with @raycast, are typed into a script as they are."
@@ -1858,9 +1309,6 @@
     },
     "Modified" : {
       "comment" : "A label before the date a file was last changed."
-    },
-    "monitor, screen, resolution, night shift, brightness" : {
-      "comment" : "Words that find the Displays pane of System Settings, separated by commas."
     },
     "More about %@" : {
       "comment" : "The placeholder is the name of this app."
@@ -1877,32 +1325,18 @@
         }
       }
     },
+    "Move to Trash" : {},
+    "Move to Trash…" : {},
     "Move “%@” to the Trash?" : {
       "comment" : "The placeholder is a file name."
     },
-    "Move to Trash" : {
-
-    },
-    "Move to Trash…" : {
-
-    },
-    "Moved to Trash" : {
-
-    },
-    "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac." : {
-
-    },
-    "mute, unmute, sound, volume, silence" : {
-      "comment" : "Words that find the Toggle Mute command, separated by commas."
-    },
+    "Moved to Trash" : {},
+    "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac." : {},
     "Muted" : {
       "comment" : "Said after the sound was turned off."
     },
     "Name" : {
       "comment" : "The label of the field for a name."
-    },
-    "name, title, label" : {
-      "comment" : "Words that find the Name setting in the settings search, separated by commas."
     },
     "Network (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1916,111 +1350,45 @@
         }
       }
     },
-    "Network Access" : {
-
-    },
-    "network, internet, updates, github, ai, requests, analytics" : {
-      "comment" : "Words that find the Network Access setting in the settings search, separated by commas."
-    },
+    "Network Access" : {},
     "New" : {
       "comment" : "A label before the button that creates a new extension."
     },
-    "New Note" : {
-
-    },
+    "New Note" : {},
     "New Note “%@”" : {
       "comment" : "The placeholder is the text of the note."
     },
-    "New Quicklink" : {
-
-    },
-    "New Script" : {
-
-    },
-    "New Snippet" : {
-
-    },
-    "new, add, create, quicklink" : {
-      "comment" : "Words that find the New Quicklink setting in the settings search, separated by commas."
-    },
-    "No analytics" : {
-
-    },
-    "No analytics or tracking" : {
-
-    },
-    "No analytics or usage tracking" : {
-
-    },
-    "No analytics, no tracking" : {
-
-    },
-    "No answer" : {
-
-    },
-    "No app opens that URL" : {
-
-    },
-    "No app opens the clipboard link. Change it in Settings" : {
-
-    },
-    "No clipboard entries match" : {
-
-    },
-    "No copies match" : {
-
-    },
-    "No files are selected in the Finder." : {
-
-    },
-    "No files match" : {
-
-    },
-    "No items match" : {
-
-    },
-    "No matching actions" : {
-
-    },
-    "No menu bar items found" : {
-
-    },
-    "No menu bar items match" : {
-
-    },
-    "No open tabs match" : {
-
-    },
-    "No recent files" : {
-
-    },
-    "No Results" : {
-
-    },
-    "No script commands yet. Scripts are executable files with @raycast metadata." : {
-
-    },
-    "No settings found" : {
-
-    },
+    "New Quicklink" : {},
+    "New Script" : {},
+    "New Snippet" : {},
+    "No Results" : {},
+    "No SSH hosts match" : {},
+    "No View" : {},
+    "No analytics" : {},
+    "No analytics or tracking" : {},
+    "No analytics or usage tracking" : {},
+    "No analytics, no tracking" : {},
+    "No answer" : {},
+    "No app opens that URL" : {},
+    "No app opens the clipboard link. Change it in Settings" : {},
+    "No clipboard entries match" : {},
+    "No copies match" : {},
+    "No files are selected in the Finder." : {},
+    "No files match" : {},
+    "No items match" : {},
+    "No matching actions" : {},
+    "No menu bar items found" : {},
+    "No menu bar items match" : {},
+    "No open tabs match" : {},
+    "No recent files" : {},
+    "No script commands yet. Scripts are executable files with @raycast metadata." : {},
+    "No settings found" : {},
     "No settings match “%@”" : {
       "comment" : "The placeholder is what the user typed in the settings search."
     },
-    "No shortcuts match" : {
-
-    },
-    "No snippets yet." : {
-
-    },
-    "No sound output" : {
-
-    },
-    "No SSH hosts match" : {
-
-    },
-    "No View" : {
-
-    },
+    "No shortcuts match" : {},
+    "No snippets yet." : {},
+    "No sound output" : {},
     "None" : {
       "comment" : "Shown where a file or folder would be, when none is chosen."
     },
@@ -2039,42 +1407,23 @@
     "None yet" : {
       "comment" : "Shown in place of a log file's name when no log has been written."
     },
-    "Not checked yet" : {
-      "comment" : "Shown in place of the time updates were last checked."
-    },
-    "Not connected. Choose a terminal in Floe Settings." : {
-
-    },
-    "Not connected. Floe only passes on host names made of letters, digits, dots, hyphens and underscores." : {
-
-    },
-    "Not released yet" : {
-
-    },
-    "not set" : {
-      "comment" : "Read aloud for an app picker with no app chosen."
-    },
     "Not Set Up" : {
       "comment" : "Shown where the name of the clipboard app would be when none can be opened."
     },
+    "Not checked yet" : {
+      "comment" : "Shown in place of the time updates were last checked."
+    },
+    "Not connected. Choose a terminal in Floe Settings." : {},
+    "Not connected. Floe only passes on host names made of letters, digits, dots, hyphens and underscores." : {},
+    "Not released yet" : {},
     "Note" : {
       "comment" : "The heading of a note in the release notes."
     },
     "Notes" : {
       "comment" : "The kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one."
     },
-    "notes, jot, memo" : {
-      "comment" : "Words that find the rows of the notes app in the search, separated by commas."
-    },
-    "notes, notes app, apple notes, antinote, new note, quick note, capture, preferred app" : {
-      "comment" : "Words that find the Notes setting in the settings search, separated by commas."
-    },
-    "Nothing copied yet" : {
-
-    },
-    "Nothing matches" : {
-
-    },
+    "Nothing copied yet" : {},
+    "Nothing matches" : {},
     "Notifications (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2087,11 +1436,9 @@
         }
       }
     },
+    "OK" : {},
     "Off" : {
       "comment" : "Automatic updates: never check."
-    },
-    "OK" : {
-
     },
     "Older" : {
       "comment" : "A button that shows older release notes."
@@ -2099,9 +1446,7 @@
     "Ollama, on this Mac" : {
       "comment" : "Ollama is the name of an app."
     },
-    "Only use AI that runs on this Mac" : {
-
-    },
+    "Only use AI that runs on this Mac" : {},
     "Opacity" : {
       "comment" : "The label of a slider for how see-through something is."
     },
@@ -2111,36 +1456,13 @@
     "Open %@" : {
       "comment" : "The placeholder is a web address.\nThe placeholder is the name of an app.\nThe placeholder is the name of this app."
     },
-    "Open an Item by Letter" : {
-
-    },
-    "Open an item's menu when you pick it in the search." : {
-
-    },
     "Open Finder Selection in %@" : {
       "comment" : "The placeholder is an app's name."
     },
-    "Open Floe" : {
-
-    },
-    "Open Floe from its menu bar icon. You can set a hotkey in Settings." : {
-
-    },
-    "Open Floe's search of the menu bar's items." : {
-
-    },
-    "Open in %@" : {
-      "comment" : "The placeholder is the name of an app."
-    },
-    "Open in Shortcuts" : {
-      "comment" : "Shortcuts is the name of Apple's app."
-    },
-    "Open it with a hotkey" : {
-
-    },
-    "Open Settings" : {
-
-    },
+    "Open Floe" : {},
+    "Open Floe from its menu bar icon. You can set a hotkey in Settings." : {},
+    "Open Floe's search of the menu bar's items." : {},
+    "Open Settings" : {},
     "Open Settings (System Settings)" : {
       "comment" : "A button that opens System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2153,111 +1475,66 @@
         }
       }
     },
-    "Open source" : {
-
-    },
-    "Open source under the AGPL, so you can read how it works" : {
-
-    },
-    "Open System Settings" : {
-
-    },
+    "Open System Settings" : {},
     "Open With" : {
       "comment" : "The title of a submenu that lists apps."
     },
-    "opencode stopped before finishing." : {
-      "comment" : "The word opencode is the name of a command and stays as written."
+    "Open an Item by Letter" : {},
+    "Open an item's menu when you pick it in the search." : {},
+    "Open in %@" : {
+      "comment" : "The placeholder is the name of an app."
     },
-    "opencode tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
-      "comment" : "The word opencode is the name of a command and stays as written."
+    "Open in Shortcuts" : {
+      "comment" : "Shortcuts is the name of Apple's app."
     },
-    "Opening the Extension Store lists extensions from GitHub. Installing or updating one downloads it from GitHub and its packages from the npm registry." : {
-
-    },
-    "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy." : {
-
-    },
-    "Opens a file or a folder from the Actions menu or from Finder." : {
-
-    },
-    "Opens a folder from the Actions menu or from Finder, and the SSH hosts you pick in the search." : {
-
-    },
-    "Opens from Clipboard History in the search. With another app chosen, Floe saves no copies and keeps the history it has." : {
-
-    },
-    "Opens the app, or hides it if it's already in front." : {
-
-    },
-    "Opens web addresses, quicklinks and the other web links you open from Floe." : {
-
-    },
+    "Open it with a hotkey" : {},
+    "Open source" : {},
+    "Open source under the AGPL, so you can read how it works" : {},
+    "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy." : {},
+    "Opening the Extension Store lists extensions from GitHub. Installing or updating one downloads it from GitHub and its packages from the npm registry." : {},
+    "Opens a file or a folder from the Actions menu or from Finder." : {},
+    "Opens a folder from the Actions menu or from Finder, and the SSH hosts you pick in the search." : {},
+    "Opens from Clipboard History in the search. With another app chosen, Floe saves no copies and keeps the history it has." : {},
+    "Opens the app, or hides it if it's already in front." : {},
+    "Opens web addresses, quicklinks and the other web links you open from Floe." : {},
     "Optional" : {
       "comment" : "A badge on a permission Floe works without."
     },
     "Origins" : {
       "comment" : "The heading over the projects this app grew out of."
     },
-    "Other…" : {
-
-    },
-    "party, celebrate, celebration, tada, congrats" : {
-      "comment" : "Words that find the symbol 🎉, separated by commas."
+    "Other…" : {},
+    "Ounces" : {
+      "comment" : "A unit of mass, named in the plural."
     },
     "Paste" : {
       "comment" : "A button that pastes the selected entry.\nA verb: insert what is on the clipboard."
     },
-    "Paste Answer" : {
-
-    },
+    "Paste Answer" : {},
     "Path" : {
       "comment" : "A label before the place of a command line tool on disk."
     },
-    "Permission checks stay on your Mac" : {
-
-    },
-    "permission, privacy, access, grant, trusted, menu bar" : {
-      "comment" : "Words that find the Accessibility setting in the settings search, separated by commas."
-    },
+    "Permission checks stay on your Mac" : {},
     "Permissions" : {
       "comment" : "What the app is allowed to do on this Mac."
     },
-    "Permissions and what Floe contacts" : {
-
-    },
-    "Permissions and what Floe contacts." : {
-
-    },
-    "Permissions optional" : {
-
-    },
-    "permissions, filevault, full disk access, screen recording, automation, location" : {
-      "comment" : "Words that find the Privacy & Security pane of System Settings, separated by commas."
-    },
-    "pi stopped before finishing." : {
-      "comment" : "The word pi is the name of a command and stays as written."
-    },
-    "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
-      "comment" : "The word pi is the name of a command and stays as written."
-    },
+    "Permissions and what Floe contacts" : {},
+    "Permissions and what Floe contacts." : {},
+    "Permissions optional" : {},
     "Pin" : {
       "comment" : "A button that keeps a copy at the top of the list."
     },
     "Pinned" : {
       "comment" : "The heading over the copies the user pinned."
     },
-    "Placeholders: {clipboard} {date} {time} {datetime} {uuid} {day}" : {
-
-    },
-    "pop to root, delay, timeout, reset, close, immediately, seconds, minutes" : {
-      "comment" : "Words that find the Return to root search setting in the settings search, separated by commas."
+    "Placeholders: {clipboard} {date} {time} {datetime} {uuid} {day}" : {},
+    "Pounds" : {
+      "comment" : "A unit of mass, named in the plural."
     },
     "Preferences" : {
       "comment" : "The heading over an extension's own settings."
     },
-    "Preferred Apps" : {
-
-    },
+    "Preferred Apps" : {},
     "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
       "comment" : "The placeholder is a keyboard shortcut."
     },
@@ -2291,47 +1568,23 @@
         }
       }
     },
-    "privacy, permissions, network, analytics, tracking, data" : {
-      "comment" : "Words that find the Privacy page in the settings search, separated by commas."
-    },
-    "privacy, security, access, grant, allow, accessibility" : {
-      "comment" : "Words that find the Permissions setting in the settings search, separated by commas."
-    },
-    "profiles, mdm" : {
-      "comment" : "Words that find the Device Management pane of System Settings, separated by commas."
-    },
-    "provider/model, or empty for the default set in %@" : {
-      "comment" : "Example text in a field for a model name. The placeholder is the name of a command line tool."
-    },
-    "Questions are answered by Apple Intelligence on this Mac. Nothing is sent anywhere." : {
-
-    },
+    "Questions are answered by Apple Intelligence on this Mac. Nothing is sent anywhere." : {},
     "Questions go to %@, with your key, and nowhere else." : {
       "comment" : "The placeholder is the address of a server."
     },
     "Questions go to the %@ tool, which sends them to the service it is signed in to, on your account there." : {
       "comment" : "The placeholder is the name of a command line tool."
     },
-    "Questions go to the address set in General, once it is filled in." : {
-
-    },
+    "Questions go to the address set in General, once it is filled in." : {},
     "Questions go to the server on this Mac at %@. Nothing leaves the machine." : {
       "comment" : "The placeholder is the address of a server."
     },
-    "Quick Look  ⌘Y" : {
-
-    },
+    "Quick Look  ⌘Y" : {},
     "Quick Look %@" : {
       "comment" : "Quick Look is the macOS preview. The placeholder is the name of a file."
     },
     "Quicklink" : {
       "comment" : "The heading of the form that edits one quicklink.\nThe kind of a result, shown beside its title. A quicklink is a saved link or search."
-    },
-    "quicklink, keyword, link, name, url, list, edit, delete" : {
-      "comment" : "Words that find the Quicklinks setting in the settings search, separated by commas."
-    },
-    "quicklink, quicklinks, keyword, search, web, fallback, link, url" : {
-      "comment" : "Words that find the Quicklinks page in the settings search, separated by commas."
     },
     "Quicklinks" : {
       "comment" : "The name of a settings page."
@@ -2342,93 +1595,48 @@
     "Quit All Apps" : {
       "comment" : "A command that quits every open app."
     },
-    "Quit all apps now?" : {
-
-    },
-    "quit all apps, quit all, close all apps" : {
-      "comment" : "Words that find the Quit All Apps command, separated by commas."
-    },
-    "Quit Floe" : {
-
-    },
+    "Quit Floe" : {},
+    "Quit all apps now?" : {},
     "Quitting %@" : {
       "comment" : "The placeholder is an app's name."
     },
-    "Raycast" : {
-
-    },
-    "Raycast Extension Store" : {
-
-    },
-    "Raycast Extensions Folder" : {
-
-    },
-    "raycast, import, store, installed" : {
-      "comment" : "Words that find the Include extensions installed in Raycast setting in the settings search, separated by commas."
-    },
-    "Reading your menu bar…" : {
-
-    },
-    "Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over." : {
-
-    },
+    "Raycast" : {},
+    "Raycast Extension Store" : {},
+    "Raycast Extensions Folder" : {},
+    "Reading your menu bar…" : {},
+    "Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over." : {},
     "Recent" : {
       "comment" : "The heading over the menu bar items opened lately."
     },
     "Record" : {
       "comment" : "Spoken for the button that starts recording a keyboard shortcut."
     },
-    "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts." : {
-
-    },
-    "Record Shortcut" : {
-
-    },
+    "Record Shortcut" : {},
+    "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts." : {},
     "Redo" : {
       "comment" : "A verb in the Edit menu."
-    },
-    "registered" : {
-      "comment" : "Words that find the symbol ®, separated by commas."
     },
     "Regular" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
-    "Release notes" : {
-
-    },
-    "Remember last search" : {
-
-    },
+    "Release notes" : {},
+    "Remember last search" : {},
     "Remove" : {
       "comment" : "A button that uninstalls an extension."
     },
-    "Remove from Favorites" : {
-
-    },
-    "Remove from Menu Bar" : {
-
-    },
-    "Removed from Favorites" : {
-
-    },
-    "Removed from Menu Bar" : {
-
-    },
-    "Removes every copy except pinned ones." : {
-
-    },
+    "Remove from Favorites" : {},
+    "Remove from Menu Bar" : {},
+    "Removed from Favorites" : {},
+    "Removed from Menu Bar" : {},
+    "Removes every copy except pinned ones." : {},
     "Rename" : {
       "comment" : "A button that saves the new name of a menu bar item."
     },
     "Replace" : {
       "comment" : "The button that replaces the settings with the ones in a file."
     },
-    "Replace your settings?" : {
-
-    },
-    "Report a Bug" : {
-
-    },
+    "Replace your settings?" : {},
+    "Report a Bug" : {},
     "Restart" : {
       "comment" : "A verb on a button: start the extension again."
     },
@@ -2444,21 +1652,9 @@
         }
       }
     },
-    "Restart your Mac now?" : {
-
-    },
-    "restart, reboot" : {
-      "comment" : "Words that find the Restart command, separated by commas."
-    },
-    "Restore Original Name" : {
-
-    },
-    "Result" : {
-
-    },
-    "Return to root search" : {
-
-    },
+    "Restart your Mac now?" : {},
+    "Restore Original Name" : {},
+    "Return to root search" : {},
     "Rounded" : {
       "comment" : "A shape for the search field."
     },
@@ -2468,38 +1664,22 @@
     "Run %@?" : {
       "comment" : "The placeholder is the name of a script."
     },
-    "Run ${command}" : {
-
-    },
-    "Run an extension command in Floe." : {
-
-    },
-    "Run Command" : {
-
-    },
-    "Run Raycast extensions" : {
-
-    },
-    "Runs on this Mac. Nothing is sent anywhere." : {
-
-    },
+    "Run Command" : {},
+    "Run Raycast extensions" : {},
+    "Run an extension command in Floe." : {},
+    "Runs on this Mac. Nothing is sent anywhere." : {},
     "Runtime" : {
       "comment" : "The program that runs extensions."
     },
+    "SF Symbol name" : {},
+    "SSH Hosts" : {},
     "Save" : {
       "comment" : "A button that keeps the changes in a form."
     },
-    "Save and Continue" : {
-
-    },
-    "Save clipboard history" : {
-
-    },
+    "Save and Continue" : {},
+    "Save clipboard history" : {},
     "Saved to Notes" : {
       "comment" : "Notes is Apple's notes app."
-    },
-    "screen lock, turn display off" : {
-      "comment" : "Words that find the Lock Screen pane of System Settings, separated by commas."
     },
     "Screen Saver (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -2512,9 +1692,6 @@
           }
         }
       }
-    },
-    "screen sharing, file sharing, remote login, computer name" : {
-      "comment" : "Words that find the Sharing pane of System Settings, separated by commas."
     },
     "Screen Time (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -2534,18 +1711,8 @@
     "Script Command" : {
       "comment" : "What a script command is called where it names no package."
     },
-    "Script Commands" : {
-
-    },
-    "script, scripts, script commands, raycast, finder, directory, new script" : {
-      "comment" : "Words that find the Scripts folder setting in the settings search, separated by commas."
-    },
-    "Scripts folder" : {
-
-    },
-    "scroll direction, tracking speed" : {
-      "comment" : "Words that find the Mouse pane of System Settings, separated by commas."
-    },
+    "Script Commands" : {},
+    "Scripts folder" : {},
     "Search" : {
       "comment" : "A noun: the heading over the settings for searching."
     },
@@ -2560,119 +1727,53 @@
         }
       }
     },
-    "Search actions…" : {
-
-    },
-    "Search apps and commands…" : {
-
-    },
-    "Search clipboard history…" : {
-
-    },
-    "Search Emoji & Symbols" : {
-
-    },
-    "Search extensions" : {
-
-    },
-    "Search field shape" : {
-
-    },
-    "Search Files" : {
-
-    },
+    "Search Emoji & Symbols" : {},
+    "Search Files" : {},
     "Search Files for \"%@\"" : {
       "comment" : "The placeholder is what the user typed."
     },
-    "Search files…" : {
-
-    },
-    "Search Menu Bar Items" : {
-
-    },
-    "Search Menu Bar Items in Thaw" : {
-
-    },
-    "Search menu bar items…" : {
-
-    },
-    "Search Sources" : {
-
-    },
-    "Search the menu bar" : {
-
-    },
-    "Search…" : {
-
-    },
-    "Searching files…" : {
-
-    },
-    "Searching the menu bar needs Accessibility. The launcher and your extensions work without it." : {
-
+    "Search Menu Bar Items" : {},
+    "Search Menu Bar Items in Thaw" : {},
+    "Search Sources" : {},
+    "Search actions…" : {},
+    "Search apps and commands…" : {},
+    "Search clipboard history…" : {},
+    "Search extensions" : {},
+    "Search field shape" : {},
+    "Search files…" : {},
+    "Search menu bar items…" : {},
+    "Search the menu bar" : {},
+    "Searching files…" : {},
+    "Searching the menu bar needs Accessibility. The launcher and your extensions work without it." : {},
+    "Search…" : {},
+    "Seconds" : {
+      "comment" : "A unit of time, named in the plural."
     },
     "Select" : {
       "comment" : "The label of a menu before anything is chosen in it."
     },
-    "Select a copy to preview it" : {
-
-    },
-    "Select All" : {
-
-    },
-    "Select an app to give it an alias or a hotkey." : {
-
-    },
-    "Select an extension to see its details." : {
-
-    },
-    "Separate light and dark tints" : {
-
-    },
-    "Separate the search field from the results" : {
-
-    },
-    "separate, split, detached, floating, two pieces, gap, search bar, input, results" : {
-      "comment" : "Words that find the Separate the search field from the results setting in the settings search, separated by commas."
-    },
+    "Select All" : {},
+    "Select a copy to preview it" : {},
+    "Select an app to give it an alias or a hotkey." : {},
+    "Select an extension to see its details." : {},
+    "Separate light and dark tints" : {},
+    "Separate the search field from the results" : {},
     "Service" : {
       "comment" : "The label of the picker that chooses which AI service answers."
     },
     "Set %@'s preferences on its page first." : {
       "comment" : "The placeholder is the name of an extension."
     },
-    "Set a link for your clipboard app in Settings" : {
-
-    },
-    "Set a URL for your notes app in Settings" : {
-
-    },
     "Set Up %@" : {
       "comment" : "A heading. The placeholder is an extension's name."
     },
-    "Settings file" : {
-
-    },
-    "Settings imported" : {
-
-    },
-    "settings, preferences, options" : {
-      "comment" : "Words that find the General page in the settings search, separated by commas."
-    },
-    "Settings…" : {
-
-    },
-    "SF Symbol name" : {
-
-    },
+    "Set a URL for your notes app in Settings" : {},
+    "Set a link for your clipboard app in Settings" : {},
+    "Settings file" : {},
+    "Settings imported" : {},
+    "Settings…" : {},
     "Shadow" : {
       "comment" : "The heading over the launcher's shadow setting."
-    },
-    "shadow, depth, drop" : {
-      "comment" : "Words that find the Drop shadow setting in the settings search, separated by commas."
-    },
-    "shape, rounded, capsule, pill, square, corners, search bar, input" : {
-      "comment" : "Words that find the Search field shape setting in the settings search, separated by commas."
     },
     "Sharing (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -2692,86 +1793,42 @@
     "Shortcuts" : {
       "comment" : "A section title. Shortcuts are what the user makes in Apple's Shortcuts app."
     },
-    "shortcuts, shortcut, shortcuts app, run, automation, source" : {
-      "comment" : "Words that find the Apple Shortcuts setting in the settings search, separated by commas."
-    },
     "Show %@ in Finder" : {
       "comment" : "The placeholder is the name of an app."
     },
-    "Show Extension in Finder" : {
-
-    },
-    "Show Floe" : {
-
-    },
+    "Show Extension in Finder" : {},
+    "Show Floe" : {},
     "Show Floe (%@)" : {
       "comment" : "A menu item. The placeholder is a keyboard shortcut such as ⌥Space."
-    },
-    "Show in Dock" : {
-
-    },
-    "Show in Finder" : {
-
     },
     "Show Layout" : {
       "comment" : "A command that opens the layout editor of the app Thaw."
     },
-    "Show Log Files in Finder" : {
-
-    },
-    "Show the Floe launcher." : {
-
-    },
-    "Show Welcome" : {
-
-    },
-    "Shown under your results when you search." : {
-
-    },
+    "Show Log Files in Finder" : {},
+    "Show Welcome" : {},
+    "Show in Dock" : {},
+    "Show in Finder" : {},
+    "Show the Floe launcher." : {},
+    "Shown under your results when you search." : {},
     "Shut Down" : {
       "comment" : "A command that turns the Mac off."
     },
-    "Shut down your Mac now?" : {
-
-    },
-    "shut down, shutdown, power off, turn off" : {
-      "comment" : "Words that find the Shut Down command, separated by commas."
-    },
-    "Sign-in timed out." : {
-
-    },
-    "Sign-in was cancelled." : {
-
-    },
-    "Sign-in was replaced by a newer request." : {
-
-    },
+    "Shut down your Mac now?" : {},
+    "Sign-in timed out." : {},
+    "Sign-in was cancelled." : {},
+    "Sign-in was replaced by a newer request." : {},
     "Size" : {
       "comment" : "A label before the size of a file."
     },
-    "Skip Setup" : {
-
-    },
+    "Skip Setup" : {},
     "Sleep" : {
       "comment" : "A command that puts the Mac to sleep."
     },
     "Sleep Displays" : {
       "comment" : "A command that turns the displays off."
     },
-    "sleep, displays, screen off, monitor" : {
-      "comment" : "Words that find the Sleep Displays command, separated by commas."
-    },
-    "sleep, rest" : {
-      "comment" : "Words that find the Sleep command, separated by commas."
-    },
-    "smile, happy, grin, grinning" : {
-      "comment" : "Words that find the symbol 😀, separated by commas."
-    },
     "Snippet" : {
       "comment" : "The kind of a result, shown beside its title. A snippet is a saved piece of text."
-    },
-    "snippet, snippets, text, expansion, expand, keyword, abbreviation, template" : {
-      "comment" : "Words that find the Snippets page in the settings search, separated by commas."
     },
     "Snippets" : {
       "comment" : "The name of a settings page."
@@ -2803,27 +1860,14 @@
         }
       }
     },
-    "Source Code" : {
-
-    },
-    "sources, root search, results, sections" : {
-      "comment" : "Words that find the Search Sources setting in the settings search, separated by commas."
-    },
+    "Source Code" : {},
     "Square" : {
       "comment" : "A shape for the search field."
-    },
-    "SSH Hosts" : {
-
     },
     "Stable" : {
       "comment" : "The update channel that only offers finished releases."
     },
-    "star, favorite, favourite" : {
-      "comment" : "Words that find the symbol ⭐, separated by commas."
-    },
-    "Start color" : {
-
-    },
+    "Start color" : {},
     "Startup Disk (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2836,18 +1880,7 @@
         }
       }
     },
-    "startup, background items, extensions" : {
-      "comment" : "Words that find the Login Items pane of System Settings, separated by commas."
-    },
-    "Startup, hotkeys and built-in commands" : {
-
-    },
-    "startup, start, boot, login item, autostart, open at login" : {
-      "comment" : "Words that find the Launch at Login setting in the settings search, separated by commas."
-    },
-    "status item, extension, show, remove" : {
-      "comment" : "Words that find the Extension Commands in the Menu Bar setting in the settings search, separated by commas."
-    },
+    "Startup, hotkeys and built-in commands" : {},
     "Step %lld of %lld" : {
       "comment" : "Spoken for the dots that show how far the welcome window has got. Both placeholders are numbers.",
       "localizations" : {
@@ -2871,32 +1904,17 @@
         }
       }
     },
-    "store, install, update, remove, download, extensions, browse, raycast" : {
-      "comment" : "Words that find the Extension Store page in the settings search, separated by commas."
-    },
     "Submenu" : {
       "comment" : "Stands in for a submenu's title when the extension gave none."
     },
     "Suggestions" : {
       "comment" : "A section title above results Floe suggests."
     },
-    "sun, sunny, weather" : {
-      "comment" : "Words that find the symbol ☀, separated by commas."
-    },
-    "Support Floe" : {
-
-    },
-    "Swap Shown and Hidden Items" : {
-
-    },
-    "Switch to Tab" : {
-
-    },
+    "Support Floe" : {},
+    "Swap Shown and Hidden Items" : {},
+    "Switch to Tab" : {},
     "Symbol" : {
       "comment" : "The icon of a quicklink."
-    },
-    "symbol, icon, glyph" : {
-      "comment" : "Words that find the Symbol setting in the settings search, separated by commas."
     },
     "System" : {
       "comment" : "The kind of a result, shown beside its title. Here a system command such as Sleep."
@@ -2904,62 +1922,721 @@
     "System Events and Finder" : {
       "comment" : "The names of two apps, as they stand in a sentence that asks for permission to control them."
     },
-    "System Settings" : {
-
-    },
-    "tabs, browser, safari, open tabs, automation, applescript, source" : {
-      "comment" : "Words that find the Browser Tabs setting in the settings search, separated by commas."
+    "System Settings" : {},
+    "Terabytes" : {
+      "comment" : "A unit of data size, named in the plural."
     },
     "Terminal" : {
       "comment" : "The kind of app that runs a shell, as the label of the picker that chooses one."
+    },
+    "Text" : {
+      "comment" : "A kind of copied thing."
+    },
+    "Text you paste or type by keyword" : {},
+    "Text you paste or type by keyword." : {},
+    "Thank you to everyone who contributes code, documentation, and translations to %@." : {
+      "comment" : "The placeholder is the name of this app."
+    },
+    "That command is no longer available in Floe." : {},
+    "That is more text than Apple Intelligence can take at once." : {},
+    "That keyword is already used." : {},
+    "That tab is no longer open" : {},
+    "Thaw" : {
+      "comment" : "Thaw is the name of an app."
+    },
+    "Thaw Settings" : {},
+    "Thaw answered in a form this version of Floe cannot read, so the launcher keeps the last look it had. Update Floe and Thaw." : {},
+    "Thaw has not answered, so the launcher keeps the last look it had. A development build of Floe has to be allowed first: run \"%@\" from the search." : {
+      "comment" : "The placeholder is the name of a command in the search."
+    },
+    "Thaw is not running. The launcher keeps the last look it had and asks again when Thaw opens." : {},
+    "Thaw isn't installed" : {},
+    "Thaw's actions are in the search: type “thaw” to see them." : {
+      "comment" : "The word in quotation marks is typed as it is and stays in English."
+    },
+    "Thaw's actions are in the search: type “thaw” to see them. The ones that change a Thaw setting need Automation turned on in Thaw." : {
+      "comment" : "The word in quotation marks is typed as it is and stays in English."
+    },
+    "Thaw's background follows the wallpaper, which the launcher cannot copy, so it is left out." : {},
+    "Thaw's background follows the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {},
+    "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so it is left out." : {},
+    "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {},
+    "Thaw's tint follows the wallpaper, which the launcher cannot copy, so it is left out." : {},
+    "Thaw's tint follows the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {},
+    "The %@ tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
+      "comment" : "The placeholder is the name of a command line tool."
+    },
+    "The %@ tool, on your account" : {
+      "comment" : "The placeholder is the name of a command line tool such as claude."
+    },
+    "The API could not be reached after %lld attempts. Check the connection, then try again." : {
+      "comment" : "The placeholder is how many times the request was tried."
+    },
+    "The API could not be reached after %lld attempts. Check the connection, then try again. (%@)" : {
+      "comment" : "The first placeholder is how many times the request was tried and the second is the system's own reason for the failure.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The API could not be reached after %1$lld attempts. Check the connection, then try again. (%2$@)"
+          }
+        }
+      }
+    },
+    "The API returned status %lld." : {
+      "comment" : "The placeholder is an HTTP status number such as 500."
+    },
+    "The API set up in General" : {},
+    "The Finder isn't frontmost, so there is no Finder selection to read." : {},
+    "The Finder selection couldn't be read." : {},
+    "The clipboard link isn't a URL. Change it in Settings" : {},
+    "The command failed with exit code %d." : {
+      "comment" : "The placeholder is the number a command ended with."
+    },
+    "The command line tool set in General is not installed, so no question is sent." : {},
+    "The command line tool set up in General" : {},
+    "The extension couldn't start." : {},
+    "The extension isn't responding." : {},
+    "The extension stopped unexpectedly." : {},
+    "The extension stopped unexpectedly. It exited with status %d." : {
+      "comment" : "The placeholder is a number."
+    },
+    "The extension stopped unexpectedly. It was killed by signal %d." : {
+      "comment" : "The placeholder is a number."
+    },
+    "The file couldn't be read as text." : {},
+    "The introduction from the first launch." : {},
+    "The launcher is following Thaw's border." : {},
+    "The launcher is following Thaw's glass." : {},
+    "The launcher is following Thaw's shadow." : {},
+    "The launcher is following Thaw's tint." : {},
+    "The link that makes a note, with {text} where the text goes." : {},
+    "The link that opens your clipboard app's history." : {},
+    "The model gave no answer." : {},
+    "The model's name, as the API lists it" : {},
+    "The oldest questions and answers were not sent with this one." : {
+      "comment" : "A note under an AI answer in a long conversation: only the most recent questions and answers went along as context."
+    },
+    "The open source launcher for macOS" : {},
+    "The repository could not be reached, so this is the last copy fetched." : {},
+    "The search field is its own piece of glass, and the results are a second piece below it." : {},
+    "The source chosen in General" : {},
+    "The system command failed." : {},
+    "This Mac can't run Apple Intelligence." : {},
+    "This Mac has no Wi-Fi" : {},
+    "This file isn't a Floe settings export." : {},
+    "This file was exported by a newer version of Floe." : {},
+    "This output can't be muted" : {},
+    "This source is not on this Mac, and Privacy is set to only use AI that runs on this Mac. Nothing will be asked until one of the two changes." : {},
+    "Tint" : {
+      "comment" : "The colour laid over the launcher's glass."
+    },
+    "Tint Opacity" : {},
+    "Tint color" : {},
+    "Tint the glass" : {},
+    "Tint, border and shadow for the launcher" : {},
+    "Tint, border and shadow for the launcher panel." : {},
+    "Tip" : {
+      "comment" : "The heading of a tip in the release notes."
+    },
+    "Today" : {
+      "comment" : "The heading over what was copied today."
+    },
+    "Toggle Application Menus" : {},
+    "Toggle Automatic Rehiding" : {},
+    "Toggle Dark Mode" : {
+      "comment" : "A command that switches between the light and the dark appearance."
+    },
+    "Toggle Hiding Application Menus" : {},
+    "Toggle Keep Awake" : {
+      "comment" : "A command that stops the Mac from sleeping, or lets it sleep again."
+    },
+    "Toggle Mute" : {
+      "comment" : "A command that turns the sound off or back on."
+    },
+    "Toggle Show on Hover" : {},
+    "Toggle Wi-Fi" : {
+      "comment" : "A command that turns Wi-Fi on or off."
+    },
+    "Toggle Zen Mode" : {},
+    "Toggle the Always Hidden Section" : {},
+    "Toggle the Hidden Section" : {},
+    "Tomorrow" : {
+      "comment" : "A section title above tomorrow's calendar events."
+    },
+    "Tool" : {
+      "comment" : "A command line program that answers AI requests."
+    },
+    "Touch ID & Password (System Settings)" : {
+      "comment" : "The name of a pane of System Settings.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Touch ID & Password"
+          }
+        }
+      }
+    },
+    "Trackpad (System Settings)" : {
+      "comment" : "The name of a pane of System Settings.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Trackpad"
+          }
+        }
+      }
+    },
+    "Transfer or Reset (System Settings)" : {
+      "comment" : "The name of a pane of System Settings.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Transfer or Reset"
+          }
+        }
+      }
+    },
+    "Translate" : {
+      "comment" : "The name of the quicklink that opens Google Translate."
+    },
+    "Translators" : {
+      "comment" : "A link to the list of people who translated Floe."
+    },
+    "Try Again" : {},
+    "Try a shorter or broader term." : {},
+    "Try fewer letters." : {},
+    "Try part of a file's name." : {},
+    "Try part of an app's or a command's name, or an alias." : {},
+    "Try part of the copied text, link or app name." : {},
+    "Try part of the item's name or the app that owns it." : {},
+    "Turn Thaw Bar On or Off" : {},
+    "Turn on Apple Intelligence in System Settings to use it here." : {},
+    "Turn on Save clipboard history in Settings to keep copies here." : {},
+    "Type Shortcut" : {},
+    "Type a snippet's keyword in any app and Floe replaces it with the snippet. Needs Accessibility. Password fields are skipped." : {},
+    "Type to find an app or a command, then press Return." : {},
+    "Type “note” and then your text in the search to send it there." : {
+      "comment" : "The word in quotation marks is typed as it is and stays in English."
+    },
+    "URL" : {
+      "comment" : "The label of the field for a web address."
+    },
+    "Undo" : {
+      "comment" : "A verb in the Edit menu."
+    },
+    "Unknown @raycast.mode %@. Use fullOutput, compact, silent or inline." : {
+      "comment" : "The word that starts with @raycast and the four mode names are typed into a script as they are."
+    },
+    "Unknown error" : {},
+    "Unmuted" : {
+      "comment" : "Said after the sound was turned back on."
+    },
+    "Unpin" : {
+      "comment" : "A button that takes a copy off the pinned list."
+    },
+    "Unsupported @raycast.schemaVersion %@. Floe reads version 1." : {
+      "comment" : "The word that starts with @raycast is typed into a script as it is, and the placeholder is the version the script names."
+    },
+    "Untitled" : {
+      "comment" : "The title of a calendar event that has none."
+    },
+    "Update" : {
+      "comment" : "A button that updates an extension to its newest version."
+    },
+    "Update channel" : {},
+    "Update to %@…" : {
+      "comment" : "A menu item. The placeholder is a version number such as 1.2.0."
+    },
+    "Updates" : {
+      "comment" : "A noun: the label of the line about checking for new versions of Floe."
+    },
+    "Use as fallback" : {},
+    "Use {query} where the search text goes." : {},
+    "Users & Groups (System Settings)" : {
+      "comment" : "The name of a pane of System Settings.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Users & Groups"
+          }
+        }
+      }
+    },
+    "Version" : {
+      "comment" : "A label before the version number of this app."
+    },
+    "Version, updates and credits" : {},
+    "View on GitHub" : {},
+    "Waiting for the answer…" : {},
+    "Wallet & Apple Pay (System Settings)" : {
+      "comment" : "The name of a pane of System Settings.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wallet & Apple Pay"
+          }
+        }
+      }
+    },
+    "Wallpaper (System Settings)" : {
+      "comment" : "The name of a pane of System Settings.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wallpaper"
+          }
+        }
+      }
+    },
+    "Warning" : {
+      "comment" : "The heading of a warning in the release notes."
+    },
+    "Web Address" : {},
+    "Welcome" : {
+      "comment" : "The heading over the button that shows the welcome window again."
+    },
+    "Welcome to %@" : {
+      "comment" : "The placeholder is the name of this app."
+    },
+    "Welcome window" : {},
+    "What’s New" : {},
+    "What’s new in %@" : {
+      "comment" : "The placeholder is the name of this app."
+    },
+    "Where" : {
+      "comment" : "A label before the folder a file is in."
+    },
+    "Which extension commands have an item in the menu bar." : {},
+    "Wi-Fi Off" : {},
+    "Wi-Fi On" : {},
+    "Width" : {
+      "comment" : "The label of a slider for how thick a border is."
+    },
+    "Window" : {
+      "comment" : "The title of the Window menu in the menu bar."
+    },
+    "Writes a log for troubleshooting to ~/Library/Logs/Floe." : {},
+    "Writes a log to ~/Library/Logs/Floe for troubleshooting: launch and scan times, slow searches, and commands and AI requests that fail. Never what you type or ask. Turn it off when you are done." : {},
+    "Yards" : {
+      "comment" : "A unit of length, named in the plural."
+    },
+    "Yesterday" : {
+      "comment" : "The heading over what was copied yesterday."
+    },
+    "You can grant either one later in Settings, under General." : {},
+    "You can put it back from the Trash until you empty it." : {},
+    "You will lose any changes you haven't saved." : {},
+    "Your Mac can sleep again" : {},
+    "Your Settings" : {},
+    "about this mac, serial number" : {
+      "comment" : "Words that find the About pane of System Settings, separated by commas."
+    },
+    "accounts, guest user" : {
+      "comment" : "Words that find the Users & Groups pane of System Settings, separated by commas."
+    },
+    "add to note" : {
+      "comment" : "A search keyword for the row that adds text to a note. Lowercase."
+    },
+    "ai, api, base url, endpoint, openai, openrouter, z.ai, server, host, service" : {
+      "comment" : "Words that find the Address setting in the settings search, separated by commas."
+    },
+    "ai, api, key, token, secret, keychain, openai" : {
+      "comment" : "Words that find the API key setting in the settings search, separated by commas."
+    },
+    "ai, api, model, gpt, openai, opencode, pi" : {
+      "comment" : "Words that find the Model setting in the settings search, separated by commas."
+    },
+    "ai, ask, claude, codex, opencode, pi, openai, openrouter, z.ai, apple intelligence, ollama, lm studio, local, model, llm, assistant, provider" : {
+      "comment" : "Words that find the Answer AI requests with setting in the settings search, separated by commas."
+    },
+    "ai, command line, cli, terminal, agent, claude, codex, opencode, pi, automatic" : {
+      "comment" : "Words that find the Tool setting in the settings search, separated by commas."
+    },
+    "ai, local, on device, offline, cloud, private, apple intelligence, ollama, ask" : {
+      "comment" : "Words that find the Only use AI that runs on this Mac setting in the settings search, separated by commas."
+    },
+    "airdrop, handoff, airplay, continuity" : {
+      "comment" : "Words that find the AirDrop & Handoff pane of System Settings, separated by commas."
+    },
+    "alerts, banners" : {
+      "comment" : "Words that find the Notifications pane of System Settings, separated by commas."
+    },
+    "appearance, glass, tint, colour, color, gradient, border, shadow, theme, style" : {
+      "comment" : "Words that find the Appearance page in the settings search, separated by commas."
+    },
+    "apple id, icloud" : {
+      "comment" : "Words that find the Apple Account pane of System Settings, separated by commas."
+    },
+    "apple intelligence" : {
+      "comment" : "Words that find the Siri pane of System Settings, separated by commas."
+    },
+    "applecare, coverage" : {
+      "comment" : "Words that find the AppleCare & Warranty pane of System Settings, separated by commas."
+    },
+    "apps, alias, hotkey, shortcut, keyboard, filter" : {
+      "comment" : "Words that find the Applications page in the settings search, separated by commas."
+    },
+    "arrow, down, downarrow" : {
+      "comment" : "Words that find the symbol ↓, separated by commas."
+    },
+    "arrow, left, leftarrow" : {
+      "comment" : "Words that find the symbol ←, separated by commas."
+    },
+    "arrow, right, rightarrow" : {
+      "comment" : "Words that find the symbol →, separated by commas."
+    },
+    "arrow, up, uparrow" : {
+      "comment" : "Words that find the symbol ↑, separated by commas."
+    },
+    "backup" : {
+      "comment" : "Words that find the Time Machine pane of System Settings, separated by commas."
+    },
+    "border, outline, stroke, edge, width" : {
+      "comment" : "Words that find the Border setting in the settings search, separated by commas."
+    },
+    "browser, web browser, default browser, web, links, web address, quicklink, preferred app, default app" : {
+      "comment" : "Words that find the Browser setting in the settings search, separated by commas."
+    },
+    "browser, web, links" : {
+      "comment" : "Words that find the rows of the browser app in the search, separated by commas."
+    },
+    "bun, javascript, node, engine" : {
+      "comment" : "Words that find the Runtime setting in the settings search, separated by commas."
+    },
+    "caffeinate, awake, prevent sleep, no sleep" : {
+      "comment" : "Words that find the Toggle Keep Awake command, separated by commas."
+    },
+    "calendar, today, meetings, events, agenda, next meeting" : {
+      "comment" : "Words that bring up the events of today and tomorrow when typed, separated by commas."
+    },
+    "check for updates, update, updates, automatic, upgrade, new version" : {
+      "comment" : "Words that find the Automatically check for updates setting in the settings search, separated by commas."
+    },
+    "check, checkmark, done, yes, tick" : {
+      "comment" : "Words that find the symbol ✅, separated by commas."
+    },
+    "check, checkmark, tick" : {
+      "comment" : "Words that find the symbol ✓, separated by commas."
+    },
+    "clipboard, clipboard manager, clipboard history, raycast, link, url, preferred app, default app" : {
+      "comment" : "Words that find the Clipboard app setting in the settings search, separated by commas."
+    },
+    "clipboard, copies, paste" : {
+      "comment" : "Words that find the rows of the clipboard app in the search, separated by commas."
+    },
+    "clipboard, history, clear, delete, remove, copies" : {
+      "comment" : "Words that find the Clear clipboard history setting in the settings search, separated by commas."
+    },
+    "clipboard, history, copy, paste, copies, pin, clear" : {
+      "comment" : "Words that find the Save clipboard history setting in the settings search, separated by commas."
+    },
+    "copyright" : {
+      "comment" : "Words that find the symbol ©, separated by commas."
+    },
+    "cross, x, no, wrong, delete" : {
+      "comment" : "Words that find the symbol ❌, separated by commas."
+    },
+    "dark mode, light mode, accent color, liquid glass" : {
+      "comment" : "Words that find the Appearance pane of System Settings, separated by commas."
+    },
+    "dark mode, light mode, appearance, theme" : {
+      "comment" : "Words that find the Toggle Dark Mode command, separated by commas."
+    },
+    "day" : {
+      "comment" : "The unit written after a number of days."
+    },
+    "desktop picture, background" : {
+      "comment" : "Words that find the Wallpaper pane of System Settings, separated by commas."
+    },
+    "disk space" : {
+      "comment" : "Words that find the Storage pane of System Settings, separated by commas."
+    },
+    "do not disturb, dnd" : {
+      "comment" : "Words that find the Focus pane of System Settings, separated by commas."
+    },
+    "dock, icon, menu bar, hide, app switcher" : {
+      "comment" : "Words that find the Show in Dock setting in the settings search, separated by commas."
+    },
+    "dock, stage manager, mission control, hot corners, widgets" : {
+      "comment" : "Words that find the Desktop & Dock pane of System Settings, separated by commas."
+    },
+    "downtime, app limits" : {
+      "comment" : "Words that find the Screen Time pane of System Settings, separated by commas."
+    },
+    "editor, edit, code, finder selection" : {
+      "comment" : "Words that find the rows of the editor app in the search, separated by commas."
+    },
+    "editor, text editor, code, open in editor, preferred app, default app" : {
+      "comment" : "Words that find the Editor setting in the settings search, separated by commas."
+    },
+    "empty trash, trash, delete trash" : {
+      "comment" : "Words that find the Empty Trash command, separated by commas."
+    },
+    "energy, power, low power mode" : {
+      "comment" : "Words that find the Battery pane of System Settings, separated by commas."
+    },
+    "erase, migration" : {
+      "comment" : "Words that find the Transfer or Reset pane of System Settings, separated by commas."
+    },
+    "ethernet, dns, proxy, firewall" : {
+      "comment" : "Words that find the Network pane of System Settings, separated by commas."
+    },
+    "euro, money, currency" : {
+      "comment" : "Words that find the symbol €, separated by commas."
+    },
+    "exit code %d" : {
+      "comment" : "The reason a script failed, when it printed nothing. The placeholder is a number."
+    },
+    "export, import, backup, transfer, move, file, restore" : {
+      "comment" : "Words that find the Export or import settings setting in the settings search, separated by commas."
+    },
+    "extension, enabled, enable, disable" : {
+      "comment" : "Words that find an extension in the settings search, separated by commas."
+    },
+    "fallback, default, search, results" : {
+      "comment" : "Words that find the Use as fallback setting in the settings search, separated by commas."
+    },
+    "fallback, fallbacks, order, reorder, default, results, bottom" : {
+      "comment" : "Words that find the Fallbacks setting in the settings search, separated by commas."
+    },
+    "family sharing" : {
+      "comment" : "Words that find the Family pane of System Settings, separated by commas."
+    },
+    "file search, spotlight, documents, source" : {
+      "comment" : "Words that find the Files setting in the settings search, separated by commas."
+    },
+    "finder, directory, location, path, install, show in finder" : {
+      "comment" : "Words that find the Extensions folder setting in the settings search, separated by commas."
+    },
+    "fingerprint, login password" : {
+      "comment" : "Words that find the Touch ID & Password pane of System Settings, separated by commas."
+    },
+    "fire, flame, hot, lit" : {
+      "comment" : "Words that find the symbol 🔥, separated by commas."
+    },
+    "gestures, tap to click" : {
+      "comment" : "Words that find the Trackpad pane of System Settings, separated by commas."
+    },
+    "glass, liquid, dynamic, clear, regular, effect, material" : {
+      "comment" : "Words that find the Glass Effect setting in the settings search, separated by commas."
+    },
+    "headphones, pair" : {
+      "comment" : "Words that find the Bluetooth pane of System Settings, separated by commas."
+    },
+    "heart, love" : {
+      "comment" : "Words that find the symbol ❤, separated by commas."
+    },
+    "heart, suit, hearts" : {
+      "comment" : "Words that find the symbol ♥, separated by commas."
+    },
+    "hide, hide other apps, hide others" : {
+      "comment" : "Words that find the Hide Other Apps command, separated by commas."
+    },
+    "hotkey, shortcut, keyboard, global, toggle, show, launcher, summon" : {
+      "comment" : "Words that find the Open Floe setting in the settings search, separated by commas."
+    },
+    "hotkey, shortcut, keyboard, menu bar, status items, icons" : {
+      "comment" : "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."
+    },
+    "keyboard shortcuts, input sources, dictation, text replacements" : {
+      "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
+    },
+    "keyword, abbreviation, prefix, trigger" : {
+      "comment" : "Words that find the Keyword setting in the settings search, separated by commas."
+    },
+    "layout, compact, extended, size, search bar, list" : {
+      "comment" : "Words that find the Launcher layout setting in the settings search, separated by commas."
+    },
+    "lightning, bolt, zap, fast" : {
+      "comment" : "Words that find the symbol ⚡, separated by commas."
+    },
+    "lock, screen" : {
+      "comment" : "Words that find the Lock Screen command, separated by commas."
+    },
+    "log out, logout, sign out" : {
+      "comment" : "Words that find the Log Out command, separated by commas."
+    },
+    "log, logs, logging, diagnostics, debug, troubleshoot, slow, report" : {
+      "comment" : "Words that find the Detailed logging setting in the settings search, separated by commas."
+    },
+    "macOS already uses this shortcut" : {},
+    "macos update, upgrade" : {
+      "comment" : "Words that find the Software Update pane of System Settings, separated by commas."
+    },
+    "mail accounts, google, exchange" : {
+      "comment" : "Words that find the Internet Accounts pane of System Settings, separated by commas."
+    },
+    "menu bar" : {
+      "comment" : "Words that find the Control Center pane of System Settings, separated by commas."
+    },
+    "menu bar, keyword, abbreviation, short name" : {
+      "comment" : "Words that find the Alias setting in the settings search, separated by commas."
+    },
+    "monitor, screen, resolution, night shift, brightness" : {
+      "comment" : "Words that find the Displays pane of System Settings, separated by commas."
+    },
+    "mute, unmute, sound, volume, silence" : {
+      "comment" : "Words that find the Toggle Mute command, separated by commas."
+    },
+    "name, title, label" : {
+      "comment" : "Words that find the Name setting in the settings search, separated by commas."
+    },
+    "network, internet, updates, github, ai, requests, analytics" : {
+      "comment" : "Words that find the Network Access setting in the settings search, separated by commas."
+    },
+    "new, add, create, quicklink" : {
+      "comment" : "Words that find the New Quicklink setting in the settings search, separated by commas."
+    },
+    "not set" : {
+      "comment" : "Read aloud for an app picker with no app chosen."
+    },
+    "notes, jot, memo" : {
+      "comment" : "Words that find the rows of the notes app in the search, separated by commas."
+    },
+    "notes, notes app, apple notes, antinote, new note, quick note, capture, preferred app" : {
+      "comment" : "Words that find the Notes setting in the settings search, separated by commas."
+    },
+    "opencode stopped before finishing." : {
+      "comment" : "The word opencode is the name of a command and stays as written."
+    },
+    "opencode tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
+      "comment" : "The word opencode is the name of a command and stays as written."
+    },
+    "party, celebrate, celebration, tada, congrats" : {
+      "comment" : "Words that find the symbol 🎉, separated by commas."
+    },
+    "permission, privacy, access, grant, trusted, menu bar" : {
+      "comment" : "Words that find the Accessibility setting in the settings search, separated by commas."
+    },
+    "permissions, filevault, full disk access, screen recording, automation, location" : {
+      "comment" : "Words that find the Privacy & Security pane of System Settings, separated by commas."
+    },
+    "pi stopped before finishing." : {
+      "comment" : "The word pi is the name of a command and stays as written."
+    },
+    "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
+      "comment" : "The word pi is the name of a command and stays as written."
+    },
+    "pop to root, delay, timeout, reset, close, immediately, seconds, minutes" : {
+      "comment" : "Words that find the Return to root search setting in the settings search, separated by commas."
+    },
+    "privacy, permissions, network, analytics, tracking, data" : {
+      "comment" : "Words that find the Privacy page in the settings search, separated by commas."
+    },
+    "privacy, security, access, grant, allow, accessibility" : {
+      "comment" : "Words that find the Permissions setting in the settings search, separated by commas."
+    },
+    "profiles, mdm" : {
+      "comment" : "Words that find the Device Management pane of System Settings, separated by commas."
+    },
+    "provider/model, or empty for the default set in %@" : {
+      "comment" : "Example text in a field for a model name. The placeholder is the name of a command line tool."
+    },
+    "quicklink, keyword, link, name, url, list, edit, delete" : {
+      "comment" : "Words that find the Quicklinks setting in the settings search, separated by commas."
+    },
+    "quicklink, quicklinks, keyword, search, web, fallback, link, url" : {
+      "comment" : "Words that find the Quicklinks page in the settings search, separated by commas."
+    },
+    "quit all apps, quit all, close all apps" : {
+      "comment" : "Words that find the Quit All Apps command, separated by commas."
+    },
+    "raycast, import, store, installed" : {
+      "comment" : "Words that find the Include extensions installed in Raycast setting in the settings search, separated by commas."
+    },
+    "registered" : {
+      "comment" : "Words that find the symbol ®, separated by commas."
+    },
+    "restart, reboot" : {
+      "comment" : "Words that find the Restart command, separated by commas."
+    },
+    "screen lock, turn display off" : {
+      "comment" : "Words that find the Lock Screen pane of System Settings, separated by commas."
+    },
+    "screen sharing, file sharing, remote login, computer name" : {
+      "comment" : "Words that find the Sharing pane of System Settings, separated by commas."
+    },
+    "script, scripts, script commands, raycast, finder, directory, new script" : {
+      "comment" : "Words that find the Scripts folder setting in the settings search, separated by commas."
+    },
+    "scroll direction, tracking speed" : {
+      "comment" : "Words that find the Mouse pane of System Settings, separated by commas."
+    },
+    "separate, split, detached, floating, two pieces, gap, search bar, input, results" : {
+      "comment" : "Words that find the Separate the search field from the results setting in the settings search, separated by commas."
+    },
+    "settings, preferences, options" : {
+      "comment" : "Words that find the General page in the settings search, separated by commas."
+    },
+    "shadow, depth, drop" : {
+      "comment" : "Words that find the Drop shadow setting in the settings search, separated by commas."
+    },
+    "shape, rounded, capsule, pill, square, corners, search bar, input" : {
+      "comment" : "Words that find the Search field shape setting in the settings search, separated by commas."
+    },
+    "shortcuts, shortcut, shortcuts app, run, automation, source" : {
+      "comment" : "Words that find the Apple Shortcuts setting in the settings search, separated by commas."
+    },
+    "shut down, shutdown, power off, turn off" : {
+      "comment" : "Words that find the Shut Down command, separated by commas."
+    },
+    "sleep, displays, screen off, monitor" : {
+      "comment" : "Words that find the Sleep Displays command, separated by commas."
+    },
+    "sleep, rest" : {
+      "comment" : "Words that find the Sleep command, separated by commas."
+    },
+    "smile, happy, grin, grinning" : {
+      "comment" : "Words that find the symbol 😀, separated by commas."
+    },
+    "snippet, snippets, text, expansion, expand, keyword, abbreviation, template" : {
+      "comment" : "Words that find the Snippets page in the settings search, separated by commas."
+    },
+    "sources, root search, results, sections" : {
+      "comment" : "Words that find the Search Sources setting in the settings search, separated by commas."
+    },
+    "star, favorite, favourite" : {
+      "comment" : "Words that find the symbol ⭐, separated by commas."
+    },
+    "startup, background items, extensions" : {
+      "comment" : "Words that find the Login Items pane of System Settings, separated by commas."
+    },
+    "startup, start, boot, login item, autostart, open at login" : {
+      "comment" : "Words that find the Launch at Login setting in the settings search, separated by commas."
+    },
+    "status item, extension, show, remove" : {
+      "comment" : "Words that find the Extension Commands in the Menu Bar setting in the settings search, separated by commas."
+    },
+    "store, install, update, remove, download, extensions, browse, raycast" : {
+      "comment" : "Words that find the Extension Store page in the settings search, separated by commas."
+    },
+    "sun, sunny, weather" : {
+      "comment" : "Words that find the symbol ☀, separated by commas."
+    },
+    "symbol, icon, glyph" : {
+      "comment" : "Words that find the Symbol setting in the settings search, separated by commas."
+    },
+    "tabs, browser, safari, open tabs, automation, applescript, source" : {
+      "comment" : "Words that find the Browser Tabs setting in the settings search, separated by commas."
     },
     "terminal, shell, command line, finder selection" : {
       "comment" : "Words that find the rows of the terminal app in the search, separated by commas."
     },
     "terminal, shell, command line, open in terminal, preferred app, default app" : {
       "comment" : "Words that find the Terminal setting in the settings search, separated by commas."
-    },
-    "Text" : {
-      "comment" : "A kind of copied thing."
-    },
-    "Text you paste or type by keyword" : {
-
-    },
-    "Text you paste or type by keyword." : {
-
-    },
-    "Thank you to everyone who contributes code, documentation, and translations to %@." : {
-      "comment" : "The placeholder is the name of this app."
-    },
-    "That command is no longer available in Floe." : {
-
-    },
-    "That is more text than Apple Intelligence can take at once." : {
-
-    },
-    "That keyword is already used." : {
-
-    },
-    "That tab is no longer open" : {
-
-    },
-    "Thaw" : {
-      "comment" : "Thaw is the name of an app."
-    },
-    "Thaw answered in a form this version of Floe cannot read, so the launcher keeps the last look it had. Update Floe and Thaw." : {
-
-    },
-    "Thaw has not answered, so the launcher keeps the last look it had. A development build of Floe has to be allowed first: run \"%@\" from the search." : {
-      "comment" : "The placeholder is the name of a command in the search."
-    },
-    "Thaw is not running. The launcher keeps the last look it had and asks again when Thaw opens." : {
-
-    },
-    "Thaw isn't installed" : {
-
-    },
-    "Thaw Settings" : {
-
     },
     "thaw, app menus, menus" : {
       "comment" : "Words that find the Toggle Application Menus command of the app Thaw, separated by commas."
@@ -3009,178 +2686,11 @@
     "thaw, zen, focus" : {
       "comment" : "Words that find the Toggle Zen Mode command of the app Thaw, separated by commas."
     },
-    "Thaw's actions are in the search: type “thaw” to see them." : {
-      "comment" : "The word in quotation marks is typed as it is and stays in English."
-    },
-    "Thaw's actions are in the search: type “thaw” to see them. The ones that change a Thaw setting need Automation turned on in Thaw." : {
-      "comment" : "The word in quotation marks is typed as it is and stays in English."
-    },
-    "Thaw's background follows the wallpaper, which the launcher cannot copy, so it is left out." : {
-
-    },
-    "Thaw's background follows the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {
-
-    },
-    "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so it is left out." : {
-
-    },
-    "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {
-
-    },
-    "Thaw's tint follows the wallpaper, which the launcher cannot copy, so it is left out." : {
-
-    },
-    "Thaw's tint follows the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {
-
-    },
-    "The %@ tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
-      "comment" : "The placeholder is the name of a command line tool."
-    },
-    "The %@ tool, on your account" : {
-      "comment" : "The placeholder is the name of a command line tool such as claude."
-    },
-    "The API could not be reached after %lld attempts. Check the connection, then try again." : {
-      "comment" : "The placeholder is how many times the request was tried."
-    },
-    "The API could not be reached after %lld attempts. Check the connection, then try again. (%@)" : {
-      "comment" : "The first placeholder is how many times the request was tried and the second is the system's own reason for the failure.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "The API could not be reached after %1$lld attempts. Check the connection, then try again. (%2$@)"
-          }
-        }
-      }
-    },
-    "The API returned status %lld." : {
-      "comment" : "The placeholder is an HTTP status number such as 500."
-    },
-    "The API set up in General" : {
-
-    },
-    "The clipboard link isn't a URL. Change it in Settings" : {
-
-    },
-    "The command failed with exit code %d." : {
-      "comment" : "The placeholder is the number a command ended with."
-    },
-    "The command line tool set in General is not installed, so no question is sent." : {
-
-    },
-    "The command line tool set up in General" : {
-
-    },
-    "The extension couldn't start." : {
-
-    },
-    "The extension isn't responding." : {
-
-    },
-    "The extension stopped unexpectedly." : {
-
-    },
-    "The extension stopped unexpectedly. It exited with status %d." : {
-      "comment" : "The placeholder is a number."
-    },
-    "The extension stopped unexpectedly. It was killed by signal %d." : {
-      "comment" : "The placeholder is a number."
-    },
-    "The file couldn't be read as text." : {
-
-    },
-    "The Finder isn't frontmost, so there is no Finder selection to read." : {
-
-    },
-    "The Finder selection couldn't be read." : {
-
-    },
-    "The introduction from the first launch." : {
-
-    },
-    "The launcher is following Thaw's border." : {
-
-    },
-    "The launcher is following Thaw's glass." : {
-
-    },
-    "The launcher is following Thaw's shadow." : {
-
-    },
-    "The launcher is following Thaw's tint." : {
-
-    },
-    "The link that makes a note, with {text} where the text goes." : {
-
-    },
-    "The link that opens your clipboard app's history." : {
-
-    },
-    "The model gave no answer." : {
-
-    },
-    "The model's name, as the API lists it" : {
-
-    },
-    "The oldest questions and answers were not sent with this one." : {
-      "comment" : "A note under an AI answer in a long conversation: only the most recent questions and answers went along as context."
-    },
-    "The open source launcher for macOS" : {
-
-    },
-    "The repository could not be reached, so this is the last copy fetched." : {
-
-    },
-    "The search field is its own piece of glass, and the results are a second piece below it." : {
-
-    },
-    "The source chosen in General" : {
-
-    },
-    "The system command failed." : {
-
-    },
-    "This file isn't a Floe settings export." : {
-
-    },
-    "This file was exported by a newer version of Floe." : {
-
-    },
-    "This Mac can't run Apple Intelligence." : {
-
-    },
-    "This Mac has no Wi-Fi" : {
-
-    },
-    "This output can't be muted" : {
-
-    },
-    "This source is not on this Mac, and Privacy is set to only use AI that runs on this Mac. Nothing will be asked until one of the two changes." : {
-
-    },
     "thumbs up, thumbsup, like, approve, yes" : {
       "comment" : "Words that find the symbol 👍, separated by commas."
     },
     "time zone, timezone" : {
       "comment" : "Words that find the Date & Time pane of System Settings, separated by commas."
-    },
-    "Tint" : {
-      "comment" : "The colour laid over the launcher's glass."
-    },
-    "Tint color" : {
-
-    },
-    "Tint Opacity" : {
-
-    },
-    "Tint the glass" : {
-
-    },
-    "Tint, border and shadow for the launcher" : {
-
-    },
-    "Tint, border and shadow for the launcher panel." : {
-
     },
     "tint, colour, color, picker" : {
       "comment" : "Words that find the Tint color setting in the settings search, separated by commas."
@@ -3191,206 +2701,14 @@
     "tint, opacity, strength, transparency" : {
       "comment" : "Words that find the Tint Opacity setting in the settings search, separated by commas."
     },
-    "Tip" : {
-      "comment" : "The heading of a tip in the release notes."
-    },
-    "Today" : {
-      "comment" : "The heading over what was copied today."
-    },
-    "Toggle Application Menus" : {
-
-    },
-    "Toggle Automatic Rehiding" : {
-
-    },
-    "Toggle Dark Mode" : {
-      "comment" : "A command that switches between the light and the dark appearance."
-    },
-    "Toggle Hiding Application Menus" : {
-
-    },
-    "Toggle Keep Awake" : {
-      "comment" : "A command that stops the Mac from sleeping, or lets it sleep again."
-    },
-    "Toggle Mute" : {
-      "comment" : "A command that turns the sound off or back on."
-    },
-    "Toggle Show on Hover" : {
-
-    },
-    "Toggle the Always Hidden Section" : {
-
-    },
-    "Toggle the Hidden Section" : {
-
-    },
-    "Toggle Wi-Fi" : {
-      "comment" : "A command that turns Wi-Fi on or off."
-    },
-    "Toggle Zen Mode" : {
-
-    },
-    "Tomorrow" : {
-      "comment" : "A section title above tomorrow's calendar events."
-    },
-    "Tool" : {
-      "comment" : "A command line program that answers AI requests."
-    },
-    "Touch ID & Password (System Settings)" : {
-      "comment" : "The name of a pane of System Settings.",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Touch ID & Password"
-          }
-        }
-      }
-    },
-    "Trackpad (System Settings)" : {
-      "comment" : "The name of a pane of System Settings.",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Trackpad"
-          }
-        }
-      }
-    },
     "trademark, tm" : {
       "comment" : "Words that find the symbol ™, separated by commas."
-    },
-    "Transfer or Reset (System Settings)" : {
-      "comment" : "The name of a pane of System Settings.",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Transfer or Reset"
-          }
-        }
-      }
-    },
-    "Translate" : {
-      "comment" : "The name of the quicklink that opens Google Translate."
-    },
-    "Translators" : {
-      "comment" : "A link to the list of people who translated Floe."
-    },
-    "Try a shorter or broader term." : {
-
-    },
-    "Try Again" : {
-
-    },
-    "Try fewer letters." : {
-
-    },
-    "Try part of a file's name." : {
-
-    },
-    "Try part of an app's or a command's name, or an alias." : {
-
-    },
-    "Try part of the copied text, link or app name." : {
-
-    },
-    "Try part of the item's name or the app that owns it." : {
-
-    },
-    "Turn on Apple Intelligence in System Settings to use it here." : {
-
-    },
-    "Turn on Save clipboard history in Settings to keep copies here." : {
-
-    },
-    "Turn Thaw Bar On or Off" : {
-
-    },
-    "Type “note” and then your text in the search to send it there." : {
-      "comment" : "The word in quotation marks is typed as it is and stays in English."
-    },
-    "Type a snippet's keyword in any app and Floe replaces it with the snippet. Needs Accessibility. Password fields are skipped." : {
-
-    },
-    "Type Shortcut" : {
-
-    },
-    "Type to find an app or a command, then press Return." : {
-
-    },
-    "Undo" : {
-      "comment" : "A verb in the Edit menu."
-    },
-    "Unknown @raycast.mode %@. Use fullOutput, compact, silent or inline." : {
-      "comment" : "The word that starts with @raycast and the four mode names are typed into a script as they are."
-    },
-    "Unknown error" : {
-
-    },
-    "Unmuted" : {
-      "comment" : "Said after the sound was turned back on."
-    },
-    "Unpin" : {
-      "comment" : "A button that takes a copy off the pinned list."
-    },
-    "Unsupported @raycast.schemaVersion %@. Floe reads version 1." : {
-      "comment" : "The word that starts with @raycast is typed into a script as it is, and the placeholder is the version the script names."
-    },
-    "Untitled" : {
-      "comment" : "The title of a calendar event that has none."
-    },
-    "Update" : {
-      "comment" : "A button that updates an extension to its newest version."
-    },
-    "Update channel" : {
-
-    },
-    "Update to %@…" : {
-      "comment" : "A menu item. The placeholder is a version number such as 1.2.0."
-    },
-    "Updates" : {
-      "comment" : "A noun: the label of the line about checking for new versions of Floe."
-    },
-    "URL" : {
-      "comment" : "The label of the field for a web address."
     },
     "url, link, address, query, template" : {
       "comment" : "Words that find the URL setting in the settings search, separated by commas."
     },
-    "Use {query} where the search text goes." : {
-
-    },
-    "Use as fallback" : {
-
-    },
-    "Users & Groups (System Settings)" : {
-      "comment" : "The name of a pane of System Settings.",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Users & Groups"
-          }
-        }
-      }
-    },
-    "Version" : {
-      "comment" : "A label before the version number of this app."
-    },
     "version, build, commit, update, what's new, release notes, changelog, license, credits, acknowledgements, source code, github, discord, report a bug, data folder" : {
       "comment" : "Words that find the About page in the settings search, separated by commas."
-    },
-    "Version, updates and credits" : {
-
-    },
-    "View on GitHub" : {
-
     },
     "voiceover, zoom, reduce motion" : {
       "comment" : "Words that find the Accessibility pane of System Settings, separated by commas."
@@ -3398,102 +2716,17 @@
     "volume, audio, output, input, microphone" : {
       "comment" : "Words that find the Sound pane of System Settings, separated by commas."
     },
-    "Waiting for the answer…" : {
-
-    },
-    "Wallet & Apple Pay (System Settings)" : {
-      "comment" : "The name of a pane of System Settings.",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wallet & Apple Pay"
-          }
-        }
-      }
-    },
-    "Wallpaper (System Settings)" : {
-      "comment" : "The name of a pane of System Settings.",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Wallpaper"
-          }
-        }
-      }
-    },
-    "Warning" : {
-      "comment" : "The heading of a warning in the release notes."
-    },
-    "Web Address" : {
-
-    },
-    "Welcome" : {
-      "comment" : "The heading over the button that shows the welcome window again."
-    },
-    "Welcome to %@" : {
-      "comment" : "The placeholder is the name of this app."
-    },
-    "Welcome window" : {
-
-    },
-    "What’s New" : {
-
-    },
-    "What’s new in %@" : {
-      "comment" : "The placeholder is the name of this app."
-    },
-    "Where" : {
-      "comment" : "A label before the folder a file is in."
-    },
-    "Which extension commands have an item in the menu bar." : {
-
-    },
-    "Wi-Fi Off" : {
-
-    },
-    "Wi-Fi On" : {
-
-    },
-    "Width" : {
-      "comment" : "The label of a slider for how thick a border is."
-    },
     "wifi, wireless, airport, turn wi-fi off, turn wi-fi on" : {
       "comment" : "Words that find the Toggle Wi-Fi command, separated by commas."
     },
     "wifi, wireless, internet" : {
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
     },
-    "Window" : {
-      "comment" : "The title of the Window menu in the menu bar."
-    },
-    "Writes a log for troubleshooting to ~/Library/Logs/Floe." : {
-
-    },
-    "Writes a log to ~/Library/Logs/Floe for troubleshooting: launch and scan times, slow searches, and commands and AI requests that fail. Never what you type or ask. Turn it off when you are done." : {
-
-    },
-    "Yesterday" : {
-      "comment" : "The heading over what was copied yesterday."
-    },
-    "You can grant either one later in Settings, under General." : {
-
-    },
-    "You can put it back from the Trash until you empty it." : {
-
-    },
-    "You will lose any changes you haven't saved." : {
-
-    },
-    "Your Mac can sleep again" : {
-
-    },
-    "Your Settings" : {
-
-    }
+    "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {},
+    "↵ Open" : {},
+    "⌘Y Quick Look" : {},
+    "⌘⇧C Copy Path" : {},
+    "⌘⇧C copies details · Esc goes back" : {}
   },
   "version" : "1.0"
 }

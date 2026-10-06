@@ -124,8 +124,9 @@ public final class FendContext: @unchecked Sendable {
         }
 
         let status: Int32 = data.withUnsafeBytes { buffer in
+            // Empty data has no address and holds no variables: it is refused, not taken as restored.
             guard let baseAddress = buffer.baseAddress?.assumingMemoryBound(to: UInt8.self) else {
-                return 0
+                return -1
             }
             return fend_context_deserialize_variables(ptr, baseAddress, buffer.count)
         }
