@@ -3,7 +3,11 @@ use std::os::raw::c_char;
 use std::panic::catch_unwind;
 use std::ptr;
 use std::slice;
+use std::time::{Duration, Instant};
 use fend_core::{Context, Interrupt};
+
+/// How long one evaluation may run. The launcher evaluates on every keystroke and waits for the answer.
+const TIME_LIMIT: Duration = Duration::from_millis(200);
 
 pub struct FendContext {
     inner: Context,
@@ -57,10 +61,18 @@ pub struct FendCompletions {
     items: Vec<CString>,
 }
 
-struct NoInterrupt;
-impl Interrupt for NoInterrupt {
+/// Stops an evaluation that is still running when its time is up.
+struct Deadline(Instant);
+
+impl Deadline {
+    fn from_now() -> Self {
+        Self(Instant::now() + TIME_LIMIT)
+    }
+}
+
+impl Interrupt for Deadline {
     fn should_interrupt(&self) -> bool {
-        false
+        Instant::now() >= self.0
     }
 }
 
@@ -170,7 +182,7 @@ pub unsafe extern "C" fn fend_evaluate(
             }
         };
 
-        match fend_core::evaluate(query_str, &mut ctx.inner) {
+        match fend_core::evaluate_with_interrupt(query_str, &mut ctx.inner, &Deadline::from_now()) {
             Ok(res) => {
                 let main_res = res.get_main_result();
                 let is_empty = res.output_is_empty();
@@ -233,7 +245,7 @@ pub unsafe extern "C" fn fend_evaluate_preview(
             }
         };
 
-        let res = fend_core::evaluate_preview_with_interrupt(query_str, &mut ctx.inner, &NoInterrupt);
+        let res = fend_core::evaluate_preview_with_interrupt(query_str, &mut ctx.inner, &Deadline::from_now());
         let main_res = res.get_main_result();
         let is_empty = res.output_is_empty();
         let val_cstring = CString::new(main_res).unwrap_or_default();
@@ -434,6 +446,28 @@ mod tests {
             assert_eq!(fend_result_get_span_kind(res, 1), FendSpanKind::Ident);
 
             fend_result_free(res);
+            fend_context_free(ctx);
+        }
+    }
+
+    #[test]
+    fn test_long_evaluation_stops_at_the_time_limit() {
+        unsafe {
+            let ctx = fend_context_new();
+            assert!(!ctx.is_null());
+
+            // A factorial this size runs for minutes when nothing interrupts it.
+            let query = CString::new("10000000!").unwrap();
+            let started = Instant::now();
+            let res = fend_evaluate(ctx, query.as_ptr());
+            let preview = fend_evaluate_preview(ctx, query.as_ptr());
+            assert!(started.elapsed() < Duration::from_secs(5));
+
+            assert!(!res.is_null());
+            assert!(!fend_result_is_ok(res));
+
+            fend_result_free(res);
+            fend_result_free(preview);
             fend_context_free(ctx);
         }
     }
