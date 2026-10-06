@@ -62,6 +62,29 @@ struct AppSettingsTests {
         #expect(settings.searchSources.isEmpty, "every search source is off until it is switched on")
     }
 
+    @Test func aCommandIsOnUnlessItOrItsExtensionIsSwitchedOff() {
+        let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
+        let planets = Fixture.command("planets", extension: "hello")
+        let greet = Fixture.command("greet", extension: "hello")
+        #expect(settings.disabledCommands.isEmpty)
+        #expect(settings.isEnabled(planets))
+
+        settings.enabledBinding(for: greet).wrappedValue = false
+        #expect(settings.disabledCommands == ["hello/greet"])
+        #expect(!settings.isEnabled(greet))
+        #expect(settings.isEnabled(planets), "the other command of the extension stays on")
+
+        settings.disabledExtensions = ["hello"]
+        #expect(!settings.isEnabled(planets))
+        #expect(!settings.enabledBinding(for: planets).wrappedValue, "a command reads as off while its extension is off")
+
+        settings.disabledExtensions = []
+        #expect(settings.isEnabled(planets))
+        #expect(!settings.isEnabled(greet), "its own switch is as it was left")
+        settings.enabledBinding(for: greet).wrappedValue = true
+        #expect(settings.disabledCommands.isEmpty)
+    }
+
     @Test func savedSettingsComeBackInANewInstance() {
         let settings = AppSettings(defaults: scratch.defaults)
         settings.toggleHotkey = nil
@@ -69,6 +92,7 @@ struct AppSettingsTests {
         settings.aliases = ["hacker-news/frontpage": "hn"]
         settings.favorites = ["settings", "app:/Applications/Notes.app"]
         settings.disabledExtensions = ["coffee"]
+        settings.disabledCommands = ["hello/greet"]
         settings.includeRaycastExtensions = false
         settings.popToRootDelay = 30
         settings.rememberMenuBarQuery = true
@@ -109,6 +133,7 @@ struct AppSettingsTests {
         #expect(reloaded.aliases == ["hacker-news/frontpage": "hn"])
         #expect(reloaded.favorites == ["settings", "app:/Applications/Notes.app"])
         #expect(reloaded.disabledExtensions == ["coffee"])
+        #expect(reloaded.disabledCommands == ["hello/greet"])
         #expect(reloaded.includeRaycastExtensions == false)
         #expect(reloaded.popToRootDelay == 30)
         #expect(reloaded.rememberMenuBarQuery)

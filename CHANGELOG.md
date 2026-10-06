@@ -41,6 +41,7 @@ Floe is a launcher for macOS that runs Raycast extensions unmodified and hands w
 - Raycast extensions run unmodified on a Bun runtime inside the app, including the ones Raycast has already installed.
 - Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work. Passwords go in the Keychain.
 - An Extension Store page browses, installs and updates extensions.
+- An extension can be switched off as a whole, and each of its commands by itself, on its page in Settings. What is off is left out of the search and is not run by a hotkey, the menu bar or Shortcuts.
 - Menu bar commands are added to the menu bar by hand, from the search or from Settings. None starts on its own at launch.
 - When a command throws, crashes or hangs, Floe shows the log and lets you run it again.
 

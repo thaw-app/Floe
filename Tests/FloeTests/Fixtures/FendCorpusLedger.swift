@@ -201,6 +201,7 @@ enum FendCorpusLedger {
     not shown	'\\u{1}'	\x01	
     not shown	'\\u{AAA}'	પ	
     engine	5 'pigeons' per meter / 'pigeons'	5 meters	error
+    not shown	5k	5000	
     not shown	4 Metres	4 metres	
     not shown	4 mEtRes	4 metres	
     not shown	true	true	

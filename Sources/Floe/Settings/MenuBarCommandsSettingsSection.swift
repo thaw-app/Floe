@@ -16,7 +16,7 @@ struct MenuBarCommandsSettingsSection: View {
 
     private var commands: [ExtensionCommand] {
         catalog.allCommands
-            .filter { $0.mode == "menu-bar" && !settings.disabledExtensions.contains($0.extensionName) }
+            .filter { $0.mode == "menu-bar" && settings.isEnabled($0) }
             .sorted { ($0.extensionTitle, $0.title) < ($1.extensionTitle, $1.title) }
     }
 

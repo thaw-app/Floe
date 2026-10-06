@@ -236,6 +236,7 @@
 		FCD5B4418CD0FDB835EB2519 /* UpdateLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF1D982AAAE8FF36B96F53F /* UpdateLogic.swift */; };
 		FDC9DFBE52D2FAF5FC3FE248 /* FileSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E8E3E3826ED3A89F5B30E3 /* FileSearch.swift */; };
 		FE11195D111F7CC7EA39CF8E /* SettingsProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE1FD745114DE428E9E078B /* SettingsProcess.swift */; };
+		FE1D8CA3B14F9AC9FD40FC6D /* Calculator+Shorthand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 346C26CF75579A6E00675695 /* Calculator+Shorthand.swift */; };
 		FEF05B988E1B8FBFE470205F /* DebugOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B5DBE779D080FFE5A6407C /* DebugOptions.swift */; };
 /* End PBXBuildFile section */
 
@@ -293,6 +294,8 @@
 		30B7F201C3069FA974E88002 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
 		3337622D122C40BD5C4725AD /* ClipboardHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryModel.swift; sourceTree = "<group>"; };
 		3403F2FFC4C6AC53013ACA55 /* ChatCompletionStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionStream.swift; sourceTree = "<group>"; };
+		342BD805AEDC50518DA23278 /* fend-corpus.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "fend-corpus.py"; sourceTree = "<group>"; };
+		346C26CF75579A6E00675695 /* Calculator+Shorthand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calculator+Shorthand.swift"; sourceTree = "<group>"; };
 		35DAB6F738D66C12AB99B0C1 /* generate-credits.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "generate-credits.py"; sourceTree = "<group>"; };
 		39773705D994ADCB324EFDCB /* RowSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowSelection.swift; sourceTree = "<group>"; };
 		3A095A949E191252E89F6A9A /* PermissionsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsWindow.swift; sourceTree = "<group>"; };
@@ -566,6 +569,7 @@
 				D56EF7580052CE64737A4D6C /* build-fend.sh */,
 				E6F2A419B59FCCDC76E1C76C /* coverage.sh */,
 				0C65960D5E02D3842BE4BFEF /* devrun.sh */,
+				342BD805AEDC50518DA23278 /* fend-corpus.py */,
 				35DAB6F738D66C12AB99B0C1 /* generate-credits.py */,
 				09F9F2D1B0F121548F16E784 /* lcov-to-sonar.py */,
 				B5F79E7C261FEF649D619BE4 /* release.sh */,
@@ -594,6 +598,7 @@
 				29F35DCDFDC5103E5DEB5019 /* Calculator+Number.swift */,
 				14FFA50DDBDCCFF1EFF81911 /* Calculator+Query.swift */,
 				4C111C74FE8C998059BB71F9 /* Calculator+Result.swift */,
+				346C26CF75579A6E00675695 /* Calculator+Shorthand.swift */,
 				5606623F410AAA0E07344D5E /* CalculatorBlockView.swift */,
 				F74EB72FFA02A1DE5E406A34 /* CalculatorFormatter.swift */,
 				1C151CC615A8A75880C8E1EB /* CalculatorFormatter+Result.swift */,
@@ -1060,6 +1065,7 @@
 				7E6BE34495E0D03B075CB14B /* Calculator+Number.swift in Sources */,
 				5A2A511E5353D8640DB6CB19 /* Calculator+Query.swift in Sources */,
 				4E0D222D8B25ACF24D81A565 /* Calculator+Result.swift in Sources */,
+				FE1D8CA3B14F9AC9FD40FC6D /* Calculator+Shorthand.swift in Sources */,
 				933BC6B468E7DF6190BB068B /* Calculator.swift in Sources */,
 				E5B7363C3BF8EAB9297C352E /* CalculatorBlockView.swift in Sources */,
 				EDA84CF68209AF80B1ADEBA2 /* CalculatorFormatter+Result.swift in Sources */,

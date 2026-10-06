@@ -44,8 +44,12 @@ final class Calculator: @unchecked Sendable {
     private var remembered: (query: String, preview: CalculationPreview?)?
     private let rememberedLock = NSLock()
 
-    init() {
+    /// What day it is, which a test sets.
+    let now: @Sendable () -> Date
+
+    init(now: @escaping @Sendable () -> Date = { Date() }) {
         self.context = try? FendContext()
+        self.now = now
     }
 
     /// Evaluates the query for live preview in the search launcher.
@@ -65,11 +69,25 @@ final class Calculator: @unchecked Sendable {
     /// Words alone stay out, since fend reads "day one" as a day, and so does a lambda, which is how "localhost:3000" reads.
     private func isAnsweredByFend(_ typed: String) -> Bool {
         guard !typed.hasPrefix("/"), !typed.hasPrefix("~"), !typed.contains("="), !typed.contains(":") else { return false }
-        guard typed.contains(where: \.isNumber) else { return false }
+        guard typed.contains(where: \.isNumber), !Self.readsAsAName(typed) else { return false }
         let answer = lock.withLock { context?.preview(normalizeExpressionForEvaluation(typed)) }
         guard let answer, !answer.isEmpty else { return false }
         let spelled: (String) -> String = { $0.filter { !$0.isWhitespace }.lowercased() }
         return spelled(answer.string) != spelled(typed)
+    }
+
+    /// "4k" and "7 eleven" are sums to fend, 4000 and 77, and names to the person searching for them: a number
+    /// with a k, or with nothing but numbers spelled out. "5 million" and "2 dozen" stay sums.
+    private static func readsAsAName(_ typed: String) -> Bool {
+        let spelled: Set = [
+            "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+            "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
+        ]
+        if typed.wholeMatch(of: /[0-9]+\s*[kK]/) != nil {
+            return true
+        }
+        let words = typed.lowercased().split { !$0.isLetter }
+        return !words.isEmpty && words.allSatisfy { spelled.contains(String($0)) } && typed.allSatisfy { $0.isLetter || $0.isNumber || $0.isWhitespace }
     }
 
     /// An answer as the preview holds it: the text to copy and the text to draw, from the same spans.
@@ -138,6 +156,10 @@ final class Calculator: @unchecked Sendable {
         if case .failure(FendError.evaluationFailed("interrupted")) = evaluated {
             return Self.timedOut
         }
+        // And the sentence it refuses money with: it has no rates to convert by.
+        if case .failure(FendError.evaluationFailed("exchange rates are not available")) = evaluated {
+            return CalculationPreview(error: String(localized: "Floe has no exchange rates yet, so it cannot convert money.", bundle: .floe, comment: "A calculator error."))
+        }
 
         // Check if query is an invalid unit conversion
         if let unitError = unitConversionErrorMessage(exprToEvaluate, error: nil) {
@@ -154,7 +176,7 @@ final class Calculator: @unchecked Sendable {
 
     /// Normalizes mathematical symbols (like √, ∛, ∜, ×, ÷, −) into standard syntax supported by fend.
     func normalizeExpressionForEvaluation(_ query: String) -> String {
-        var s = query
+        var s = withShorthandExpanded(query)
         s = s.replacingOccurrences(of: "⁄", with: "/")
         s = s.replacingOccurrences(of: "×", with: "*")
         s = s.replacingOccurrences(of: "÷", with: "/")

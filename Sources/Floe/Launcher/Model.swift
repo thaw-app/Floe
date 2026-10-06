@@ -135,7 +135,7 @@ final class LauncherModel: ObservableObject {
     private var sourceWatcher: DirectoryWatcher?
     @Published private(set) var apps: [AppEntry] = []
     private var commands: [ExtensionCommand] {
-        allCommands.filter { !settings.disabledExtensions.contains($0.extensionName) }
+        CommandLookup.enabled(allCommands, disabledExtensions: settings.disabledExtensions, disabledCommands: settings.disabledCommands)
     }
 
     /// Every command that may run on its own: a menu-bar command only once it was put in the menu bar.

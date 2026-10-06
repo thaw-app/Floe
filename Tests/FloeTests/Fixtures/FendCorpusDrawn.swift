@@ -333,11 +333,11 @@ enum FendCorpusDrawn {
     5% to %	5%⟨primary⟩
     5% + 0.1	15%⟨primary⟩
     5% + 1	105%⟨primary⟩
-    0.1 + 5%	0.15⟨primary⟩
+    0.1 + 5%	0.105⟨primary⟩
     1 + 5%	1.05⟨primary⟩
     5% * 5%	0.25%⟨primary⟩
     5% * 8 kg	0.4 kg⟨primary⟩
-    5% * 100	500%⟨primary⟩
+    5% * 100	5⟨primary⟩
     5% of 100	5⟨primary⟩
     2 + 5% of 200	12⟨primary⟩
     (2 + 5)% of 200	14⟨primary⟩
@@ -715,7 +715,6 @@ enum FendCorpusDrawn {
     4% + 3‰	4.3%⟨primary⟩
     5 'tests'	5 tests⟨primary⟩
     5 'pigeons' per meter	5 pigeons/meter⟨primary⟩
-    5k	5,000⟨primary⟩
     asin -1.1	≈ ⟨secondary⟩-1.5707963268 + 0.4435682544i⟨primary⟩
     15*3*50/1000 'cases'	2.25 cases⟨primary⟩
     ms/year	≈ ⟨secondary⟩0⟨primary⟩

@@ -28,6 +28,17 @@ struct CommandLookupTests {
         #expect(enabled.map(\.id) == ["kill-process/index", "calendar/today", "calendar/show"])
     }
 
+    @Test func aCommandSwitchedOffIsLeftOutAndItsExtensionsOthersStay() {
+        let enabled = CommandLookup.enabled(all, disabledExtensions: [], disabledCommands: ["hello/greet", "calendar/today"])
+        #expect(enabled.map(\.id) == ["hello/planets", "kill-process/index", "calendar/show"])
+        #expect(CommandLookup.command(withID: "hello/greet", in: enabled) == nil)
+    }
+
+    @Test func anExtensionSwitchedOffTakesItsCommandsWhateverTheirOwnSwitchSays() {
+        let enabled = CommandLookup.enabled(all, disabledExtensions: ["calendar"], disabledCommands: ["hello/greet"])
+        #expect(enabled.map(\.id) == ["hello/planets", "kill-process/index"])
+    }
+
     @Test func nothingDisabledKeepsEveryCommandInScanOrder() {
         #expect(CommandLookup.enabled(all, disabledExtensions: []).map(\.id) == all.map(\.id))
     }

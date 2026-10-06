@@ -24,6 +24,8 @@ final class AppSettings: ObservableObject {
     @Published var favorites: [String] = []
     /// Extension names.
     @Published var disabledExtensions: Set<String> = []
+    /// `ExtensionCommand.id`s switched off one by one, inside an extension that is on.
+    @Published var disabledCommands: Set<String> = []
     @Published var includeRaycastExtensions = true
     /// Seconds a closed panel keeps the open command before going back to the root search; 0 resets at once.
     @Published var popToRootDelay = 90
@@ -90,11 +92,31 @@ final class AppSettings: ObservableObject {
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
 
+    /// Whether a command may be found and run: its extension is on, and so is the command.
+    func isEnabled(_ command: ExtensionCommand) -> Bool {
+        !disabledExtensions.contains(command.extensionName) && !disabledCommands.contains(command.id)
+    }
+
+    /// The switch on one command. It reads as off while its extension is off, and keeps its own value underneath.
+    func enabledBinding(for command: ExtensionCommand) -> Binding<Bool> {
+        Binding(
+            get: { self.isEnabled(command) },
+            set: { isOn in
+                if isOn {
+                    self.disabledCommands.remove(command.id)
+                } else {
+                    self.disabledCommands.insert(command.id)
+                }
+            }
+        )
+    }
+
     private struct Stored: Codable {
         var toggleHotkey: KeyCombination?
         var commandHotkeys: [String: KeyCombination]?
         var aliases: [String: String]?
         var disabledExtensions: Set<String>?
+        var disabledCommands: Set<String>?
         var includeRaycastExtensions: Bool?
         var popToRootDelay: Int?
         var favorites: [String]?
@@ -222,6 +244,7 @@ final class AppSettings: ObservableObject {
         commandHotkeys = stored.commandHotkeys ?? [:]
         aliases = stored.aliases ?? [:]
         disabledExtensions = stored.disabledExtensions ?? []
+        disabledCommands = stored.disabledCommands ?? []
         includeRaycastExtensions = stored.includeRaycastExtensions ?? true
         popToRootDelay = stored.popToRootDelay ?? popToRootDelay
         favorites = stored.favorites ?? []
@@ -269,6 +292,7 @@ final class AppSettings: ObservableObject {
             commandHotkeys: commandHotkeys,
             aliases: aliases,
             disabledExtensions: disabledExtensions,
+            disabledCommands: disabledCommands,
             includeRaycastExtensions: includeRaycastExtensions,
             popToRootDelay: popToRootDelay,
             favorites: favorites,

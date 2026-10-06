@@ -11,7 +11,7 @@ import path from "node:path";
 import React, { useState } from "react";
 import { handlePop, handlePopToRoot } from "../bridge";
 import { Action, ActionPanel, Color, Detail, Form, Grid, Icon, List, MenuBarExtra, showToast, useNavigation } from "../api/index";
-import { find, findAll, fire, installRuntime, renderCount, sent, settle, show, showScreen, slot, type TreeNode } from "./support";
+import { find, findAll, fire, fireForRender, installRuntime, renderCount, sent, settle, show, showScreen, slot, type TreeNode } from "./support";
 
 const h = React.createElement;
 const runtime = installRuntime("views-tests");
@@ -380,10 +380,17 @@ describe("renders sent across a navigation stack", () => {
     return [renderCount() - before, after];
   }
 
+  // For an event that renders: waits for the render, then counts, so a slow machine cannot read as none.
+  async function rendered(node: TreeNode, prop: string, ...args: unknown[]): Promise<[number, TreeNode]> {
+    const before = renderCount();
+    const after = await fireForRender(node, prop, ...args);
+    return [renderCount() - before, after];
+  }
+
   test("twenty updates under a list of 1,000 rows send nothing, and Back shows the last of them", async () => {
     const tree = await showScreen(h(Refreshing, { rows: 1000 }));
     const root = find(tree, "Detail");
-    const [pushes, pushed] = await counted(root, "onOpen");
+    const [pushes, pushed] = await rendered(root, "onOpen");
     expect(pushes).toBe(1);
     expect(findAll(pushed, "List.Item")).toHaveLength(1000);
 
@@ -400,9 +407,9 @@ describe("renders sent across a navigation stack", () => {
 
   test("each push and each pop sends one render", async () => {
     const tree = await showScreen(h(PlanetDetail, { name: "Mars" }));
-    const [first, second] = await counted(find(tree, "Detail"), "onDeeper");
-    const [next, third] = await counted(find(second, "Detail"), "onDeeper");
-    const [back] = await counted(find(third, "Detail"), "onBack");
+    const [first, second] = await rendered(find(tree, "Detail"), "onDeeper");
+    const [next, third] = await rendered(find(second, "Detail"), "onDeeper");
+    const [back] = await rendered(find(third, "Detail"), "onBack");
     expect([first, next, back]).toEqual([1, 1, 1]);
 
     const before = renderCount();
@@ -427,7 +434,7 @@ describe("renders sent across a navigation stack", () => {
     const list = find(pushed, "List");
     const changes = [{ isLoading: true }, { navigationTitle: "Three rows" }, { searchText: "row" }, { selectedItemId: "2" }];
     for (const change of changes) {
-      const [renders, after] = await counted(list, "onChange", change);
+      const [renders, after] = await rendered(list, "onChange", change);
       expect(renders).toBe(1);
       expect(find(after, "List").props).toMatchObject(change);
     }

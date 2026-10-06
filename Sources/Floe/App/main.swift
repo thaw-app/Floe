@@ -122,8 +122,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let backgroundScheduler = BackgroundScheduler(model: model, menuBarCommands: menuBarCommands)
         self.menuBarCommands = menuBarCommands
         self.backgroundScheduler = backgroundScheduler
-        model.$allCommands.combineLatest(settings.$disabledExtensions.removeDuplicates(), settings.$menuBarCommands.removeDuplicates())
-            .sink { [weak self] _, _, _ in
+        model.$allCommands
+            .combineLatest(settings.$disabledExtensions.removeDuplicates(), settings.$disabledCommands.removeDuplicates(), settings.$menuBarCommands.removeDuplicates())
+            .sink { [weak self] _, _, _, _ in
                 // After the publishers' willSet, so enabledCommands reads the new values.
                 DispatchQueue.main.async {
                     guard let self else { return }
@@ -175,7 +176,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         for command in model.allCommands {
             guard let keyCombination = settings.commandHotkeys[command.id] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in
-                guard let self, !settings.disabledExtensions.contains(command.extensionName) else { return }
+                guard let self, settings.isEnabled(command) else { return }
                 UsageStore.shared.recordUse(of: RootItem.command(command).id)
                 model.run(command)
             }

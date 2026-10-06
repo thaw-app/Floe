@@ -538,6 +538,12 @@ struct ExtensionSettingsView: View {
                             if command.mode == "no-view" {
                                 ThawBadge("No View")
                             }
+                            Spacer()
+                            Toggle("Enabled", isOn: settings.enabledBinding(for: command))
+                                .toggleStyle(.checkbox)
+                                .labelsHidden()
+                                .disabled(settings.disabledExtensions.contains(command.extensionName))
+                                .help("A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts.")
                         }
                         // Where a search result for this command scrolls to. On the header,
                         // because a Form does not scroll to a section's id.

@@ -674,4 +674,47 @@ struct CalculatorTests {
     func aUnitWrittenOutStaysAWord(typed: String, answer: String) {
         #expect(calculator.evaluatePreview(typed)?.result == answer)
     }
+
+    @Test(arguments: [
+        ("200 + 10%", "220"), ("200 - 10%", "180"), ("200 * 15%", "30"), ("15% * 200", "30"), ("100 + 50 + 10%", "165"),
+        ("50 kg + 10%", "55 kg"), ("15% of 200", "30"),
+        ("50% + 50%", "100%"), ("10%", "10%"),
+    ])
+    func aPercentageIsOfWhatStandsBesideIt(typed: String, answer: String) {
+        #expect(calculator.evaluatePreview(typed)?.result == answer)
+    }
+
+    @Test(arguments: [
+        ("100 f to c", "≈ 37.7777777778 °C"), ("37 c to f", "98.6 °F"), ("0 C in K", "273.15 K"), ("300 k to c", "26.85 °C"),
+        ("5 ft 10 in to cm", "177.8 cm"), ("5 feet 10 inches to cm", "177.8 cm"), ("6ft 0in to m", "1.8288 m"), ("6 foot 4 in cm", "193.04 cm"),
+        ("5 ft 10 in", "≈ 5.8333333333 ft"),
+    ])
+    func aTemperatureByItsLetterAndAHeightInFeetAndInchesConvert(typed: String, answer: String) {
+        #expect(calculator.evaluatePreview(typed)?.result == answer)
+    }
+
+    @Test(arguments: [
+        ("today + 3 days", "Friday, 9 October 2026"), ("tomorrow + 1 day", "Thursday, 8 October 2026"),
+        ("yesterday - 1 week", "Monday, 28 September 2026"), ("Today + 30 days", "Thursday, 5 November 2026"),
+    ])
+    func todayIsTheDayItIs(typed: String, answer: String) throws {
+        let noon = try #require(Calendar(identifier: .gregorian).date(from: DateComponents(year: 2026, month: 10, day: 6, hour: 12)))
+        #expect(Calculator(now: { noon }).evaluatePreview(typed)?.result == answer)
+    }
+
+    @Test func moneyIsRefusedInSoManyWords() {
+        let preview = calculator.evaluatePreview("10 usd to eur")
+        #expect(preview?.result == "")
+        #expect(preview?.error == "Floe has no exchange rates yet, so it cannot convert money.")
+    }
+
+    @Test(arguments: ["4k", "4 K", "8k", "7 eleven", "20 twenty", "9 nine nine"])
+    func aNumberWithALetterOrSpelledOutNumbersIsAName(typed: String) {
+        #expect(calculator.evaluatePreview(typed) == nil)
+    }
+
+    @Test(arguments: [("5 million", "5000000"), ("2 dozen", "24"), ("3 hundred", "300")])
+    func aNumberWithAMultiplierIsStillASum(typed: String, answer: String) {
+        #expect(calculator.evaluatePreview(typed)?.result == answer)
+    }
 }

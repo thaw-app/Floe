@@ -66,15 +66,15 @@ export function renderCount(): number {
 // Long enough for React to commit and the renderer to flush its debounced message, with room to spare.
 const quietPeriod = 30;
 
-// How long a first render may take on a machine busy with other work.
-const firstRenderLimit = 5000;
+// How long an awaited render may take on a machine busy with other work.
+const renderLimit = 5000;
 
 // Waits until the host has gone quiet, then returns the last tree it rendered.
-// Quiet before anything was rendered is not settled: the render is still on its way.
-export async function settle(): Promise<TreeNode> {
+// Quiet before the awaited render is not settled: the render is still on its way. Without `after`, the first one is awaited.
+export async function settle(after = 0): Promise<TreeNode> {
   const started = Date.now();
   let count = -1;
-  while (count !== received.length || (renderCount() === 0 && Date.now() - started < firstRenderLimit)) {
+  while (count !== received.length || (renderCount() <= after && Date.now() - started < renderLimit)) {
     count = received.length;
     await Bun.sleep(quietPeriod);
   }
@@ -115,6 +115,13 @@ export function showScreen(element: React.ReactNode): Promise<TreeNode> {
 export function fire(node: TreeNode, prop: string, ...args: unknown[]): Promise<TreeNode> {
   dispatchEvent(node.id, prop, args);
   return settle();
+}
+
+// The same, for a handler that is expected to render: it waits for that render however long a busy machine takes.
+export function fireForRender(node: TreeNode, prop: string, ...args: unknown[]): Promise<TreeNode> {
+  const before = renderCount();
+  dispatchEvent(node.id, prop, args);
+  return settle(before);
 }
 
 export function findAll(node: TreeNode, type: string, found: TreeNode[] = []): TreeNode[] {

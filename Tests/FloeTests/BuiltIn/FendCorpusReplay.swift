@@ -105,10 +105,15 @@ enum FendCorpusReplay {
     static func isSameAnswer(shown: String, expected: String, input: String) -> Bool {
         let answer = presented(expected)
         return shown == answer
+            || shown == percentagesOfTheLeftSide[input]
             || shown == withTightUnitDivision(answer)
             || isSameInItsBase(shown: shown, answer: answer)
             || shown == decimalValue(ofLiteral: input)
     }
+
+    /// Where Floe answers differently on purpose: a percentage beside an amount is that much of the amount,
+    /// as a person means it, where fend adds or multiplies a hundredth. The cases of fend's tests this reaches.
+    static let percentagesOfTheLeftSide = ["0.1 + 5%": "0.105", "5% * 100": "5"]
 
     /// A unit divided by a unit is written without the spaces fend puts round the stroke: m/s for m / s.
     static func withTightUnitDivision(_ answer: String) -> String {

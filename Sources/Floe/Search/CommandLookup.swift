@@ -11,9 +11,9 @@ import Foundation
 /// identifier stored in a shortcut means, and which ones match what the user typed or said.
 /// Plain values in and out, so it runs in a test without the app.
 enum CommandLookup {
-    /// The commands whose extension is switched on, in scan order.
-    static func enabled(_ commands: [ExtensionCommand], disabledExtensions: Set<String>) -> [ExtensionCommand] {
-        commands.filter { !disabledExtensions.contains($0.extensionName) }
+    /// The commands that are switched on, in scan order: neither their extension nor they themselves are off.
+    static func enabled(_ commands: [ExtensionCommand], disabledExtensions: Set<String>, disabledCommands: Set<String> = []) -> [ExtensionCommand] {
+        commands.filter { !disabledExtensions.contains($0.extensionName) && !disabledCommands.contains($0.id) }
     }
 
     /// The command with this "extension/command" identifier, or nil when it was removed or disabled

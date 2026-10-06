@@ -295,6 +295,7 @@
     },
     "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {},
     "A command line tool you are signed in to" : {},
+    "A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts." : {},
     "A follow-up in Ask AI sends the earlier questions and answers of that conversation again, to the same place. Floe keeps them in memory until the answer view closes and saves none of it." : {
       "comment" : "Ask AI is the name of the feature that answers a question in the launcher."
     },
@@ -984,6 +985,9 @@
     "Floe Settings" : {},
     "Floe can't answer that request." : {},
     "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {},
+    "Floe has no exchange rates yet, so it cannot convert money." : {
+      "comment" : "A calculator error."
+    },
     "Floe isn't running yet. Open Floe and try again." : {},
     "Floe lists the items apps put in the menu bar." : {},
     "Floe needs Accessibility to list your menu bar items" : {
