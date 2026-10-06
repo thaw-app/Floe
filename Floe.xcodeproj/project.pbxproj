@@ -105,6 +105,7 @@
 		6FF03D4881BED9650B80EF51 /* MenuBarSearchScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E38B942BAB5A0519D0AB827 /* MenuBarSearchScope.swift */; };
 		6FF25C23C28176E7AE68D90C /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62548A2DF57C84EDBCBCC0A /* Model.swift */; };
 		7010C68F03A8AC111BA76ABA /* ReadingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71DBBF84C644A103F04FB66 /* ReadingPage.swift */; };
+		701617CCCCBFFD799F2B4B1D /* FendCore in Frameworks */ = {isa = PBXBuildFile; productRef = 92E0A24A8713739E9D70A6B1 /* FendCore */; };
 		74E7324DD7F8BEFA0B1CFC5B /* MenuBarCommandsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D0CD81D8D94FE9134AF130 /* MenuBarCommandsSettingsSection.swift */; };
 		77AE58D4D699268DB5078716 /* PanelBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BAF88C611B59A548F533 /* PanelBottomBar.swift */; };
 		78089551521EC8A3D75F61F6 /* DirectoryWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2443DAEFA2A54768C09AA21 /* DirectoryWatcher.swift */; };
@@ -358,6 +359,7 @@
 		8800BA61C160E02B03F5A41B /* Session+Requests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+Requests.swift"; sourceTree = "<group>"; };
 		888F73FD3AD3B70CCCED4500 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		8AE33B90505045A8A2B0BEA4 /* FloeIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloeIntents.swift; sourceTree = "<group>"; };
+		8B84D5026A491B96DFA99BA1 /* FendCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FendCore; path = Vendor/FendCore; sourceTree = SOURCE_ROOT; };
 		8C1DA7F52B1E57FBB729318A /* PanelSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelSections.swift; sourceTree = "<group>"; };
 		8CA12F659351BFD56E7C8AAD /* TypingSettle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypingSettle.swift; sourceTree = "<group>"; };
 		8FCE3DBAFB8E26EA8755425B /* MenuBarSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarSearchView.swift; sourceTree = "<group>"; };
@@ -424,6 +426,7 @@
 		D4C585799DE740F98865EF15 /* ClipboardCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCapture.swift; sourceTree = "<group>"; };
 		D4F04691E14C00EFDF762F28 /* IconThumbnails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconThumbnails.swift; sourceTree = "<group>"; };
 		D54900730524DDEA357356AE /* LoginEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginEnvironment.swift; sourceTree = "<group>"; };
+		D56EF7580052CE64737A4D6C /* build-fend.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-fend.sh"; sourceTree = "<group>"; };
 		D8527BDAB44BF2D98CE3BD42 /* BrowserTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabs.swift; sourceTree = "<group>"; };
 		D967FA03573F90C35F2D5E9B /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		DC14F1E0566FC342201715D0 /* Fuzzy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fuzzy.swift; sourceTree = "<group>"; };
@@ -471,6 +474,7 @@
 				B46FB365D377BDA4D17AEBAC /* ArgumentParser in Frameworks */,
 				EEEE4BAA3CEB92F8ECAACBB7 /* Algorithms in Frameworks */,
 				63306AA3252F2A2A9842CF02 /* AsyncAlgorithms in Frameworks */,
+				701617CCCCBFFD799F2B4B1D /* FendCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -543,6 +547,7 @@
 		1B5786F7E20B373B8DB766B1 /* scripts */ = {
 			isa = PBXGroup;
 			children = (
+				D56EF7580052CE64737A4D6C /* build-fend.sh */,
 				E6F2A419B59FCCDC76E1C76C /* coverage.sh */,
 				0C65960D5E02D3842BE4BFEF /* devrun.sh */,
 				35DAB6F738D66C12AB99B0C1 /* generate-credits.py */,
@@ -788,6 +793,7 @@
 		BDFFA7BD7BA3E74AC2775B71 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
+				8B84D5026A491B96DFA99BA1 /* FendCore */,
 				4B9CA812F9DD90A668479696 /* ThawConcurrency */,
 				78D37EBDD2D6EF547319287E /* ThawUI */,
 			);
@@ -910,6 +916,7 @@
 				DCB8704B102A04F10A7ABBEA /* ArgumentParser */,
 				1F43772FB45D60218EFCAC8B /* Algorithms */,
 				620405AD1BB424142F8C61B3 /* AsyncAlgorithms */,
+				92E0A24A8713739E9D70A6B1 /* FendCore */,
 			);
 			productName = Floe;
 			productReference = AE77F4EE054A6C520DC7476B /* Floe.app */;
@@ -947,6 +954,7 @@
 				F68F2A94F6327C74C97742E7 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */,
 				6F2C0D39465C2E214623284A /* XCRemoteSwiftPackageReference "swift-subprocess" */,
+				B3A3C44DC521DABDC75ABA2C /* XCLocalSwiftPackageReference "Vendor/FendCore" */,
 				B5F8706EBF1ACF2C7B5190E0 /* XCLocalSwiftPackageReference "Vendor/ThawConcurrency" */,
 				1CAF9DD5710E35A029A639F2 /* XCLocalSwiftPackageReference "Vendor/ThawUI" */,
 			);
@@ -1417,6 +1425,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Vendor/ThawUI;
 		};
+		B3A3C44DC521DABDC75ABA2C /* XCLocalSwiftPackageReference "Vendor/FendCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Vendor/FendCore;
+		};
 		B5F8706EBF1ACF2C7B5190E0 /* XCLocalSwiftPackageReference "Vendor/ThawConcurrency" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Vendor/ThawConcurrency;
@@ -1510,6 +1522,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
+		};
+		92E0A24A8713739E9D70A6B1 /* FendCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FendCore;
 		};
 		A5734F6D7F1BB261482C7608 /* Subprocess */ = {
 			isa = XCSwiftPackageProductDependency;

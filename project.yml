@@ -83,13 +83,6 @@ targets:
       - package: swift-async-algorithms
         product: AsyncAlgorithms
       - package: FendCore
-    preBuildScripts:
-      - name: Build Fend
-        basedOnDependencyAnalysis: false
-        script: |
-          if [ ! -d "$SRCROOT/Vendor/FendCore/Frameworks/CFendCore.xcframework" ]; then
-            "$SRCROOT/scripts/build-fend.sh"
-          fi
     postBuildScripts:
       - name: Embed Runtime
         basedOnDependencyAnalysis: false

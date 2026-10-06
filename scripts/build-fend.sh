@@ -28,7 +28,6 @@ for candidate in \
     "$(command -v cargo 2>/dev/null || true)" \
     "$HOME/.cargo/bin/cargo" \
     "$HOME/.local/bin/cargo" \
-    /Users/*/.rustup/toolchains/*/bin/cargo \
     /opt/homebrew/bin/cargo \
     /usr/local/bin/cargo; do
     if [[ -n "$candidate" && -x "$candidate" ]]; then
@@ -79,11 +78,21 @@ if [[ $CLEAN -eq 1 ]]; then
     (cd "$RUST_DIR" && "$CARGO_BIN" clean)
 fi
 
+# With rustup, install the compiler rust-toolchain.toml names, with both targets. A newer rustup no
+# longer does this by itself, and a build machine may have another version as its default.
+if command -v rustup >/dev/null 2>&1; then
+    CHANNEL=$(sed -n 's/^channel = "\(.*\)"$/\1/p' "$RUST_DIR/rust-toolchain.toml")
+    say "Using Rust $CHANNEL..."
+    rustup toolchain install "$CHANNEL" --profile minimal --no-self-update \
+        --target aarch64-apple-darwin --target x86_64-apple-darwin >/dev/null
+fi
+
 say "Building fend-core-c ($MODE)..."
 
-# Detect if x86_64 target stdlib is installed for universal binary
+# Detect if x86_64 target stdlib is installed for universal binary. Asked from the crate's folder,
+# where rust-toolchain.toml applies.
 SUPPORTS_X86_64=0
-X86_LIBDIR=$(rustc --target x86_64-apple-darwin --print target-libdir 2>/dev/null || true)
+X86_LIBDIR=$(cd "$RUST_DIR" && rustc --target x86_64-apple-darwin --print target-libdir 2>/dev/null || true)
 if [[ -n "$X86_LIBDIR" && -d "$X86_LIBDIR" ]]; then
     SUPPORTS_X86_64=1
 fi

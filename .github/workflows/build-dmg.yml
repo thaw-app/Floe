@@ -58,6 +58,11 @@ jobs:
         working-directory: runtime
         run: bun install --frozen-lockfile --ignore-scripts
 
+      # The calculator's engine, compiled from Vendor/FendCore/rust for every build that ships:
+      # nothing is cached or downloaded. The FendCore package does not resolve without it.
+      - name: Build Fend
+        run: ./scripts/build-fend.sh
+
       - name: Select latest installed Xcode (including betas)
         uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
