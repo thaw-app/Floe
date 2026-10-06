@@ -1,0 +1,5 @@
+.build/
+rust/target/
+*.xcframework
+.swiftpm/
+.DS_Store

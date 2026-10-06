@@ -36,6 +36,8 @@ packages:
   swift-collections:
     url: https://github.com/apple/swift-collections
     exactVersion: 1.6.0
+  FendCore:
+    path: Vendor/FendCore
 
 settings:
   base:
@@ -80,6 +82,7 @@ targets:
         product: Algorithms
       - package: swift-async-algorithms
         product: AsyncAlgorithms
+      - package: FendCore
     postBuildScripts:
       - name: Embed Runtime
         basedOnDependencyAnalysis: false

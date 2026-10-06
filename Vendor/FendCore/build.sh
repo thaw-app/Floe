@@ -1,0 +1,1 @@
+../../scripts/build-fend.sh

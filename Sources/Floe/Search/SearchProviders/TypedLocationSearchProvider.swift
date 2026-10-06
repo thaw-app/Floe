@@ -28,7 +28,7 @@ struct TypedLocationSearchProvider: SearchProvider, Sendable {
         // A keyword's text and the calculator's answer keep the top. Asked last: it is rarely needed.
         guard let found, QuicklinkSearchProvider.keywordSearchResult(query: text, links: context.quicklinks) == nil,
               !context.scripts.contains(where: { $0.argumentsText(in: context.query) != nil }),
-              Calculator.evaluate(context.query) == nil
+              Calculator.shared.evaluatePreview(context.query) == nil
         else { return nil }
         return found
     }

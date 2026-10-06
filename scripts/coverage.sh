@@ -18,6 +18,12 @@ say() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 rm -rf coverage
 mkdir -p coverage
 
+# The FendCore package does not resolve without its framework, which is built from Rust and not committed.
+if [[ ! -d Vendor/FendCore/Frameworks/CFendCore.xcframework ]]; then
+    say "Building Fend Core xcframework…"
+    ./scripts/build-fend.sh
+fi
+
 say "Swift tests…"
 swift test --enable-code-coverage
 BIN=$(swift build --show-bin-path)

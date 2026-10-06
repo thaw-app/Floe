@@ -1,0 +1,4 @@
+module CFendCore {
+    header "fend_core.h"
+    export *
+}

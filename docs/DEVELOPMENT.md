@@ -5,11 +5,12 @@ Prototype macOS launcher that runs unmodified Raycast extensions: a SwiftUI pane
 
 Contribution requirements, review expectations, and security reporting are in the shared [Thaw/Floe policies](https://github.com/thaw-app/.github).
 
-Requires macOS 26 or later, Bun, and Xcode 27 for the vendored ThawUI Swift 6.4 manifest. Extensions run under your user account without sandboxing; only install extensions you trust.
+Requires macOS 26 or later, Bun, Rust/Cargo, and Xcode 27 for the vendored ThawUI Swift 6.4 manifest. Extensions run under your user account without sandboxing; only install extensions you trust.
 
 ## Run
 
     cd runtime && bun install && cd ..
+    ./scripts/build-fend.sh
     open Floe.xcodeproj        # ⌘R in Xcode
 
 or install it as `/Applications/Floe.app` with `./scripts/devrun.sh` (`--debug`, `--no-launch`). The script signs

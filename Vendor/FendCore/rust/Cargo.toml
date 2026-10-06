@@ -1,0 +1,17 @@
+[package]
+name = "fend-core-c"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+fend-core = "1.5.8"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+# No `panic = "abort"`: the wrapper catches a panic at each entry point, and aborting would take the launcher with it.

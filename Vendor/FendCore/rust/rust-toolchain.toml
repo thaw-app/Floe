@@ -1,0 +1,5 @@
+# The compiler the shipped library is built with. Raise it on purpose, not by whatever a build machine has.
+[toolchain]
+channel = "1.99.0"
+profile = "minimal"
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin"]

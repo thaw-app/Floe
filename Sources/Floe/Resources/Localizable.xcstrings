@@ -85,17 +85,6 @@
         }
       }
     },
-    "%@ to %@" : {
-      "comment" : "Both placeholders are names of units, as in Kilometers to Miles.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ to %2$@"
-          }
-        }
-      }
-    },
     "%@ to %@ · %@" : {
       "comment" : "The first two placeholders are the times an event starts and ends, and the third is the name of a calendar.",
       "localizations" : {
@@ -488,6 +477,9 @@
     "Applications" : {
       "comment" : "The name of a settings page."
     },
+    "Area" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Arguments for %@." : {
       "comment" : "The placeholder is the name of a command."
     },
@@ -512,6 +504,9 @@
     "Automatically check for updates" : {},
     "Back" : {
       "comment" : "A button that returns to the search."
+    },
+    "Base" : {
+      "comment" : "A label on the calculator result that says what kind of calculation it is."
     },
     "Battery (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -550,8 +545,8 @@
       "comment" : "Bun is the name of a tool. brew install bun is a command and stays as written."
     },
     "Bun, bundled with the app" : {},
-    "Bytes" : {
-      "comment" : "A unit of data size, named in the plural."
+    "Calculation timed out" : {
+      "comment" : "Shown in place of a calculator result that would take too long."
     },
     "Calculator" : {},
     "Calendar" : {
@@ -560,17 +555,33 @@
     "Cancel" : {
       "comment" : "A button that stops what is under way, such as recording a keyboard shortcut."
     },
+    "Cannot convert %@ to %@." : {
+      "comment" : "A calculator error. Both placeholders are kinds of unit, such as Length and Time.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot convert %1$@ to %2$@."
+          }
+        }
+      }
+    },
+    "Cannot convert %@ to '%@'." : {
+      "comment" : "A calculator error. The first placeholder is a kind of unit, such as Length; the second is what was typed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot convert %1$@ to '%2$@'."
+          }
+        }
+      }
+    },
     "Capsule" : {
       "comment" : "A shape for the search field."
     },
     "Caution" : {
       "comment" : "The heading of a cautionary note in the release notes."
-    },
-    "Celsius" : {
-      "comment" : "A unit of temperature."
-    },
-    "Centimeters" : {
-      "comment" : "A unit of length, named in the plural."
     },
     "Check Automatically" : {},
     "Check Manually" : {},
@@ -676,6 +687,9 @@
         }
       }
     },
+    "Conversion" : {
+      "comment" : "A label on the calculator result that says what kind of calculation it is."
+    },
     "Copied" : {
       "comment" : "Said after something was copied.\nShown briefly after something was put on the clipboard."
     },
@@ -752,8 +766,8 @@
     "Credits" : {
       "comment" : "The title of the page that thanks contributors."
     },
-    "Cups" : {
-      "comment" : "A unit of volume, named in the plural."
+    "Current" : {
+      "comment" : "A kind of unit, named in a calculator error."
     },
     "Cut" : {
       "comment" : "A verb in the Edit menu: remove the selection and put it on the clipboard."
@@ -771,9 +785,6 @@
           }
         }
       }
-    },
-    "Days" : {
-      "comment" : "A unit of time, named in the plural."
     },
     "Default Browser" : {},
     "Default Browser (%@)" : {
@@ -822,6 +833,9 @@
     },
     "Diagnostics" : {
       "comment" : "The heading over the logging settings."
+    },
+    "Digital Storage" : {
+      "comment" : "A kind of unit, named in a calculator error."
     },
     "Displays (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -879,6 +893,9 @@
       "comment" : "A column heading over switches that turn commands on."
     },
     "End color" : {},
+    "Energy" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Enter a URL with a scheme, like https://." : {},
     "Enter a keyword." : {},
     "Enter a name." : {},
@@ -896,6 +913,9 @@
     },
     "Export or import settings" : {},
     "Export…" : {},
+    "Expression" : {
+      "comment" : "A label on the calculator result that says what kind of calculation it is."
+    },
     "Extended" : {
       "comment" : "A launcher layout: the list is always shown."
     },
@@ -915,9 +935,6 @@
     "Extensions come from the Raycast store's open source repository. Floe installs them with Bun; some need Raycast features Floe doesn't have yet." : {},
     "Extensions folder" : {},
     "Extensions that ask AI a question get their answer from here." : {},
-    "Fahrenheit" : {
-      "comment" : "A unit of temperature."
-    },
     "Fallbacks" : {
       "comment" : "A section title above the searches offered when nothing else matches.\nQuicklinks offered under the results of every search."
     },
@@ -938,9 +955,6 @@
     },
     "Favorites" : {
       "comment" : "A section title above the results the user marked as favorites."
-    },
-    "Feet" : {
-      "comment" : "A unit of length, named in the plural."
     },
     "Fetching release notes is off, so this is the last copy fetched." : {},
     "Fetching release notes is off." : {},
@@ -988,9 +1002,6 @@
       "comment" : "List, Grid, Detail and Form are names from the extension API and stay as written."
     },
     "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {},
-    "Fluid Ounces" : {
-      "comment" : "A unit of volume, named in the plural."
-    },
     "Focus (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1016,6 +1027,9 @@
       "comment" : "The placeholder is an app's name."
     },
     "Free and open source" : {},
+    "Frequency" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "From Raycast · %lld commands" : {
       "comment" : "The placeholder is how many commands an extension has.",
       "localizations" : {
@@ -1040,9 +1054,6 @@
       }
     },
     "Full changelog" : {},
-    "Gallons" : {
-      "comment" : "A unit of volume, named in the plural."
-    },
     "Game Controllers (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1072,18 +1083,12 @@
     },
     "Get Thaw" : {},
     "Getting the selected text needs Accessibility access. Turn it on under System Settings › Privacy & Security › Accessibility." : {},
-    "Gigabytes" : {
-      "comment" : "A unit of data size, named in the plural."
-    },
     "Glass" : {
       "comment" : "The heading over the settings for the launcher's glass material."
     },
     "Glass Effect" : {},
     "Gradient" : {
       "comment" : "A background tint choice: two colors blended."
-    },
-    "Grams" : {
-      "comment" : "A unit of mass, named in the plural."
     },
     "Grant Access" : {},
     "Granted" : {
@@ -1105,9 +1110,6 @@
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
     },
-    "Hours" : {
-      "comment" : "A unit of time, named in the plural."
-    },
     "How Floe works" : {},
     "How long a closed launcher keeps the command you had open." : {},
     "Image" : {
@@ -1121,10 +1123,10 @@
     },
     "Import…" : {},
     "In the menu bar" : {},
-    "Inches" : {
-      "comment" : "A unit of length, named in the plural."
-    },
     "Include extensions installed in Raycast" : {},
+    "Incompatible unit conversion." : {
+      "comment" : "A calculator error."
+    },
     "Install" : {
       "comment" : "A button that installs an extension."
     },
@@ -1153,9 +1155,6 @@
     "Keeping your Mac awake" : {},
     "Keeps text, links, images and files you copy." : {},
     "Keeps text, links, images and files you copy. Pins survive Clear." : {},
-    "Kelvin" : {
-      "comment" : "A unit of temperature."
-    },
     "Kept in the Keychain" : {},
     "Keyboard (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1177,18 +1176,6 @@
     "Keywords can't contain spaces." : {},
     "Keywords cannot contain spaces." : {},
     "Keywords need at least 2 characters." : {},
-    "Kilobytes" : {
-      "comment" : "A unit of data size, named in the plural."
-    },
-    "Kilograms" : {
-      "comment" : "A unit of mass, named in the plural."
-    },
-    "Kilometers" : {
-      "comment" : "A unit of length, named in the plural."
-    },
-    "Kilometers Per Hour" : {
-      "comment" : "A unit of speed, named in the plural."
-    },
     "Kind" : {
       "comment" : "A label before the kind of a file or copied thing, such as Image."
     },
@@ -1217,6 +1204,9 @@
     "Layout" : {
       "comment" : "The heading over the settings for how the launcher is arranged."
     },
+    "Length" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Licenses" : {
       "comment" : "The title of the page with the licenses of what Floe is built from."
     },
@@ -1226,9 +1216,6 @@
     },
     "Liquid Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
-    },
-    "Liters" : {
-      "comment" : "A unit of volume, named in the plural."
     },
     "Loading extensions…" : {},
     "Loading…" : {},
@@ -1264,39 +1251,18 @@
         }
       }
     },
+    "Mass" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Match System" : {},
     "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {},
-    "Megabytes" : {
-      "comment" : "A unit of data size, named in the plural."
-    },
     "Menu Bar" : {
       "comment" : "The heading over every menu bar item.\nThe kind of a result, shown beside its title."
     },
     "Menu Bar Commands" : {},
     "Menu Bar Items" : {},
-    "Meters" : {
-      "comment" : "A unit of length, named in the plural."
-    },
-    "Meters Per Second" : {
-      "comment" : "A unit of speed, named in the plural."
-    },
-    "Miles" : {
-      "comment" : "A unit of length, named in the plural."
-    },
-    "Miles Per Hour" : {
-      "comment" : "A unit of speed, named in the plural."
-    },
-    "Milliliters" : {
-      "comment" : "A unit of volume, named in the plural."
-    },
-    "Millimeters" : {
-      "comment" : "A unit of length, named in the plural."
-    },
     "Minimize" : {
       "comment" : "The Window menu item that puts the window in the Dock."
-    },
-    "Minutes" : {
-      "comment" : "A unit of time, named in the plural."
     },
     "Missing @raycast.schemaVersion. Add `# @raycast.schemaVersion 1`." : {
       "comment" : "The text between the backticks, and the word that starts with @raycast, are typed into a script as they are."
@@ -1504,15 +1470,15 @@
       "comment" : "The heading over the projects this app grew out of."
     },
     "Other…" : {},
-    "Ounces" : {
-      "comment" : "A unit of mass, named in the plural."
-    },
     "Paste" : {
       "comment" : "A button that pastes the selected entry.\nA verb: insert what is on the clipboard."
     },
     "Paste Answer" : {},
     "Path" : {
       "comment" : "A label before the place of a command line tool on disk."
+    },
+    "Percentage" : {
+      "comment" : "A label on the calculator result that says what kind of calculation it is."
     },
     "Permission checks stay on your Mac" : {},
     "Permissions" : {
@@ -1528,8 +1494,8 @@
       "comment" : "The heading over the copies the user pinned."
     },
     "Placeholders: {clipboard} {date} {time} {datetime} {uuid} {day}" : {},
-    "Pounds" : {
-      "comment" : "A unit of mass, named in the plural."
+    "Power" : {
+      "comment" : "A kind of unit, named in a calculator error."
     },
     "Preferences" : {
       "comment" : "The heading over an extension's own settings."
@@ -1537,6 +1503,9 @@
     "Preferred Apps" : {},
     "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
       "comment" : "The placeholder is a keyboard shortcut."
+    },
+    "Pressure" : {
+      "comment" : "A kind of unit, named in a calculator error."
     },
     "Preview" : {
       "comment" : "The heading over a picture of how the launcher will look."
@@ -1637,6 +1606,9 @@
     },
     "Replace your settings?" : {},
     "Report a Bug" : {},
+    "Resistance" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Restart" : {
       "comment" : "A verb on a button: start the extension again."
     },
@@ -1654,6 +1626,7 @@
     },
     "Restart your Mac now?" : {},
     "Restore Original Name" : {},
+    "Result" : {},
     "Return to root search" : {},
     "Rounded" : {
       "comment" : "A shape for the search field."
@@ -1746,9 +1719,6 @@
     "Searching files…" : {},
     "Searching the menu bar needs Accessibility. The launcher and your extensions work without it." : {},
     "Search…" : {},
-    "Seconds" : {
-      "comment" : "A unit of time, named in the plural."
-    },
     "Select" : {
       "comment" : "The label of a menu before anything is chosen in it."
     },
@@ -1861,6 +1831,9 @@
       }
     },
     "Source Code" : {},
+    "Speed" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Square" : {
       "comment" : "A shape for the search field."
     },
@@ -1923,8 +1896,8 @@
       "comment" : "The names of two apps, as they stand in a sentence that asks for permission to control them."
     },
     "System Settings" : {},
-    "Terabytes" : {
-      "comment" : "A unit of data size, named in the plural."
+    "Temperature" : {
+      "comment" : "A kind of unit, named in a calculator error."
     },
     "Terminal" : {
       "comment" : "The kind of app that runs a shell, as the label of the picker that chooses one."
@@ -2028,6 +2001,9 @@
     "This file was exported by a newer version of Floe." : {},
     "This output can't be muted" : {},
     "This source is not on this Mac, and Privacy is set to only use AI that runs on this Mac. Nothing will be asked until one of the two changes." : {},
+    "Time" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Tint" : {
       "comment" : "The colour laid over the launcher's glass."
     },
@@ -2176,6 +2152,12 @@
     },
     "Version, updates and credits" : {},
     "View on GitHub" : {},
+    "Voltage" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
+    "Volume" : {
+      "comment" : "A kind of unit, named in a calculator error."
+    },
     "Waiting for the answer…" : {},
     "Wallet & Apple Pay (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -2230,9 +2212,6 @@
     },
     "Writes a log for troubleshooting to ~/Library/Logs/Floe." : {},
     "Writes a log to ~/Library/Logs/Floe for troubleshooting: launch and scan times, slow searches, and commands and AI requests that fail. Never what you type or ask. Turn it off when you are done." : {},
-    "Yards" : {
-      "comment" : "A unit of length, named in the plural."
-    },
     "Yesterday" : {
       "comment" : "The heading over what was copied yesterday."
     },
@@ -2354,9 +2333,6 @@
     },
     "dark mode, light mode, appearance, theme" : {
       "comment" : "Words that find the Toggle Dark Mode command, separated by commas."
-    },
-    "day" : {
-      "comment" : "The unit written after a number of days."
     },
     "desktop picture, background" : {
       "comment" : "Words that find the Wallpaper pane of System Settings, separated by commas."

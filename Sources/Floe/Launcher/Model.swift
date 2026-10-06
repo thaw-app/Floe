@@ -459,11 +459,6 @@ final class LauncherModel: ObservableObject {
     }
 
     func activate(_ item: RootItem) {
-        if case let .calculator(answer) = item {
-            NSPasteboard.general.copy(answer.copyText)
-            showHUD(String(localized: "Copied \(answer.copyText)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
-            return
-        }
         if case let .emoji(entry) = item {
             pasteEmojiResult(entry)
             return
@@ -551,7 +546,13 @@ final class LauncherModel: ObservableObject {
             }
             hidePanel()
             reset()
-        case .calculator, .emoji, .file, .clipboardEntry, .menuBarItem, .menuBarAccess:
+        case let .calculator(_, result, error, _):
+            guard error == nil, !result.isEmpty else { return }
+            NSPasteboard.general.copy(result)
+            showHUD(String(localized: "Copied \(result)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+            hidePanel()
+            reset()
+        case .emoji, .file, .clipboardEntry, .menuBarItem, .menuBarAccess:
             break
         case .browserTab, .askAI, .webAddress:
             break

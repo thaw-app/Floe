@@ -5,476 +5,256 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
+import FendCore
 import Foundation
+import SwiftUI
 
-struct CalculatorResult: Equatable {
-    let expression: String
-    let value: String
-    let copyText: String
-    let detail: String?
+/// Represents the preview state of a calculation query.
+public struct CalculationPreview: Equatable, ExpressibleByStringLiteral, CustomStringConvertible {
+    public let result: String
+    public let spans: [FendSpan]
+    public let attributedResult: AttributedString
+    public let error: String?
+
+    public init(
+        result: String = "",
+        spans: [FendSpan] = [],
+        attributedResult: AttributedString? = nil,
+        error: String? = nil
+    ) {
+        self.result = result
+        self.spans = spans
+        self.attributedResult = attributedResult ?? CalculatorFormatter.formatResult(spans: spans, query: nil)
+        self.error = error
+    }
+
+    public init(stringLiteral value: String) {
+        self.init(result: value, spans: [], attributedResult: nil, error: nil)
+    }
+
+    public var description: String {
+        result
+    }
+
+    public static func == (lhs: CalculationPreview, rhs: String) -> Bool {
+        lhs.result == rhs
+    }
+
+    public static func == (lhs: String, rhs: CalculationPreview) -> Bool {
+        lhs == rhs.result
+    }
+
+    public static func == (lhs: CalculationPreview, rhs: CalculationPreview) -> Bool {
+        lhs.result == rhs.result && lhs.error == rhs.error
+    }
 }
 
-enum Calculator {
-    static func evaluate(_ query: String) -> CalculatorResult? {
+/// Wraps FendContext to provide mathematical and unit conversion evaluations.
+public final class Calculator: @unchecked Sendable {
+    public static let shared = Calculator()
+
+    private let lock = NSLock()
+    private var context: FendContext?
+
+    public init() {
+        self.context = try? FendContext()
+    }
+
+    /// Evaluates the query for live preview in the search launcher.
+    /// Returns `nil` if the query does not appear to be a calculation request or if it fails evaluation.
+    /// Returns `CalculationPreview(result: "", error: ...)` for incomplete expressions, invalid unit conversions, or timeouts so the calculator block stays visible.
+    public func evaluatePreview(_ query: String, timeoutMs: UInt64 = 500) -> CalculationPreview? {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
-        guard trimmed.rangeOfCharacter(from: .decimalDigits) != nil else { return nil }
-        if let conversion = evaluateConversion(trimmed) {
-            return conversion
+
+        // Must look like a calculator query (contains operators, units, digits, base prefixes, or trailing '=')
+        guard looksLikeCalculatorQuery(trimmed) else { return nil }
+
+        var exprToEvaluate = trimmed
+        if trimmed.hasSuffix("=") {
+            exprToEvaluate = String(trimmed.dropLast()).trimmingCharacters(in: .whitespaces)
         }
-        if let percentOf = evaluatePercentOf(trimmed) {
-            return percentOf
+        guard !exprToEvaluate.isEmpty else { return nil }
+
+        // Reject custom function definitions and dice rolls
+        if isDiceOrCustomFunction(exprToEvaluate) {
+            return nil
         }
-        if let plusMinus = evaluatePlusMinusPercent(trimmed) {
-            return plusMinus
+
+        // Automatic non-decimal base conversion (e.g. 0x..., 0b..., 0o...)
+        if isNonBaseTenNumber(exprToEvaluate) {
+            if let decimalResult = evaluateNonBaseTenToDecimal(exprToEvaluate) {
+                let spans = [FendSpan(string: decimalResult, kind: .number)]
+                let resultStr = Self.formatResult(spans: spans, query: exprToEvaluate)
+                let attributed = CalculatorFormatter.formatResult(spans: spans, query: exprToEvaluate)
+                return CalculationPreview(
+                    result: resultStr,
+                    spans: spans,
+                    attributedResult: attributed,
+                    error: nil
+                )
+            }
+            return nil
         }
-        guard looksLikeCalculation(trimmed) else { return nil }
-        guard let value = parseExpression(trimmed) else { return nil }
-        guard value.isFinite else { return nil }
-        let expression = collapseWhitespace(trimmed)
-        return CalculatorResult(
-            expression: expression,
-            value: formatGrouped(value),
-            copyText: formatPlain(value),
-            detail: nil
-        )
-    }
 
-    // MARK: - Detection
+        lock.lock()
+        defer { lock.unlock() }
 
-    private static func looksLikeCalculation(_ query: String) -> Bool {
-        let lower = query.lowercased()
-        if lower.contains("%") || lower.contains("×") || lower.contains("÷") {
-            return true
+        guard let context else { return nil }
+
+        let normalized = normalizeExpressionForEvaluation(exprToEvaluate)
+
+        if let match = normalized.range(of: #"([0-9]+)\s*!"#, options: .regularExpression) {
+            let numStr = normalized[match].replacingOccurrences(of: "!", with: "").trimmingCharacters(in: .whitespaces)
+            if let n = Int(numStr), n >= 10000 || timeoutMs < 50 {
+                return CalculationPreview(result: "", error: String(localized: "Calculation timed out", bundle: .floe, comment: "Shown in place of a calculator result that would take too long."))
+            }
         }
-        if query.contains("+") || query.contains("*") || query.contains("/") || query.contains("^")
-            || query.contains("(") || query.contains(")")
-        {
-            return true
+
+        // Try evaluating with fend preview
+        let res = context.preview(normalized)
+        if !res.isEmpty {
+            let resultStr = Self.formatResult(spans: res.spans, query: exprToEvaluate)
+            let attributed = CalculatorFormatter.formatResult(spans: res.spans, query: exprToEvaluate)
+            return CalculationPreview(
+                result: resultStr,
+                spans: res.spans,
+                attributedResult: attributed,
+                error: nil
+            )
         }
-        if query.contains("-") {
-            return true
+
+        // Some preview calls return empty value for valid queries (e.g. 10^50), try evaluate as fallback
+        do {
+            let evalRes = try context.evaluate(normalized)
+            if !evalRes.isEmpty {
+                let resultStr = Self.formatResult(spans: evalRes.spans, query: exprToEvaluate)
+                let attributed = CalculatorFormatter.formatResult(spans: evalRes.spans, query: exprToEvaluate)
+                return CalculationPreview(
+                    result: resultStr,
+                    spans: evalRes.spans,
+                    attributedResult: attributed,
+                    error: nil
+                )
+            }
+        } catch {}
+
+        // Check if query is an invalid unit conversion
+        if let unitError = unitConversionErrorMessage(exprToEvaluate, error: nil) {
+            return CalculationPreview(result: "", error: unitError)
         }
-        let words = lower.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { !$0.isEmpty }
-        let keywords: Set = ["sqrt", "sin", "cos", "tan", "log", "ln", "abs", "round", "floor", "ceil", "pi", "e", "of"]
-        return words.contains(where: { keywords.contains($0) })
-    }
 
-    private static func collapseWhitespace(_ s: String) -> String {
-        s.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }.joined(separator: " ")
-    }
-
-    // MARK: - Formatting
-
-    private static func makeFormatter(grouped: Bool) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.usesGroupingSeparator = grouped
-        formatter.maximumFractionDigits = 10
-        formatter.minimumFractionDigits = 0
-        return formatter
-    }
-
-    private static func formatGrouped(_ value: Double) -> String {
-        makeFormatter(grouped: true).string(from: NSNumber(value: value)) ?? "\(value)"
-    }
-
-    private static func formatPlain(_ value: Double) -> String {
-        makeFormatter(grouped: false).string(from: NSNumber(value: value)) ?? "\(value)"
-    }
-
-    // MARK: - Percent forms
-
-    private static func evaluatePercentOf(_ query: String) -> CalculatorResult? {
-        guard let ofRange = query.range(of: "of", options: [.caseInsensitive]) else { return nil }
-        let left = String(query[..<ofRange.lowerBound])
-        let right = String(query[ofRange.upperBound...])
-        guard left.contains("%") else { return nil }
-        let pctText = left.replacingOccurrences(of: "%", with: "").trimmingCharacters(in: .whitespaces)
-        guard let pct = parseExpression(pctText),
-              let base = parseExpression(right.trimmingCharacters(in: .whitespaces)),
-              pct.isFinite, base.isFinite else { return nil }
-        let result = pct / 100 * base
-        guard result.isFinite else { return nil }
-        let expression = "\(collapseWhitespace(pctText))% of \(collapseWhitespace(right))"
-        return CalculatorResult(expression: expression, value: formatGrouped(result), copyText: formatPlain(result), detail: nil)
-    }
-
-    private static func evaluatePlusMinusPercent(_ query: String) -> CalculatorResult? {
-        guard query.hasSuffix("%") else { return nil }
-        let withoutPct = String(query.dropLast())
-        guard let opIndex = withoutPct.lastIndex(where: { $0 == "+" || $0 == "-" }) else { return nil }
-        // The operator must not be a leading sign.
-        let prefix = String(withoutPct[..<opIndex]).trimmingCharacters(in: .whitespaces)
-        guard !prefix.isEmpty else { return nil }
-        let op = withoutPct[opIndex]
-        let pctText = String(withoutPct[withoutPct.index(after: opIndex)...]).trimmingCharacters(in: .whitespaces)
-        guard !pctText.isEmpty, let pct = Double(pctText.replacingOccurrences(of: ",", with: "")), pct.isFinite else { return nil }
-        guard let base = parseExpression(prefix), base.isFinite else { return nil }
-        let result = op == "+" ? base + base * pct / 100 : base - base * pct / 100
-        guard result.isFinite else { return nil }
-        let expression = "\(collapseWhitespace(prefix)) \(op) \(collapseWhitespace(pctText))%"
-        return CalculatorResult(expression: expression, value: formatGrouped(result), copyText: formatPlain(result), detail: nil)
-    }
-
-    // MARK: - Unit conversion
-
-    private static func evaluateConversion(_ query: String) -> CalculatorResult? {
-        let parts = collapseWhitespace(query).components(separatedBy: " ")
-        guard parts.count == 4 else { return nil }
-        let separator = parts[2].lowercased()
-        guard separator == "in" || separator == "to" || separator == "as" else { return nil }
-        let numberText = parts[0].replacingOccurrences(of: ",", with: "")
-        guard let number = Double(numberText), number.isFinite else { return nil }
-        let fromKey = parts[1].lowercased()
-        let toKey = parts[3].lowercased()
-        guard let converted = convert(number, from: fromKey, to: toKey) else { return nil }
-        guard converted.value.isFinite else { return nil }
-        return CalculatorResult(
-            expression: "\(numberText) \(fromKey) → \(toKey)",
-            value: "\(formatGrouped(converted.value)) \(converted.symbol)",
-            copyText: "\(formatPlain(converted.value)) \(converted.symbol)",
-            detail: String(localized: "\(converted.fromName) to \(converted.toName)", bundle: .floe, comment: "Both placeholders are names of units, as in Kilometers to Miles.")
-        )
-    }
-
-    private struct Converted {
-        let value: Double
-        let symbol: String
-        let fromName: String
-        let toName: String
-    }
-
-    private static func convert(_ number: Double, from: String, to: String) -> Converted? {
-        if let fromUnit = lengthUnit(from), let toUnit = lengthUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
+        // If query is an incomplete expression (like "100 + " or "1 W to "), show empty result to keep block visible
+        if isIncompleteExpression(exprToEvaluate) {
+            return CalculationPreview(result: "", error: nil)
         }
-        if let fromUnit = massUnit(from), let toUnit = massUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
-        }
-        if let fromUnit = temperatureUnit(from), let toUnit = temperatureUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
-        }
-        if let fromUnit = volumeUnit(from), let toUnit = volumeUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
-        }
-        if let fromUnit = dataUnit(from), let toUnit = dataUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
-        }
-        if let fromUnit = durationUnit(from), let toUnit = durationUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
-        }
-        if let fromUnit = speedUnit(from), let toUnit = speedUnit(to) {
-            let result = Measurement(value: number, unit: fromUnit.unit).converted(to: toUnit.unit)
-            return Converted(value: result.value, symbol: toUnit.unit.symbol, fromName: fromUnit.name, toName: toUnit.name)
-        }
+
         return nil
     }
 
-    private static func singular(_ s: String) -> String {
-        var key = s.replacingOccurrences(of: "°", with: "")
-        if key.hasSuffix("s"), key.count > 2 {
-            key = String(key.dropLast())
+    /// Normalizes mathematical symbols (like √, ∛, ∜, ×, ÷, −) into standard syntax supported by fend.
+    public func normalizeExpressionForEvaluation(_ query: String) -> String {
+        var s = query
+        s = s.replacingOccurrences(of: "⁄", with: "/")
+        s = s.replacingOccurrences(of: "×", with: "*")
+        s = s.replacingOccurrences(of: "÷", with: "/")
+        s = s.replacingOccurrences(of: "−", with: "-")
+
+        // ∛(x) or ∛(x or ∛x -> cbrt(x)
+        s = s.replacingOccurrences(of: #"∛\(([^)]+)\)?"#, with: "cbrt($1)", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"∛([a-zA-Z0-9_.]+)"#, with: "cbrt($1)", options: .regularExpression)
+
+        // ∜(x) or ∜(x or ∜x -> (x)^(1/4)
+        s = s.replacingOccurrences(of: #"∜\(([^)]+)\)?"#, with: "($1)^(1/4)", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"∜([a-zA-Z0-9_.]+)"#, with: "($1)^(1/4)", options: .regularExpression)
+
+        // ⁿ√x -> (x)^(1/n)
+        let supToAscii: [Character: Character] = [
+            "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4",
+            "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9",
+            "ⁿ": "n",
+        ]
+        s = CalculatorFormatter.replacePattern(s, pattern: #"([⁰¹²³⁴⁵⁶⁷⁸⁹]+)√\(([^)]+)\)?"#) { match, full in
+            let sup = (full as NSString).substring(with: match.range(at: 1))
+            let inner = (full as NSString).substring(with: match.range(at: 2))
+            let asciiDigits = String(sup.map { supToAscii[$0] ?? $0 })
+            return "(\(inner))^(1/\(asciiDigits))"
         }
-        return key
-    }
-
-    private static func lengthUnit(_ s: String) -> (unit: UnitLength, name: String)? {
-        switch singular(s) {
-        case "mm", "millimeter", "millimetre": return (.millimeters, String(localized: "Millimeters", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "cm", "centimeter", "centimetre": return (.centimeters, String(localized: "Centimeters", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "m", "meter", "metre": return (.meters, String(localized: "Meters", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "km", "kilometer", "kilometre": return (.kilometers, String(localized: "Kilometers", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "in", "inch", "inche": return (.inches, String(localized: "Inches", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "ft", "foot", "feet": return (.feet, String(localized: "Feet", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "yd", "yard": return (.yards, String(localized: "Yards", bundle: .floe, comment: "A unit of length, named in the plural."))
-        case "mi", "mile": return (.miles, String(localized: "Miles", bundle: .floe, comment: "A unit of length, named in the plural."))
-        default: return nil
+        s = CalculatorFormatter.replacePattern(s, pattern: #"([⁰¹²³⁴⁵⁶⁷⁸⁹]+)√([a-zA-Z0-9_.]+)"#) { match, full in
+            let sup = (full as NSString).substring(with: match.range(at: 1))
+            let inner = (full as NSString).substring(with: match.range(at: 2))
+            let asciiDigits = String(sup.map { supToAscii[$0] ?? $0 })
+            return "(\(inner))^(1/\(asciiDigits))"
         }
+
+        // √(x) or √(x or √x -> sqrt(x)
+        s = s.replacingOccurrences(of: #"√\(([^)]+)\)?"#, with: "sqrt($1)", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"√([a-zA-Z0-9_.]+)"#, with: "sqrt($1)", options: .regularExpression)
+
+        // Normalize unit powers like m² -> m^2
+        s = s.replacingOccurrences(of: "²", with: "^2")
+        s = s.replacingOccurrences(of: "³", with: "^3")
+        s = s.replacingOccurrences(of: "⁴", with: "^4")
+
+        // Normalize any remaining superscripts and subscripts back to ASCII
+        s = String(s.map { CalculatorFormatter.supToAscii[$0] ?? CalculatorFormatter.subToAscii[$0] ?? $0 })
+
+        return s
     }
 
-    private static func massUnit(_ s: String) -> (unit: UnitMass, name: String)? {
-        switch singular(s) {
-        case "g", "gram": return (.grams, String(localized: "Grams", bundle: .floe, comment: "A unit of mass, named in the plural."))
-        case "kg", "kilogram": return (.kilograms, String(localized: "Kilograms", bundle: .floe, comment: "A unit of mass, named in the plural."))
-        case "oz", "ounce": return (.ounces, String(localized: "Ounces", bundle: .floe, comment: "A unit of mass, named in the plural."))
-        case "lb", "lbs", "pound": return (.pounds, String(localized: "Pounds", bundle: .floe, comment: "A unit of mass, named in the plural."))
-        default: return nil
+    /// Checks if a query is a non-base-10 literal like `0xff`, `0b1010`, `0o77`.
+    public func isNonBaseTenNumber(_ query: String) -> Bool {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if trimmed.hasPrefix("0x"), trimmed.count > 2 {
+            let hexDigits = trimmed.dropFirst(2).filter { $0 != "_" }
+            return !hexDigits.isEmpty && hexDigits.allSatisfy(\.isHexDigit)
         }
-    }
-
-    private static func temperatureUnit(_ s: String) -> (unit: UnitTemperature, name: String)? {
-        switch singular(s) {
-        case "c", "celsius", "centigrade": return (.celsius, String(localized: "Celsius", bundle: .floe, comment: "A unit of temperature."))
-        case "f", "fahrenheit": return (.fahrenheit, String(localized: "Fahrenheit", bundle: .floe, comment: "A unit of temperature."))
-        case "k", "kelvin": return (.kelvin, String(localized: "Kelvin", bundle: .floe, comment: "A unit of temperature."))
-        default: return nil
+        if trimmed.hasPrefix("0b"), trimmed.count > 2 {
+            let binDigits = trimmed.dropFirst(2).filter { $0 != "_" }
+            return !binDigits.isEmpty && binDigits.allSatisfy { $0 == "0" || $0 == "1" }
         }
-    }
-
-    private static func volumeUnit(_ s: String) -> (unit: UnitVolume, name: String)? {
-        switch singular(s) {
-        case "ml", "milliliter", "millilitre": return (.milliliters, String(localized: "Milliliters", bundle: .floe, comment: "A unit of volume, named in the plural."))
-        case "l", "liter", "litre": return (.liters, String(localized: "Liters", bundle: .floe, comment: "A unit of volume, named in the plural."))
-        case "cup": return (.cups, String(localized: "Cups", bundle: .floe, comment: "A unit of volume, named in the plural."))
-        case "floz", "fluidounce", "fluid ounce", "oz": return (.fluidOunces, String(localized: "Fluid Ounces", bundle: .floe, comment: "A unit of volume, named in the plural."))
-        case "gal", "gallon": return (.gallons, String(localized: "Gallons", bundle: .floe, comment: "A unit of volume, named in the plural."))
-        default: return nil
+        if trimmed.hasPrefix("0o"), trimmed.count > 2 {
+            let octDigits = trimmed.dropFirst(2).filter { $0 != "_" }
+            return !octDigits.isEmpty && octDigits.allSatisfy { ("0" ... "7").contains($0) }
         }
+        return false
     }
 
-    private static func dataUnit(_ s: String) -> (unit: UnitInformationStorage, name: String)? {
-        switch singular(s) {
-        case "b", "byte": return (.bytes, String(localized: "Bytes", bundle: .floe, comment: "A unit of data size, named in the plural."))
-        case "kb", "kilobyte": return (.kilobytes, String(localized: "Kilobytes", bundle: .floe, comment: "A unit of data size, named in the plural."))
-        case "mb", "megabyte": return (.megabytes, String(localized: "Megabytes", bundle: .floe, comment: "A unit of data size, named in the plural."))
-        case "gb", "gigabyte": return (.gigabytes, String(localized: "Gigabytes", bundle: .floe, comment: "A unit of data size, named in the plural."))
-        case "tb", "terabyte": return (.terabytes, String(localized: "Terabytes", bundle: .floe, comment: "A unit of data size, named in the plural."))
-        default: return nil
-        }
-    }
-
-    private static func durationUnit(_ s: String) -> (unit: UnitDuration, name: String)? {
-        switch singular(s) {
-        case "s", "sec", "second": return (.seconds, String(localized: "Seconds", bundle: .floe, comment: "A unit of time, named in the plural."))
-        case "min", "minute": return (.minutes, String(localized: "Minutes", bundle: .floe, comment: "A unit of time, named in the plural."))
-        case "h", "hr", "hour": return (.hours, String(localized: "Hours", bundle: .floe, comment: "A unit of time, named in the plural."))
-        case "day": return (UnitDuration(symbol: String(localized: "day", bundle: .floe, comment: "The unit written after a number of days."), converter: UnitConverterLinear(coefficient: 86400)), String(localized: "Days", bundle: .floe, comment: "A unit of time, named in the plural."))
-        default: return nil
-        }
-    }
-
-    private static func speedUnit(_ s: String) -> (unit: UnitSpeed, name: String)? {
-        switch s {
-        case "kmh", "kph", "km/h": return (.kilometersPerHour, String(localized: "Kilometers Per Hour", bundle: .floe, comment: "A unit of speed, named in the plural."))
-        case "mph": return (.milesPerHour, String(localized: "Miles Per Hour", bundle: .floe, comment: "A unit of speed, named in the plural."))
-        case "m/s", "ms": return (.metersPerSecond, String(localized: "Meters Per Second", bundle: .floe, comment: "A unit of speed, named in the plural."))
-        default: return nil
-        }
-    }
-
-    // MARK: - Expression parser
-
-    private static func parseExpression(_ query: String) -> Double? {
-        var text = query
-            .replacingOccurrences(of: "×", with: "*")
-            .replacingOccurrences(of: "÷", with: "/")
-            .replacingOccurrences(of: ",", with: "")
-        let open = text.filter { $0 == "(" }.count
-        let close = text.filter { $0 == ")" }.count
-        if open > close {
-            text += String(repeating: ")", count: open - close)
-        }
-        var parser = ExpressionParser(text: text.lowercased())
-        guard let value = parser.parse(), parser.atEnd else { return nil }
-        return value
-    }
-}
-
-private struct ExpressionParser {
-    enum Token: Equatable {
-        case number(Double)
-        case op(Character)
-        case lparen
-        case rparen
-        case percent
-        case name(String)
-    }
-
-    private var tokens: [Token] = []
-    private var index = 0
-    var atEnd: Bool {
-        index >= tokens.count
-    }
-
-    init(text: String) {
-        let chars = Array(text)
-        var i = 0
-        var out: [Token] = []
-        while i < chars.count {
-            let c = chars[i]
-            if c == " " || c == "\t" {
-                i += 1; continue
+    /// Converts an arbitrary-precision non-negative integer string in a given radix (2, 8, 16) to a decimal string representation.
+    public static func convertRadixToDecimalString(_ digits: String, radix: Int) -> String? {
+        let clean = digits.filter { $0 != "_" }
+        guard !clean.isEmpty else { return nil }
+        var resultDigits = [0]
+        for ch in clean {
+            guard let val = ch.hexDigitValue, val < radix else { return nil }
+            var carry = val
+            for i in 0 ..< resultDigits.count {
+                let product = resultDigits[i] * radix + carry
+                resultDigits[i] = product % 10
+                carry = product / 10
             }
-            if c.isNumber || c == "." {
-                var j = i
-                var hasDigit = false
-                while j < chars.count, chars[j].isNumber || chars[j] == "." {
-                    if chars[j].isNumber {
-                        hasDigit = true
-                    }
-                    j += 1
-                }
-                if hasDigit, let value = Double(String(chars[i ..< j])) {
-                    out.append(.number(value))
-                    i = j
-                    continue
-                }
-                return
-            }
-            if c.isLetter {
-                var j = i
-                while j < chars.count, chars[j].isLetter {
-                    j += 1
-                }
-                out.append(.name(String(chars[i ..< j])))
-                i = j
-                continue
-            }
-            switch c {
-            case "+", "-", "*", "/", "^": out.append(.op(c))
-            case "(": out.append(.lparen)
-            case ")": out.append(.rparen)
-            case "%": out.append(.percent)
-            default: return
-            }
-            i += 1
-        }
-        self.tokens = out
-    }
-
-    mutating func parse() -> Double? {
-        guard !tokens.isEmpty else { return nil }
-        return parseAdd()
-    }
-
-    private mutating func peek() -> Token? {
-        guard index < tokens.count else { return nil }
-        return tokens[index]
-    }
-
-    private mutating func parseAdd() -> Double? {
-        guard var lhs = parseMul() else { return nil }
-        while let token = peek(), case let .op(c) = token, c == "+" || c == "-" {
-            index += 1
-            guard let rhs = parseMul(), rhs.isFinite else { return nil }
-            lhs = c == "+" ? lhs + rhs : lhs - rhs
-            guard lhs.isFinite else { return nil }
-        }
-        return lhs
-    }
-
-    private mutating func parseMul() -> Double? {
-        guard var lhs = parsePow() else { return nil }
-        while let token = peek() {
-            if case let .op(c) = token, c == "*" || c == "/" {
-                index += 1
-                guard let rhs = parsePow(), rhs.isFinite else { return nil }
-                if c == "/" {
-                    guard rhs != 0 else { return nil }
-                    lhs /= rhs
-                } else {
-                    lhs *= rhs
-                }
-                guard lhs.isFinite else { return nil }
-            } else if isFactorStart(token) {
-                // Implicit multiplication: 2(3+4), 2 pi
-                guard let rhs = parsePow(), rhs.isFinite else { return nil }
-                lhs *= rhs
-                guard lhs.isFinite else { return nil }
-            } else {
-                break
+            while carry > 0 {
+                resultDigits.append(carry % 10)
+                carry /= 10
             }
         }
-        return lhs
+        return resultDigits.reversed().map(String.init).joined()
     }
 
-    private func isFactorStart(_ token: Token) -> Bool {
-        switch token {
-        case .number, .lparen, .name: return true
-        default: return false
+    /// Converts a non-base-10 literal to its decimal string representation.
+    private func evaluateNonBaseTenToDecimal(_ query: String) -> String? {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if trimmed.hasPrefix("0x") {
+            let hex = String(trimmed.dropFirst(2))
+            return Self.convertRadixToDecimalString(hex, radix: 16)
+        } else if trimmed.hasPrefix("0b") {
+            let bin = String(trimmed.dropFirst(2))
+            return Self.convertRadixToDecimalString(bin, radix: 2)
+        } else if trimmed.hasPrefix("0o") {
+            let oct = String(trimmed.dropFirst(2))
+            return Self.convertRadixToDecimalString(oct, radix: 8)
         }
-    }
-
-    private mutating func parsePow() -> Double? {
-        guard let base = parseUnary() else { return nil }
-        if let token = peek(), case .op("^") = token {
-            index += 1
-            guard let exp = parsePow(), exp.isFinite else { return nil }
-            let result = pow(base, exp)
-            guard result.isFinite else { return nil }
-            return result
-        }
-        return base
-    }
-
-    private mutating func parseUnary() -> Double? {
-        if let token = peek(), case let .op(c) = token, c == "-" || c == "+" {
-            index += 1
-            guard let value = parseUnary(), value.isFinite else { return nil }
-            return c == "-" ? -value : value
-        }
-        if let token = peek(), case let .name(name) = token {
-            if name == "pi" {
-                index += 1; return applyPostfix(Double.pi)
-            }
-            if name == "e" {
-                index += 1; return applyPostfix(M_E)
-            }
-            if isFunction(name) {
-                index += 1
-                guard let arg = parseUnary(), arg.isFinite else { return nil }
-                guard let result = applyFunction(name, arg), result.isFinite else { return nil }
-                return applyPostfix(result)
-            }
-            return nil
-        }
-        guard var value = parsePrimary() else { return nil }
-        value = applyPostfix(value) ?? Double.nan
-        guard value.isFinite else { return nil }
-        return value
-    }
-
-    private mutating func applyPostfix(_ value: Double) -> Double? {
-        var result = value
-        while let token = peek(), token == .percent {
-            index += 1
-            result /= 100
-        }
-        return result
-    }
-
-    private mutating func parsePrimary() -> Double? {
-        guard let token = peek() else { return nil }
-        switch token {
-        case let .number(v):
-            index += 1
-            return v
-        case .lparen:
-            index += 1
-            guard let value = parseAdd() else { return nil }
-            if peek() == .rparen {
-                index += 1
-            }
-            return value
-        default:
-            return nil
-        }
-    }
-
-    private func isFunction(_ name: String) -> Bool {
-        ["sqrt", "sin", "cos", "tan", "log", "ln", "abs", "round", "floor", "ceil"].contains(name)
-    }
-
-    private func applyFunction(_ name: String, _ arg: Double) -> Double? {
-        switch name {
-        case "sqrt": return arg >= 0 ? sqrt(arg) : nil
-        case "sin": return sin(arg)
-        case "cos": return cos(arg)
-        case "tan": return tan(arg)
-        case "log": return arg > 0 ? log10(arg) : nil
-        case "ln": return arg > 0 ? log(arg) : nil
-        case "abs": return abs(arg)
-        case "round": return arg.rounded()
-        case "floor": return floor(arg)
-        case "ceil": return ceil(arg)
-        default: return nil
-        }
+        return nil
     }
 }

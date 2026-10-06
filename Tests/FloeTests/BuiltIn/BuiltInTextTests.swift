@@ -140,14 +140,6 @@ struct BuiltInTextTests {
         #expect(event(allDay: false).subtitle == "\(start.formatted(time)) to \(end.formatted(time)) · \(Self.awkward)")
     }
 
-    @Test func aConversionNamesItsUnits() {
-        #expect(Calculator.evaluate("10 km in miles")?.detail == "Kilometers to Miles")
-        #expect(Calculator.evaluate("100 f to c")?.detail == "Fahrenheit to Celsius")
-        #expect(Calculator.evaluate("60 mph in km/h")?.detail == "Miles Per Hour to Kilometers Per Hour")
-        #expect(Calculator.evaluate("48 hours in days")?.value == "2 day")
-        #expect(Calculator.evaluate("48 hours in days")?.detail == "Hours to Days")
-    }
-
     @Test func severalCopiedFilesAreCounted() {
         func entry(_ paths: [String]) -> ClipboardEntry {
             ClipboardEntry(id: UUID(), kind: .file, filePaths: paths, date: Date(), pinned: false)

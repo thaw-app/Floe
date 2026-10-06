@@ -10,8 +10,9 @@ import Foundation
 /// The answer to a query that is arithmetic or a conversion.
 struct CalculatorSearchProvider: SearchProvider {
     func contribution(for context: SearchContext) -> SearchContribution {
-        guard !context.query.isEmpty, let answer = Calculator.evaluate(context.query) else { return SearchContribution() }
-        return SearchContribution(pinned: [RootResult(item: .calculator(answer), section: String(localized: "Calculator", bundle: .floe))])
+        guard !context.query.isEmpty, let preview = Calculator.shared.evaluatePreview(context.query) else { return SearchContribution() }
+        let item = RootItem.calculator(expression: context.query, result: preview.result, error: preview.error, attributedResult: preview.attributedResult)
+        return SearchContribution(pinned: [RootResult(item: item, section: String(localized: "Calculator", bundle: .floe))])
     }
 }
 

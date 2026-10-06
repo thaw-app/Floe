@@ -279,7 +279,7 @@ struct RootIcon: View {
         case .event:
             SymbolTile(symbol: "calendar", tint: .red)
         case .calculator:
-            IconView(value: "icon:PlusForwardslashMinus", assetsPath: "", size: 24)
+            IconView(value: "icon:Calculator", assetsPath: "", size: 24)
         case let .emoji(entry):
             Text(entry.character).font(.system(size: 20))
         case let .quicklink(link, _, _, _):

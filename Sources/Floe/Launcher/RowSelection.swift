@@ -53,8 +53,18 @@ struct SelectableRootRow: View {
     let item: RootItem
 
     var body: some View {
-        RootRow(model: model, item: item, selected: flag.isOn)
-            .equatable()
+        if case let .calculator(expression, resultText, errorText, attributedResult) = item {
+            CalculatorBlockView(
+                expression: expression,
+                result: resultText,
+                attributedResult: attributedResult,
+                error: errorText,
+                selected: flag.isOn
+            )
+        } else {
+            RootRow(model: model, item: item, selected: flag.isOn)
+                .equatable()
+        }
     }
 }
 
