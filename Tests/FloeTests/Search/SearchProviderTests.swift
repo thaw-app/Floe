@@ -148,7 +148,7 @@ struct SearchProviderTests {
         }
     }
 
-    @Test func theMergePutsSectionedRowsFirstThenPinnedThenRankedThenAppended() throws {
+    @Test func theMergePutsSectionedRowsFirstThenPinnedThenRankedThenAppended() {
         let answer = RootItem.calculator(expression: "2+2", result: "4")
         let providers: [any SearchProvider] = [
             Fixed(fixed: SearchContribution(appended: [RootResult(item: .searchFiles("saf"), section: nil)])),

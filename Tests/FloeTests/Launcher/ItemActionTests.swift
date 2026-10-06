@@ -85,7 +85,7 @@ struct ItemActionTests {
         #expect(titles(model.rootActions(for: item)).last == "Remove from Favorites")
     }
 
-    @Test func aResultThatIsGoneNextTimeHasNoFavoriteToggle() throws {
+    @Test func aResultThatIsGoneNextTimeHasNoFavoriteToggle() {
         let model = makeModel()
         #expect(titles(model.rootActions(for: .calculator(expression: "2+2", result: "4"))) == ["Open"])
         #expect(titles(model.rootActions(for: .searchFiles("notes"))) == ["Open"])

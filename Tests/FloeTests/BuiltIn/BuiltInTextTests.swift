@@ -140,7 +140,6 @@ struct BuiltInTextTests {
         #expect(event(allDay: false).subtitle == "\(start.formatted(time)) to \(end.formatted(time)) · \(Self.awkward)")
     }
 
-
     @Test func severalCopiedFilesAreCounted() {
         func entry(_ paths: [String]) -> ClipboardEntry {
             ClipboardEntry(id: UUID(), kind: .file, filePaths: paths, date: Date(), pinned: false)
