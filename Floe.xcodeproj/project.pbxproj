@@ -132,6 +132,7 @@
 		86B68EECCB3D41E47E4ED450 /* AppPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E56A00A425C8E51794B5129 /* AppPermissions.swift */; };
 		872A804C723CB385C6456F7A /* WelcomeSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F9E804FCFAE9C367F19FF6F /* WelcomeSettingsSection.swift */; };
 		8822F48836D72A8223C4ED0D /* HostRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FA646DF9F19D7ED1E8C4DD0 /* HostRequest.swift */; };
+		8906F8157A1DD72FB87EC835 /* MenuBarGlyph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A377A245ADAADBB93B3084B /* MenuBarGlyph.swift */; };
 		8970B92D5868D82F8F179EDD /* Model+Setup.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2D070B65C29C80130B70B2 /* Model+Setup.swift */; };
 		8BEFCC26CE89A055A219A10B /* DiagnosticLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005087DC701DB4768699889F /* DiagnosticLogger.swift */; };
 		8C3FC9BB1B1CFAC8425C478E /* ThawUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0539F14C5ECF7F15A371B8BA /* ThawUI */; };
@@ -300,6 +301,7 @@
 		35DAB6F738D66C12AB99B0C1 /* generate-credits.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "generate-credits.py"; sourceTree = "<group>"; };
 		39773705D994ADCB324EFDCB /* RowSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowSelection.swift; sourceTree = "<group>"; };
 		3A095A949E191252E89F6A9A /* PermissionsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsWindow.swift; sourceTree = "<group>"; };
+		3A377A245ADAADBB93B3084B /* MenuBarGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarGlyph.swift; sourceTree = "<group>"; };
 		3A4690CBF6FD48F469CE38F1 /* runtime */ = {isa = PBXFileReference; lastKnownFileType = folder; path = runtime; sourceTree = SOURCE_ROOT; };
 		3C178B96CB145E8FEA3F3778 /* SystemStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStores.swift; sourceTree = "<group>"; };
 		3C88D79A84B3FAC5F8E4332D /* HotkeyRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRegistry.swift; sourceTree = "<group>"; };
@@ -853,6 +855,7 @@
 				D967FA03573F90C35F2D5E9B /* main.swift */,
 				4350774BAFE25F278DF643A7 /* MainMenu.swift */,
 				A351EFA50EC3D806BFCF8F78 /* MainThreadCallbacks.swift */,
+				3A377A245ADAADBB93B3084B /* MenuBarGlyph.swift */,
 				A215DE7DC90287076630C6DF /* OpenWithoutWaiting.swift */,
 				BE0AE17795FC335EFF92ADDD /* ProcessLink.swift */,
 				066BDD252E1518F183DFBD42 /* SearchBench.swift */,
@@ -1142,6 +1145,7 @@
 				7CF9103E36C54CCB2A4447B9 /* MenuBarCommands.swift in Sources */,
 				74E7324DD7F8BEFA0B1CFC5B /* MenuBarCommandsSettingsSection.swift in Sources */,
 				12A955B077D59F5A83B199BD /* MenuBarContent.swift in Sources */,
+				8906F8157A1DD72FB87EC835 /* MenuBarGlyph.swift in Sources */,
 				D38CFDE6CB1A7B0702FC79E7 /* MenuBarIcon.swift in Sources */,
 				2340ECE085B416ACAD78EEF3 /* MenuBarItems.swift in Sources */,
 				19FAEC92E306B4BC2C96CD92 /* MenuBarLogic.swift in Sources */,

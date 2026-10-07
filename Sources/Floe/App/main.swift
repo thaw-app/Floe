@@ -79,7 +79,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "command.square", accessibilityDescription: "Floe")
+        item.button?.image = MenuBarGlyph.image()
         let menu = NSMenu()
         showItem = menu.addItem(withTitle: String(localized: "Show Floe", bundle: .floe), action: #selector(show), keyEquivalent: "")
         showItem?.target = self
