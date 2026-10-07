@@ -13,6 +13,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import { ctx, request, send, setPopHandler, setPopToRootHandler } from "../bridge";
 import { flushCaches } from "../cache";
 import { createLocalStorage, storagePersistence } from "../local-storage";
+import { render as mount } from "../renderer";
 
 const h = React.createElement;
 // The API is promise-based throughout; most calls here finish synchronously.
@@ -572,3 +573,38 @@ export const clearLocalStorage = LocalStorage.clear;
 export const preferences = new Proxy({} as Record<string, { value: unknown }>, {
   get: (_target, key) => ({ value: getPreferenceValues<Props>()[key as string] }),
 });
+
+// Raycast's browser extension and window manager, which Floe has no counterpart for. The names are here because
+// a missing export stops a command before it runs; environment.canAccess says no, and a call says why.
+const refusing = (name: string) => (): Promise<never> => Promise.reject(new Error(`${name} isn't supported in Floe yet`));
+export const BrowserExtension = {
+  getTabs: refusing("BrowserExtension.getTabs"),
+  getContent: refusing("BrowserExtension.getContent"),
+};
+export const WindowManagement = {
+  DesktopType: { User: "User", FullScreen: "FullScreen" },
+  getDesktops: refusing("WindowManagement.getDesktops"),
+  getActiveWindow: refusing("WindowManagement.getActiveWindow"),
+  getWindowsOnActiveDesktop: refusing("WindowManagement.getWindowsOnActiveDesktop"),
+  setWindowBounds: refusing("WindowManagement.setWindowBounds"),
+};
+// Only types live under Tool; the value exists because Raycast exports one.
+export const Tool = {};
+
+// Names Raycast still exports and has deprecated.
+export const unstable_AI = AI;
+export const useUnstableAI = () => undefined;
+export const randomId = () => crypto.randomUUID();
+export const useId = React.useId;
+export const useActionPanel = () => ({ update: (_actionPanel: React.ReactNode) => {} });
+const keyNames = ["return", "delete", "deleteForward", "tab", "arrowUp", "arrowDown", "arrowLeft", "arrowRight", "pageUp", "pageDown", "home", "end", "space", "escape", "enter", "backspace"];
+export const specialKeys = Object.fromEntries(keyNames.map((key) => [key, key]));
+
+let drewItself = false;
+// How a command drew its view before it could export one: it calls this where a newer one exports a component.
+export function render(element: React.ReactElement) {
+  drewItself = true;
+  mount(h(NavigationRoot, null, element));
+}
+// For the host: whether the command has already put its view up through render().
+export const commandDrewItself = () => drewItself;

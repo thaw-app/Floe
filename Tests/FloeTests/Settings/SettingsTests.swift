@@ -93,6 +93,9 @@ struct AppSettingsTests {
         settings.favorites = ["settings", "app:/Applications/Notes.app"]
         settings.disabledExtensions = ["coffee"]
         settings.disabledCommands = ["hello/greet"]
+        settings.hiddenResults = ["app:/Applications/Chess.app": "Chess"]
+        settings.emojiSkinTone = .mediumDark
+        settings.remembersSearches = false
         settings.includeRaycastExtensions = false
         settings.popToRootDelay = 30
         settings.rememberMenuBarQuery = true
@@ -134,6 +137,9 @@ struct AppSettingsTests {
         #expect(reloaded.favorites == ["settings", "app:/Applications/Notes.app"])
         #expect(reloaded.disabledExtensions == ["coffee"])
         #expect(reloaded.disabledCommands == ["hello/greet"])
+        #expect(reloaded.hiddenResults == ["app:/Applications/Chess.app": "Chess"])
+        #expect(reloaded.emojiSkinTone == .mediumDark)
+        #expect(reloaded.remembersSearches == false)
         #expect(reloaded.includeRaycastExtensions == false)
         #expect(reloaded.popToRootDelay == 30)
         #expect(reloaded.rememberMenuBarQuery)

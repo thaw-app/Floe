@@ -75,6 +75,9 @@ extension LauncherModel {
 
     /// The root search, when nothing else has the panel.
     private func handleRootKey(_ event: NSEvent, _ flags: NSEvent.ModifierFlags) -> Bool {
+        if event.keyCode == 126, recallOlderQuery() {
+            return true
+        }
         if let delta = Shortcuts.navigationDelta(event.keyCode) {
             selection = max(0, min(selection + delta, results.count - 1))
             return true

@@ -105,7 +105,51 @@ extension LauncherModel {
                 },
             ]
         }
+        if Self.canBeHidden(item) {
+            actions.append(ItemAction(title: String(localized: "Hide from Search", bundle: .floe), symbol: "eye.slash") { [weak self] in
+                self?.hideFromSearch(item)
+            })
+        }
         return actions
+    }
+
+    /// Keeps the search that just opened something, unless the user switched that off.
+    func rememberQuery() {
+        if settings.remembersSearches {
+            usage.recordQuery(query)
+        }
+    }
+
+    /// Up at the top of the list brings back the search before this one: from an empty field the newest,
+    /// and from a search brought back this way the one before it. Answers whether the key was used.
+    func recallOlderQuery() -> Bool {
+        guard selection == 0 else { return false }
+        let queries = usage.queries
+        // Typing over a search that was brought back ends the walk: the field no longer holds it.
+        let held = recalledQuery.flatMap { queries.indices.contains($0) && queries[$0] == query ? $0 : nil }
+        guard query.isEmpty || held != nil else { return false }
+        let older = (held ?? queries.count) - 1
+        guard queries.indices.contains(older) else { return held != nil }
+        recalledQuery = older
+        query = queries[older]
+        return true
+    }
+
+    /// Takes a result out of the search. It is brought back from Settings, where it is listed by the title it had.
+    func hideFromSearch(_ item: RootItem) {
+        guard Self.canBeHidden(item) else { return }
+        settings.hiddenResults[item.id] = item.title
+        settings.favorites.removeAll { $0 == item.id }
+        showHUD(String(localized: "Hidden from search. Settings › General brings it back.", bundle: .floe))
+        refresh()
+    }
+
+    /// What may be hidden: a result that is there every time, and not the way into Settings, where hiding is undone.
+    static func canBeHidden(_ item: RootItem) -> Bool {
+        if case .settings = item {
+            return false
+        }
+        return keepsItsPlace(item)
     }
 
     /// Whether a result is there the next time the launcher opens, so a favorite of it means something.

@@ -23,7 +23,8 @@ struct BuiltInTextTests {
     @Test func everySystemCommandKeepsItsEnglishTitle() {
         #expect(SystemCommand.allCases.map(\.title) == [
             "Lock Screen", "Sleep", "Sleep Displays", "Restart", "Shut Down", "Log Out", "Empty Trash", "Toggle Dark Mode",
-            "Toggle Wi-Fi", "Toggle Mute", "Toggle Keep Awake", "Hide Other Apps", "Quit All Apps",
+            "Toggle Wi-Fi", "Toggle Mute", "Volume Up", "Volume Down", "Toggle Bluetooth", "Eject All Disks", "Toggle Keep Awake", "Hide Other Apps",
+            "Quit All Apps",
         ])
     }
 

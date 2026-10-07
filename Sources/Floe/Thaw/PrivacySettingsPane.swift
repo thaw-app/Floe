@@ -20,6 +20,7 @@ import ThawUI
 struct PrivacySettingsPane: View {
     @ObservedObject var settings: AppSettings
     var permissions: AppPermissions = .shared
+    @State private var forgotSearches = false
 
     var body: some View {
         Form {
@@ -52,6 +53,27 @@ struct PrivacySettingsPane: View {
                     }
                 }
                 row("SSH Hosts", String(localized: "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal.", bundle: .floe))
+            }
+            ThawSection("Search History") {
+                Toggle(isOn: Binding(
+                    get: { settings.remembersSearches },
+                    set: { remembers in
+                        settings.remembersSearches = remembers
+                        if !remembers {
+                            UsageStore.shared.forgetQueries()
+                        }
+                    }
+                )) {
+                    Text("Remember searches")
+                    Text("The last 50 searches that opened something are kept on this Mac, and the Up arrow in an empty search brings them back. Switching this off forgets them.")
+                }
+                LabeledContent("Remembered searches") {
+                    Button("Forget Them") {
+                        UsageStore.shared.forgetQueries()
+                        forgotSearches = true
+                    }
+                    .disabled(!settings.remembersSearches || forgotSearches)
+                }
             }
             ThawSection("Network Access") {
                 if let host = PrivacyNetwork.updateHost {

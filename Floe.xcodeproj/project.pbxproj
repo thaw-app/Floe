@@ -137,6 +137,7 @@
 		8C3FC9BB1B1CFAC8425C478E /* ThawUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0539F14C5ECF7F15A371B8BA /* ThawUI */; };
 		8D838DA6514638A4A159387C /* UpdateConsentSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EFACED3FB57AE107F4B30B /* UpdateConsentSheet.swift */; };
 		8DD9E6B111F242F86378F0A8 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB2BEB2F9AA1BBC21A580C5B /* Catalog.swift */; };
+		90D90D58FD0E2F8119C8FAB7 /* CustomIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70BF33F9908B530D3859110 /* CustomIcon.swift */; };
 		91C071541FA07E255D2EA080 /* MainThreadCallbacks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A351EFA50EC3D806BFCF8F78 /* MainThreadCallbacks.swift */; };
 		91F1AB81D0B571ED89DE6970 /* Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB0B59E18CDED97CC2F777E /* Shell.swift */; };
 		922FAD71CBC0B27CA0F5291E /* ExtensionViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 615C6D1FFFC788BD983EA13C /* ExtensionViews.swift */; };
@@ -405,6 +406,7 @@
 		A5C2101DB96C414B73B7329F /* Diagnostics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diagnostics.swift; sourceTree = "<group>"; };
 		A603A283A239D502A519FFAE /* HostMessageDecoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostMessageDecoder.swift; sourceTree = "<group>"; };
 		A6F24BBC55159EA1F9633EAE /* AppleShortcutSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutSearch.swift; sourceTree = "<group>"; };
+		A70BF33F9908B530D3859110 /* CustomIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomIcon.swift; sourceTree = "<group>"; };
 		A8A91D9CFF52277A3BF983DF /* AboutSettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsPane.swift; sourceTree = "<group>"; };
 		A8AEDEB267607D5474C20D6F /* ExtensionListViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionListViews.swift; sourceTree = "<group>"; };
 		AA43444C49957E7742747429 /* SystemCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemCommands.swift; sourceTree = "<group>"; };
@@ -709,6 +711,7 @@
 			isa = PBXGroup;
 			children = (
 				26FC03A029A34D38B9446379 /* BackgroundScheduler.swift */,
+				A70BF33F9908B530D3859110 /* CustomIcon.swift */,
 				CC2033FDF332D4135EDF2DEF /* ErrorView.swift */,
 				A8AEDEB267607D5474C20D6F /* ExtensionListViews.swift */,
 				CD8A94377EF11E114774E2F4 /* ExtensionStore.swift */,
@@ -1089,6 +1092,7 @@
 				0D984E350C7EC004444B7771 /* ClipboardSettingsSection.swift in Sources */,
 				17A8AE401EEDE0AD68A2D7D2 /* CommandLookup.swift in Sources */,
 				274767D215F2E177AF2E97D5 /* Credits.swift in Sources */,
+				90D90D58FD0E2F8119C8FAB7 /* CustomIcon.swift in Sources */,
 				FEF05B988E1B8FBFE470205F /* DebugOptions.swift in Sources */,
 				8BEFCC26CE89A055A219A10B /* DiagnosticLogger.swift in Sources */,
 				347892F3937807F6287BE452 /* Diagnostics.swift in Sources */,

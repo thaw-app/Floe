@@ -365,6 +365,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         privacy(
+            "remembersSearches",
+            String(localized: "Remember searches", bundle: .floe),
+            section: String(localized: "Search History", bundle: .floe),
+            keywords: String(
+                localized: "history, searches, queries, recent, remember, forget, clear, up arrow",
+                bundle: .floe,
+                comment: "Words that find the Remember searches setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
             "aiOnThisMacOnly",
             String(localized: "Only use AI that runs on this Mac", bundle: .floe),
             section: String(localized: "Network Access", bundle: .floe),
@@ -426,6 +436,16 @@ extension SearchIndex {
                 localized: "pop to root, delay, timeout, reset, close, immediately, seconds, minutes",
                 bundle: .floe,
                 comment: "Words that find the Return to root search setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "emojiSkinTone",
+            String(localized: "Emoji skin tone", bundle: .floe),
+            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
+            keywords: String(
+                localized: "emoji, skin tone, skin colour, skin color, hand, people",
+                bundle: .floe,
+                comment: "Words that find the Emoji skin tone setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .general(

@@ -10,6 +10,9 @@
     "%@ (not installed)" : {
       "comment" : "The placeholder is the name of a command line tool such as claude.\nThe placeholder is the name of an app."
     },
+    "%@ Preferences" : {
+      "comment" : "The placeholder is a command's name."
+    },
     "%@ can check for updates automatically. You can also check manually from the menu bar or Settings › About." : {
       "comment" : "The placeholder is the name of this app."
     },
@@ -524,6 +527,8 @@
     "Beta" : {
       "comment" : "The update channel that also offers test releases."
     },
+    "Bluetooth Off" : {},
+    "Bluetooth On" : {},
     "Border" : {
       "comment" : "The line drawn around the launcher panel."
     },
@@ -604,6 +609,7 @@
       "comment" : "A verb on a button: pick the selected line."
     },
     "Choose Another" : {},
+    "Choose Image…" : {},
     "Choose a clipboard app in Settings" : {},
     "Choose an App" : {},
     "Choose…" : {},
@@ -652,6 +658,17 @@
     },
     "Commands" : {
       "comment" : "A heading over a list of commands."
+    },
+    "Commands on: %lld of %lld" : {
+      "comment" : "Both placeholders are numbers: how many of an extension's commands are switched on, and how many it has.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Commands on: %1$lld of %2$lld"
+          }
+        }
+      }
     },
     "Commit" : {
       "comment" : "A label before the source code revision this app was built from."
@@ -732,7 +749,11 @@
     "Could not list the extensions in the Raycast repository." : {},
     "Could not load the extension store." : {},
     "Could not read the repository commit" : {},
+    "Couldn't change Bluetooth" : {},
     "Couldn't change the sound" : {},
+    "Couldn't eject %@" : {
+      "comment" : "The placeholder is a list of disk names."
+    },
     "Couldn't keep your Mac awake" : {},
     "Couldn't load the store: %@" : {
       "comment" : "The placeholder is the reason."
@@ -882,10 +903,17 @@
     "Effect" : {
       "comment" : "The label of the picker that chooses how the glass background looks."
     },
+    "Eject All Disks" : {
+      "comment" : "A command that ejects every external and network disk."
+    },
+    "Ejected disks: %lld" : {
+      "comment" : "The placeholder is a number."
+    },
     "Emoji" : {
       "comment" : "The kind of a result, shown beside its title."
     },
     "Emoji & Symbols" : {},
+    "Emoji skin tone" : {},
     "Empty Trash" : {
       "comment" : "A command that empties the Trash."
     },
@@ -1030,6 +1058,7 @@
     "Forced %@ to quit" : {
       "comment" : "The placeholder is an app's name."
     },
+    "Forget Them" : {},
     "Free and open source" : {},
     "Frequency" : {
       "comment" : "A kind of unit, named in a calculator error."
@@ -1101,6 +1130,8 @@
     "Help translate" : {
       "comment" : "A button that opens the page where volunteers translate this app."
     },
+    "Hidden from Search" : {},
+    "Hidden from search. Settings › General brings it back." : {},
     "Hide" : {
       "comment" : "An action that hides a running app's windows."
     },
@@ -1108,6 +1139,7 @@
     "Hide Other Apps" : {
       "comment" : "A command that hides every app but the one in front."
     },
+    "Hide from Search" : {},
     "History" : {
       "comment" : "A label before the controls for the clipboard history."
     },
@@ -1116,6 +1148,7 @@
     },
     "How Floe works" : {},
     "How long a closed launcher keeps the command you had open." : {},
+    "Icon" : {},
     "Image" : {
       "comment" : "A copied picture."
     },
@@ -1152,6 +1185,7 @@
         }
       }
     },
+    "Its folder goes to the Trash. Its preferences and what it stored are kept, for when it is installed again." : {},
     "Join the Discord" : {},
     "Keep %@ up to date?" : {
       "comment" : "The placeholder is the name of this app."
@@ -1343,6 +1377,7 @@
     "No app opens the clipboard link. Change it in Settings" : {},
     "No clipboard entries match" : {},
     "No copies match" : {},
+    "No disks to eject" : {},
     "No files are selected in the Finder." : {},
     "No files match" : {},
     "No items match" : {},
@@ -1594,11 +1629,15 @@
     },
     "Release notes" : {},
     "Remember last search" : {},
+    "Remember searches" : {},
+    "Remembered searches" : {},
     "Remove" : {
       "comment" : "A button that uninstalls an extension."
     },
+    "Remove Extension…" : {},
     "Remove from Favorites" : {},
     "Remove from Menu Bar" : {},
+    "Remove “%@”?" : {},
     "Removed from Favorites" : {},
     "Removed from Menu Bar" : {},
     "Removes every copy except pinned ones." : {},
@@ -1614,7 +1653,7 @@
       "comment" : "A kind of unit, named in a calculator error."
     },
     "Restart" : {
-      "comment" : "A verb on a button: start the extension again."
+      "comment" : "A verb on a button: start the extension again.\nAn action that quits a running app and opens it again."
     },
     "Restart (system command)" : {
       "comment" : "A command that restarts the Mac.",
@@ -1629,6 +1668,9 @@
       }
     },
     "Restart your Mac now?" : {},
+    "Restarting %@" : {
+      "comment" : "The placeholder is an app's name."
+    },
     "Restore Original Name" : {},
     "Result" : {},
     "Return to root search" : {},
@@ -1709,6 +1751,7 @@
     "Search Files for \"%@\"" : {
       "comment" : "The placeholder is what the user typed."
     },
+    "Search History" : {},
     "Search Menu Bar Items" : {},
     "Search Menu Bar Items in Thaw" : {},
     "Search Sources" : {},
@@ -1770,6 +1813,7 @@
     "Show %@ in Finder" : {
       "comment" : "The placeholder is the name of an app."
     },
+    "Show Again" : {},
     "Show Extension in Finder" : {},
     "Show Floe" : {},
     "Show Floe (%@)" : {
@@ -1917,6 +1961,7 @@
     "That command is no longer available in Floe." : {},
     "That is more text than Apple Intelligence can take at once." : {},
     "That keyword is already used." : {},
+    "That picture could not be used." : {},
     "That tab is no longer open" : {},
     "Thaw" : {
       "comment" : "Thaw is the name of an app."
@@ -1983,6 +2028,7 @@
     },
     "The file couldn't be read as text." : {},
     "The introduction from the first launch." : {},
+    "The last 50 searches that opened something are kept on this Mac, and the Up arrow in an empty search brings them back. Switching this off forgets them." : {},
     "The launcher is following Thaw's border." : {},
     "The launcher is following Thaw's glass." : {},
     "The launcher is following Thaw's shadow." : {},
@@ -2004,6 +2050,7 @@
     "This file isn't a Floe settings export." : {},
     "This file was exported by a newer version of Floe." : {},
     "This output can't be muted" : {},
+    "This output has no volume to change" : {},
     "This source is not on this Mac, and Privacy is set to only use AI that runs on this Mac. Nothing will be asked until one of the two changes." : {},
     "Time" : {
       "comment" : "A kind of unit, named in a calculator error."
@@ -2024,6 +2071,9 @@
     },
     "Toggle Application Menus" : {},
     "Toggle Automatic Rehiding" : {},
+    "Toggle Bluetooth" : {
+      "comment" : "A command that turns Bluetooth on or off."
+    },
     "Toggle Dark Mode" : {
       "comment" : "A command that switches between the light and the dark appearance."
     },
@@ -2137,6 +2187,7 @@
     "Updates" : {
       "comment" : "A noun: the label of the line about checking for new versions of Floe."
     },
+    "Use Its Own" : {},
     "Use as fallback" : {},
     "Use {query} where the search text goes." : {},
     "Users & Groups (System Settings)" : {
@@ -2161,6 +2212,15 @@
     },
     "Volume" : {
       "comment" : "A kind of unit, named in a calculator error."
+    },
+    "Volume %lld%%" : {
+      "comment" : "Said after the volume changed. The placeholder is a number from 0 to 100."
+    },
+    "Volume Down" : {
+      "comment" : "A command that makes the sound quieter."
+    },
+    "Volume Up" : {
+      "comment" : "A command that makes the sound louder."
     },
     "Waiting for the answer…" : {},
     "Wallet & Apple Pay (System Settings)" : {
@@ -2287,6 +2347,9 @@
     "backup" : {
       "comment" : "Words that find the Time Machine pane of System Settings, separated by commas."
     },
+    "bluetooth, turn bluetooth off, turn bluetooth on" : {
+      "comment" : "Words that find the Toggle Bluetooth command, separated by commas."
+    },
     "border, outline, stroke, edge, width" : {
       "comment" : "Words that find the Border setting in the settings search, separated by commas."
     },
@@ -2362,6 +2425,12 @@
     "editor, text editor, code, open in editor, preferred app, default app" : {
       "comment" : "Words that find the Editor setting in the settings search, separated by commas."
     },
+    "eject, unmount, disks, drives, volumes" : {
+      "comment" : "Words that find the Eject All Disks command, separated by commas."
+    },
+    "emoji, skin tone, skin colour, skin color, hand, people" : {
+      "comment" : "Words that find the Emoji skin tone setting in the settings search, separated by commas."
+    },
     "empty trash, trash, delete trash" : {
       "comment" : "Words that find the Empty Trash command, separated by commas."
     },
@@ -2424,6 +2493,9 @@
     },
     "hide, hide other apps, hide others" : {
       "comment" : "Words that find the Hide Other Apps command, separated by commas."
+    },
+    "history, searches, queries, recent, remember, forget, clear, up arrow" : {
+      "comment" : "Words that find the Remember searches setting in the settings search, separated by commas."
     },
     "hotkey, shortcut, keyboard, global, toggle, show, launcher, summon" : {
       "comment" : "Words that find the Open Floe setting in the settings search, separated by commas."
@@ -2692,6 +2764,12 @@
     },
     "voiceover, zoom, reduce motion" : {
       "comment" : "Words that find the Accessibility pane of System Settings, separated by commas."
+    },
+    "volume down, quieter, sound, decrease volume" : {
+      "comment" : "Words that find the Volume Down command, separated by commas."
+    },
+    "volume up, louder, sound, increase volume" : {
+      "comment" : "Words that find the Volume Up command, separated by commas."
     },
     "volume, audio, output, input, microphone" : {
       "comment" : "Words that find the Sound pane of System Settings, separated by commas."

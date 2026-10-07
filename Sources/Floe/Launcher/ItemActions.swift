@@ -241,8 +241,25 @@ enum AppActions {
             running.terminate()
             host.showHUD(String(localized: "Quitting \(app.name)", bundle: .floe, comment: "The placeholder is an app's name."))
         })
+        actions.append(ItemAction(title: String(localized: "Restart", bundle: .floe, comment: "An action that quits a running app and opens it again."), symbol: "arrow.clockwise") {
+            restart(app, running, host: host)
+        })
         actions.append(ItemAction(title: String(localized: "Force Quit…", bundle: .floe), symbol: "xmark.octagon") { forceQuit(app, running, host: host) })
         return actions
+    }
+
+    private static func restart(_ app: AppEntry, _ running: NSRunningApplication, host: ActionHost) {
+        running.terminate()
+        host.showHUD(String(localized: "Restarting \(app.name)", bundle: .floe, comment: "The placeholder is an app's name."))
+        Task { @MainActor in
+            // An app asked to quit may stop to ask about unsaved work. It is opened again once it has gone,
+            // and left alone when it is still there after ten seconds: the user is answering it, or said no.
+            for _ in 0 ..< 100 where !running.isTerminated {
+                try? await Task.sleep(for: .milliseconds(100))
+            }
+            guard running.isTerminated else { return }
+            _ = try? await NSWorkspace.shared.openApplication(at: app.url, configuration: NSWorkspace.OpenConfiguration())
+        }
     }
 
     private static func forceQuit(_ app: AppEntry, _ running: NSRunningApplication, host: ActionHost) {

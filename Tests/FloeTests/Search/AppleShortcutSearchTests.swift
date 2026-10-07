@@ -254,10 +254,10 @@ struct AppleShortcutSearchTests {
         let model = await loadedModel()
         let row = RootItem.shortcut(mail)
         #expect(model.primaryActionTitle(for: row) == "Run")
-        #expect(model.rootActions(for: row).map { $0?.title ?? "-" } == ["Run", "-", "Open in Shortcuts", "Copy Name", "-", "Add to Favorites"])
+        #expect(model.rootActions(for: row).map { $0?.title ?? "-" } == ["Run", "-", "Open in Shortcuts", "Copy Name", "-", "Add to Favorites", "Hide from Search"])
         #expect(LauncherModel.keepsItsPlace(row))
         model.toggleFavorite(row)
-        #expect(model.rootActions(for: row).last??.title == "Remove from Favorites")
+        #expect(model.rootActions(for: row).dropLast().last??.title == "Remove from Favorites")
     }
 
     @Test func returnOnAShortcutRunsItByIdentifierHidesThePanelAndCountsAsAUse() async {

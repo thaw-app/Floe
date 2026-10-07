@@ -10,7 +10,9 @@
 //
 //  Ported to Floe from Droppy Code's Core/Support/HangWatchdog.swift, and modified: reports go to
 //  Floe's logs folder under Floe's name, and what counts as a stall, a report's name and header and
-//  which reports to drop are functions a test can call.
+//  which reports to drop are functions a test can call. A stall is counted from the oldest ping not
+//  yet answered, on a clock that stops while the Mac sleeps: counted from the last answer, the seconds
+//  `sample` itself takes read as a new stall and set off report after report.
 
 import Foundation
 import os
@@ -48,9 +50,15 @@ nonisolated enum HangWatchdog {
     private static let state = OSAllocatedUnfairLock(initialState: State())
 
     struct State {
-        var lastPong = Date()
+        /// When the oldest ping the main thread has not answered yet was sent; nil when none is waiting.
+        var waitingSince: TimeInterval?
         var reportedThisStall = false
         var started = false
+    }
+
+    /// Seconds this Mac has been awake: it does not move while the Mac sleeps, so a night asleep is not a stall.
+    private static var now: TimeInterval {
+        ProcessInfo.processInfo.systemUptime
     }
 
     static func start() {
@@ -59,7 +67,6 @@ nonisolated enum HangWatchdog {
                 return false
             }
             state.started = true
-            state.lastPong = Date()
             return true
         }
         guard shouldStart else { return }
@@ -76,13 +83,14 @@ nonisolated enum HangWatchdog {
     }
 
     private static func ping() {
+        state.withLock { $0.pinged(at: now) }
         DispatchQueue.main.async {
-            state.withLock { $0.answer(at: Date()) }
+            state.withLock { $0.answer() }
         }
     }
 
     private static func check() {
-        guard let stalledFor = state.withLock({ $0.stall(at: Date()) }) else { return }
+        guard let stalledFor = state.withLock({ $0.stall(at: now) }) else { return }
         log.error("Main thread unresponsive for \(stalledFor, format: .fixed(precision: 1))s, sampling")
         let file = writeReport(stalledFor: stalledFor, in: reportsFolder(), sample: sample)
         log.error("Hang report written to \(file.path, privacy: .public)")
@@ -159,18 +167,22 @@ nonisolated enum HangWatchdog {
 }
 
 nonisolated extension HangWatchdog.State {
+    /// A ping was sent. The wait is counted from the first one still unanswered.
+    mutating func pinged(at uptime: TimeInterval) {
+        waitingSince = waitingSince ?? uptime
+    }
+
     /// The main thread answered a ping: any stall is over, and the next one gets a report of its own.
-    mutating func answer(at date: Date) {
-        lastPong = date
+    mutating func answer() {
+        waitingSince = nil
         reportedThisStall = false
     }
 
-    /// How long the main thread has been silent, when that is a stall no report was written for yet.
+    /// How long a ping has gone unanswered, when that is a stall no report was written for yet.
     /// Asking marks the stall as reported.
-    mutating func stall(at date: Date, threshold: TimeInterval = HangWatchdog.stallThreshold) -> TimeInterval? {
-        let stalled = date.timeIntervalSince(lastPong)
-        guard stalled >= threshold, !reportedThisStall else { return nil }
+    mutating func stall(at uptime: TimeInterval, threshold: TimeInterval = HangWatchdog.stallThreshold) -> TimeInterval? {
+        guard let waitingSince, uptime - waitingSince >= threshold, !reportedThisStall else { return nil }
         reportedThisStall = true
-        return stalled
+        return uptime - waitingSince
     }
 }

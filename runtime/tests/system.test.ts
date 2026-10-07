@@ -473,6 +473,49 @@ describe("AI", () => {
   });
 });
 
+describe("what Raycast exports", () => {
+  // Every value @raycast/api 1.103.10 exports, read from its type declarations. A command that imports a name
+  // missing here stops before it runs, as Proton Pass did on BrowserExtension.
+  const exported = [
+    "AI", "Action", "ActionPanel", "ActionPanelItem", "ActionPanelSection", "ActionPanelSubmenu", "Alert",
+    "AlertActionStyle", "BrowserExtension", "Cache", "Clipboard", "Color", "CopyToClipboardAction", "Detail", "Form",
+    "FormCheckbox", "FormDatePicker", "FormDropdown", "FormDropdownItem", "FormDropdownSection", "FormSeparator",
+    "FormTagPicker", "FormTagPickerItem", "FormTextArea", "FormTextField", "Grid", "Icon", "Image", "ImageMask",
+    "Keyboard", "LaunchType", "List", "ListItem", "ListSection", "LocalStorage", "MenuBarExtra", "OAuth",
+    "OpenAction", "OpenInBrowserAction", "OpenWithAction", "PasteAction", "PopToRootType", "PushAction",
+    "ShowInFinderAction", "SubmitFormAction", "Toast", "ToastStyle", "Tool", "TrashAction", "WindowManagement",
+    "allLocalStorageItems", "captureException", "clearClipboard", "clearLocalStorage", "clearSearchBar",
+    "closeMainWindow", "confirmAlert", "copyTextToClipboard", "environment", "getApplications",
+    "getDefaultApplication", "getFrontmostApplication", "getLocalStorageItem", "getPreferenceValues",
+    "getSelectedFinderItems", "getSelectedText", "launchCommand", "open", "openCommandPreferences",
+    "openExtensionPreferences", "pasteText", "popToRoot", "preferences", "randomId", "removeLocalStorageItem",
+    "render", "setLocalStorageItem", "showHUD", "showInFinder", "showToast", "specialKeys", "trash", "unstable_AI",
+    "updateCommandMetadata", "useActionPanel", "useId", "useNavigation", "useUnstableAI",
+  ];
+
+  test("every name can be imported", () => {
+    expect(exported.filter((name) => !(name in api))).toEqual([]);
+  });
+
+  test("the browser and the windows are refused, with the reason", async () => {
+    expect(api.environment.canAccess(api.BrowserExtension)).toBe(false);
+    expect(api.environment.canAccess(api.WindowManagement)).toBe(false);
+    await expect(api.BrowserExtension.getTabs()).rejects.toThrow("BrowserExtension.getTabs isn't supported in Floe yet");
+    await expect(api.BrowserExtension.getContent()).rejects.toThrow("isn't supported in Floe yet");
+    await expect(api.WindowManagement.getActiveWindow()).rejects.toThrow("WindowManagement.getActiveWindow isn't supported in Floe yet");
+    expect(api.WindowManagement.DesktopType.FullScreen).toBe("FullScreen");
+  });
+
+  test("the deprecated names still answer", () => {
+    expect(api.unstable_AI).toBe(api.AI);
+    expect(api.useUnstableAI()).toBeUndefined();
+    expect(api.randomId()).not.toBe(api.randomId());
+    expect(api.specialKeys.arrowUp).toBe("arrowUp");
+    expect(Object.keys(api.specialKeys)).toHaveLength(16);
+    expect(typeof api.useActionPanel().update).toBe("function");
+  });
+});
+
 describe("environment", () => {
   test("reflects the running extension and command", () => {
     ctx.manifest = { name: "weather", author: "ada", owner: "team" };

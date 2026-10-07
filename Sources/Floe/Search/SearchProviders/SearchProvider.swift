@@ -13,6 +13,9 @@ struct SearchContext {
     let query: String
     let trimmed: String
     var favorites: [String] = []
+    /// Results the user took out of the search, by `RootItem.id`.
+    var hidden: Set<String> = []
+    var emojiSkinTone = EmojiSkinTone.none
     var aliases: [String: String] = [:]
     var notesApp = NotesApp.appleNotes
     var frecency: (String) -> Double = { _ in 0 }

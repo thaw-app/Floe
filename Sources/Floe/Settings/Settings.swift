@@ -22,6 +22,9 @@ final class AppSettings: ObservableObject {
     @Published var aliases: [String: String] = [:]
     /// `RootItem.id`s, in the order they're shown.
     @Published var favorites: [String] = []
+    /// Results taken out of the search: `RootItem.id` to the title it had, which Settings lists it by.
+    @Published var hiddenResults: [String: String] = [:]
+    @Published var emojiSkinTone = EmojiSkinTone.none
     /// Extension names.
     @Published var disabledExtensions: Set<String> = []
     /// `ExtensionCommand.id`s switched off one by one, inside an extension that is on.
@@ -89,6 +92,8 @@ final class AppSettings: ObservableObject {
     @Published var aiToolModels: [String: String] = [:]
     /// Only use AI that runs on this Mac: a source that sends questions elsewhere refuses.
     @Published var aiOnThisMacOnly = false
+    /// Whether a search that ended in something being opened is kept for the Up arrow to bring back.
+    @Published var remembersSearches = true
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
 
@@ -120,6 +125,8 @@ final class AppSettings: ObservableObject {
         var includeRaycastExtensions: Bool?
         var popToRootDelay: Int?
         var favorites: [String]?
+        var hiddenResults: [String: String]?
+        var emojiSkinTone: EmojiSkinTone?
         var rememberMenuBarQuery: Bool?
         var clipboardHistoryEnabled: Bool?
         var diagnosticLogging: Bool?
@@ -154,6 +161,7 @@ final class AppSettings: ObservableObject {
         var aiTool: AITool?
         var aiToolModels: [String: String]?
         var aiOnThisMacOnly: Bool?
+        var remembersSearches: Bool?
         var aiSourceByExtension: [String: AISource]?
     }
 
@@ -248,6 +256,8 @@ final class AppSettings: ObservableObject {
         includeRaycastExtensions = stored.includeRaycastExtensions ?? true
         popToRootDelay = stored.popToRootDelay ?? popToRootDelay
         favorites = stored.favorites ?? []
+        hiddenResults = stored.hiddenResults ?? [:]
+        emojiSkinTone = stored.emojiSkinTone ?? .none
         rememberMenuBarQuery = stored.rememberMenuBarQuery ?? false
         clipboardHistoryEnabled = stored.clipboardHistoryEnabled ?? true
         diagnosticLogging = stored.diagnosticLogging ?? false
@@ -282,6 +292,7 @@ final class AppSettings: ObservableObject {
         aiTool = stored.aiTool
         aiToolModels = stored.aiToolModels ?? [:]
         aiOnThisMacOnly = stored.aiOnThisMacOnly ?? aiOnThisMacOnly
+        remembersSearches = stored.remembersSearches ?? true
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
     }
 
@@ -296,6 +307,8 @@ final class AppSettings: ObservableObject {
             includeRaycastExtensions: includeRaycastExtensions,
             popToRootDelay: popToRootDelay,
             favorites: favorites,
+            hiddenResults: hiddenResults,
+            emojiSkinTone: emojiSkinTone,
             rememberMenuBarQuery: rememberMenuBarQuery,
             clipboardHistoryEnabled: clipboardHistoryEnabled,
             diagnosticLogging: diagnosticLogging,
@@ -329,6 +342,7 @@ final class AppSettings: ObservableObject {
             aiTool: aiTool,
             aiToolModels: aiToolModels,
             aiOnThisMacOnly: aiOnThisMacOnly,
+            remembersSearches: remembersSearches,
             aiSourceByExtension: aiSourceByExtension
         )
         if let data = try? JSONEncoder().encode(stored) {
@@ -375,7 +389,15 @@ final class UsageStore {
     }
 
     private(set) var records: [String: Record]
+    /// The searches that ended in something being opened, oldest first, each once. Read from the defaults
+    /// each time: the settings window is another process, and clears them there.
+    var queries: [String] {
+        defaults.stringArray(forKey: Self.queriesKey) ?? []
+    }
+
+    static let queryLimit = 50
     private static let defaultsKey = "usage"
+    private static let queriesKey = "queries"
     private let defaults: UserDefaults
     private let now: () -> Date
 
@@ -385,6 +407,21 @@ final class UsageStore {
         self.now = now
         records = defaults.data(forKey: Self.defaultsKey)
             .flatMap { try? JSONDecoder().decode([String: Record].self, from: $0) } ?? [:]
+    }
+
+    /// Remembers a search for the Up arrow to bring back. One typed again moves to the newest place.
+    func recordQuery(_ query: String) {
+        let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return }
+        var queries = queries
+        queries.removeAll { $0 == query }
+        queries.append(query)
+        queries.removeFirst(max(0, queries.count - Self.queryLimit))
+        defaults.set(queries, forKey: Self.queriesKey)
+    }
+
+    func forgetQueries() {
+        defaults.removeObject(forKey: Self.queriesKey)
     }
 
     func recordUse(of id: String) {

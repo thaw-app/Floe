@@ -13,13 +13,57 @@ import Synchronization
 nonisolated struct EmojiResult: Sendable {
     let character: String
     let name: String
+    /// The emoji before a skin tone was put on it. Its use is counted under this one, whatever the tone.
+    var untoned: String?
 
     var id: String {
-        Self.id(for: character)
+        Self.id(for: untoned ?? character)
+    }
+
+    /// The same emoji in a skin tone, when it is one that takes a tone.
+    func toned(_ tone: EmojiSkinTone) -> EmojiResult {
+        let toned = tone.applied(to: character)
+        return toned == character ? self : EmojiResult(character: toned, name: name, untoned: character)
     }
 
     static func id(for character: String) -> String {
         "emoji:\(character)"
+    }
+}
+
+/// The skin tone hands and people are shown and pasted in.
+nonisolated enum EmojiSkinTone: String, Codable, CaseIterable, Identifiable, Sendable {
+    case none, light, mediumLight, medium, mediumDark, dark
+
+    var id: String {
+        rawValue
+    }
+
+    /// The modifier Unicode puts after an emoji to tone it, U+1F3FB to U+1F3FF.
+    var modifier: Unicode.Scalar? {
+        switch self {
+        case .none: nil
+        case .light: "\u{1F3FB}"
+        case .mediumLight: "\u{1F3FC}"
+        case .medium: "\u{1F3FD}"
+        case .mediumDark: "\u{1F3FE}"
+        case .dark: "\u{1F3FF}"
+        }
+    }
+
+    /// The emoji in this tone. Only one with a single person or hand in it is toned: a family or a
+    /// handshake takes a tone for each of its people, and a guess at those draws as separate pictures.
+    func applied(to emoji: String) -> String {
+        guard let modifier else { return emoji }
+        let scalars = Array(emoji.unicodeScalars)
+        let bases = scalars.indices.filter { scalars[$0].properties.isEmojiModifierBase }
+        guard bases.count == 1, let base = bases.first, !scalars.contains(where: \.properties.isEmojiModifier) else { return emoji }
+        var toned = String.UnicodeScalarView(scalars[...base])
+        toned.append(modifier)
+        // A tone takes the place of the selector that asks for the picture form.
+        let rest = scalars[(base + 1)...]
+        toned.append(contentsOf: rest.first == "\u{FE0F}" ? rest.dropFirst() : rest)
+        return String(toned)
     }
 }
 

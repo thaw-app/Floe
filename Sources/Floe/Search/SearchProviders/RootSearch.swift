@@ -41,16 +41,18 @@ enum RootSearch {
     }
 
     private static func rank(_ contributions: [SearchContribution], context: SearchContext) -> [RootResult] {
+        // What the user hid is left out here, before ranking, so it is in neither the list nor the search.
+        let shown: ([RootItem]) -> [RootItem] = { items in context.hidden.isEmpty ? items : items.filter { !context.hidden.contains($0.id) } }
         guard !context.query.isEmpty else {
             return Ranking.browse(
-                contributions.flatMap(\.ranked),
-                searchOnly: contributions.flatMap(\.searchOnly),
+                shown(contributions.flatMap(\.ranked)),
+                searchOnly: shown(contributions.flatMap(\.searchOnly)),
                 favorites: context.favorites,
                 frecency: context.frecency
             )
         }
         return Ranking.search(
-            contributions.flatMap { $0.ranked + $0.searchOnly },
+            shown(contributions.flatMap { $0.ranked + $0.searchOnly }),
             query: context.query,
             favorites: context.favorites,
             alias: { alias(for: $0, aliases: context.aliases) },

@@ -13,7 +13,7 @@ import path from "node:path";
 import React from "react";
 import { ctx, handlePop, handlePopToRoot, handleReply, handleReplyChunk, send, type Manifest } from "./bridge";
 import { dispatchEvent, render, toError } from "./renderer";
-import { NavigationRoot, handleToastAction } from "./api/index";
+import { NavigationRoot, commandDrewItself, handleToastAction } from "./api/index";
 import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
 
@@ -93,8 +93,10 @@ try {
   // A CommonJS bundle (what Raycast installs) arrives as { default: module.exports }, whose own default is the command.
   const exported = module.default;
   const Command = typeof exported === "object" && exported !== null && "default" in exported ? exported.default : exported;
-  if (typeof Command !== "function") throw new Error("command has no default export");
-  if (ctx.commandMode === "menu-bar") {
+  if (typeof Command !== "function" && !commandDrewItself()) throw new Error("command has no default export");
+  if (typeof Command !== "function") {
+    // It drew its view itself, the way commands did before they exported one. Nothing is left to mount.
+  } else if (ctx.commandMode === "menu-bar") {
     // No NavigationRoot here; the process stays alive so menu item onAction events can be dispatched.
     render(React.createElement(Command, launchProps));
   } else if (ctx.commandMode === "view") {

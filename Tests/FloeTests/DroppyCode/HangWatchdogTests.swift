@@ -19,31 +19,64 @@ struct HangWatchdogTests {
         return folder
     }
 
-    @Test func aSilenceShorterThanTheThresholdIsNotAStall() {
-        var state = HangWatchdog.State(lastPong: start)
-        #expect(state.stall(at: start.addingTimeInterval(3.9), threshold: 4) == nil)
+    @Test func aPingUnansweredForLessThanTheThresholdIsNotAStall() {
+        var state = HangWatchdog.State()
+        state.pinged(at: 100)
+        #expect(state.stall(at: 103.9, threshold: 4) == nil)
         #expect(!state.reportedThisStall)
     }
 
     @Test func aStallIsReportedOnceWithHowLongItHasLasted() {
-        var state = HangWatchdog.State(lastPong: start)
-        #expect(state.stall(at: start.addingTimeInterval(4), threshold: 4) == 4)
-        #expect(state.stall(at: start.addingTimeInterval(4.5), threshold: 4) == nil)
-        #expect(state.stall(at: start.addingTimeInterval(60), threshold: 4) == nil)
+        var state = HangWatchdog.State()
+        state.pinged(at: 100)
+        #expect(state.stall(at: 104, threshold: 4) == 4)
+        #expect(state.stall(at: 104.5, threshold: 4) == nil)
+        #expect(state.stall(at: 160, threshold: 4) == nil)
+    }
+
+    @Test func theWaitIsCountedFromTheFirstPingStillUnanswered() {
+        var state = HangWatchdog.State()
+        state.pinged(at: 100)
+        state.pinged(at: 100.5)
+        state.pinged(at: 101)
+        #expect(state.stall(at: 104.25, threshold: 4) == 4.25)
     }
 
     @Test func anAnswerEndsTheStallSoTheNextOneIsReportedToo() {
-        var state = HangWatchdog.State(lastPong: start)
-        _ = state.stall(at: start.addingTimeInterval(5), threshold: 4)
-        state.answer(at: start.addingTimeInterval(6))
-        #expect(state.stall(at: start.addingTimeInterval(9), threshold: 4) == nil)
-        #expect(state.stall(at: start.addingTimeInterval(11), threshold: 4) == 5)
+        var state = HangWatchdog.State()
+        state.pinged(at: 100)
+        _ = state.stall(at: 105, threshold: 4)
+        state.answer()
+        state.pinged(at: 106)
+        #expect(state.stall(at: 109, threshold: 4) == nil)
+        #expect(state.stall(at: 111, threshold: 4) == 5)
+    }
+
+    /// What set off nine reports in four minutes: `sample` takes longer than the threshold, and while it runs
+    /// no ping is sent, so the time since the last answer grows with nothing wrong.
+    @Test func theSecondsTheSampleTookAreNotAStall() {
+        var state = HangWatchdog.State()
+        state.pinged(at: 100)
+        #expect(state.stall(at: 104, threshold: 4) == 4)
+        state.answer()
+        // The watchdog's thread was busy sampling for 20 seconds. Its next ping has only just gone out.
+        state.pinged(at: 124.5)
+        #expect(state.stall(at: 124.5, threshold: 4) == nil)
+    }
+
+    @Test func noPingWaitingIsNoStallHoweverLongItHasBeen() {
+        var state = HangWatchdog.State()
+        #expect(state.stall(at: 10000, threshold: 4) == nil)
+        state.pinged(at: 100)
+        state.answer()
+        #expect(state.stall(at: 10000, threshold: 4) == nil)
     }
 
     @Test func theDefaultThresholdIsTheWatchdogsOwn() {
-        var state = HangWatchdog.State(lastPong: start)
-        #expect(state.stall(at: start.addingTimeInterval(HangWatchdog.stallThreshold - 0.1)) == nil)
-        #expect(state.stall(at: start.addingTimeInterval(HangWatchdog.stallThreshold)) != nil)
+        var state = HangWatchdog.State()
+        state.pinged(at: 100)
+        #expect(state.stall(at: 100 + HangWatchdog.stallThreshold - 0.1) == nil)
+        #expect(state.stall(at: 100 + HangWatchdog.stallThreshold) != nil)
     }
 
     @Test func aReportIsNamedByItsDateWithoutColons() {

@@ -30,6 +30,9 @@ Floe is a launcher for macOS that runs Raycast extensions unmodified and hands w
 - One hotkey opens a search over applications, extension commands, script commands, quicklinks and System Settings panes, ranked by how often and how recently each is used.
 - Scattered letters match, graded by word starts and runs, and the matched letters are drawn in a stronger weight.
 - Aliases and hotkeys for applications, commands and the menu bar search. Favorites stay at the top.
+- Hide from Search, in a result's actions, takes an application or a command out of the search. Settings, General lists what is hidden and brings it back.
+- A running application can be hidden, quit, restarted or forced to quit from its actions.
+- The Up arrow in an empty search brings back the search before, and the ones before that: the last 50 that ended in something being opened, calculations among them. Settings, Privacy switches this off and forgets them.
 - Scopes narrow a search to one place: `files invoice`, `clipboard meeting`, `menu wifi`, `tabs invoice`.
 - Optional search sources, off until turned on in Privacy: files and open browser tabs (Safari, Dia, Helium) add up to three rows to an ordinary search.
 - An Actions menu (⌘K) on applications and files: quit, force quit, show in Finder, open with, copy, move to Trash.
@@ -41,15 +44,16 @@ Floe is a launcher for macOS that runs Raycast extensions unmodified and hands w
 - Raycast extensions run unmodified on a Bun runtime inside the app, including the ones Raycast has already installed.
 - Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work. Passwords go in the Keychain.
 - An Extension Store page browses, installs and updates extensions.
-- An extension can be switched off as a whole, and each of its commands by itself, on its page in Settings. What is off is left out of the search and is not run by a hotkey, the menu bar or Shortcuts.
+- An extension can be switched off as a whole, and each of its commands by itself, on its page in Settings. What is off is left out of the search and is not run by a hotkey, the menu bar or Shortcuts. The page has one line for each command, with its alias, hotkey and switch, says how many commands are on, takes a picture of your own as the extension's icon, and removes an extension Floe installed.
 - Menu bar commands are added to the menu bar by hand, from the search or from Settings. None starts on its own at launch.
 - When a command throws, crashes or hangs, Floe shows the log and lets you run it again.
 
 #### Built in
 
 - Clipboard history, snippets with text expansion, quicklinks with fallback searches, emoji and symbols, file search, calendar events, and a calculator with unit conversion.
+- Hands and people among the emoji are shown and pasted in the skin tone chosen in Settings, General.
 - Menu bar item search lists the menu bar's items and opens their menus from the keyboard.
-- System commands (sleep, lock, empty Trash) and toggles for Wi-Fi, mute and keeping the Mac awake.
+- System commands (sleep, lock, empty Trash, volume up and down, eject all disks) and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake.
 - System Settings panes open from the search, with the icons System Settings shows.
 
 #### Your own apps

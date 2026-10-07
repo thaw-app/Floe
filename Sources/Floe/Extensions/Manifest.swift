@@ -162,6 +162,7 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
     /// The commands a package.json declares that Floe can run: view, no-view and menu-bar.
     static func commands(inManifest data: Data, folder: URL, source: Source) -> [ExtensionCommand] {
         guard let manifest = try? JSONDecoder().decode(Manifest.self, from: data) else { return [] }
+        let custom = CustomIcon.path(for: manifest.name)
         return manifest.commands.elements.compactMap { command in
             let mode = command.mode ?? "view"
             guard mode == "view" || mode == "no-view" || mode == "menu-bar" else { return nil }
@@ -174,7 +175,7 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
                 title: command.title ?? command.name,
                 mode: mode,
                 interval: parseInterval(command.interval),
-                icon: command.icon ?? manifest.icon,
+                icon: custom ?? command.icon ?? manifest.icon,
                 arguments: command.arguments?.elements ?? [],
                 extensionPreferences: manifest.preferences?.elements ?? [],
                 commandPreferences: command.preferences?.elements ?? []

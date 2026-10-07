@@ -238,9 +238,9 @@ struct SSHSearchTests {
         let model = makeModel(hosts: hosts)
         let row = RootItem.sshHost(web, terminal: nil)
         #expect(model.primaryActionTitle(for: row) == "Connect")
-        #expect(model.rootActions(for: row).map { $0?.title ?? "-" } == ["Connect", "-", "Copy Host Name", "Copy SSH Command", "-", "Add to Favorites"])
+        #expect(model.rootActions(for: row).map { $0?.title ?? "-" } == ["Connect", "-", "Copy Host Name", "Copy SSH Command", "-", "Add to Favorites", "Hide from Search"])
         model.toggleFavorite(row)
-        #expect(model.rootActions(for: row).last??.title == "Remove from Favorites")
+        #expect(model.rootActions(for: row).dropLast().last??.title == "Remove from Favorites")
     }
 
     @Test func returnOnAHostHandsTheAliasToTheTerminalHidesThePanelAndCountsAsAUse() async {

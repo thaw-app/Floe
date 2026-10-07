@@ -76,7 +76,8 @@ struct SettingsView: View {
             ExtensionSettingsView(
                 catalog: catalog,
                 settings: settings,
-                commands: catalog.allCommands.filter { $0.extensionName == name }
+                commands: catalog.allCommands.filter { $0.extensionName == name },
+                onRemoved: { selection.page = .extensionStore }
             )
             .id(name)
         }
@@ -319,6 +320,20 @@ struct GeneralSettingsView: View {
                     Text("Return to root search")
                     Text("How long a closed launcher keeps the command you had open.")
                 }
+                Picker("Emoji skin tone", selection: $settings.emojiSkinTone) {
+                    ForEach(EmojiSkinTone.allCases) { tone in
+                        Text(verbatim: tone.applied(to: "\u{1F44B}")).tag(tone)
+                    }
+                }
+            }
+            if !settings.hiddenResults.isEmpty {
+                ThawSection("Hidden from Search") {
+                    ForEach(settings.hiddenResults.sorted { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }, id: \.key) { hidden in
+                        LabeledContent(hidden.value) {
+                            Button("Show Again") { settings.hiddenResults[hidden.key] = nil }
+                        }
+                    }
+                }
             }
             ThawSection("Menu Bar Items") {
                 HotkeyRecorder(
@@ -500,6 +515,10 @@ struct ExtensionSettingsView: View {
     @ObservedObject var catalog: SettingsCatalog
     @ObservedObject var settings: AppSettings
     let commands: [ExtensionCommand]
+    var onRemoved: () -> Void = { /* nowhere to go from a preview */ }
+    @State private var confirmingRemoval = false
+    @State private var choosingIcon = false
+    @State private var iconError: String?
 
     var body: some View {
         if let first = commands.first {
@@ -521,7 +540,22 @@ struct ExtensionSettingsView: View {
                                 ThawBadge("Raycast")
                             }
                         }
+                        if !settings.disabledExtensions.contains(first.extensionName) {
+                            Text("Commands on: \(commands.count { settings.isEnabled($0) }) of \(commands.count)", comment: "Both placeholders are numbers: how many of an extension's commands are switched on, and how many it has.")
+                        }
                         Text((first.extensionDir.path as NSString).abbreviatingWithTildeInPath)
+                    }
+                    LabeledContent("Icon") {
+                        HStack(spacing: ThawSpacing.compact) {
+                            IconView(value: first.icon ?? "icon:Terminal", assetsPath: first.assetsPath, size: 18)
+                            Button("Choose Image…") { choosingIcon = true }
+                            if CustomIcon.path(for: first.extensionName) != nil {
+                                Button("Use Its Own") {
+                                    CustomIcon.remove(for: first.extensionName)
+                                    ExtensionStore.shared.onInstalled()
+                                }
+                            }
+                        }
                     }
                     ExtensionAISourcePicker(settings: settings, extensionName: first.extensionName)
                 }
@@ -530,58 +564,107 @@ struct ExtensionSettingsView: View {
                         PreferencesEditor(fields: first.extensionPreferences, extensionName: first.extensionName, command: nil)
                     }
                 }
-                ForEach(commands) { command in
+                // Only what Floe installed is Floe's to remove: Raycast's own extensions and a checkout's samples stay.
+                if first.extensionDir.deletingLastPathComponent().standardizedFileURL == Paths.extensions.standardizedFileURL {
                     ThawSection {
-                        HStack(spacing: ThawSpacing.compact) {
-                            IconView(value: command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 14)
-                            Text(command.title)
-                            if command.mode == "no-view" {
-                                ThawBadge("No View")
+                        Button("Remove Extension…", role: .destructive) { confirmingRemoval = true }
+                    }
+                }
+                ThawSection("Commands") {
+                    ForEach(commands) { command in
+                        CommandSettingsRow(settings: settings, command: command)
+                            // Where a search result for this command scrolls to.
+                            .id(command.id)
+                        if !command.commandPreferences.isEmpty {
+                            DisclosureGroup {
+                                PreferencesEditor(fields: command.commandPreferences, extensionName: command.extensionName, command: command)
+                            } label: {
+                                Text("\(command.title) Preferences", comment: "The placeholder is a command's name.")
                             }
-                            Spacer()
-                            Toggle("Enabled", isOn: settings.enabledBinding(for: command))
-                                .toggleStyle(.checkbox)
-                                .labelsHidden()
-                                .disabled(settings.disabledExtensions.contains(command.extensionName))
-                                .help("A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts.")
                         }
-                        // Where a search result for this command scrolls to. On the header,
-                        // because a Form does not scroll to a section's id.
-                        .id(command.id)
-                    } content: {
-                        CommandSettingsRows(settings: settings, command: command)
                     }
                 }
             }
             .formStyle(.grouped)
             .settingsSearchAnchorScroll()
             .navigationTitle(first.extensionTitle)
+            // The importer and what it does with a picture follow Thaw's picker for its menu bar icon.
+            .fileImporter(isPresented: $choosingIcon, allowedContentTypes: [.image]) { result in
+                do {
+                    let url = try result.get()
+                    let scoped = url.startAccessingSecurityScopedResource()
+                    defer {
+                        if scoped {
+                            url.stopAccessingSecurityScopedResource()
+                        }
+                    }
+                    try CustomIcon.set(url, for: first.extensionName)
+                    ExtensionStore.shared.onInstalled()
+                } catch {
+                    iconError = error.localizedDescription
+                }
+            }
+            .alert("That picture could not be used.", isPresented: Binding(get: { iconError != nil }, set: {
+                if !$0 {
+                    iconError = nil
+                }
+            })) {
+                Button("OK") { iconError = nil }
+            } message: {
+                Text(iconError ?? "")
+            }
+            .alert("Remove \u{201C}\(first.extensionTitle)\u{201D}?", isPresented: $confirmingRemoval) {
+                Button("Remove", role: .destructive) {
+                    ExtensionStore.shared.remove(first.extensionDir.lastPathComponent)
+                    onRemoved()
+                }
+                Button("Cancel", role: .cancel) { /* the alert closes itself */ }
+            } message: {
+                Text("Its folder goes to the Trash. Its preferences and what it stored are kept, for when it is installed again.")
+            }
         }
     }
 }
 
-struct CommandSettingsRows: View {
+/// One command of an extension on one line: what it is, the alias and hotkey it answers to, and whether it is on.
+struct CommandSettingsRow: View {
     @ObservedObject var settings: AppSettings
     let command: ExtensionCommand
 
     var body: some View {
-        TextField(
-            "Alias",
-            text: Binding(
-                get: { settings.aliases[command.id] ?? "" },
-                set: { settings.aliases[command.id] = $0.isEmpty ? nil : $0 }
-            ),
-            prompt: Text("None")
-        )
-        HotkeyRecorder(
-            keyCombination: Binding(get: { settings.commandHotkeys[command.id] }, set: { settings.commandHotkeys[command.id] = $0 }),
-            onRecordingChange: { settings.isRecordingHotkey = $0 },
-            label: {
-                Text("Hotkey")
+        HStack(spacing: ThawSpacing.compact) {
+            IconView(value: command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 14)
+            Text(command.title)
+                .lineLimit(1)
+            if command.mode == "no-view" {
+                ThawBadge("No View")
             }
-        )
-        if !command.commandPreferences.isEmpty {
-            PreferencesEditor(fields: command.commandPreferences, extensionName: command.extensionName, command: command)
+            Spacer()
+            TextField(
+                "Alias",
+                text: Binding(
+                    get: { settings.aliases[command.id] ?? "" },
+                    set: { settings.aliases[command.id] = $0.isEmpty ? nil : $0 }
+                ),
+                prompt: Text("Alias")
+            )
+            .labelsHidden()
+            .textFieldStyle(.roundedBorder)
+            .frame(width: 90)
+            HotkeyRecorder(
+                keyCombination: Binding(get: { settings.commandHotkeys[command.id] }, set: { settings.commandHotkeys[command.id] = $0 }),
+                onRecordingChange: { settings.isRecordingHotkey = $0 },
+                label: {
+                    Text("Hotkey")
+                }
+            )
+            .labelsHidden()
+            .fixedSize()
+            Toggle("Enabled", isOn: settings.enabledBinding(for: command))
+                .toggleStyle(.checkbox)
+                .labelsHidden()
+                .disabled(settings.disabledExtensions.contains(command.extensionName))
+                .help("A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts.")
         }
     }
 }

@@ -31,6 +31,7 @@ struct EmojiSearchProvider: SearchProvider {
             term: String(context.query.dropFirst()),
             frecency: { context.frecency(EmojiResult.id(for: $0)) }
         )
-        return SearchContribution(sectioned: matches.map { RootResult(item: .emoji($0), section: String(localized: "Emoji & Symbols", bundle: .floe)) })
+        let section = String(localized: "Emoji & Symbols", bundle: .floe)
+        return SearchContribution(sectioned: matches.map { RootResult(item: .emoji($0.toned(context.emojiSkinTone)), section: section) })
     }
 }

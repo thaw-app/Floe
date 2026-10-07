@@ -118,6 +118,8 @@ final class LauncherModel: ObservableObject {
     }
 
     let usage: UsageStore
+    /// Where in the remembered searches the field stands, while the Up arrow walks back through them.
+    var recalledQuery: Int?
     private let scanner: any CatalogScanning
     /// Bumped per request, so a result can tell whether its request is still the newest one.
     private var appsGeneration = 0
@@ -370,6 +372,8 @@ final class LauncherModel: ObservableObject {
     private func searchContext() -> SearchContext {
         var context = SearchContext(query: query)
         context.favorites = settings.favorites
+        context.hidden = Set(settings.hiddenResults.keys)
+        context.emojiSkinTone = settings.emojiSkinTone
         context.aliases = settings.aliases
         context.notesApp = settings.notesApp
         context.frecency = { [usage] in usage.frecency(of: $0) }
@@ -478,6 +482,7 @@ final class LauncherModel: ObservableObject {
         } else {
             usage.recordUse(of: item.id)
         }
+        rememberQuery()
         switch item {
         case let .app(app):
             NSWorkspace.shared.openWithoutWaiting(app.url)
@@ -575,7 +580,7 @@ final class LauncherModel: ObservableObject {
 
     /// Copies an emoji without pasting; ⌘↵ on a result.
     func copyEmojiResult(_ entry: EmojiResult) {
-        usage.recordUse(of: EmojiResult.id(for: entry.character))
+        usage.recordUse(of: entry.id)
         NSPasteboard.general.copy(entry.character)
         showHUD(String(localized: "Copied \(entry.character)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
     }
@@ -583,7 +588,7 @@ final class LauncherModel: ObservableObject {
     /// Pastes an emoji into the frontmost app: onto the clipboard plus a ⌘V once the panel is
     /// gone, when Accessibility access is granted; otherwise the copy plus a "Copied" HUD.
     func pasteEmojiResult(_ entry: EmojiResult) {
-        usage.recordUse(of: EmojiResult.id(for: entry.character))
+        usage.recordUse(of: entry.id)
         NSPasteboard.general.copy(entry.character)
         guard AXIsProcessTrusted() else {
             showHUD(String(localized: "Copied", bundle: .floe, comment: "Shown briefly after something was put on the clipboard."))
@@ -787,6 +792,7 @@ final class LauncherModel: ObservableObject {
         isSearchingFiles = false
         fileSearch.cancel()
         closeAskAI()
+        recalledQuery = nil
         query = ""
     }
 

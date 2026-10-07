@@ -20,6 +20,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     case toggleAppearance
     case toggleWiFi
     case toggleMute
+    case volumeUp
+    case volumeDown
+    case toggleBluetooth
+    case ejectDisks
     case toggleKeepAwake
     case hideOtherApps
     case quitAllApps
@@ -40,6 +44,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .toggleAppearance: return String(localized: "Toggle Dark Mode", bundle: .floe, comment: "A command that switches between the light and the dark appearance.")
         case .toggleWiFi: return String(localized: "Toggle Wi-Fi", bundle: .floe, comment: "A command that turns Wi-Fi on or off.")
         case .toggleMute: return String(localized: "Toggle Mute", bundle: .floe, comment: "A command that turns the sound off or back on.")
+        case .volumeUp: return String(localized: "Volume Up", bundle: .floe, comment: "A command that makes the sound louder.")
+        case .volumeDown: return String(localized: "Volume Down", bundle: .floe, comment: "A command that makes the sound quieter.")
+        case .toggleBluetooth: return String(localized: "Toggle Bluetooth", bundle: .floe, comment: "A command that turns Bluetooth on or off.")
+        case .ejectDisks: return String(localized: "Eject All Disks", bundle: .floe, comment: "A command that ejects every external and network disk.")
         case .toggleKeepAwake: return String(localized: "Toggle Keep Awake", bundle: .floe, comment: "A command that stops the Mac from sleeping, or lets it sleep again.")
         case .hideOtherApps: return String(localized: "Hide Other Apps", bundle: .floe, comment: "A command that hides every app but the one in front.")
         case .quitAllApps: return String(localized: "Quit All Apps", bundle: .floe, comment: "A command that quits every open app.")
@@ -58,6 +66,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .toggleAppearance: return "circle.lefthalf.filled"
         case .toggleWiFi: return "wifi"
         case .toggleMute: return "speaker.slash"
+        case .volumeUp: return "speaker.wave.3"
+        case .volumeDown: return "speaker.wave.1"
+        case .toggleBluetooth: return "dot.radiowaves.left.and.right"
+        case .ejectDisks: return "eject"
         case .toggleKeepAwake: return "cup.and.saucer"
         case .hideOtherApps: return "eye.slash"
         case .quitAllApps: return "xmark.square"
@@ -76,6 +88,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .toggleAppearance: String(localized: "dark mode, light mode, appearance, theme", bundle: .floe, comment: "Words that find the Toggle Dark Mode command, separated by commas.")
         case .toggleWiFi: String(localized: "wifi, wireless, airport, turn wi-fi off, turn wi-fi on", bundle: .floe, comment: "Words that find the Toggle Wi-Fi command, separated by commas.")
         case .toggleMute: String(localized: "mute, unmute, sound, volume, silence", bundle: .floe, comment: "Words that find the Toggle Mute command, separated by commas.")
+        case .volumeUp: String(localized: "volume up, louder, sound, increase volume", bundle: .floe, comment: "Words that find the Volume Up command, separated by commas.")
+        case .volumeDown: String(localized: "volume down, quieter, sound, decrease volume", bundle: .floe, comment: "Words that find the Volume Down command, separated by commas.")
+        case .toggleBluetooth: String(localized: "bluetooth, turn bluetooth off, turn bluetooth on", bundle: .floe, comment: "Words that find the Toggle Bluetooth command, separated by commas.")
+        case .ejectDisks: String(localized: "eject, unmount, disks, drives, volumes", bundle: .floe, comment: "Words that find the Eject All Disks command, separated by commas.")
         case .toggleKeepAwake: String(localized: "caffeinate, awake, prevent sleep, no sleep", bundle: .floe, comment: "Words that find the Toggle Keep Awake command, separated by commas.")
         case .hideOtherApps: String(localized: "hide, hide other apps, hide others", bundle: .floe, comment: "Words that find the Hide Other Apps command, separated by commas.")
         case .quitAllApps: String(localized: "quit all apps, quit all, close all apps", bundle: .floe, comment: "Words that find the Quit All Apps command, separated by commas.")
@@ -99,6 +115,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         switch self {
         case .toggleWiFi: SystemToggle.flipWiFi
         case .toggleMute: SystemToggle.flipMute
+        case .volumeUp: { SystemToggle.stepVolume(by: SystemToggle.volumeStep) }
+        case .volumeDown: { SystemToggle.stepVolume(by: -SystemToggle.volumeStep) }
+        case .toggleBluetooth: SystemToggle.flipBluetooth
+        case .ejectDisks: SystemToggle.ejectDisks
         case .toggleKeepAwake: SystemToggle.flipKeepAwake
         default: nil
         }

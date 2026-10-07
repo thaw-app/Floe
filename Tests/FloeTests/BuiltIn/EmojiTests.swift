@@ -33,4 +33,35 @@ struct EmojiTests {
         let arrows = EmojiCatalog.search(term: "arrow", frecency: { $0 == "↓" ? 3 : 0 }, limit: 4)
         #expect(arrows.map(\.character) == ["↓", "←", "↑", "→"])
     }
+
+    @Test(arguments: [
+        ("\u{1F44B}", EmojiSkinTone.medium, "\u{1F44B}\u{1F3FD}"),
+        ("\u{1F44D}", .dark, "\u{1F44D}\u{1F3FF}"),
+        ("\u{261D}\u{FE0F}", .light, "\u{261D}\u{1F3FB}"),
+        ("\u{1F469}\u{200D}\u{1F4BB}", .mediumDark, "\u{1F469}\u{1F3FE}\u{200D}\u{1F4BB}"),
+    ])
+    func aHandOrAPersonTakesTheTone(emoji: String, tone: EmojiSkinTone, toned: String) {
+        #expect(tone.applied(to: emoji) == toned)
+        #expect(toned.count == 1, "still one picture")
+    }
+
+    @Test(arguments: [
+        "\u{1F600}", "\u{2764}\u{FE0F}", "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}", "\u{1F44B}\u{1F3FB}", "A", "",
+    ])
+    func whatTakesNoToneOrMoreThanOneIsLeftAsItIs(emoji: String) {
+        #expect(EmojiSkinTone.medium.applied(to: emoji) == emoji)
+    }
+
+    @Test func noToneChangesNothing() {
+        #expect(EmojiSkinTone.none.applied(to: "\u{1F44B}") == "\u{1F44B}")
+        #expect(EmojiSkinTone.allCases.map(\.rawValue) == ["none", "light", "mediumLight", "medium", "mediumDark", "dark"])
+    }
+
+    @Test func aTonedEmojiIsCountedAsTheSameEmoji() {
+        let wave = EmojiResult(character: "\u{1F44B}", name: "waving hand")
+        let toned = wave.toned(.medium)
+        #expect(toned.character == "\u{1F44B}\u{1F3FD}")
+        #expect(toned.id == wave.id)
+        #expect(EmojiResult(character: "\u{1F600}", name: "grinning face").toned(.medium).untoned == nil)
+    }
 }
