@@ -15,7 +15,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 ### New: search
 
-- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each.
+- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too.
 - **Scattered letters match.** The letters that matched show in a stronger weight.
 - **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `clipboard meeting`, `menu wifi`, `tabs invoice`.

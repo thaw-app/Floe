@@ -83,12 +83,28 @@ nonisolated enum Paths {
 }
 
 nonisolated extension AppEntry {
-    /// The system, local and user Applications folders, each with its Utilities subfolder.
-    static let folders: [String] = FileManager.default
+    /// The system, local and user Applications folders.
+    static let roots: [String] = FileManager.default
         .urls(for: .applicationDirectory, in: [.localDomainMask, .systemDomainMask, .userDomainMask])
-        .flatMap { [$0.path, $0.appendingPathComponent("Utilities").path] }
+        .map(\.path)
 
-    static func scan() -> [AppEntry] {
+    /// Where applications are looked for: each Applications folder and the folders directly inside it. That is
+    /// Utilities, and also where a browser keeps the web apps it installs ("Chrome Apps", "Helium Apps") and where
+    /// a suite keeps its own. A folder inside one of those is not opened, and neither is an application's bundle.
+    static func folders(in roots: [String] = roots) -> [String] {
+        roots.flatMap { root -> [String] in
+            let inside = ((try? FileManager.default.contentsOfDirectory(atPath: root)) ?? []).sorted()
+                .filter { !$0.hasPrefix(".") && !$0.hasSuffix(".app") }
+                .map { (root as NSString).appendingPathComponent($0) }
+                .filter { path in
+                    var isFolder: ObjCBool = false
+                    return FileManager.default.fileExists(atPath: path, isDirectory: &isFolder) && isFolder.boolValue
+                }
+            return [root] + inside
+        }
+    }
+
+    static func scan(in folders: [String] = folders()) -> [AppEntry] {
         let found = folders.flatMap { folder -> [AppEntry] in
             let entries = (try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []
             return entries.filter { $0.hasSuffix(".app") }.map { entry in
@@ -153,7 +169,8 @@ final class AppFolderWatcher {
                 onChange()
             }
         }
-        for folder in AppEntry.folders {
+        // The folders as they are now. One made later is noticed through its parent, and watched from the next launch.
+        for folder in AppEntry.folders() {
             let descriptor = open(folder, O_EVTONLY)
             guard descriptor >= 0 else { continue }
             let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete], queue: .main)
