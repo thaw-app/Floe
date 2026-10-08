@@ -177,6 +177,7 @@
 		B380258D2291ED8D81B562B1 /* Manifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AF3BB2338E4948152EECAA1 /* Manifest.swift */; };
 		B4022E41A6B70A45AEDD4A3B /* Browser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C94AC63D188A5B6B05B8A9 /* Browser.swift */; };
 		B46FB365D377BDA4D17AEBAC /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = DCB8704B102A04F10A7ABBEA /* ArgumentParser */; };
+		B4DF4A9E271F020F5004EDA3 /* ShellAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F43BC73615163FC9EA2009B /* ShellAliases.swift */; };
 		B4E475F30B2F1B966F542327 /* AppearanceSettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4F5761AF75C9E1E6A5A4FF /* AppearanceSettingsPane.swift */; };
 		B58BE35E37C1B29EB60A1486 /* OnWindowChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07F174FA5910D853B72691B0 /* OnWindowChange.swift */; };
 		B60670B502F8FFBB4FDCBF3F /* DiagnosticsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D930183FBABDD9AA57D1BD /* DiagnosticsSettingsSection.swift */; };
@@ -306,6 +307,7 @@
 		2D1677EB1C22495EA2049A1A /* FileSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchView.swift; sourceTree = "<group>"; };
 		2D6F4E8DCF13BAB295B0E243 /* Calendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calendar.swift; sourceTree = "<group>"; };
 		2E17F7D69F39146CD5157F46 /* FileSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchModel.swift; sourceTree = "<group>"; };
+		2F43BC73615163FC9EA2009B /* ShellAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellAliases.swift; sourceTree = "<group>"; };
 		2F94F4CB7297C9286F2C8A2D /* AskAIModel+Panel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AskAIModel+Panel.swift"; sourceTree = "<group>"; };
 		3093D2F53465270315B2B310 /* ExtensionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionSettingsView.swift; sourceTree = "<group>"; };
 		30B7F201C3069FA974E88002 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
@@ -651,6 +653,7 @@
 				DCD165E46D914A7ED79C3DE0 /* Quicklinks.swift */,
 				E68175260331547C85A71EBA /* ScriptCommands.swift */,
 				2586ADD4A7E5A2899FE239C7 /* Selection.swift */,
+				2F43BC73615163FC9EA2009B /* ShellAliases.swift */,
 				01DE9A8F192C3A915D449B54 /* ShellCommand.swift */,
 				E32F78329C981B25442EC7DA /* ShellCommand+Running.swift */,
 				4879EB8733EBCA9F1DF5EF6C /* ShellCommand+Saving.swift */,
@@ -1274,6 +1277,7 @@
 				7B518EA27B443804350FDA49 /* SettingsWindow.swift in Sources */,
 				4E1766F160310A9E2F6577A9 /* SetupFormModel.swift in Sources */,
 				91F1AB81D0B571ED89DE6970 /* Shell.swift in Sources */,
+				B4DF4A9E271F020F5004EDA3 /* ShellAliases.swift in Sources */,
 				DC38D65DEC1867DF56070A6D /* ShellCommand+Running.swift in Sources */,
 				D9D14F0D9B316331EB8F5FD8 /* ShellCommand+Saving.swift in Sources */,
 				6CBE43C1A44F0870BE884A74 /* ShellCommand.swift in Sources */,

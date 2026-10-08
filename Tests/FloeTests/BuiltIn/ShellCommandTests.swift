@@ -73,6 +73,45 @@ struct ShellCommandTests {
         #expect([typed, earlier, unfinished].map(\.isScopeResult) == [true, true, true])
     }
 
+    @Test func aliasesAreReadFromWhatTheShellPrints() {
+        let zsh = """
+        Last login: a greeting an interactive shell printed
+        gs='git status'
+        ll='ls -la'
+        say-it='echo it'\\''s here'
+        plain=uptime
+        dq="echo two words"
+        odd=$'a\\tb'
+        not an alias = at all
+        """
+        #expect(ShellAliases.parse(zsh) == ["gs": "git status", "ll": "ls -la", "say-it": "echo it's here", "plain": "uptime", "dq": "echo two words"])
+        #expect(ShellAliases.parse("alias gs='git status'\nalias ..='cd ..'\n") == ["gs": "git status", "..": "cd .."])
+        #expect(ShellAliases.parse("").isEmpty)
+    }
+
+    @Test func theFirstWordIsPutBackAsWhatItStandsFor() {
+        let aliases = ["gs": "git status", "g": "git", "gst": "g status", "ls": "ls -G", "a": "b", "b": "a"]
+        #expect(ShellAliases.expanded("gs -sb", with: aliases) == "git status -sb")
+        #expect(ShellAliases.expanded("gst", with: aliases) == "git status", "an alias that names another")
+        #expect(ShellAliases.expanded("ls ~/Downloads", with: aliases) == "ls -G ~/Downloads", "one that names itself is expanded once")
+        #expect(ShellAliases.expanded("a", with: aliases) == "a", "two that name each other end where they began")
+        #expect(ShellAliases.expanded("echo gs", with: aliases) == "echo gs", "only the first word")
+        #expect(ShellAliases.expanded("gsx", with: aliases) == "gsx")
+        #expect(ShellAliases.expanded("", with: aliases) == "")
+    }
+
+    @Test func aCommandRunsThroughTheAliasesItIsGiven() async {
+        #expect(await ShellCommand.run("hello there", aliases: ["hello": "echo aliased"]) == "aliased there")
+    }
+
+    @Test func aNumberStraightAfterTheDollarPrefixIsAnAmount() {
+        #expect(ShellCommand.command(in: "$100 to eur", prefix: .dollar) == nil)
+        #expect(ShellCommand.typed(in: "$5", prefix: .dollar) == nil)
+        #expect(ShellCommand.command(in: "$ 100 to eur", prefix: .dollar) == "100 to eur", "with a space it is a command, as typed")
+        #expect(ShellCommand.command(in: "$ls", prefix: .dollar) == "ls")
+        #expect(ShellCommand.command(in: ">100", prefix: .greaterThan) == "100", "the other prefixes take a number as they did")
+    }
+
     @Test func onlySudoIsSentToATerminalUnasked() {
         #expect(ShellCommand.needsATerminal("sudo purge"))
         #expect(!ShellCommand.needsATerminal("pkill -f sudo"))
@@ -88,8 +127,8 @@ struct ShellCommandTests {
     }
 
     @Test func aCommandRunsInTheLoginShellFromTheHomeFolder() async {
-        #expect(await ShellCommand.run("pwd && echo second") == FileManager.default.homeDirectoryForCurrentUser.path)
-        let failed = await ShellCommand.finished("echo printed; echo nope >&2; exit 7")
+        #expect(await ShellCommand.run("pwd && echo second", aliases: [:]) == FileManager.default.homeDirectoryForCurrentUser.path)
+        let failed = await ShellCommand.finished("echo printed; echo nope >&2; exit 7", aliases: [:])
         #expect(failed.line == "nope (code 7)")
         #expect(failed.output == "printed\n\nnope\n\nThe command ended with code 7.")
     }
@@ -198,7 +237,7 @@ struct ShellCommandTests {
     }
 
     @Test func theManualOfAProgramComesBackAsReadableText() async {
-        let manual = await ShellCommand.finished(ShellCommand.manual(for: "ls"))
+        let manual = await ShellCommand.finished(ShellCommand.manual(for: "ls"), aliases: [:])
         #expect(manual.output.contains("list directory contents"))
         #expect(!manual.output.contains("\u{8}"), "no letters typed twice for bold")
     }
@@ -208,7 +247,7 @@ struct ShellCommandTests {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
         // The shell may name the folder through /private, so the end of the path is what is compared.
-        #expect(await ShellCommand.finished("pwd", in: folder).line.hasSuffix("/" + folder.lastPathComponent))
+        #expect(await ShellCommand.finished("pwd", in: folder, aliases: [:]).line.hasSuffix("/" + folder.lastPathComponent))
     }
 
     @Test func theWholeOutputIsWhatWasPrintedThenWhatWasSaidInError() {

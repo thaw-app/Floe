@@ -57,12 +57,15 @@ nonisolated enum ShellCommand {
     static func typed(in query: String, prefix: CommandPrefix?) -> String? {
         guard let prefix, query.hasPrefix(prefix.rawValue) else { return nil }
         let rest = query.dropFirst(prefix.rawValue.count)
+        // With the dollar sign as the prefix, a number straight after it is an amount: "$100 to eur" is the calculator's.
+        if prefix == .dollar, rest.first?.isNumber == true {
+            return nil
+        }
         return String(rest.drop { $0 == " " })
     }
 
     static func command(in query: String, prefix: CommandPrefix?) -> String? {
-        guard let prefix, query.hasPrefix(prefix.rawValue) else { return nil }
-        let command = query.dropFirst(prefix.rawValue.count).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let command = typed(in: query, prefix: prefix)?.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
         return command.isEmpty ? nil : command
     }
 

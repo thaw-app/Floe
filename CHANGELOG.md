@@ -15,7 +15,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 ### New: search
 
-- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too.
+- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too. Two apps with the same name each get their own row.
 - **Scattered letters match.** The letters that matched show in a stronger weight.
 - **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `clipboard meeting`, `menu wifi`, `tabs invoice`.
@@ -31,7 +31,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 ### New: shell commands
 
-- **Type `>` and a command to run it.** Return runs it in the background and shows the first line of output. Settings > General changes the prefix to `$` or `!`, or turns this off.
+- **Type `>` and a command to run it.** Return runs it in the background and shows the first line of output. Your shell aliases work. Settings > General changes the prefix to `$` or `!`, or turns this off.
 - **Other ways to run it.** ⌘Return opens it in your terminal, ⌥Return shows everything it printed, and ⇧Return runs it in the Finder folder in front.
 - **Suggestions while you type:** earlier commands from your shell history, programs, paths, application names after `open -a` and hosts after `ssh`. Tab finishes the selected one.
 - **A command works without the prefix** when it starts with a program on your Mac and has a flag, a path or a pipe in it. It is offered under the other results.
@@ -58,7 +58,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 ### New: built in
 
 - **Clipboard history, snippets with text expansion, and quicklinks** with fallback searches.
-- **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy.
+- **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy, and shows the day the rates are from.
 - **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > General.
 - **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard.
 - **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too.

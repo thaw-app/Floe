@@ -187,6 +187,8 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
 nonisolated struct AppEntry: Sendable {
     let name: String
     let url: URL
+    /// What tells this app from another of its name: the folder it is in, or its file's name. Nil for a name of its own.
+    var origin: String?
 }
 
 struct RootResult: Identifiable {

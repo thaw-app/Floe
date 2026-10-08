@@ -163,7 +163,35 @@ final class ExtensionStore: ObservableObject {
     func hasUpdate(_ name: String) async -> Bool {
         guard isInstalled(name), let recorded = Self.recordedCommit(for: name) else { return false }
         guard let latest = await latestCommit(touching: name) else { return false }
-        return latest != recorded
+        guard latest != recorded else { return false }
+        // An install from before the folder's commit was what is recorded holds the repository's commit of that
+        // day. When that one already has the folder's newest change in it, nothing is new: the record is put right.
+        if await holds(recorded, the: latest) {
+            Self.record(commit: latest, for: name)
+            return false
+        }
+        return true
+    }
+
+    /// Whether the history of `commit` has `change` in it, asked of GitHub. False when it cannot be asked.
+    private func holds(_ commit: String, the change: String) async -> Bool {
+        guard let url = URL(string: "\(Self.repoAPI)/compare/\(change)...\(commit)?per_page=1"),
+              let (data, _) = try? await URLSession.shared.data(for: Self.apiRequest(url: url)) else { return false }
+        return Self.isAtOrPast(in: data)
+    }
+
+    /// GitHub's answer to "compare base to head": whether head is the base or comes after it.
+    static nonisolated func isAtOrPast(in data: Data) -> Bool {
+        let status = ((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?["status"] as? String
+        return status == "ahead" || status == "identical"
+    }
+
+    /// Writes the commit an installed extension is at into its record, keeping the day it was installed.
+    static func record(commit: String, for name: String, in extensions: URL = Paths.extensions) {
+        let file = extensions.appendingPathComponent(name, isDirectory: true).appendingPathComponent(recordFileName)
+        guard let data = try? Data(contentsOf: file), let old = try? JSONDecoder().decode(Record.self, from: data),
+              let updated = try? JSONEncoder().encode(Record(name: old.name, commit: commit, installedAt: old.installedAt)) else { return }
+        try? updated.write(to: file, options: .atomic)
     }
 
     /// The newest commit that changed the extension's folder: what an install records and what an update check

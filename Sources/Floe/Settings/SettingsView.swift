@@ -322,7 +322,7 @@ struct GeneralSettingsView: View {
                 }
                 Picker("Emoji skin tone", selection: $settings.emojiSkinTone) {
                     ForEach(EmojiSkinTone.allCases) { tone in
-                        Text(verbatim: tone.applied(to: "\u{1F44B}")).tag(tone)
+                        Text(verbatim: tone.applied(to: "\u{1F44B}") + " " + tone.label).tag(tone)
                     }
                 }
             }

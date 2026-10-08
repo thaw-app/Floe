@@ -56,6 +56,9 @@
     "%@ is chosen, which is not on this Mac. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
       "comment" : "The placeholder is the address of a server."
     },
+    "%@ is still running, so it was not restarted" : {
+      "comment" : "The placeholder is an app's name."
+    },
     "%@ isn't installed" : {
       "comment" : "The placeholder is the name of an app."
     },
@@ -816,6 +819,9 @@
     "Cut" : {
       "comment" : "A verb in the Edit menu: remove the selection and put it on the clipboard."
     },
+    "Dark" : {
+      "comment" : "A skin tone for emoji."
+    },
     "Dark appearance" : {},
     "Data Folder" : {},
     "Date & Time (System Settings)" : {
@@ -829,6 +835,9 @@
           }
         }
       }
+    },
+    "Default" : {
+      "comment" : "A skin tone for emoji: the yellow one, with no tone."
     },
     "Default Browser" : {},
     "Default Browser (%@)" : {
@@ -1275,6 +1284,9 @@
     "Licenses" : {
       "comment" : "The title of the page with the licenses of what Floe is built from."
     },
+    "Light" : {
+      "comment" : "A skin tone for emoji."
+    },
     "Light appearance" : {},
     "Link" : {
       "comment" : "A kind of copied thing.\nA web style link that opens an app, as a choice in a picker and as the label of its field."
@@ -1322,6 +1334,15 @@
     },
     "Match System" : {},
     "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {},
+    "Medium" : {
+      "comment" : "A skin tone for emoji."
+    },
+    "Medium-Dark" : {
+      "comment" : "A skin tone for emoji."
+    },
+    "Medium-Light" : {
+      "comment" : "A skin tone for emoji."
+    },
     "Menu Bar" : {
       "comment" : "The heading over every menu bar item.\nThe kind of a result, shown beside its title."
     },
@@ -1459,6 +1480,9 @@
     "Nothing copied yet" : {},
     "Nothing is listening on that port" : {},
     "Nothing matches" : {},
+    "Nothing to copy yet" : {
+      "comment" : "Shown when Return is pressed on a calculation that has no answer."
+    },
     "Notifications (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1656,6 +1680,9 @@
     "Quit all apps now?" : {},
     "Quitting %@" : {
       "comment" : "The placeholder is an app's name."
+    },
+    "Rates of %@" : {
+      "comment" : "A label under a converted amount of money. The placeholder is a date as the bank writes it, such as 2026-10-07."
     },
     "Raycast" : {},
     "Raycast Extension Store" : {},
@@ -2025,7 +2052,7 @@
       "comment" : "A kind of unit, named in a calculator error."
     },
     "Terminal" : {
-      "comment" : "A button that opens a command in the terminal app.\nThe kind of app that runs a shell, as the label of the picker that chooses one."
+      "comment" : "The kind of app that runs a shell, as the label of the picker that chooses one."
     },
     "Text" : {
       "comment" : "A kind of copied thing."

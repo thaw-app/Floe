@@ -52,6 +52,10 @@ struct EmojiTests {
         #expect(EmojiSkinTone.medium.applied(to: emoji) == emoji)
     }
 
+    @Test func everyToneHasANameForThePicker() {
+        #expect(EmojiSkinTone.allCases.map(\.label) == ["Default", "Light", "Medium-Light", "Medium", "Medium-Dark", "Dark"])
+    }
+
     @Test func noToneChangesNothing() {
         #expect(EmojiSkinTone.none.applied(to: "\u{1F44B}") == "\u{1F44B}")
         #expect(EmojiSkinTone.allCases.map(\.rawValue) == ["none", "light", "mediumLight", "medium", "mediumDark", "dark"])

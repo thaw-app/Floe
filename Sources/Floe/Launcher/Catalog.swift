@@ -88,9 +88,8 @@ nonisolated extension AppEntry {
         .urls(for: .applicationDirectory, in: [.localDomainMask, .systemDomainMask, .userDomainMask])
         .map(\.path)
 
-    /// Where applications are looked for: each Applications folder and the folders directly inside it. That is
-    /// Utilities, and also where a browser keeps the web apps it installs ("Chrome Apps", "Helium Apps") and where
-    /// a suite keeps its own. A folder inside one of those is not opened, and neither is an application's bundle.
+    /// Where applications are looked for: each Applications folder and the folders directly inside it, which is
+    /// where a browser keeps the web apps it installs ("Helium Apps"). Nothing deeper, and never inside a bundle.
     static func folders(in roots: [String] = roots) -> [String] {
         roots.flatMap { root -> [String] in
             let inside = ((try? FileManager.default.contentsOfDirectory(atPath: root)) ?? []).sorted()
@@ -114,8 +113,30 @@ nonisolated extension AppEntry {
                 return AppEntry(name: shown.hasSuffix(".app") ? String(shown.dropLast(4)) : shown, url: url)
             }
         }
-        // Safari lives in the cryptex and shows up again in /Applications; one entry per app name.
-        return found.uniqued(on: \.name).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return distinct(found).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    /// One entry for each app. Safari is in the cryptex and again in /Applications: one app, by its identifier.
+    /// A web app may share its name with an app of Apple's: two apps, both kept, each marked with what tells it apart.
+    static func distinct(
+        _ found: [AppEntry],
+        identifier: (URL) -> String? = { Bundle(url: $0)?.bundleIdentifier },
+        folderName: (URL) -> String = { FileManager.default.displayName(atPath: $0.deletingLastPathComponent().path) }
+    ) -> [AppEntry] {
+        let byName = Dictionary(grouping: found, by: \.name)
+        var seen = Set<String>()
+        return found.flatMap { app -> [AppEntry] in
+            guard seen.insert(app.name).inserted, let named = byName[app.name] else { return [] }
+            guard named.count > 1 else { return [app] }
+            // Only apps that share a name have their identifier read: it is a file read for each.
+            let apart = named.uniqued { identifier($0.url) ?? $0.url.resolvingSymlinksInPath().path }
+            guard apart.count > 1 else { return [app] }
+            // Two in one folder under one shown name, as Siri and Siri AI are: the name of the file tells them apart.
+            let sharesAFolder = Set(apart.map { $0.url.deletingLastPathComponent().path }).count < apart.count
+            return apart.map { one in
+                AppEntry(name: one.name, url: one.url, origin: sharesAFolder ? one.url.deletingPathExtension().lastPathComponent : folderName(one.url))
+            }
+        }
     }
 }
 
@@ -157,20 +178,26 @@ nonisolated extension CatalogSnapshot {
 
 /// Watches the application folders and reports changes, so newly installed apps show up without a restart.
 final class AppFolderWatcher {
-    private var sources: [DispatchSourceFileSystemObject] = []
+    private var sources: [String: DispatchSourceFileSystemObject] = [:]
     private let changes = AsyncStream.makeStream(of: Void.self, bufferingPolicy: .bufferingNewest(1))
     private var settling: Task<Void, Never>?
 
     init(onChange: @escaping @MainActor () -> Void) {
         let stream = changes.stream
         // Installers touch the folder several times; react once things settle.
-        settling = Task { @MainActor in
+        settling = Task { @MainActor [weak self] in
             for await _ in stream.debounce(for: .seconds(1)) {
+                // A change may be a new folder: the first web app a browser installs makes one.
+                self?.watch(AppEntry.folders())
                 onChange()
             }
         }
-        // The folders as they are now. One made later is noticed through its parent, and watched from the next launch.
-        for folder in AppEntry.folders() {
+        watch(AppEntry.folders())
+    }
+
+    /// Starts watching the folders that are not watched yet. The ones that are stay as they are.
+    func watch(_ folders: [String]) {
+        for folder in folders where sources[folder] == nil {
             let descriptor = open(folder, O_EVTONLY)
             guard descriptor >= 0 else { continue }
             let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete], queue: .main)
@@ -179,13 +206,17 @@ final class AppFolderWatcher {
             }
             source.setCancelHandler { close(descriptor) }
             source.resume()
-            sources.append(source)
+            sources[folder] = source
         }
+    }
+
+    var watched: Set<String> {
+        Set(sources.keys)
     }
 
     deinit {
         settling?.cancel()
         changes.continuation.finish()
-        sources.forEach { $0.cancel() }
+        sources.values.forEach { $0.cancel() }
     }
 }

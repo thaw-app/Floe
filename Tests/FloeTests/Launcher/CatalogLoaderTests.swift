@@ -22,11 +22,14 @@ struct CatalogLoaderTests {
         #expect(commands.allSatisfy { $0.source == .local })
     }
 
-    @Test func scanAppsReturnsSortedUniqueNames() async {
+    @Test func scanAppsReturnsEachAppOnceSortedAndTellsApartTheOnesThatShareAName() async {
         let apps = await CatalogLoader().scanApps()
         let sorted = apps.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
         #expect(apps.map(\.name) == sorted.map(\.name))
-        #expect(Set(apps.map(\.name)).count == apps.count)
+        #expect(Set(apps.map(\.url)).count == apps.count)
+        for (name, sharing) in Dictionary(grouping: apps, by: \.name) where sharing.count > 1 {
+            #expect(Set(sharing.compactMap(\.origin)).count == sharing.count, "\(name): each of the apps that share the name says something of its own")
+        }
     }
 
     @Test func aSnapshotCarriesItsCatalogUntouched() {

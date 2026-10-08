@@ -34,6 +34,13 @@ struct CalculatorBlockView: View {
         return String(localized: "Expression", bundle: .floe, comment: "A label on the calculator result that says what kind of calculation it is.")
     }
 
+    /// Under the answer: that it is the result, or for money the day its rates are from.
+    private var resultBadge: String {
+        Calculator.shared.ratesDate(for: result).map {
+            String(localized: "Rates of \($0)", bundle: .floe, comment: "A label under a converted amount of money. The placeholder is a date as the bank writes it, such as 2026-10-07.")
+        } ?? String(localized: "Result", bundle: .floe)
+    }
+
     var body: some View {
         Group {
             if let error, !error.isEmpty {
@@ -96,7 +103,7 @@ struct CalculatorBlockView: View {
                             .minimumScaleFactor(0.6)
                             .opacity(result.isEmpty ? 0 : 1)
 
-                        Text("Result")
+                        Text(resultBadge)
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 10)

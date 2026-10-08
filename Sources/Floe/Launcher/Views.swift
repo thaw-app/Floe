@@ -182,12 +182,6 @@ struct ShellHintButtons: View {
                 KeyCapView(text: "⌥")
                 KeyCapView(systemImage: "return")
             }
-            ShortcutHintButton(title: String(localized: "Terminal", bundle: .floe, comment: "A button that opens a command in the terminal app.")) {
-                model.runShellCommand(command, terminal: terminal, inTerminal: true)
-            } hint: {
-                KeyCapView(text: "⌘")
-                KeyCapView(systemImage: "return")
-            }
         case let .complete(row):
             ShortcutHintButton(title: ShellAction.complete(row).title) { model.complete(with: row) } hint: {
                 KeyCapView(text: "⇥")

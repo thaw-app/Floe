@@ -39,6 +39,18 @@ nonisolated enum EmojiSkinTone: String, Codable, CaseIterable, Identifiable, Sen
         rawValue
     }
 
+    /// The tone's name, as the picker says it beside the hand.
+    var label: String {
+        switch self {
+        case .none: String(localized: "Default", bundle: .floe, comment: "A skin tone for emoji: the yellow one, with no tone.")
+        case .light: String(localized: "Light", bundle: .floe, comment: "A skin tone for emoji.")
+        case .mediumLight: String(localized: "Medium-Light", bundle: .floe, comment: "A skin tone for emoji.")
+        case .medium: String(localized: "Medium", bundle: .floe, comment: "A skin tone for emoji.")
+        case .mediumDark: String(localized: "Medium-Dark", bundle: .floe, comment: "A skin tone for emoji.")
+        case .dark: String(localized: "Dark", bundle: .floe, comment: "A skin tone for emoji.")
+        }
+    }
+
     /// The modifier Unicode puts after an emoji to tone it, U+1F3FB to U+1F3FF.
     var modifier: Unicode.Scalar? {
         switch self {

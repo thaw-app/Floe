@@ -92,6 +92,15 @@ struct ItemActionTests {
         #expect(titles(model.rootActions(for: .system(.toggleMute))).suffix(2) == ["Add to Favorites", "Hide from Search"])
     }
 
+    @Test func returnOnACalculationWithNothingToCopySaysSo() {
+        let model = makeModel()
+        var said: [String] = []
+        model.showHUD = { said.append($0) }
+        model.activate(.calculator(expression: "100 +", result: "", error: nil, attributedResult: nil))
+        model.activate(.calculator(expression: "1 km to kg", result: "", error: "Cannot convert Length to Mass", attributedResult: nil))
+        #expect(said == ["Nothing to copy yet", "Cannot convert Length to Mass"])
+    }
+
     @Test func aHiddenResultLeavesTheListTheSearchAndTheFavorites() {
         let safari = AppEntry(name: "Safari", url: URL(fileURLWithPath: "/System/Applications/NotARealApp-\(UUID().uuidString).app"))
         let notes = AppEntry(name: "Notes", url: URL(fileURLWithPath: "/System/Applications/NotARealApp-\(UUID().uuidString).app"))

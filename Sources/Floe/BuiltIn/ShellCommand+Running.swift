@@ -11,14 +11,23 @@ import AppKit
 nonisolated extension ShellCommand {
     /// Runs the command in the user's login shell, with the environment of a login, and answers with the line for the HUD.
     @concurrent
-    static func run(_ command: String, timeout: TimeInterval = 30) async -> String {
-        await finished(command, timeout: timeout).line
+    static func run(_ command: String, timeout: TimeInterval = 30, aliases: [String: String]? = nil) async -> String {
+        await finished(command, timeout: timeout, aliases: aliases).line
     }
 
     /// The same run, with everything the command printed beside the line: for the window that shows it all.
     @concurrent
-    static func finished(_ command: String, in folder: URL? = nil, timeout: TimeInterval = 30) async -> (line: String, output: String) {
+    static func finished(
+        _ typed: String, in folder: URL? = nil, timeout: TimeInterval = 30, aliases: [String: String]? = nil
+    ) async -> (line: String, output: String) {
         let shell = URL(fileURLWithPath: LoginEnvironment.userShell())
+        // `aliases` is given by a test, which must not start this Mac's interactive shell.
+        let known: [String: String] = if let aliases {
+            aliases
+        } else {
+            await ShellAliases.table()
+        }
+        let command = ShellAliases.expanded(typed, with: known)
         do {
             let result = try await Shell.run(shell, ["-l", "-c", command], in: folder ?? FileManager.default.homeDirectoryForCurrentUser, environment: LoginEnvironment.current, timeout: timeout, outputLimit: 256 * 1024)
             let output = plain(String(bytes: result.stdout, encoding: .utf8) ?? "")

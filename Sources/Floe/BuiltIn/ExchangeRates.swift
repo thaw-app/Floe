@@ -113,7 +113,7 @@ final class ExchangeRateUpdater {
         }
         if rates == nil, let stored = ExchangeRateStore.load(from: file) {
             rates = stored
-            calculator.setExchangeRates(stored.rates)
+            calculator.setExchangeRates(stored.rates, date: stored.date)
         }
         refreshIfStale()
     }
@@ -130,7 +130,7 @@ final class ExchangeRateUpdater {
             guard let fresh, isOn else { return }
             rates = fresh
             ExchangeRateStore.save(fresh, to: file)
-            calculator.setExchangeRates(fresh.rates)
+            calculator.setExchangeRates(fresh.rates, date: fresh.date)
         }
         downloading = task
         return task

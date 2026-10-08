@@ -43,6 +43,8 @@ final class Calculator: @unchecked Sendable {
     /// The last text asked about and its answer: two search providers ask about the same text on every keystroke.
     private var remembered: (query: String, preview: CalculationPreview?)?
     private let rememberedLock = NSLock()
+    /// The currencies the calculator has rates for and the day they are from. Read under `rememberedLock`.
+    private var exchange: (codes: Set<String>, date: String?)?
 
     /// What day it is, which a test sets.
     let now: @Sendable () -> Date
@@ -54,9 +56,20 @@ final class Calculator: @unchecked Sendable {
 
     /// Gives the calculator its exchange rates, by currency code against one base currency, or takes them away
     /// with an empty table. The answer remembered from before is forgotten: it may have been "no rates".
-    func setExchangeRates(_ rates: [String: Double]) {
+    func setExchangeRates(_ rates: [String: Double], date: String? = nil) {
         lock.withLock { context?.setExchangeRates(rates) }
-        rememberedLock.withLock { remembered = nil }
+        rememberedLock.withLock {
+            remembered = nil
+            exchange = rates.isEmpty ? nil : (Set(rates.keys), date)
+        }
+    }
+
+    /// The day the rates are from, when the answer is an amount of money: it names a currency the rates have.
+    /// Nil for any other answer, and for rates given without a day.
+    func ratesDate(for result: String) -> String? {
+        guard let exchange = rememberedLock.withLock({ exchange }), let date = exchange.date else { return nil }
+        let words = result.split { !$0.isLetter }.map(String.init)
+        return words.contains { exchange.codes.contains($0) } ? date : nil
     }
 
     /// Evaluates the query for live preview in the search launcher.

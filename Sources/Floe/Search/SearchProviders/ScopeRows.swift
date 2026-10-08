@@ -25,6 +25,7 @@ extension RootItem {
         case let .menuBarItem(extra, name): extra.ownerName.isEmpty || extra.ownerName == name ? kind : extra.ownerName
         case let .browserTab(row): row.label
         case let .process(process): Processes.label(for: process)
+        case let .app(app): app.origin ?? kind
         default: kind
         }
     }

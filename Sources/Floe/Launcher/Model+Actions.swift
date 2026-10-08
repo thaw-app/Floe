@@ -113,6 +113,19 @@ extension LauncherModel {
         return actions
     }
 
+    /// Return on the calculator's row: the answer goes to the clipboard. With no answer the row is still the
+    /// selected one, so Return says what is wrong, or that there is nothing yet.
+    func copyCalculation(_ result: String, error: String?) {
+        guard error == nil, !result.isEmpty else {
+            showHUD(error ?? String(localized: "Nothing to copy yet", bundle: .floe, comment: "Shown when Return is pressed on a calculation that has no answer."))
+            return
+        }
+        NSPasteboard.general.copy(result)
+        showHUD(String(localized: "Copied \(result)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+        hidePanel()
+        reset()
+    }
+
     /// Keeps the search that just opened something, unless the user switched that off.
     func rememberQuery() {
         if settings.remembersSearches {

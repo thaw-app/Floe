@@ -597,11 +597,7 @@ final class LauncherModel: ObservableObject {
             hidePanel()
             reset()
         case let .calculator(_, result, error, _):
-            guard error == nil, !result.isEmpty else { return }
-            NSPasteboard.general.copy(result)
-            showHUD(String(localized: "Copied \(result)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
-            hidePanel()
-            reset()
+            copyCalculation(result, error: error)
         case .emoji, .file, .clipboardEntry, .menuBarItem, .menuBarAccess:
             break
         case .browserTab, .askAI, .webAddress, .shell, .process:

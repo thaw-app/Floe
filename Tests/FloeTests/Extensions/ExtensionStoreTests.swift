@@ -145,6 +145,27 @@ struct ExtensionStoreTests {
         #expect(ExtensionStore.revisionToRecord(folderCommit: nil, repositoryCommit: "repo-head") == "repo-head", "GitHub could not say: an update is offered once too often, never missed")
     }
 
+    @MainActor @Test func anInstallRecordedTheOldWayIsRecognizedAsUpToDate() throws {
+        #expect(ExtensionStore.isAtOrPast(in: Data(#"{"status":"ahead","ahead_by":412}"#.utf8)), "the recorded commit came after the folder's newest change")
+        #expect(ExtensionStore.isAtOrPast(in: Data(#"{"status":"identical"}"#.utf8)))
+        #expect(!ExtensionStore.isAtOrPast(in: Data(#"{"status":"behind","behind_by":3}"#.utf8)), "the folder changed since: a real update")
+        #expect(!ExtensionStore.isAtOrPast(in: Data(#"{"status":"diverged"}"#.utf8)))
+        #expect(!ExtensionStore.isAtOrPast(in: Data(#"{"message":"Not Found"}"#.utf8)), "GitHub could not say: the update stays offered")
+
+        let extensions = FileManager.default.temporaryDirectory.appendingPathComponent("floe-store-records-\(UUID().uuidString)")
+        let folder = extensions.appendingPathComponent("notes")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: extensions) }
+        let file = folder.appendingPathComponent(".floe-store.json")
+        try Data(#"{"name":"notes","commit":"repo-head","installedAt":700000000}"#.utf8).write(to: file)
+        ExtensionStore.record(commit: "folder-newest", for: "notes", in: extensions)
+        let written = try #require(try JSONSerialization.jsonObject(with: Data(contentsOf: file)) as? [String: Any])
+        #expect(written["commit"] as? String == "folder-newest")
+        #expect(written["installedAt"] as? Double == 700_000_000, "the day it was installed is kept")
+        ExtensionStore.record(commit: "x", for: "not-installed", in: extensions)
+        #expect(!FileManager.default.fileExists(atPath: extensions.appendingPathComponent("not-installed").path))
+    }
+
     @MainActor @Test func anExtensionThatWasNeverInstalledIsNotInstalledAndHasNoUpdate() async {
         let store = ExtensionStore()
         let name = "floe-tests-\(UUID().uuidString)"

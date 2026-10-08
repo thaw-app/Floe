@@ -257,7 +257,10 @@ enum AppActions {
             for _ in 0 ..< 100 where !running.isTerminated {
                 try? await Task.sleep(for: .milliseconds(100))
             }
-            guard running.isTerminated else { return }
+            guard running.isTerminated else {
+                host.showHUD(String(localized: "\(app.name) is still running, so it was not restarted", bundle: .floe, comment: "The placeholder is an app's name."))
+                return
+            }
             _ = try? await NSWorkspace.shared.openApplication(at: app.url, configuration: NSWorkspace.OpenConfiguration())
         }
     }

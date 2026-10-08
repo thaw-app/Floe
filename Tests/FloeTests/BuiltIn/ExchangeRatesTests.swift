@@ -72,6 +72,21 @@ struct ExchangeRatesTests {
         #expect(calculator.evaluatePreview("10 EUR to USD")?.error == "To convert money, switch on exchange rates in Settings, Privacy.")
     }
 
+    @Test func anAmountOfMoneySaysTheDayOfItsRatesAndNothingElseDoes() {
+        let calculator = Calculator()
+        #expect(calculator.ratesDate(for: "12.5 USD") == nil, "no rates, no day")
+        calculator.setExchangeRates(["EUR": 1, "USD": 1.25], date: "2026-10-07")
+        #expect(calculator.ratesDate(for: "12.5 USD") == "2026-10-07")
+        #expect(calculator.ratesDate(for: "approx. 3.2 EUR") == "2026-10-07")
+        #expect(calculator.ratesDate(for: "4") == nil)
+        #expect(calculator.ratesDate(for: "12 km") == nil)
+        #expect(calculator.ratesDate(for: "5 usd") == nil, "fend writes a code in capitals; a word in small letters is something else")
+        calculator.setExchangeRates(["EUR": 1, "USD": 1.25])
+        #expect(calculator.ratesDate(for: "12.5 USD") == nil, "rates given without a day")
+        calculator.setExchangeRates([:])
+        #expect(calculator.ratesDate(for: "12.5 USD") == nil)
+    }
+
     @Test func nothingIsAskedForUntilTheSwitchIsOnAndOffTakesTheRatesAway() async throws {
         let file = scratchFile()
         defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
