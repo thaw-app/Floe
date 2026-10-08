@@ -137,6 +137,12 @@ enum FinderSelection {
         return try (selected.isEmpty ? paths(from: folderScript) : selected).map { URL(fileURLWithPath: $0) }
     }
 
+    /// The front window's folder, or the desktop without a window. Finder need not be frontmost.
+    static func folder() throws -> URL {
+        guard let path = try paths(from: folderScript).first else { throw SelectionError.finderEmpty }
+        return URL(fileURLWithPath: path)
+    }
+
     /// The paths a script answers with, one per line.
     private static func paths(from script: String) throws -> [String] {
         let execution = AppleScript.execute(script)

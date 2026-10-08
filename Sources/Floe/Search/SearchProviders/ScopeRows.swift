@@ -12,7 +12,7 @@ extension RootItem {
     /// A scope's row stands for one thing found just now: it has no place among favorites or in the usage record.
     var isScopeResult: Bool {
         switch self {
-        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .webAddress: true
+        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .webAddress, .shell, .process: true
         default: false
         }
     }
@@ -24,6 +24,7 @@ extension RootItem {
         case let .clipboardEntry(entry): entry.sourceApp ?? entry.kind.rawValue.capitalized
         case let .menuBarItem(extra, name): extra.ownerName.isEmpty || extra.ownerName == name ? kind : extra.ownerName
         case let .browserTab(row): row.label
+        case let .process(process): Processes.label(for: process)
         default: kind
         }
     }

@@ -118,6 +118,8 @@ final class LauncherModel: ObservableObject {
     }
 
     let usage: UsageStore
+    /// What the shell rows reach outside the launcher through. Tests replace its parts.
+    var shell = ShellEnvironment()
     /// Where in the remembered searches the field stands, while the Up arrow walks back through them.
     var recalledQuery: Int?
     private let scanner: any CatalogScanning
@@ -374,6 +376,7 @@ final class LauncherModel: ObservableObject {
         context.favorites = settings.favorites
         context.hidden = Set(settings.hiddenResults.keys)
         context.emojiSkinTone = settings.emojiSkinTone
+        context.shell = settings.shell
         context.aliases = settings.aliases
         context.notesApp = settings.notesApp
         context.frecency = { [usage] in usage.frecency(of: $0) }
@@ -559,7 +562,7 @@ final class LauncherModel: ObservableObject {
             reset()
         case .emoji, .file, .clipboardEntry, .menuBarItem, .menuBarAccess:
             break
-        case .browserTab, .askAI, .webAddress:
+        case .browserTab, .askAI, .webAddress, .shell, .process:
             break
         }
     }

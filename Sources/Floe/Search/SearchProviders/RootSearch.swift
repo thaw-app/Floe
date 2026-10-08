@@ -13,6 +13,7 @@ enum RootSearch {
     /// a keyword hit above the calculator, the catalog before quicklinks when scores tie.
     static let providers: [any SearchProvider] = [
         EmojiSearchProvider(),
+        ShellCommandSearchProvider(),
         CalendarSearchProvider(),
         NoteSearchProvider(),
         CatalogSearchProvider(),

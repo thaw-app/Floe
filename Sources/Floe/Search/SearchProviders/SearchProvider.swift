@@ -16,6 +16,8 @@ struct SearchContext {
     /// Results the user took out of the search, by `RootItem.id`.
     var hidden: Set<String> = []
     var emojiSkinTone = EmojiSkinTone.none
+    /// How shell commands are treated. A context made by hand has them off, so a test of another provider sees none.
+    var shell = ShellSettings.off
     var aliases: [String: String] = [:]
     var notesApp = NotesApp.appleNotes
     var frecency: (String) -> Double = { _ in 0 }

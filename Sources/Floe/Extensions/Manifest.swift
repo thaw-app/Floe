@@ -240,6 +240,11 @@ enum RootItem: Identifiable {
     case sshHost(SSHHost, terminal: ResolvedApp?)
     /// A shortcut made in Apple's Shortcuts app; Return runs it there.
     case shortcut(AppleShortcut)
+    /// A command line: the one typed after the prefix, or one offered under it. With the terminal it may be handed to.
+    /// The typed one's id leaves the command out.
+    case shell(ShellRow, terminal: ResolvedApp?)
+    /// A running process, found by `kill` and a name; Return asks it to quit.
+    case process(RunningProcess)
 
     static let menuBarSearchKey = "builtin:menubar-search"
     static let emojiSearchKey = "builtin:emoji-search"
@@ -277,6 +282,8 @@ enum RootItem: Identifiable {
         case .webAddress: "web-address"
         case let .sshHost(host, _): host.id
         case let .shortcut(shortcut): shortcut.id
+        case let .shell(row, _): row.origin == .typed ? "shell-command" : "shell-suggestion:\(row.origin.rawValue):\(row.text)"
+        case let .process(process): "process:\(process.pid)"
         }
     }
 
@@ -316,6 +323,8 @@ enum RootItem: Identifiable {
         case let .webAddress(address): String(localized: "Open \(address.text)", bundle: .floe, comment: "The placeholder is a web address.")
         case let .sshHost(host, _): host.alias
         case let .shortcut(shortcut): shortcut.name
+        case let .process(process): process.name
+        case let .shell(row, _): row.origin == .typed ? String(localized: "Run \(row.text)", bundle: .floe, comment: "The placeholder is a shell command the user typed.") : row.text
         }
     }
 
@@ -355,7 +364,7 @@ enum RootItem: Identifiable {
         case let .system(command): "system:\(command.rawValue)"
         case .snippet: id
         case .settings, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
-        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress: nil
+        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process: nil
         }
     }
 
@@ -385,6 +394,8 @@ enum RootItem: Identifiable {
         case .askAI: String(localized: "AI", bundle: .floe, comment: "The kind of a result, shown beside its title. Short for artificial intelligence.")
         case .webAddress: String(localized: "Web Address", bundle: .floe)
         case .sshHost: "SSH"
+        case .process: String(localized: "Process", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a running program.")
+        case let .shell(row, _): row.origin.label
         case .shortcut: String(localized: "Shortcut", bundle: .floe, comment: "The kind of a result, shown beside its title. Here one made in Apple's Shortcuts app.")
         }
     }

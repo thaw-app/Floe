@@ -4,6 +4,17 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@ (code %d)" : {
+      "comment" : "The first placeholder is what a failed command printed, the second its exit code.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (code %2$d)"
+          }
+        }
+      }
+    },
     "%@ (default)" : {
       "comment" : "A row in the Open With menu. The placeholder is the name of the app that opens this kind of file by default.\nThe placeholder is the name of a browser."
     },
@@ -302,6 +313,8 @@
     "A follow-up in Ask AI sends the earlier questions and answers of that conversation again, to the same place. Floe keeps them in memory until the answer view closes and saves none of it." : {
       "comment" : "Ask AI is the name of the feature that answers a question in the launcher."
     },
+    "A search that starts with a program on this Mac and has a flag, a path or a pipe in it gets a Run row under the other results." : {},
+    "A search that starts with the prefix runs as a command in your shell, with everything your account may do. Nothing asks first." : {},
     "A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place." : {},
     "AI" : {
       "comment" : "The heading over the settings for artificial intelligence.\nThe kind of a result, shown beside its title. Short for artificial intelligence."
@@ -676,6 +689,9 @@
     "Compact" : {
       "comment" : "A launcher layout: only the search field until you type."
     },
+    "Complete" : {
+      "comment" : "A verb on a button: finish typing the command as the row has it.\nThe kind of a result, shown beside its title. Here a command that Tab or Return finishes typing."
+    },
     "Configure Extension…" : {},
     "Connect" : {
       "comment" : "A verb on a button: open an SSH connection to the host."
@@ -718,6 +734,7 @@
     "Copied Answer" : {},
     "Copied Path" : {},
     "Copied error details" : {},
+    "Copied the output" : {},
     "Copied. Press ⌘V to paste." : {},
     "Copies you make show up here." : {},
     "Copy" : {
@@ -726,11 +743,13 @@
     "Copy Address" : {},
     "Copy Answer" : {},
     "Copy Bundle Identifier" : {},
+    "Copy Command" : {},
     "Copy Details" : {},
     "Copy File" : {},
     "Copy Host Name" : {},
     "Copy Name" : {},
     "Copy Path" : {},
+    "Copy Process ID" : {},
     "Copy SSH Command" : {},
     "Copy the version, build and commit for a bug report" : {},
     "Copy version information" : {},
@@ -777,6 +796,9 @@
     },
     "Couldn't open the connection in %@" : {
       "comment" : "The placeholder is the name of a terminal app."
+    },
+    "Couldn't quit %@" : {
+      "comment" : "The placeholder is a program's name."
     },
     "Couldn't read the Finder selection" : {},
     "Couldn't save the note in Notes" : {
@@ -872,7 +894,7 @@
       }
     },
     "Done" : {
-      "comment" : "The button that closes the welcome window."
+      "comment" : "Said after a command finished and printed nothing.\nThe button that closes the welcome window."
     },
     "Done (script finished)" : {
       "comment" : "Shown briefly when a script finished and printed nothing.",
@@ -893,6 +915,7 @@
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
     "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {},
+    "Earlier commands from your shell's history, programs and paths appear under the command. Tab finishes the selected one. The history file is read on this Mac and nothing from it is kept." : {},
     "Edit" : {
       "comment" : "The title of the Edit menu in the menu bar."
     },
@@ -1004,6 +1027,7 @@
     "Find a menu bar item by name and open its menu. This is the one feature that needs Accessibility." : {},
     "Find an item in the menu bar and open its menu." : {},
     "Find the items in your menu bar and read their names." : {},
+    "Finder" : {},
     "Finds the shortcuts you made in the Shortcuts app by name and runs the one you pick. Floe asks the Shortcuts command line tool for the names each time the launcher opens. The list stays on this Mac and is not saved. Type “shortcuts” and a space to see them all." : {
       "comment" : "“shortcuts” is a word the user types. It is a command and stays in English."
     },
@@ -1050,7 +1074,9 @@
     "Follow Thaw's menu bar appearance" : {},
     "Follow-up questions" : {},
     "For an extension that handles private text, a source on this Mac keeps its questions here." : {},
-    "Force Quit" : {},
+    "Force Quit" : {
+      "comment" : "An action that ends a process at once."
+    },
     "Force Quit…" : {},
     "Force “%@” to quit?" : {
       "comment" : "The placeholder is an app's name."
@@ -1141,7 +1167,7 @@
     },
     "Hide from Search" : {},
     "History" : {
-      "comment" : "A label before the controls for the clipboard history."
+      "comment" : "The kind of a result, shown beside its title. Here a command the user ran before."
     },
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
@@ -1255,6 +1281,7 @@
     "Liquid Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
+    "Listening on the Port" : {},
     "Loading extensions…" : {},
     "Loading…" : {},
     "Lock Screen" : {
@@ -1340,7 +1367,7 @@
       "comment" : "Said after the sound was turned off."
     },
     "Name" : {
-      "comment" : "The label of the field for a name."
+      "comment" : "A text field's placeholder: the name to give a saved command.\nThe label of the field for a name."
     },
     "Network (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1386,6 +1413,7 @@
     "No menu bar items match" : {},
     "No open tabs match" : {},
     "No recent files" : {},
+    "No running process matches" : {},
     "No script commands yet. Scripts are executable files with @raycast metadata." : {},
     "No settings found" : {},
     "No settings match “%@”" : {
@@ -1428,6 +1456,7 @@
       "comment" : "The kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one."
     },
     "Nothing copied yet" : {},
+    "Nothing is listening on that port" : {},
     "Nothing matches" : {},
     "Notifications (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1509,6 +1538,20 @@
       "comment" : "The heading over the projects this app grew out of."
     },
     "Other…" : {},
+    "Output" : {
+      "comment" : "A button that runs a command and shows what it printed."
+    },
+    "PID %@ · %@" : {
+      "comment" : "PID is a process's number and stays as written. The second placeholder is an amount of memory, such as 120 MB.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "PID %1$@ · %2$@"
+          }
+        }
+      }
+    },
     "Paste" : {
       "comment" : "A button that pastes the selected entry.\nA verb: insert what is on the clipboard."
     },
@@ -1540,6 +1583,7 @@
       "comment" : "The heading over an extension's own settings."
     },
     "Preferred Apps" : {},
+    "Prefix" : {},
     "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
       "comment" : "The placeholder is a keyboard shortcut."
     },
@@ -1576,6 +1620,10 @@
         }
       }
     },
+    "Process" : {
+      "comment" : "The kind of a result, shown beside its title. Here a running program."
+    },
+    "Processes" : {},
     "Questions are answered by Apple Intelligence on this Mac. Nothing is sent anywhere." : {},
     "Questions go to %@, with your key, and nowhere else." : {
       "comment" : "The placeholder is the address of a server."
@@ -1616,6 +1664,7 @@
     "Recent" : {
       "comment" : "The heading over the menu bar items opened lately."
     },
+    "Recognize commands without the prefix" : {},
     "Record" : {
       "comment" : "Spoken for the button that starts recording a keyboard shortcut."
     },
@@ -1680,12 +1729,22 @@
     "Run" : {
       "comment" : "A verb on a button: run the shortcut or script."
     },
+    "Run %@" : {
+      "comment" : "The placeholder is a shell command the user typed."
+    },
     "Run %@?" : {
       "comment" : "The placeholder is the name of a script."
     },
     "Run Command" : {},
     "Run Raycast extensions" : {},
     "Run an extension command in Floe." : {},
+    "Run and Copy Output" : {},
+    "Run and Show Output" : {},
+    "Run in Finder’s Folder" : {},
+    "Run in Terminal" : {},
+    "Run shell commands from the search" : {},
+    "Running Processes" : {},
+    "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse." : {},
     "Runs on this Mac. Nothing is sent anywhere." : {},
     "Runtime" : {
       "comment" : "The program that runs extensions."
@@ -1696,7 +1755,12 @@
       "comment" : "A button that keeps the changes in a form."
     },
     "Save and Continue" : {},
+    "Save as Script Command…" : {},
     "Save clipboard history" : {},
+    "Save this command" : {},
+    "Saved %@" : {
+      "comment" : "Shown briefly after saving. The placeholder is the name the user gave."
+    },
     "Saved to Notes" : {
       "comment" : "Notes is Apple's notes app."
     },
@@ -1804,6 +1868,11 @@
         }
       }
     },
+    "Shell" : {
+      "comment" : "The kind of a result, shown beside its title. Here a command for the command line."
+    },
+    "Shell Commands" : {},
+    "Shell history" : {},
     "Shortcut" : {
       "comment" : "The kind of a result, shown beside its title. Here one made in Apple's Shortcuts app."
     },
@@ -1814,6 +1883,9 @@
       "comment" : "The placeholder is the name of an app."
     },
     "Show Again" : {},
+    "Show Examples for %@" : {
+      "comment" : "The placeholder is the name of a command-line program."
+    },
     "Show Extension in Finder" : {},
     "Show Floe" : {},
     "Show Floe (%@)" : {
@@ -1823,6 +1895,9 @@
       "comment" : "A command that opens the layout editor of the app Thaw."
     },
     "Show Log Files in Finder" : {},
+    "Show Manual for %@" : {
+      "comment" : "The placeholder is the name of a command-line program."
+    },
     "Show Welcome" : {},
     "Show in Dock" : {},
     "Show in Finder" : {},
@@ -1928,6 +2003,7 @@
     "Submenu" : {
       "comment" : "Stands in for a submenu's title when the extension gave none."
     },
+    "Suggest while typing a command" : {},
     "Suggestions" : {
       "comment" : "A section title above results Floe suggests."
     },
@@ -1948,7 +2024,7 @@
       "comment" : "A kind of unit, named in a calculator error."
     },
     "Terminal" : {
-      "comment" : "The kind of app that runs a shell, as the label of the picker that chooses one."
+      "comment" : "A button that opens a command in the terminal app.\nThe kind of app that runs a shell, as the label of the picker that chooses one."
     },
     "Text" : {
       "comment" : "A kind of copied thing."
@@ -2012,6 +2088,9 @@
     "The Finder isn't frontmost, so there is no Finder selection to read." : {},
     "The Finder selection couldn't be read." : {},
     "The clipboard link isn't a URL. Change it in Settings" : {},
+    "The command ended with code %d." : {
+      "comment" : "The placeholder is a number, a command's exit code."
+    },
     "The command failed with exit code %d." : {
       "comment" : "The placeholder is the number a command ended with."
     },
@@ -2151,6 +2230,7 @@
     "Turn on Save clipboard history in Settings to keep copies here." : {},
     "Type Shortcut" : {},
     "Type a snippet's keyword in any app and Floe replaces it with the snippet. Needs Accessibility. Password fields are skipped." : {},
+    "Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal." : {},
     "Type to find an app or a command, then press Return." : {},
     "Type “note” and then your text in the search to send it there." : {
       "comment" : "The word in quotation marks is typed as it is and stays in English."
@@ -2266,6 +2346,7 @@
       "comment" : "A label before the folder a file is in."
     },
     "Which extension commands have an item in the menu bar." : {},
+    "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept." : {},
     "Wi-Fi Off" : {},
     "Wi-Fi On" : {},
     "Width" : {
@@ -2494,6 +2575,9 @@
     "hide, hide other apps, hide others" : {
       "comment" : "Words that find the Hide Other Apps command, separated by commas."
     },
+    "history, completion, autocomplete, tab, suggestions, zsh history, programs, paths" : {
+      "comment" : "Words that find the Suggest while typing a command setting in the settings search, separated by commas."
+    },
     "history, searches, queries, recent, remember, forget, clear, up arrow" : {
       "comment" : "Words that find the Remember searches setting in the settings search, separated by commas."
     },
@@ -2609,6 +2693,9 @@
     "raycast, import, store, installed" : {
       "comment" : "Words that find the Include extensions installed in Raycast setting in the settings search, separated by commas."
     },
+    "recognize, detect, prefix, command, automatic, without prefix" : {
+      "comment" : "Words that find the Recognize commands without the prefix setting in the settings search, separated by commas."
+    },
     "registered" : {
       "comment" : "Words that find the symbol ®, separated by commas."
     },
@@ -2638,6 +2725,12 @@
     },
     "shape, rounded, capsule, pill, square, corners, search bar, input" : {
       "comment" : "Words that find the Search field shape setting in the settings search, separated by commas."
+    },
+    "shell, command, terminal, command line, run, prefix, script, bash, zsh" : {
+      "comment" : "Words that find the Run shell commands setting in the settings search, separated by commas."
+    },
+    "shell, command, terminal, history, processes, kill, port, finder" : {
+      "comment" : "Words that find the Shell Commands section of Privacy in the settings search, separated by commas."
     },
     "shortcuts, shortcut, shortcuts app, run, automation, source" : {
       "comment" : "Words that find the Apple Shortcuts setting in the settings search, separated by commas."
@@ -2781,6 +2874,7 @@
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
     },
     "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {},
+    "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept." : {},
     "↵ Open" : {},
     "⌘Y Quick Look" : {},
     "⌘⇧C Copy Path" : {},

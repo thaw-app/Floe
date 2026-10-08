@@ -158,11 +158,42 @@ struct RootView: View {
                         KeyCapView(text: "F")
                     }
                 }
+                ShellHintButtons(model: model, action: selected.shellAction)
                 ActionsButton(model: model) { $0.selectedRootItem.map($0.rootActions) ?? [] }
                 ShortcutHintButton(title: model.primaryActionTitle(for: selected)) { model.activate(selected) } hint: {
                     KeyCapView(systemImage: "return")
                 }
             }
+        }
+    }
+}
+
+/// The keys a row of the shell answers to besides Return, in the bottom bar.
+struct ShellHintButtons: View {
+    let model: LauncherModel
+    let action: ShellAction?
+
+    var body: some View {
+        switch action {
+        case let .run(command, terminal):
+            ShortcutHintButton(title: String(localized: "Output", bundle: .floe, comment: "A button that runs a command and shows what it printed.")) {
+                model.runShellCommand(command, terminal: terminal, showingOutput: true)
+            } hint: {
+                KeyCapView(text: "⌥")
+                KeyCapView(systemImage: "return")
+            }
+            ShortcutHintButton(title: String(localized: "Terminal", bundle: .floe, comment: "A button that opens a command in the terminal app.")) {
+                model.runShellCommand(command, terminal: terminal, inTerminal: true)
+            } hint: {
+                KeyCapView(text: "⌘")
+                KeyCapView(systemImage: "return")
+            }
+        case let .complete(row):
+            ShortcutHintButton(title: ShellAction.complete(row).title) { model.complete(with: row) } hint: {
+                KeyCapView(text: "⇥")
+            }
+        case .quit, nil:
+            EmptyView()
         }
     }
 }
@@ -312,6 +343,14 @@ struct RootIcon: View {
             SymbolTile(symbol: AskAI.symbol)
         case .webAddress:
             SymbolTile(symbol: "globe")
+        case let .shell(row, _):
+            SymbolTile(symbol: row.origin.symbol)
+        case let .process(process):
+            if let bundle = process.bundlePath {
+                AppIconView(path: bundle, size: 24)
+            } else {
+                SymbolTile(symbol: "gearshape.2")
+            }
         case let .sshHost(_, terminal):
             // The terminal's icon says where the connection opens.
             if let terminal {

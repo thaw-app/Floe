@@ -94,6 +94,7 @@ final class AppSettings: ObservableObject {
     @Published var aiOnThisMacOnly = false
     /// Whether a search that ended in something being opened is kept for the Up arrow to bring back.
     @Published var remembersSearches = true
+    @Published var shell = ShellSettings()
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
 
@@ -162,6 +163,7 @@ final class AppSettings: ObservableObject {
         var aiToolModels: [String: String]?
         var aiOnThisMacOnly: Bool?
         var remembersSearches: Bool?
+        var shell: ShellSettings?
         var aiSourceByExtension: [String: AISource]?
     }
 
@@ -293,6 +295,7 @@ final class AppSettings: ObservableObject {
         aiToolModels = stored.aiToolModels ?? [:]
         aiOnThisMacOnly = stored.aiOnThisMacOnly ?? aiOnThisMacOnly
         remembersSearches = stored.remembersSearches ?? true
+        shell = stored.shell ?? ShellSettings()
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
     }
 
@@ -343,6 +346,7 @@ final class AppSettings: ObservableObject {
             aiToolModels: aiToolModels,
             aiOnThisMacOnly: aiOnThisMacOnly,
             remembersSearches: remembersSearches,
+            shell: shell,
             aiSourceByExtension: aiSourceByExtension
         )
         if let data = try? JSONEncoder().encode(stored) {

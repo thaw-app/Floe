@@ -78,19 +78,16 @@ extension LauncherModel {
         if event.keyCode == 126, recallOlderQuery() {
             return true
         }
+        if event.keyCode == 48, flags.isEmpty, results.indices.contains(selection), case let .shell(row, _) = results[selection].item, row.origin != .typed {
+            complete(with: row)
+            return true
+        }
         if let delta = Shortcuts.navigationDelta(event.keyCode) {
             selection = max(0, min(selection + delta, results.count - 1))
             return true
         }
         switch event.keyCode {
-        case 36: if results.indices.contains(selection) {
-                let item = results[selection].item
-                if case let .emoji(entry) = item, flags == .command {
-                    copyEmojiResult(entry)
-                } else {
-                    activate(item)
-                }
-            }
+        case 36: activateSelection(flags)
         case 53: if query.isEmpty {
                 hidePanel()
             } else {
@@ -105,6 +102,19 @@ extension LauncherModel {
         default: return false
         }
         return true
+    }
+
+    /// Return on the selected result. With Command an emoji is copied, not pasted, and a shell command opens in a terminal.
+    private func activateSelection(_ flags: NSEvent.ModifierFlags) {
+        guard results.indices.contains(selection) else { return }
+        let item = results[selection].item
+        if case let .emoji(entry) = item, flags == .command {
+            copyEmojiResult(entry)
+        } else if case let .run(command, terminal) = item.shellAction, !flags.isEmpty {
+            runShellCommand(command, terminal: terminal, with: flags)
+        } else {
+            activate(item)
+        }
     }
 
     private func handleSessionKey(_ event: NSEvent, _ flags: NSEvent.ModifierFlags, _ session: ExtensionSession) -> Bool {

@@ -365,6 +365,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         privacy(
+            "shellCommands",
+            String(localized: "Shell Commands", bundle: .floe),
+            section: String(localized: "Shell Commands", bundle: .floe),
+            keywords: String(
+                localized: "shell, command, terminal, history, processes, kill, port, finder",
+                bundle: .floe,
+                comment: "Words that find the Shell Commands section of Privacy in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
             "remembersSearches",
             String(localized: "Remember searches", bundle: .floe),
             section: String(localized: "Search History", bundle: .floe),
@@ -446,6 +456,36 @@ extension SearchIndex {
                 localized: "emoji, skin tone, skin colour, skin color, hand, people",
                 bundle: .floe,
                 comment: "Words that find the Emoji skin tone setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "runsShellCommands",
+            String(localized: "Run shell commands from the search", bundle: .floe),
+            section: String(localized: "Shell Commands", bundle: .floe),
+            keywords: String(
+                localized: "shell, command, terminal, command line, run, prefix, script, bash, zsh",
+                bundle: .floe,
+                comment: "Words that find the Run shell commands setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "suggestsShellCommands",
+            String(localized: "Suggest while typing a command", bundle: .floe),
+            section: String(localized: "Shell Commands", bundle: .floe),
+            keywords: String(
+                localized: "history, completion, autocomplete, tab, suggestions, zsh history, programs, paths",
+                bundle: .floe,
+                comment: "Words that find the Suggest while typing a command setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "recognizesCommands",
+            String(localized: "Recognize commands without the prefix", bundle: .floe),
+            section: String(localized: "Shell Commands", bundle: .floe),
+            keywords: String(
+                localized: "recognize, detect, prefix, command, automatic, without prefix",
+                bundle: .floe,
+                comment: "Words that find the Recognize commands without the prefix setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .general(
