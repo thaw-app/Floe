@@ -52,6 +52,13 @@ final class Calculator: @unchecked Sendable {
         self.now = now
     }
 
+    /// Gives the calculator its exchange rates, by currency code against one base currency, or takes them away
+    /// with an empty table. The answer remembered from before is forgotten: it may have been "no rates".
+    func setExchangeRates(_ rates: [String: Double]) {
+        lock.withLock { context?.setExchangeRates(rates) }
+        rememberedLock.withLock { remembered = nil }
+    }
+
     /// Evaluates the query for live preview in the search launcher.
     /// Returns `nil` if the query does not appear to be a calculation request or if it fails evaluation.
     /// Returns `CalculationPreview(result: "", error: ...)` for incomplete expressions, invalid unit conversions, or timeouts so the calculator block stays visible.
@@ -103,6 +110,10 @@ final class Calculator: @unchecked Sendable {
         CalculationPreview(result: "", error: String(localized: "Calculation timed out", bundle: .floe, comment: "Shown in place of a calculator result that would take too long."))
     }
 
+    /// An empty preview that took at least this long was interrupted by fend's 200 ms limit rather
+    /// than empty: the fallback is skipped, so one keystroke costs one limit and never two.
+    private static let interruptedPreviewFloor: Duration = .milliseconds(150)
+
     private func computePreview(_ query: String) -> CalculationPreview? {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
@@ -141,10 +152,17 @@ final class Calculator: @unchecked Sendable {
             }
         }
 
-        // Try evaluating with fend preview
+        // Try evaluating with fend preview. A preview that comes back empty after running as long as
+        // fend's own time limit (200 ms; see FendCore's TIME_LIMIT) was cut off, not empty: the
+        // whole-answer fallback would pay the same limit again on the main thread and end the same way.
+        let clock = ContinuousClock()
+        let previewStarted = clock.now
         let res = context.preview(normalized)
         if !res.isEmpty {
             return Self.shown(res.spans, for: exprToEvaluate)
+        }
+        if clock.now - previewStarted >= Self.interruptedPreviewFloor {
+            return Self.timedOut
         }
 
         // Some preview calls return empty value for valid queries (e.g. 10^50), try evaluate as fallback
@@ -158,7 +176,7 @@ final class Calculator: @unchecked Sendable {
         }
         // And the sentence it refuses money with: it has no rates to convert by.
         if case .failure(FendError.evaluationFailed("exchange rates are not available")) = evaluated {
-            return CalculationPreview(error: String(localized: "Floe has no exchange rates yet, so it cannot convert money.", bundle: .floe, comment: "A calculator error."))
+            return CalculationPreview(error: String(localized: "To convert money, switch on exchange rates in Settings, Privacy.", bundle: .floe, comment: "A calculator error."))
         }
 
         // Check if query is an invalid unit conversion

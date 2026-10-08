@@ -16,6 +16,7 @@ import { dispatchEvent, render, toError } from "./renderer";
 import { NavigationRoot, commandDrewItself, handleToastAction } from "./api/index";
 import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
+import { lineSplitter } from "./lines";
 
 const log = (...parts: unknown[]) =>
   process.stderr.write(parts.map((part) => (typeof part === "string" ? part : Bun.inspect(part))).join(" ") + "\n");
@@ -61,15 +62,19 @@ for (const signal of ["SIGTERM", "SIGINT", "SIGHUP"] as const) {
   });
 }
 
-let buffered = "";
-process.stdin.on("data", (chunk: Buffer) => {
-  buffered += chunk.toString("utf8");
-  let newline: number;
-  while ((newline = buffered.indexOf("\n")) >= 0) {
-    const line = buffered.slice(0, newline);
-    buffered = buffered.slice(newline + 1);
-    if (!line.trim()) continue;
-    const message = JSON.parse(line);
+process.stdin.on(
+  "data",
+  lineSplitter((line) => {
+    if (!line.trim()) return;
+    let message: Record<string, any>;
+    try {
+      message = JSON.parse(line);
+    } catch (error) {
+      // The app is the only writer and always sends whole lines; a stray byte is logged and
+      // skipped rather than taking the whole command down with it.
+      log("unreadable message:", line.slice(0, 200), error);
+      return;
+    }
     if (message.type === "event") dispatchEvent(message.id, message.prop, message.args ?? []);
     else if (message.type === "pop") handlePop();
     else if (message.type === "popToRoot") handlePopToRoot();
@@ -78,8 +83,8 @@ process.stdin.on("data", (chunk: Buffer) => {
     else if (message.type === "toastAction") handleToastAction(message.id, message.which);
     // The app's watchdog: a host stuck in synchronous code cannot answer.
     else if (message.type === "ping") send({ type: "pong" });
-  }
-});
+  }),
+);
 process.stdin.on("end", () => process.exit(0));
 
 const launchProps = {

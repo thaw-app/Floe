@@ -7,90 +7,106 @@ The `release.yml` workflow reads the section matching the release tag
 (`## [tag]`) and uses it as the release notes for both the GitHub Release
 and the Sparkle appcast, unless overridden with the `release_notes` input.
 
-## [Unreleased]
+## [0.1.0]
 
-**macOS 26 and later · First release**
+**macOS 26 and later · Build 1**
 
-Please report issues at [github.com/thaw-app/Floe/issues](https://github.com/thaw-app/Floe/issues).
+Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens things in the apps you already use. This is the first release, and it is early: the [README](https://github.com/thaw-app/Floe#not-built-yet) lists what is not built yet. Report issues at [github.com/thaw-app/Floe/issues](https://github.com/thaw-app/Floe/issues).
 
-Floe is a launcher for macOS that runs Raycast extensions unmodified and hands work to the apps you already use. This is the first release. It is early: the list of what is not built yet is in the [README](https://github.com/thaw-app/Floe#not-built-yet).
+### New: search
+
+- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each.
+- **Scattered letters match.** The letters that matched show in a stronger weight.
+- **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Favorites stay at the top.
+- **Scopes narrow a search to one place:** `files invoice`, `clipboard meeting`, `menu wifi`, `tabs invoice`.
+- **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions.
+
+### New: results and actions
+
+- **An Actions menu (⌘K)** on applications and files: hide, quit, restart, force quit, show in Finder, open with, copy, move to Trash.
+- **Hide from Search** takes an application or a command out of the search. Settings > General lists what is hidden and brings it back.
+- **The Up arrow brings back earlier searches:** the last 50 that opened something. Settings > Privacy turns this off and forgets them.
+- **Optional search sources.** Files and open browser tabs (Safari, Dia, Helium) add up to three rows to a search. Both are off until you turn them on in Privacy.
+- **`Floe --pick` lends the search panel to a script.** It reads lines on standard input and prints the one you choose.
+
+### New: shell commands
+
+- **Type `>` and a command to run it.** Return runs it in the background and shows the first line of output. Settings > General changes the prefix to `$` or `!`, or turns this off.
+- **Other ways to run it.** ⌘Return opens it in your terminal, ⌥Return shows everything it printed, and ⇧Return runs it in the Finder folder in front.
+- **Suggestions while you type:** earlier commands from your shell history, programs, paths, application names after `open -a` and hosts after `ssh`. Tab finishes the selected one.
+- **A command works without the prefix** when it starts with a program on your Mac and has a flag, a path or a pipe in it. It is offered under the other results.
+- **Save a command under a name** and the search finds it afterwards. `man` and a program's name opens its manual.
+
+### New: processes and ports
+
+- **`kill` and a name lists the running processes that match**, with the memory each one holds. Return asks one to quit. Force Quit asks first.
+- **`port` and a number lists what is listening there.**
+
+### New: extensions
+
+- **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
+- **An Extension Store page** browses, installs and updates extensions.
+- **Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
+- **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch.
+- **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
+
+### New: extension settings
+
+- **Turn off an extension, or one of its commands**, on its page in Settings. Floe leaves what is off out of the search, and a hotkey, the menu bar or Shortcuts will not run it.
+- **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension Floe installed.
+
+### New: built in
+
+- **Clipboard history, snippets with text expansion, and quicklinks** with fallback searches.
+- **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy.
+- **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > General.
+- **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard.
+- **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too.
+
+### New: your own apps
+
+- **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. Open With sends one link to another browser.
+- **`note` and some text** goes to Apple Notes, Antinote, or any app with a URL scheme.
+- **A preferred clipboard app.** Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies of its own.
+- **SSH hosts.** The hosts in `~/.ssh/config` are in the search, and `ssh` and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.
+- **Apple Shortcuts**, once turned on in Settings > Privacy. Return runs one in the background. If it fails, Floe shows the reason Shortcuts gave.
+
+### New: AI
+
+- **Ask AI.** Type `ask` and a question, or pick the Ask AI row under any search. The answer shows in the launcher, with who answered and whether it stayed on your Mac.
+- **Follow-up questions** keep the earlier ones as context. The conversation ends when the view closes, and no history is kept.
+- **Three kinds of source:** a command line tool you are already signed in to (`claude`, `codex`, `opencode` or `pi`), Apple Intelligence, or an OpenAI-compatible API (OpenAI, OpenRouter, Z.ai, Ollama, LM Studio).
+- **A switch keeps all AI on your Mac.** One extension can have a source of its own. No source falls back to another.
+
+### New: with Thaw
+
+- **Thaw 3's actions are in the search** when Thaw is installed: the hidden sections, swap, Zen Mode, the Thaw Bar, the layout and the application menus.
+- **The launcher can follow Thaw's menu bar appearance:** its tint, glass, border and shadow.
+
+### New: appearance and settings
+
+- **Thaw 3's glass styles, a tint, a border and a shadow** for the launcher.
+- **A compact layout** shows only the search bar until you type.
+- **The search field can float** as its own piece of glass, with the results in a second piece below it.
+- **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
+- **What's New and detailed logging.** What's New, in About, shows these notes in the app. Detailed logging is off by default and writes to `~/Library/Logs/Floe`. It never logs what you type or ask.
 
 ### What's next
 
 - Sign-in (OAuth) for extensions. They use a token preference until then.
 - `launchCommand`, deeplinks, AI tools and the grid layout for extensions.
-- Currency conversion, searching your notes and searching an app's menus.
-
----
-
-### Features
-
-#### Search
-
-- One hotkey opens a search over applications, extension commands, script commands, quicklinks and System Settings panes, ranked by how often and how recently each is used.
-- Scattered letters match, graded by word starts and runs, and the matched letters are drawn in a stronger weight.
-- Aliases and hotkeys for applications, commands and the menu bar search. Favorites stay at the top.
-- Hide from Search, in a result's actions, takes an application or a command out of the search. Settings, General lists what is hidden and brings it back.
-- A running application can be hidden, quit, restarted or forced to quit from its actions.
-- A search that starts with `>` is a shell command: Return runs it out of sight in your login shell and shows its first line of output, Command-Return opens it in your terminal. Settings, General changes the prefix to `$` or `!`, or switches this off. A command typed without the prefix is recognized when it starts with a program on this Mac and has a flag, a path or a pipe in it, and is offered under the other results. Save as Script Command, in the row's actions, keeps one under a name the search finds. While a command is typed, earlier commands from the shell's history, programs and paths are offered under it, and Tab finishes the selected one. Option-Return runs a command and shows everything it printed in a window. Shift-Return runs it in the folder of the Finder window in front. `man` and a program's name opens its manual as plain text. After `open -a` application names are finished, and after `ssh` the hosts of your SSH configuration.
-- `kill` and a name lists the running processes that match, with what each holds in memory: Return asks one to quit, and Force Quit is in its actions. `port` and a number lists what is listening there.
-- The Up arrow in an empty search brings back the search before, and the ones before that: the last 50 that ended in something being opened, calculations among them. Settings, Privacy switches this off and forgets them.
-- Scopes narrow a search to one place: `files invoice`, `clipboard meeting`, `menu wifi`, `tabs invoice`.
-- Optional search sources, off until turned on in Privacy: files and open browser tabs (Safari, Dia, Helium) add up to three rows to an ordinary search.
-- An Actions menu (⌘K) on applications and files: quit, force quit, show in Finder, open with, copy, move to Trash.
-- A web address or a path typed in full leads the results: `github.com/thaw-app` opens in the browser, and `~/Downloads` or `/Applications` is the folder or file itself, with the file actions.
-- `Floe --pick` lends the search panel to any script: it reads lines on standard input and prints the one chosen.
-
-#### Extensions
-
-- Raycast extensions run unmodified on a Bun runtime inside the app, including the ones Raycast has already installed.
-- Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work. Passwords go in the Keychain.
-- An Extension Store page browses, installs and updates extensions.
-- An extension can be switched off as a whole, and each of its commands by itself, on its page in Settings. What is off is left out of the search and is not run by a hotkey, the menu bar or Shortcuts. The page has one line for each command, with its alias, hotkey and switch, says how many commands are on, takes a picture of your own as the extension's icon, and removes an extension Floe installed.
-- Menu bar commands are added to the menu bar by hand, from the search or from Settings. None starts on its own at launch.
-- When a command throws, crashes or hangs, Floe shows the log and lets you run it again.
-
-#### Built in
-
-- Clipboard history, snippets with text expansion, quicklinks with fallback searches, emoji and symbols, file search, calendar events, and a calculator with unit conversion.
-- Hands and people among the emoji are shown and pasted in the skin tone chosen in Settings, General.
-- Menu bar item search lists the menu bar's items and opens their menus from the keyboard.
-- System commands (sleep, lock, empty Trash, volume up and down, eject all disks) and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake.
-- System Settings panes open from the search, with the icons System Settings shows.
-
-#### Your own apps
-
-- Preferred apps: a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in the ones already in use, web links open in the browser you choose (Open With in the Actions menu sends one link to another), and `note` followed by text goes to Apple Notes, Antinote, or any app with a URL scheme.
-- A preferred clipboard app: with a clipboard manager chosen, Clipboard History opens it (Raycast by name, any other app, or a link), and Floe saves no copies of its own.
-- SSH hosts: the hosts named in `~/.ssh/config` and the files it includes are found in the search, and `ssh` followed by a space lists them. Return opens the connection in the preferred terminal. Floe reads the names and keeps nothing.
-- Apple Shortcuts: once switched on in Settings, Privacy, the shortcuts you made in the Shortcuts app are found in the search by name, and `shortcuts` followed by a space lists them. Return runs one in the background; if it fails, Floe shows the reason Shortcuts gave. Making and editing them stays in Shortcuts.
-
-#### AI
-
-- Ask AI: `ask` and a question, or the Ask AI row under any search, shows the answer in the launcher, with a line that says who answered and whether it stayed on the Mac. A follow-up typed above the answer is asked with the earlier questions and answers as context. The conversation lasts until the view closes: no history is kept.
-- AI sources: a command line tool you are already signed in to (`claude`, `codex`, `opencode` or `pi`), so accounts and keys set up there are not entered again; Apple Intelligence on the Mac; or an OpenAI-compatible API (OpenAI, OpenRouter, Z.ai, Ollama, LM Studio).
-- A switch keeps all AI on the Mac, and one extension can be pinned to a source of its own. No source ever falls back to another.
-
-#### With Thaw
-
-- Thaw 3's actions are in the search when Thaw is installed: the hidden sections, swap, Zen Mode, the Thaw Bar, the layout and the application menus.
-- The launcher can follow Thaw's menu bar appearance: its tint, glass, border and shadow.
-
-#### Appearance and settings
-
-- Thaw 3's glass styles, a tint, a border and a shadow for the launcher, and a compact layout that is only the search bar until you type.
-- The search field can float as its own piece of glass, with the results in a second piece below it.
-- A Privacy page with the permissions and their reasons, the search sources, and everything Floe contacts over the network.
-- What’s New, in the About page’s menu, shows these release notes in the app.
-- Detailed logging, off by default, writes a log to `~/Library/Logs/Floe` for troubleshooting. What is typed or asked is never logged.
+- Searching your notes and searching an app's menus.
 
 ### Contributors
 
-- Floe is built by René Jiménez (@diazdesandi).
-- Owen Cope (@OwenCope) wrote the built-in search features, the extension APIs behind them and the Extension Store ([#6](https://github.com/thaw-app/Floe/pull/6)).
-- Floe shares ThawUI and much of its design with Thaw, which René builds with Toni Förster (@stonerl), Amir Zarrinkafsh (@nightah) and the Thaw contributors.
-- Jordy Spruit, for letting Floe use code from Droppy Code.
-- @unsecretised, for the first bug report ([#3](https://github.com/thaw-app/Floe/issues/3)).
-- Everyone who starred the repository and offered to help before there was anything to download.
+- Owen Cope (@OwenCope): the built-in search features, the extension APIs behind them and the Extension Store ([#6](https://github.com/thaw-app/Floe/pull/6)).
+- @lylythechosenone: the calculator built on fend ([#7](https://github.com/thaw-app/Floe/pull/7)).
+- @unsecretised: the first bug report ([#3](https://github.com/thaw-app/Floe/issues/3)).
 
-Thank you. This release would not exist without you.
+### Acknowledgements
+
+- [fend](https://github.com/printfn/fend) by printfn is the calculator's engine.
+- Code from [Droppy Code](https://getdroppycode.app) by Jordy Spruit is used with his permission.
+- Extensions are written for the [Raycast extensions](https://github.com/raycast/extensions) API. Raycast is a trademark of Raycast Technologies Inc.; Floe is not affiliated with Raycast.
+- Exchange rates are the European Central Bank's euro foreign exchange reference rates.
+- [Credits](https://github.com/thaw-app/Floe/blob/main/CREDITS.md) lists every package Floe ships with.

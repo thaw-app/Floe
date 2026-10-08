@@ -89,6 +89,10 @@ struct PrivacySettingsPane: View {
                 row("Extension Store", String(localized: "Opening the Extension Store lists extensions from GitHub. Installing or updating one downloads it from GitHub and its packages from the npm registry.", bundle: .floe))
                 row("AI", PrivacyNetwork.aiLine(source: settings.aiSource, baseURL: settings.aiBaseURL, tool: AskAI.configuredTool(settings), onThisMacOnly: settings.aiOnThisMacOnly))
                 row("Follow-up questions", String(localized: "A follow-up in Ask AI sends the earlier questions and answers of that conversation again, to the same place. Floe keeps them in memory until the answer view closes and saves none of it.", bundle: .floe, comment: "Ask AI is the name of the feature that answers a question in the launcher."))
+                Toggle(isOn: $settings.fetchesExchangeRates) {
+                    Text("Download exchange rates")
+                    Text(PrivacyNetwork.exchangeRatesLine(held: ExchangeRateStore.load()?.date))
+                }
                 Toggle(isOn: $settings.aiOnThisMacOnly) {
                     Text("Only use AI that runs on this Mac")
                     Text("A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place.")
@@ -120,6 +124,15 @@ struct PrivacySettingsPane: View {
             Text(title)
             Text(detail).font(.callout).foregroundStyle(ThawInk.supporting)
         }
+    }
+}
+
+extension PrivacyNetwork {
+    /// What the switch for exchange rates says: what is asked of whom and how often, and the day of the rates held.
+    static func exchangeRatesLine(held date: String?) -> String {
+        let what = String(localized: "The calculator converts money with the European Central Bank’s daily rates. Floe downloads the bank’s public file when the rates it holds are half a day old, and sends nothing about you or what you typed. Off, nothing is asked for and the rates are removed.", bundle: .floe)
+        guard let date else { return what }
+        return what + " " + String(localized: "Floe holds the rates of \(date).", bundle: .floe, comment: "The placeholder is a date as the bank writes it, such as 2026-10-07.")
     }
 }
 

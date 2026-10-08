@@ -61,6 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationDidFinishLaunching(_: Notification) {
         Log.follow(settings).store(in: &cancellables)
+        settings.$fetchesExchangeRates.removeDuplicates()
+            .sink { ExchangeRateUpdater.shared.set(on: $0) }
+            .store(in: &cancellables)
         NSApp.setActivationPolicy(settings.showInDock ? .regular : .accessory)
 
         panel = LauncherPanel(size: model.panelState.windowSize(in: settings.launcherLayout))
@@ -219,6 +222,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         backgroundScheduler?.stopAll()
         settingsLink.terminate()
         ClipboardHistoryStore.flushShared()
+        UsageStore.shared.flush()
     }
 
     private func toggle() {

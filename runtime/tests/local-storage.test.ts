@@ -92,6 +92,31 @@ describe("LocalStorage", () => {
         expect(onDisk()).toEqual({ fromView: 1, fromBackground: 2, later: 3 });
     });
 
+    test("processes saving at the same moment lose none of each other's keys", async () => {
+        const writer = path.join(import.meta.dir, "storage-writer.ts");
+        const writers = ["view", "background", "menu", "extra"].map((prefix) => Bun.spawn(["bun", writer, file, prefix, "40"], { stdout: "ignore", stderr: "inherit" }));
+        expect(await Promise.all(writers.map((process) => process.exited))).toEqual([0, 0, 0, 0]);
+        expect(Object.keys(onDisk()).length).toBe(160);
+        expect(fs.existsSync(`${file}.lock`)).toBe(false);
+    }, 30000);
+
+    test("a lock left by a process that died is taken, and a fresh one is waited out", async () => {
+        const storage = createLocalStorage(() => file);
+        await storage.setItem("first", 1);
+        fs.writeFileSync(`${file}.lock`, "");
+        const long = new Date(Date.now() - 60_000);
+        fs.utimesSync(`${file}.lock`, long, long);
+        await storage.setItem("afterStale", 2);
+        expect(onDisk()).toEqual({ first: 1, afterStale: 2 });
+
+        fs.writeFileSync(`${file}.lock`, "");
+        const started = Date.now();
+        await storage.setItem("afterHeld", 3);
+        expect(Date.now() - started).toBeGreaterThanOrEqual(1900);
+        expect(onDisk()).toEqual({ first: 1, afterStale: 2, afterHeld: 3 });
+        fs.unlinkSync(`${file}.lock`);
+    }, 15000);
+
     test("removing a key that is not there writes nothing", async () => {
         const storage = createLocalStorage(() => file);
         await storage.setItem("a", 1);

@@ -328,6 +328,8 @@ struct UsageStoreTests {
         store.recordUse(of: "settings")
         store.recordUse(of: "settings")
         store.recordUse(of: "command:hello/planets")
+        // Uses are written down per burst, so a restart sees them once the burst is flushed.
+        store.flush()
 
         let reloaded = makeStore()
         #expect(reloaded.records["settings"]?.count == 2)

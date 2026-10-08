@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
 import Foundation
 
 /// Something an extension asks the app for and waits on: the host sends `request` with an id, a
@@ -27,7 +28,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
         switch self {
         case .oauthAuthorize, .oauthGetTokens, .oauthSetTokens, .oauthRemoveTokens:
             true
-        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead:
+        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication:
             false
         }
     }
@@ -38,9 +39,18 @@ nonisolated enum HostRequest: Sendable, Equatable {
     case selectedFinderItems
     /// `Clipboard.read`: the pasteboard as text, HTML and file.
     case clipboardRead
+    /// `getFrontmostApplication`: the app the user is in, as name, path and bundle id.
+    case frontmostApplication
+    /// `getDefaultApplication`: the app that would open the file at a path.
+    case defaultApplication(path: String)
 
     /// Nil for a method the app doesn't know, or one whose parameters are missing.
     init?(method: String, params: [String: Any]) {
+        if method.hasPrefix("environment.") {
+            guard let environment = Self.environmentRequest(method: method, params: params) else { return nil }
+            self = environment
+            return
+        }
         switch method {
         case "ai.ask":
             guard let prompt = params["prompt"] as? String else { return nil }
@@ -76,6 +86,19 @@ nonisolated enum HostRequest: Sendable, Equatable {
         }
     }
 
+    /// The `environment.*` methods, apart from the rest so the main switch stays readable.
+    private static func environmentRequest(method: String, params: [String: Any]) -> HostRequest? {
+        switch method {
+        case "environment.frontmostApplication":
+            return .frontmostApplication
+        case "environment.getDefaultApplication":
+            guard let path = params["path"] as? String else { return nil }
+            return .defaultApplication(path: path)
+        default:
+            return nil
+        }
+    }
+
     /// Answers a request with the real system: the user's settings, the login shell's environment
     /// and the installed tools. Text that arrives before the whole answer goes to `emit`.
     @concurrent @Sendable
@@ -95,7 +118,38 @@ nonisolated enum HostRequest: Sendable, Equatable {
             return try await MainActor.run { try FinderSelection.current() }
         case .clipboardRead:
             return await MainActor.run { PasteboardContent.read() }
+        case .frontmostApplication:
+            return await MainActor.run { Self.frontmostApplication() } as Any
+        case let .defaultApplication(path):
+            return await MainActor.run { Self.defaultApplication(forFileAt: path) } as Any
         }
+    }
+
+    /// The frontmost app as the API's Application: name, path and bundle id. Nil when nothing is
+    /// in front or it has no bundle, which the caller answers with its own stand-in.
+    @MainActor
+    private static func frontmostApplication() -> [String: String]? {
+        guard let app = NSWorkspace.shared.frontmostApplication, let url = app.bundleURL else { return nil }
+        var application: [String: String] = [
+            "name": app.localizedName ?? url.deletingPathExtension().lastPathComponent,
+            "path": url.path,
+        ]
+        if let bundleId = app.bundleIdentifier {
+            application["bundleId"] = bundleId
+        }
+        return application
+    }
+
+    /// The app the system would open the file with. Nil when it names none, which the caller
+    /// answers with the Finder, as the system itself does.
+    @MainActor
+    private static func defaultApplication(forFileAt path: String) -> [String: String]? {
+        let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+        guard let app = NSWorkspace.shared.urlForApplication(toOpen: url) else { return nil }
+        return [
+            "name": app.deletingPathExtension().lastPathComponent,
+            "path": app.path,
+        ]
     }
 }
 

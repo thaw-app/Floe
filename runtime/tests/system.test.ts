@@ -207,9 +207,20 @@ describe("window and system", () => {
     expect(tool.commands()[0][0]).toBe("mdfind");
   });
 
-  test("the default and frontmost application are Finder for now", async () => {
-    expect(await api.getDefaultApplication("/tmp/file.txt")).toMatchObject({ name: "Finder", bundleId: "com.apple.finder" });
-    expect(await api.getFrontmostApplication()).toMatchObject({ name: "Finder" });
+  test("the default and frontmost application come from the app, Finder when it names none", async () => {
+    const frontmost = api.getFrontmostApplication();
+    expect(sent("request")[0]).toMatchObject({ method: "environment.frontmostApplication" });
+    handleReply({ id: sent("request")[0].id, result: { name: "Ghostty", path: "/Applications/Ghostty.app", bundleId: "com.mitchellh.ghostty" } });
+    await expect(frontmost).resolves.toMatchObject({ name: "Ghostty", bundleId: "com.mitchellh.ghostty" });
+
+    const nothing = api.getFrontmostApplication();
+    handleReply({ id: sent("request")[1].id, result: null });
+    await expect(nothing).resolves.toMatchObject({ name: "Finder" });
+
+    const opener = api.getDefaultApplication("/tmp/file.txt");
+    expect(sent("request")[2]).toMatchObject({ method: "environment.getDefaultApplication", params: { path: "/tmp/file.txt" } });
+    handleReply({ id: sent("request")[2].id, result: null });
+    await expect(opener).resolves.toMatchObject({ name: "Finder", bundleId: "com.apple.finder" });
   });
 
   test("the selected text and Finder selection come from the app", async () => {

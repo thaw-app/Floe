@@ -21,6 +21,10 @@ void fend_context_free(FendContext* _Nullable ctx);
 /// Reset variables and state in the given context.
 void fend_context_reset(FendContext* _Nonnull ctx);
 
+/// Give the context its exchange rates: `count` currency codes and, beside each, how much of it one unit of
+/// the base currency buys. The base currency is in the list with a rate of 1. A count of 0 takes them away.
+void fend_context_set_exchange_rates(FendContext* _Nonnull ctx, const char* _Nullable const* _Nullable codes, const double* _Nullable rates, size_t count);
+
 /// Serialize variables from the context into a buffer.
 /// If `buffer` is NULL, returns the number of bytes required.
 /// Returns negative value on failure.

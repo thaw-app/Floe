@@ -58,8 +58,24 @@ cd runtime && bun install && cd ..
 
 - OAuth sign-in for extensions. They use a token preference for now.
 - `launchCommand`, deeplinks, AI tools, the grid layout, and Swift or Rust helpers in extensions.
-- Currency conversion, searching your notes, searching an app's menus, and AI chat.
-- Settings sync.
+- Searching your notes, searching an app's menus, and AI chat.
+- iCloud integration, the same as Thaw's.
+
+## Roadmap
+
+What we plan to work on next, in this order. The order can change.
+
+1. Documentation, and Floe's section on the Thaw website. It starts with a guide for extension authors: how to run a local extension in Floe, what works and what does not.
+2. OAuth sign-in for extensions.
+3. The grid layout, `launchCommand` and deeplinks.
+4. A fuzzy file finder with its own index.
+5. iCloud integration, the same as Thaw's.
+
+Later: a small `@floe/api` package for what Raycast's API cannot express, searching an app's menus, searching your notes, and calculator history.
+
+Window management is not under consideration unless it becomes a requested feature. There are many window managers already, and Floe can work with them instead of recreating one.
+
+We are open to considering every request during our early releases. [Open an issue](https://github.com/thaw-app/Floe/issues) to ask for something.
 
 ## Contributing
 

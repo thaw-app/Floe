@@ -385,6 +385,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         privacy(
+            "fetchesExchangeRates",
+            String(localized: "Download exchange rates", bundle: .floe),
+            section: String(localized: "Network Access", bundle: .floe),
+            keywords: String(
+                localized: "currency, money, exchange rates, convert, dollars, euros, european central bank, calculator",
+                bundle: .floe,
+                comment: "Words that find the Download exchange rates setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
             "aiOnThisMacOnly",
             String(localized: "Only use AI that runs on this Mac", bundle: .floe),
             section: String(localized: "Network Access", bundle: .floe),

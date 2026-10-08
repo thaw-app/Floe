@@ -65,6 +65,7 @@
 		3FEBFBEC7FD0A3FC09F83008 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1CDECF95DB884EAAC7235D6 /* Session.swift */; };
 		42ABC86938BDC18422CC1047 /* ClipboardHistoryWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1383B6A0B9756FA63F7C530 /* ClipboardHistoryWorker.swift */; };
 		42FFD7AD94DBADD232B7E4DB /* IconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07471C2EA57FA7FD58ABB95C /* IconView.swift */; };
+		43F17B98BA614FECDEE76F41 /* ExchangeRates.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F0E8A487C104CE55B6B8CE /* ExchangeRates.swift */; };
 		48306D1D79917D03EAA4F57A /* SearchPanelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442606CB5ED8AC44669CA4D4 /* SearchPanelStyle.swift */; };
 		48347EBF42AD598EA81D8285 /* SystemStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C178B96CB145E8FEA3F3778 /* SystemStores.swift */; };
 		4902891941C787A1667EB50E /* SearchBench.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066BDD252E1518F183DFBD42 /* SearchBench.swift */; };
@@ -444,6 +445,7 @@
 		BE0AE17795FC335EFF92ADDD /* ProcessLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessLink.swift; sourceTree = "<group>"; };
 		C0D0CD81D8D94FE9134AF130 /* MenuBarCommandsSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarCommandsSettingsSection.swift; sourceTree = "<group>"; };
 		C1B83CE1B17D83A1AC6396FF /* HotkeyRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyRecorder.swift; sourceTree = "<group>"; };
+		C1F0E8A487C104CE55B6B8CE /* ExchangeRates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRates.swift; sourceTree = "<group>"; };
 		C2E2C5C29CB5FB6EA6176046 /* IncomingURLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingURLRouter.swift; sourceTree = "<group>"; };
 		C71DBBF84C644A103F04FB66 /* ReadingPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingPage.swift; sourceTree = "<group>"; };
 		C79E1E2A29B7742FF154E618 /* TypedLocationSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypedLocationSearchProvider.swift; sourceTree = "<group>"; };
@@ -637,6 +639,7 @@
 				3E273FBD36E3C7B1016D6E96 /* ClipboardHistoryView.swift */,
 				F1383B6A0B9756FA63F7C530 /* ClipboardHistoryWorker.swift */,
 				7BACDBEF9B0113F5AD2F9866 /* Emoji.swift */,
+				C1F0E8A487C104CE55B6B8CE /* ExchangeRates.swift */,
 				69E8E3E3826ED3A89F5B30E3 /* FileSearch.swift */,
 				2E17F7D69F39146CD5157F46 /* FileSearchModel.swift */,
 				2D1677EB1C22495EA2049A1A /* FileSearchView.swift */,
@@ -1136,6 +1139,7 @@
 				78089551521EC8A3D75F61F6 /* DirectoryWatcher.swift in Sources */,
 				AD7D516AA066DF894A612E04 /* Emoji.swift in Sources */,
 				F7A2E028912AD04F9BA46052 /* ErrorView.swift in Sources */,
+				43F17B98BA614FECDEE76F41 /* ExchangeRates.swift in Sources */,
 				B0394ED7B2F6B9D812AF3EE0 /* ExtensionAISource.swift in Sources */,
 				F79ECEE81B269EF3999DF3DA /* ExtensionListViews.swift in Sources */,
 				B1D4EE76DC76E637D007B610 /* ExtensionSettingsView.swift in Sources */,

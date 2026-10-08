@@ -134,6 +134,17 @@ struct ExtensionStoreTests {
         #expect(failure?.message != "Clone failed: Unknown error")
     }
 
+    @Test func whatIsRecordedAtInstallIsWhatAnUpdateCheckCompares() {
+        let answer = Data(#"[{"sha":"folder-newest","commit":{}},{"sha":"folder-older"}]"#.utf8)
+        #expect(ExtensionStore.newestCommit(in: answer) == "folder-newest")
+        #expect(ExtensionStore.newestCommit(in: Data("[]".utf8)) == nil)
+        #expect(ExtensionStore.newestCommit(in: Data(#"{"message":"API rate limit exceeded"}"#.utf8)) == nil)
+        #expect(ExtensionStore.newestCommit(in: Data("not json".utf8)) == nil)
+
+        #expect(ExtensionStore.revisionToRecord(folderCommit: "folder-newest", repositoryCommit: "repo-head") == "folder-newest", "the folder's commit, which is what the check asks GitHub for")
+        #expect(ExtensionStore.revisionToRecord(folderCommit: nil, repositoryCommit: "repo-head") == "repo-head", "GitHub could not say: an update is offered once too often, never missed")
+    }
+
     @MainActor @Test func anExtensionThatWasNeverInstalledIsNotInstalledAndHasNoUpdate() async {
         let store = ExtensionStore()
         let name = "floe-tests-\(UUID().uuidString)"

@@ -35,6 +35,12 @@ struct HostRequestTests {
         #expect(HostRequest(method: "oauth.authorize", params: ["prompt": "why?"]) == nil)
     }
 
+    @Test func environmentQuestionsAreRequests() {
+        #expect(HostRequest(method: "environment.frontmostApplication", params: [:]) == .frontmostApplication)
+        #expect(HostRequest(method: "environment.getDefaultApplication", params: ["path": "/tmp/notes.txt"]) == .defaultApplication(path: "/tmp/notes.txt"))
+        #expect(HostRequest(method: "environment.getDefaultApplication", params: [:]) == nil)
+    }
+
     @Test func claudeAnswersWhenItIsInstalled() {
         #expect(AIEngine.resolve(model: nil, which: installed("claude", "codex")) == .claude(executable: claude, model: nil))
         #expect(AIEngine.resolve(model: "Anthropic_Claude_Opus", which: installed("claude")) == .claude(executable: claude, model: "opus"))

@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import Synchronization
 
 enum Palette {
     static func color(_ value: Any?) -> Color? {
@@ -53,6 +54,19 @@ struct IconView: View {
         "Tag": "tag", "Text": "text.alignleft", "List": "list.bullet", "Play": "play.fill", "Pause": "pause.fill",
     ]
 
+    /// What the system has been asked about a symbol name. The probe makes an NSImage, which a row's
+    /// every redraw should not repeat, and whether a name exists never changes while the app runs.
+    private static let probedSymbols = Mutex<[String: Bool]>([:])
+
+    private static func isValidSymbol(_ name: String) -> Bool {
+        if let known = probedSymbols.withLock({ $0[name] }) {
+            return known
+        }
+        let valid = NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil
+        probedSymbols.withLock { $0[name] = valid }
+        return valid
+    }
+
     @Environment(\.colorScheme) private var colorScheme
 
     private func resolve(_ value: Any?) -> Resolved {
@@ -72,7 +86,7 @@ struct IconView: View {
             // Raycast names are CamelCase (ArrowUpCircle); most map onto SF Symbols as arrow.up.circle.
             let dotted = name.replacing(#/([a-z0-9])([A-Z])/#) { "\($0.1).\($0.2)" }.lowercased()
             let candidates = [Self.symbols[name], dotted, name.lowercased()].compactMap(\.self)
-            let symbol = candidates.first { NSImage(systemSymbolName: $0, accessibilityDescription: nil) != nil }
+            let symbol = candidates.first { Self.isValidSymbol($0) }
             return .symbol(symbol ?? "square.dashed")
         }
         if string.hasPrefix("http"), let url = URL(string: string) {

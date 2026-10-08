@@ -93,7 +93,9 @@ nonisolated extension AppEntry {
             let entries = (try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []
             return entries.filter { $0.hasSuffix(".app") }.map { entry in
                 let url = URL(fileURLWithPath: folder).appendingPathComponent(entry)
-                return AppEntry(name: FileManager.default.displayName(atPath: url.path).replacingOccurrences(of: ".app", with: ""), url: url)
+                let shown = FileManager.default.displayName(atPath: url.path)
+                // Only a trailing ".app" goes: one in the middle of a name is part of it, as "Foo.app Maker" keeps.
+                return AppEntry(name: shown.hasSuffix(".app") ? String(shown.dropLast(4)) : shown, url: url)
             }
         }
         // Safari lives in the cryptex and shows up again in /Applications; one entry per app name.

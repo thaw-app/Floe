@@ -1,16 +1,47 @@
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::panic::catch_unwind;
 use std::ptr;
 use std::slice;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
-use fend_core::{Context, Interrupt};
+use fend_core::{Context, ExchangeRateFnV2, ExchangeRateFnV2Options, Interrupt};
 
 /// How long one evaluation may run. The launcher evaluates on every keystroke and waits for the answer.
 const TIME_LIMIT: Duration = Duration::from_millis(200);
 
 pub struct FendContext {
     inner: Context,
+    /// The exchange rates the app handed over, kept so a reset does not lose them.
+    rates: Option<Arc<HashMap<String, f64>>>,
+}
+
+/// Exchange rates by currency code: how much of the currency one unit of the base currency buys.
+/// They are answered from memory, so a preview at every keystroke may ask.
+struct Rates(Arc<HashMap<String, f64>>);
+
+impl ExchangeRateFnV2 for Rates {
+    fn relative_to_base_currency(
+        &self,
+        currency: &str,
+        _options: &ExchangeRateFnV2Options,
+    ) -> Result<f64, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        self.0
+            .get(currency)
+            .copied()
+            .ok_or_else(|| format!("there is no exchange rate for {currency}").into())
+    }
+}
+
+impl FendContext {
+    fn with_rates(rates: Option<Arc<HashMap<String, f64>>>) -> Self {
+        let mut inner = Context::new();
+        if let Some(rates) = &rates {
+            inner.set_exchange_rate_handler_v2(Rates(Arc::clone(rates)));
+        }
+        Self { inner, rates }
+    }
 }
 
 #[repr(C)]
@@ -79,9 +110,7 @@ impl Interrupt for Deadline {
 #[no_mangle]
 pub extern "C" fn fend_context_new() -> *mut FendContext {
     let result = catch_unwind(|| {
-        Box::into_raw(Box::new(FendContext {
-            inner: Context::new(),
-        }))
+        Box::into_raw(Box::new(FendContext::with_rates(None)))
     });
     result.unwrap_or(ptr::null_mut())
 }
@@ -99,9 +128,43 @@ pub unsafe extern "C" fn fend_context_free(ctx: *mut FendContext) {
 pub unsafe extern "C" fn fend_context_reset(ctx: *mut FendContext) {
     if let Some(ctx) = ctx.as_mut() {
         let _ = catch_unwind(std::panic::AssertUnwindSafe(|| {
-            ctx.inner = Context::new();
+            *ctx = FendContext::with_rates(ctx.rates.take());
         }));
     }
+}
+
+/// Gives the context its exchange rates: `count` currency codes and, beside each, how much of it one unit of
+/// the base currency buys. The base currency is in the list with a rate of 1. A count of 0 takes them away.
+/// Variables are kept. A code that is not text, or a rate that is not a positive number, is left out.
+#[no_mangle]
+pub unsafe extern "C" fn fend_context_set_exchange_rates(
+    ctx: *mut FendContext,
+    codes: *const *const c_char,
+    rates: *const f64,
+    count: usize,
+) {
+    let _ = catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let Some(ctx) = ctx.as_mut() else { return };
+        let mut table = HashMap::new();
+        if !codes.is_null() && !rates.is_null() {
+            for index in 0..count {
+                let code = *codes.add(index);
+                let rate = *rates.add(index);
+                if code.is_null() || !rate.is_finite() || rate <= 0.0 {
+                    continue;
+                }
+                if let Ok(code) = CStr::from_ptr(code).to_str() {
+                    table.insert(code.to_owned(), rate);
+                }
+            }
+        }
+        let mut variables = Vec::new();
+        let kept = ctx.inner.serialize_variables(&mut variables).is_ok();
+        *ctx = FendContext::with_rates(if table.is_empty() { None } else { Some(Arc::new(table)) });
+        if kept {
+            let _ = ctx.inner.deserialize_variables(&mut variables.as_slice());
+        }
+    }));
 }
 
 #[no_mangle]
@@ -418,6 +481,46 @@ mod tests {
             assert_eq!(fend_result_get_span_kind(res, 0), FendSpanKind::Number);
 
             fend_result_free(res);
+            fend_context_free(ctx);
+        }
+    }
+
+    unsafe fn value(ctx: *mut FendContext, query: &str, preview: bool) -> Result<String, String> {
+        let query = CString::new(query).unwrap();
+        let res = if preview { fend_evaluate_preview(ctx, query.as_ptr()) } else { fend_evaluate(ctx, query.as_ptr()) };
+        let answer = if fend_result_is_ok(res) {
+            Ok(CStr::from_ptr(fend_result_get_value(res)).to_str().unwrap().to_owned())
+        } else {
+            Err(CStr::from_ptr(fend_result_get_error(res)).to_str().unwrap().to_owned())
+        };
+        fend_result_free(res);
+        answer
+    }
+
+    #[test]
+    fn test_exchange_rates_convert_money_and_outlast_a_reset() {
+        unsafe {
+            let ctx = fend_context_new();
+            assert!(value(ctx, "10 EUR to USD", false).unwrap_err().contains("exchange rates"));
+
+            let codes = [CString::new("EUR").unwrap(), CString::new("USD").unwrap(), CString::new("JPY").unwrap(), CString::new("BAD").unwrap()];
+            let pointers: Vec<*const c_char> = codes.iter().map(|code| code.as_ptr()).collect();
+            let rates = [1.0, 1.25, 160.0, -3.0];
+            fend_context_set_exchange_rates(ctx, pointers.as_ptr(), rates.as_ptr(), rates.len());
+
+            assert_eq!(value(ctx, "10 EUR to USD", false).unwrap(), "12.5 USD");
+            assert_eq!(value(ctx, "10 EUR to USD", true).unwrap(), "12.5 USD", "a preview is answered from memory too");
+            assert_eq!(value(ctx, "320 JPY to USD", false).unwrap(), "2.5 USD", "through the base currency");
+            assert!(value(ctx, "1 EUR to GBP", false).unwrap_err().contains("GBP"), "a currency with no rate says which");
+
+            fend_context_reset(ctx);
+            assert_eq!(value(ctx, "10 EUR to USD", false).unwrap(), "12.5 USD");
+
+            assert_eq!(value(ctx, "x = 4", false).unwrap(), "4");
+            fend_context_set_exchange_rates(ctx, ptr::null(), ptr::null(), 0);
+            assert!(value(ctx, "10 EUR to USD", false).is_err(), "taken away again");
+            assert_eq!(value(ctx, "x + 1", false).unwrap(), "5", "variables are kept across a change of rates");
+
             fend_context_free(ctx);
         }
     }

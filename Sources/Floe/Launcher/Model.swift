@@ -7,6 +7,7 @@
 
 import AppKit
 import ApplicationServices
+import Combine
 
 final class LauncherModel: ObservableObject {
     @Published var query = "" {
@@ -109,12 +110,42 @@ final class LauncherModel: ObservableObject {
     private let sourceSearch = SourceSearch()
 
     let settings: AppSettings
-    /// How the terminal and the editor are looked up. Tests replace it, so they do not read this Mac's apps.
-    var appLookup = AppLookup.system
+    /// How the terminal and the editor are looked up. Tests replace it, so they do not read this Mac's apps;
+    /// replacing it also drops what the roles resolved to, the way a changed choice does.
+    var appLookup = AppLookup.system {
+        didSet { invalidateResolvedApps() }
+    }
+
+    /// What `preferredApps` and `resolvedClipboardDestination` resolved last. Both reach LaunchServices,
+    /// which no keystroke should: the search reads them resolved once, until `invalidateResolvedApps()`.
+    private var cachedPreferredApps: [RoleApp]?
+    private var cachedClipboardDestination: ClipboardDestination?
+    private var cancellables: Set<AnyCancellable> = []
     var clipboardOpener = ClipboardOpener.system
     var linkOpener = LinkOpener.system
     var preferredApps: [RoleApp] {
-        PreferredApps.apps(choice: settings.appChoice, installed: appLookup)
+        if let cached = cachedPreferredApps {
+            return cached
+        }
+        let resolved = PreferredApps.apps(choice: settings.appChoice, installed: appLookup)
+        cachedPreferredApps = resolved
+        return resolved
+    }
+
+    /// Where the Clipboard History command goes, resolved the same once-per-change way as `preferredApps`.
+    var resolvedClipboardDestination: ClipboardDestination {
+        if let cached = cachedClipboardDestination {
+            return cached
+        }
+        let resolved = settings.clipboardDestination(installed: appLookup)
+        cachedClipboardDestination = resolved
+        return resolved
+    }
+
+    /// Drops what the roles resolved to: a choice changed, an app folder did, or a test put its own lookup in.
+    func invalidateResolvedApps() {
+        cachedPreferredApps = nil
+        cachedClipboardDestination = nil
     }
 
     let usage: UsageStore
@@ -201,6 +232,15 @@ final class LauncherModel: ObservableObject {
         connectModes()
         EmojiCatalog.preload()
         CalendarAgenda.shared.onChange = { [weak self] in self?.refresh() }
+        // The roles' apps and the clipboard destination are cached for the search (see `preferredApps`);
+        // a change to one of the choices drops the cache, and so does an app folder that changed (see `finishApps`).
+        for drop in [
+            settings.$terminalApp.mapVoid(), settings.$editorApp.mapVoid(), settings.$browserApp.mapVoid(),
+            settings.$clipboardHandler.mapVoid(), settings.$clipboardApp.mapVoid(), settings.$clipboardURL.mapVoid(),
+        ] {
+            drop.sink { [weak self] _ in self?.invalidateResolvedApps() }
+                .store(in: &cancellables)
+        }
         refresh()
     }
 
@@ -296,6 +336,8 @@ final class LauncherModel: ObservableObject {
         hasLoadedApps = true
         isLoadingCatalog = !hasLoadedApps || !hasLoadedCommands || !hasLoadedScripts
         apps = newApps
+        // What is installed decides the roles' fallbacks, so a change resolves them again.
+        invalidateResolvedApps()
         Log.catalog.info("Applications scanned: \(newApps.count)")
         refresh()
     }
@@ -765,6 +807,7 @@ final class LauncherModel: ObservableObject {
         reloadShortcuts()
         // A grant made in System Settings with no request from Floe is noticed here.
         menuBarSearch.warm()
+        ExchangeRateUpdater.shared.refreshIfStale()
     }
 
     /// Runs the command that failed again, with the same arguments.
@@ -852,5 +895,12 @@ final class LauncherModel: ObservableObject {
         }
         return NSWorkspace.shared.urlForApplication(withBundleIdentifier: application)
             ?? apps.first { $0.name.caseInsensitiveCompare(application) == .orderedSame }?.url
+    }
+}
+
+private extension Published.Publisher {
+    /// The changes only, not the value: what a cache drop listens for.
+    func mapVoid() -> AnyPublisher<Void, Never> {
+        map { _ in }.eraseToAnyPublisher()
     }
 }

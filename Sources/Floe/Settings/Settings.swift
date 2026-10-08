@@ -95,6 +95,8 @@ final class AppSettings: ObservableObject {
     /// Whether a search that ended in something being opened is kept for the Up arrow to bring back.
     @Published var remembersSearches = true
     @Published var shell = ShellSettings()
+    /// Whether the calculator may download the European Central Bank's exchange rates. Off until the user says so.
+    @Published var fetchesExchangeRates = false
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
 
@@ -164,6 +166,7 @@ final class AppSettings: ObservableObject {
         var aiOnThisMacOnly: Bool?
         var remembersSearches: Bool?
         var shell: ShellSettings?
+        var fetchesExchangeRates: Bool?
         var aiSourceByExtension: [String: AISource]?
     }
 
@@ -296,6 +299,7 @@ final class AppSettings: ObservableObject {
         aiOnThisMacOnly = stored.aiOnThisMacOnly ?? aiOnThisMacOnly
         remembersSearches = stored.remembersSearches ?? true
         shell = stored.shell ?? ShellSettings()
+        fetchesExchangeRates = stored.fetchesExchangeRates ?? false
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
     }
 
@@ -347,6 +351,7 @@ final class AppSettings: ObservableObject {
             aiOnThisMacOnly: aiOnThisMacOnly,
             remembersSearches: remembersSearches,
             shell: shell,
+            fetchesExchangeRates: fetchesExchangeRates,
             aiSourceByExtension: aiSourceByExtension
         )
         if let data = try? JSONEncoder().encode(stored) {
@@ -402,13 +407,24 @@ final class UsageStore {
     static let queryLimit = 50
     private static let defaultsKey = "usage"
     private static let queriesKey = "queries"
+    /// How long a burst of uses is gathered before the map is written once.
+    static let saveDelay: TimeInterval = 1
     private let defaults: UserDefaults
     private let now: () -> Date
+    /// Runs a deferred save. `later` is injectable so a test can run the timer by hand.
+    private let later: (TimeInterval, DispatchWorkItem) -> Void
+    /// The save waiting for its timer. Nil once it has run or been flushed.
+    private var pendingSave: DispatchWorkItem?
 
     /// `now` is injectable so ranking by recency can be tested against a fixed clock.
-    init(defaults: UserDefaults = .standard, now: @escaping () -> Date = Date.init) {
+    init(
+        defaults: UserDefaults = .standard,
+        now: @escaping () -> Date = Date.init,
+        later: @escaping (TimeInterval, DispatchWorkItem) -> Void = { DispatchQueue.main.asyncAfter(deadline: .now() + $0, execute: $1) }
+    ) {
         self.defaults = defaults
         self.now = now
+        self.later = later
         records = defaults.data(forKey: Self.defaultsKey)
             .flatMap { try? JSONDecoder().decode([String: Record].self, from: $0) } ?? [:]
     }
@@ -428,11 +444,24 @@ final class UsageStore {
         defaults.removeObject(forKey: Self.queriesKey)
     }
 
+    /// Counts the use at once and writes it down later, in one save per burst: recording what was
+    /// opened no longer encodes the whole map and carries it through the defaults server at the
+    /// very moment the panel is giving way to an app. A burst restarts the timer, so uses keep joining it.
     func recordUse(of id: String) {
         var record = records[id] ?? Record(count: 0, lastUsed: .distantPast)
         record.count += 1
         record.lastUsed = now()
         records[id] = record
+        pendingSave?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.flush() }
+        pendingSave = work
+        later(Self.saveDelay, work)
+    }
+
+    /// Writes what has not been saved yet: when the burst's timer runs out, and when the app quits.
+    func flush() {
+        pendingSave?.cancel()
+        pendingSave = nil
         if let data = try? JSONEncoder().encode(records) {
             defaults.set(data, forKey: Self.defaultsKey)
         }

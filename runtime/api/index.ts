@@ -335,8 +335,17 @@ export function showInFinder(target: string): Promise<void> {
 }
 export function trash(paths: string | string[]): Promise<void> {
   for (const file of [paths].flat()) {
-    const destination = path.join(process.env.HOME ?? "", ".Trash", `${path.basename(file)}`);
-    fs.renameSync(file, fs.existsSync(destination) ? `${destination} ${Date.now()}` : destination);
+    const destination = path.join(process.env.HOME ?? "", ".Trash", path.basename(file));
+    const target = fs.existsSync(destination) ? `${destination} ${Date.now()}` : destination;
+    try {
+      // On the same volume a rename lands in the Trash at once.
+      fs.renameSync(file, target);
+    } catch {
+      // Across volumes a rename cannot work, so the item is copied and the original removed.
+      // Finder's put-back is lost either way; the item still lands in the Trash.
+      fs.cpSync(file, target, { recursive: true });
+      fs.rmSync(file, { recursive: true, force: true });
+    }
   }
   return done;
 }
@@ -397,11 +406,13 @@ export function getApplications(_path?: string): Promise<Application[]> {
   return Promise.resolve(applications);
 }
 const finder: Application = { name: "Finder", path: "/System/Library/CoreServices/Finder.app", bundleId: "com.apple.finder" };
-export function getDefaultApplication(_path: string): Promise<Application> {
-  return Promise.resolve(finder);
+// The app knows what is in front and what opens a file; before it answers, or with nothing to name,
+// the Finder stands in, as the system itself does.
+export async function getDefaultApplication(path: string): Promise<Application> {
+  return (await request<Application | null>("environment.getDefaultApplication", { path })) ?? finder;
 }
-export function getFrontmostApplication(): Promise<Application> {
-  return Promise.resolve(finder);
+export async function getFrontmostApplication(): Promise<Application> {
+  return (await request<Application | null>("environment.frontmostApplication")) ?? finder;
 }
 
 // Storage

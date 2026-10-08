@@ -20,6 +20,10 @@ else
 fi
 cd "$REPO_ROOT"
 
+# The oldest macOS the app runs on, as project.yml has it. Without this the C parts of a crate are built
+# for the macOS of the machine that builds them, and the linker warns on every one.
+export MACOSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET:-26.0}"
+
 say() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 
 # Locate cargo

@@ -28,6 +28,20 @@ public final class FendContext: @unchecked Sendable {
         fend_context_reset(ptr)
     }
 
+    /// Gives the context its exchange rates, by currency code: how much of each one unit of the base currency buys,
+    /// the base currency among them at 1. An empty table takes them away. Variables are kept.
+    public func setExchangeRates(_ rates: [String: Double]) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let ptr = rawPointer else { return }
+        let codes = rates.keys.sorted()
+        let values = codes.map { rates[$0] ?? 0 }
+        let texts = codes.map { strdup($0) }
+        defer { texts.forEach { free($0) } }
+        let pointers = texts.map { UnsafePointer<CChar>($0) }
+        fend_context_set_exchange_rates(ptr, pointers, values, codes.count)
+    }
+
     /// Evaluate an expression and mutate context state (e.g. variable assignments).
     /// Returns the evaluation result containing the formatted text and syntactic spans.
     /// Throws `FendError.evaluationFailed` if the expression syntax or calculation is invalid.

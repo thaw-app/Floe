@@ -77,7 +77,7 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         case let .oauthRemoveTokens(providerId):
             deleteTokens(extensionName: extensionName, providerId: providerId)
             return NSNull()
-        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead:
+        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication:
             throw OAuthError.unknownRequest
         }
     }

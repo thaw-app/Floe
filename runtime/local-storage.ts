@@ -24,6 +24,44 @@ export const storagePersistence = {
             return undefined;
         }
     },
+    /// Holds the file for one read, change and write. Two processes of an extension, its view and a background
+    /// run, may both save at once: each would read the same items and the later write would drop the earlier key.
+    /// The lock is a file made only if it is not there. One left by a process that died is taken after five
+    /// seconds, and a holder that takes two is not waited for: saving late is better than not saving.
+    locked<T>(file: string, work: () => T): T {
+        const lock = `${file}.lock`;
+        const deadline = Date.now() + 2000;
+        let held = false;
+        while (!held) {
+            try {
+                fs.closeSync(fs.openSync(lock, "wx"));
+                held = true;
+            } catch (error) {
+                // Anything but "it is there" is the write's to report: a folder that is missing, a disk that is full.
+                if ((error as NodeJS.ErrnoException).code !== "EEXIST") break;
+                try {
+                    if (Date.now() - fs.statSync(lock).mtimeMs > 5000) {
+                        fs.unlinkSync(lock);
+                        continue;
+                    }
+                } catch {
+                    // Released between the two calls: ask again.
+                    continue;
+                }
+                if (Date.now() >= deadline) break;
+                Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2);
+            }
+        }
+        try {
+            return work();
+        } finally {
+            if (held) {
+                try {
+                    fs.unlinkSync(lock);
+                } catch {}
+            }
+        }
+    },
     keepAside(file: string) {
         fs.renameSync(file, `${file}.unreadable-${Date.now()}`);
     },
@@ -75,23 +113,25 @@ export function createLocalStorage(file: () => string) {
             return Promise.resolve(load()[key] as T | undefined);
         },
         setItem(key: string, value: unknown): Promise<void> {
-            return writing(() => save({ ...load(), [key]: value }));
+            return writing(() => storagePersistence.locked(file(), () => save({ ...load(), [key]: value })));
         },
         removeItem(key: string): Promise<void> {
-            return writing(() => {
-                const items = load();
-                if (!(key in items)) return;
-                const rest = { ...items };
-                delete rest[key];
-                save(rest);
-            });
+            return writing(() =>
+                storagePersistence.locked(file(), () => {
+                    const items = load();
+                    if (!(key in items)) return;
+                    const rest = { ...items };
+                    delete rest[key];
+                    save(rest);
+                }),
+            );
         },
         allItems<T = Items>(): Promise<T> {
             // A copy: what the caller does to it must not reach the next read.
             return Promise.resolve({ ...load() } as T);
         },
         clear(): Promise<void> {
-            return writing(() => save({}));
+            return writing(() => storagePersistence.locked(file(), () => save({})));
         },
     };
 }

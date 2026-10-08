@@ -705,7 +705,7 @@ struct CalculatorTests {
     @Test func moneyIsRefusedInSoManyWords() {
         let preview = calculator.evaluatePreview("10 usd to eur")
         #expect(preview?.result == "")
-        #expect(preview?.error == "Floe has no exchange rates yet, so it cannot convert money.")
+        #expect(preview?.error == "To convert money, switch on exchange rates in Settings, Privacy.")
     }
 
     @Test(arguments: ["4k", "4 K", "8k", "7 eleven", "20 twenty", "9 nine nine"])

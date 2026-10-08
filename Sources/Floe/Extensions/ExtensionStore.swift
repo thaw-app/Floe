@@ -114,7 +114,8 @@ final class ExtensionStore: ObservableObject {
             let fetched = try await Self.fetchExtensionCopy(name: name)
             defer { try? FileManager.default.removeItem(at: fetched.workDir) }
             try await Self.runBunInstall(in: fetched.extensionDir)
-            try Self.swapIn(name: name, staged: fetched.extensionDir, commit: fetched.commit)
+            let folderCommit = await latestCommit(touching: name, askingAgain: true)
+            try Self.swapIn(name: name, staged: fetched.extensionDir, commit: Self.revisionToRecord(folderCommit: folderCommit, repositoryCommit: fetched.commit))
             onInstalled()
         } catch let failure as StoreFailure {
             self.error = failure.message
@@ -132,7 +133,8 @@ final class ExtensionStore: ObservableObject {
             let fetched = try await Self.fetchExtensionCopy(name: name)
             defer { try? FileManager.default.removeItem(at: fetched.workDir) }
             try await Self.runBunInstall(in: fetched.extensionDir)
-            try Self.swapIn(name: name, staged: fetched.extensionDir, commit: fetched.commit)
+            let folderCommit = await latestCommit(touching: name, askingAgain: true)
+            try Self.swapIn(name: name, staged: fetched.extensionDir, commit: Self.revisionToRecord(folderCommit: folderCommit, repositoryCommit: fetched.commit))
             try? FileManager.default.removeItem(at: fetched.workDir)
             onInstalled()
         } catch let failure as StoreFailure {
@@ -160,20 +162,34 @@ final class ExtensionStore: ObservableObject {
 
     func hasUpdate(_ name: String) async -> Bool {
         guard isInstalled(name), let recorded = Self.recordedCommit(for: name) else { return false }
-        if let cached = latestShaCache[name] {
-            return cached != recorded
+        guard let latest = await latestCommit(touching: name) else { return false }
+        return latest != recorded
+    }
+
+    /// The newest commit that changed the extension's folder: what an install records and what an update check
+    /// compares, so the two are the same kind of thing. The repository's own newest commit is neither: it moves
+    /// with every change to any extension. Nil when GitHub cannot be asked.
+    private func latestCommit(touching name: String, askingAgain: Bool = false) async -> String? {
+        if !askingAgain, let cached = latestShaCache[name] {
+            return cached
         }
-        guard let url = URL(string: "\(Self.repoAPI)/commits?path=extensions/\(name)&per_page=1") else { return false }
-        do {
-            let request = Self.apiRequest(url: url)
-            let (data, _) = try await URLSession.shared.data(for: request)
-            guard let commits = try JSONSerialization.jsonObject(with: data) as? [[String: Any]],
-                  let sha = commits.first?["sha"] as? String else { return false }
-            latestShaCache[name] = sha
-            return sha != recorded
-        } catch {
-            return false
-        }
+        guard let url = URL(string: "\(Self.repoAPI)/commits?path=extensions/\(name)&per_page=1"),
+              let (data, _) = try? await URLSession.shared.data(for: Self.apiRequest(url: url)),
+              let sha = Self.newestCommit(in: data) else { return nil }
+        latestShaCache[name] = sha
+        return sha
+    }
+
+    /// The first commit in GitHub's answer to "the commits of this path", which lists the newest first.
+    static nonisolated func newestCommit(in data: Data) -> String? {
+        let commits = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]]
+        return commits?.first?["sha"] as? String
+    }
+
+    /// What to record for an installed copy: the newest commit of its folder, or the repository's when GitHub
+    /// could not say. With the second an update is offered once more than it should be, and never missed.
+    static nonisolated func revisionToRecord(folderCommit: String?, repositoryCommit: String) -> String {
+        folderCommit ?? repositoryCommit
     }
 
     // MARK: - Catalog fetching

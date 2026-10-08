@@ -909,6 +909,7 @@
       }
     },
     "Download and install updates automatically" : {},
+    "Download exchange rates" : {},
     "Draw a border" : {},
     "Drop shadow" : {},
     "Dynamic Glass" : {
@@ -1037,8 +1038,8 @@
     "Floe Settings" : {},
     "Floe can't answer that request." : {},
     "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {},
-    "Floe has no exchange rates yet, so it cannot convert money." : {
-      "comment" : "A calculator error."
+    "Floe holds the rates of %@." : {
+      "comment" : "The placeholder is a date as the bank writes it, such as 2026-10-07."
     },
     "Floe isn't running yet. Open Floe and try again." : {},
     "Floe lists the items apps put in the menu bar." : {},
@@ -2087,6 +2088,7 @@
     "The API set up in General" : {},
     "The Finder isn't frontmost, so there is no Finder selection to read." : {},
     "The Finder selection couldn't be read." : {},
+    "The calculator converts money with the European Central Bank’s daily rates. Floe downloads the bank’s public file when the rates it holds are half a day old, and sends nothing about you or what you typed. Off, nothing is asked for and the rates are removed." : {},
     "The clipboard link isn't a URL. Change it in Settings" : {},
     "The command ended with code %d." : {
       "comment" : "The placeholder is a number, a command's exit code."
@@ -2144,6 +2146,9 @@
     "Tint, border and shadow for the launcher panel." : {},
     "Tip" : {
       "comment" : "The heading of a tip in the release notes."
+    },
+    "To convert money, switch on exchange rates in Settings, Privacy." : {
+      "comment" : "A calculator error."
     },
     "Today" : {
       "comment" : "The heading over what was copied today."
@@ -2475,6 +2480,9 @@
     },
     "cross, x, no, wrong, delete" : {
       "comment" : "Words that find the symbol ❌, separated by commas."
+    },
+    "currency, money, exchange rates, convert, dollars, euros, european central bank, calculator" : {
+      "comment" : "Words that find the Download exchange rates setting in the settings search, separated by commas."
     },
     "dark mode, light mode, accent color, liquid glass" : {
       "comment" : "Words that find the Appearance pane of System Settings, separated by commas."
