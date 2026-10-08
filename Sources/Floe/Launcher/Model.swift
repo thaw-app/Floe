@@ -151,6 +151,14 @@ final class LauncherModel: ObservableObject {
     let usage: UsageStore
     /// What the shell rows reach outside the launcher through. Tests replace its parts.
     var shell = ShellEnvironment()
+    /// Where receipts are kept. Tests give one of their own.
+    var receipts = ReceiptStore.shared
+    var checkpointStore = CheckpointStore.shared
+    var checkpointing = CheckpointEnvironment()
+    var reminding = ReminderEnvironment()
+    var scheduling = EventEnvironment()
+    /// The saved checkpoints, read when the launcher opens and when one is saved or deleted.
+    var checkpoints: [Checkpoint] = []
     /// Where in the remembered searches the field stands, while the Up arrow walks back through them.
     var recalledQuery: Int?
     private let scanner: any CatalogScanning
@@ -419,6 +427,8 @@ final class LauncherModel: ObservableObject {
         context.hidden = Set(settings.hiddenResults.keys)
         context.emojiSkinTone = settings.emojiSkinTone
         context.shell = settings.shell
+        context.checkpoints = checkpoints
+        context.reminderLists = context.trimmed.lowercased().hasPrefix(ReminderDraft.keyword + " ") ? reminding.lists() : []
         context.aliases = settings.aliases
         context.notesApp = settings.notesApp
         context.frecency = { [usage] in usage.frecency(of: $0) }
@@ -563,11 +573,7 @@ final class LauncherModel: ObservableObject {
         case let .note(action, text):
             hidePanel()
             reset()
-            Notes.perform(action, text: text, app: settings.notesApp, template: settings.notesURLTemplate) { [weak self] message in
-                if let message {
-                    self?.showHUD(message)
-                }
-            }
+            writeNote(action, text: text)
         case let .finderSelection(role, app):
             openFinderSelection(in: role, app: app)
         case let .thaw(action):
@@ -598,10 +604,9 @@ final class LauncherModel: ObservableObject {
             reset()
         case let .calculator(_, result, error, _):
             copyCalculation(result, error: error)
-        case .emoji, .file, .clipboardEntry, .menuBarItem, .menuBarAccess:
-            break
-        case .browserTab, .askAI, .webAddress, .shell, .process:
-            break
+        default:
+            // A scope's rows were opened before the switch. What is left is a row that came later.
+            openLater(item)
         }
     }
 
@@ -804,6 +809,7 @@ final class LauncherModel: ObservableObject {
         // A grant made in System Settings with no request from Floe is noticed here.
         menuBarSearch.warm()
         ExchangeRateUpdater.shared.refreshIfStale()
+        reloadCheckpoints()
     }
 
     /// Runs the command that failed again, with the same arguments.

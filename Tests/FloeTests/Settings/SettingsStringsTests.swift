@@ -52,7 +52,7 @@ struct SettingsStringsTests {
             "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.separatesSearchField", "appearance.glassEffect",
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
-            "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.shellCommands", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
+            "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.shellCommands", "privacy.reminders", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
             "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.popToRootDelay", "general.emojiSkinTone", "general.runsShellCommands", "general.suggestsShellCommands", "general.recognizesCommands",
             "general.checkForUpdates",
             "general.diagnosticLogging", "general.menuBarSearchHotkey", "general.menuBarSearchAlias", "general.thawSupport", "general.menuBarCommands",
@@ -62,6 +62,15 @@ struct SettingsStringsTests {
             "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol", "quicklinks.fallback",
             "quicklinks.fallbacks",
         ])
+    }
+
+    @Test(arguments: ["reminders", "Reminders", "remind", "to do"])
+    func remindersFindsItsRowInPrivacy(query: String) throws {
+        #expect(found(query).first == "privacy.reminders")
+        let entry = try #require(SearchIndex.staticEntries.first { $0.id == "privacy.reminders" })
+        #expect(entry.title == "Reminders")
+        #expect(entry.section == "Reminders and Events")
+        #expect(entry.pane == .privacy)
     }
 
     @Test func anEntryIsFoundByItsTitleByAKeywordAndByItsSection() throws {
@@ -135,7 +144,7 @@ struct SettingsStringsTests {
     @Test func theRolesKeepTheirNamesAndLines() {
         #expect(AppRole.allCases.map(\.title) == ["Terminal", "Editor", "Browser", "Notes", "Clipboard"])
         #expect(AppRole.notes.detail == "Type “note” and then your text in the search to send it there.")
-        #expect(NotesApp.allCases.map(\.title) == ["Apple Notes", "Antinote", "Another App"])
+        #expect(NotesApp.allCases.map(\.title) == ["Apple Notes", "Antinote", "Another App", "A Folder of Notes"])
         #expect(LauncherGlassStyle.allCases.map(\.title).sorted() == ["Clear", "Dynamic Glass", "Liquid Glass", "Regular"])
         #expect(UpdateChannel.allCases.map(\.title) == ["Stable", "Beta"])
     }

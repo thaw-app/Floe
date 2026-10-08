@@ -108,7 +108,7 @@ nonisolated enum SelectedText {
 
 /// The Finder's selection, as POSIX paths.
 enum FinderSelection {
-    private static let selectionScript = """
+    private static nonisolated let selectionScript = """
     tell application "Finder"
       set sel to selection
       set out to ""
@@ -120,7 +120,7 @@ enum FinderSelection {
     """
 
     /// Where a new folder would land: the front window's folder, or the desktop without a window.
-    private static let folderScript = #"tell application "Finder" to return POSIX path of (insertion location as alias)"#
+    private static nonisolated let folderScript = #"tell application "Finder" to return POSIX path of (insertion location as alias)"#
 
     static func current() throws -> [[String: String]] {
         guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder" else {
@@ -132,7 +132,7 @@ enum FinderSelection {
     }
 
     /// What is selected, or the front window's folder when nothing is. Finder need not be frontmost.
-    static func selectionOrFolder() throws -> [URL] {
+    static nonisolated func selectionOrFolder() throws -> [URL] {
         let selected = try paths(from: selectionScript)
         return try (selected.isEmpty ? paths(from: folderScript) : selected).map { URL(fileURLWithPath: $0) }
     }
@@ -144,7 +144,7 @@ enum FinderSelection {
     }
 
     /// The paths a script answers with, one per line.
-    private static func paths(from script: String) throws -> [String] {
+    private static nonisolated func paths(from script: String) throws -> [String] {
         let execution = AppleScript.execute(script)
         if execution.hasError {
             if execution.isRefused {

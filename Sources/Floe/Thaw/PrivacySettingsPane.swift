@@ -21,6 +21,7 @@ struct PrivacySettingsPane: View {
     @ObservedObject var settings: AppSettings
     var permissions: AppPermissions = .shared
     @State private var forgotSearches = false
+    @State private var forgotReceipts = false
 
     var body: some View {
         Form {
@@ -58,6 +59,8 @@ struct PrivacySettingsPane: View {
                 row("Commands", String(localized: "A search that starts with the prefix runs as a command in your shell, with everything your account may do. Nothing asks first.", bundle: .floe))
                 row("Shell history", String(localized: "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept.", bundle: .floe))
                 row("Processes", String(localized: "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept.", bundle: .floe))
+                row("Extensions", String(localized: "Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac.", bundle: .floe))
+                row("GitHub sign-in", String(localized: "An extension that signs in to GitHub can be lent the sign-in of the GitHub CLI on this Mac. Floe asks once for each extension, naming what that sign-in may do, and its page in Settings takes it back. The token goes to that extension and nowhere else.", bundle: .floe))
                 row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
             }
             ThawSection("Search History") {
@@ -79,6 +82,31 @@ struct PrivacySettingsPane: View {
                         forgotSearches = true
                     }
                     .disabled(!settings.remembersSearches || forgotSearches)
+                }
+            }
+            ThawSection("Reminders and Events") {
+                row("Reminders", String(localized: "“remind” and a sentence adds one reminder to Reminders, due when the sentence says. It goes to your default list, or to the list the sentence ends with, as in “in Work”. macOS asks first whether Floe may use Reminders. After that Floe reads the names of your lists, and none of the reminders in them.", bundle: .floe))
+                row("Calendar events", String(localized: "“event” and a sentence adds one event to your default calendar, starting when the sentence says. This uses the same full access to Calendar that showing your upcoming events does, and macOS asks first. The event’s receipt deletes it again.", bundle: .floe))
+            }
+            ThawSection("Receipts") {
+                Toggle(isOn: Binding(
+                    get: { settings.keepsReceipts },
+                    set: { keeps in
+                        settings.keepsReceipts = keeps
+                        if !keeps {
+                            ReceiptStore.shared.forget()
+                        }
+                    }
+                )) {
+                    Text("Keep receipts")
+                    Text("The last 200 things Floe did that changed your Mac: commands it ran, files it moved to the Trash, processes it quit. Type “receipts” in the launcher to see them and to put a file back. They stay on this Mac. Switching this off forgets them.")
+                }
+                LabeledContent("Receipts kept") {
+                    Button("Forget Them") {
+                        ReceiptStore.shared.forget()
+                        forgotReceipts = true
+                    }
+                    .disabled(!settings.keepsReceipts || forgotReceipts)
                 }
             }
             ThawSection("Network Access") {

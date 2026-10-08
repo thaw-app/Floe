@@ -61,6 +61,24 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Sign-ins waiting for the browser, keyed by extension name and state together.
     private let pending = Mutex<[String: Pending]>([:])
 
+    /// Answers a request with a sign-in that is lent, when it is for one. Nil for any other request, which goes
+    /// on to the browser sign-in and its storage.
+    @concurrent
+    static func lent(_ request: HostRequest, extensionName: String, extensionTitle: String, lender: SignInLender = .shared) async -> Any? {
+        switch request {
+        case let .oauthGetTokens(providerId):
+            guard let provider = LentProvider(providerId: providerId) else { return nil }
+            return await lender.tokens(for: provider, extensionName: extensionName, extensionTitle: extensionTitle)
+        case let .oauthRemoveTokens(providerId):
+            guard let provider = LentProvider(providerId: providerId) else { return nil }
+            await lender.signOut(of: provider, extensionName: extensionName)
+            // With browser sign-in on, the stored tokens are removed too.
+            return isParked ? NSNull() : nil
+        default:
+            return nil
+        }
+    }
+
     /// Answers one parsed OAuth request for the session's extension.
     @concurrent
     func perform(_ request: HostRequest, extensionName: String) async throws -> Any {

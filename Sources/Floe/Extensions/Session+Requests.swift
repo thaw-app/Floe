@@ -53,8 +53,16 @@ extension ExtensionSession {
             var reply: [String: Any] = ["type": "reply", "id": id]
             do {
                 if request.isOAuth {
-                    guard let self, !OAuthBroker.isParked else { throw OAuthError.cancelled }
-                    reply["result"] = try await OAuthBroker.shared.perform(request, extensionName: self.command.extensionName)
+                    guard let self else { throw OAuthError.cancelled }
+                    if let lent = await OAuthBroker.lent(request, extensionName: command.extensionName, extensionTitle: command.extensionTitle) {
+                        reply["result"] = lent
+                    } else if OAuthBroker.isParked {
+                        // An extension asks for its tokens before anything else: with none to give, that is no error.
+                        guard request.asksOnlyForTokens else { throw OAuthError.cancelled }
+                        reply["result"] = NSNull()
+                    } else {
+                        reply["result"] = try await OAuthBroker.shared.perform(request, extensionName: command.extensionName)
+                    }
                 } else {
                     // The extension's name travels with the request, for the AI source it may be pinned to.
                     let result: Any = try await AIAnswer.$askingExtension.withValue(extensionName) {

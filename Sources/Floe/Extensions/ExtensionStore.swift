@@ -148,7 +148,10 @@ final class ExtensionStore: ObservableObject {
         let folder = Paths.extensions.appendingPathComponent(name, isDirectory: true)
         guard FileManager.default.fileExists(atPath: folder.path) else { return }
         do {
-            try FileManager.default.trashItem(at: folder, resultingItemURL: nil)
+            let receipt = try ReceiptStore.trash(folder, as: .extensionRemoved, subject: name)
+            if AppSettings.shared.keepsReceipts {
+                ReceiptStore.shared.add(receipt)
+            }
             onInstalled()
         } catch {
             self.error = (error as NSError).localizedDescription

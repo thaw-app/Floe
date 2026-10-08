@@ -20,12 +20,22 @@ function tokenPreference() {
   return secrets.find(named) ?? secrets[0] ?? declared.find(named);
 }
 
+// A provider whose sign-in the app can lend from one the user already has on this Mac: GitHub, from the GitHub CLI.
+// The app asks the user before it lends. An extension asks for saved tokens first, so it never starts a sign-in.
+export function isLent(provider?: string): boolean {
+  return /^github$/i.test(provider?.trim() ?? "");
+}
+
 function signInUnavailable(provider?: string) {
   const preference = tokenPreference();
   const service = provider ? ` to ${provider}` : "";
   const instead = preference
     ? `Add "${preference.title ?? preference.name}" in this extension's preferences instead.`
     : "This extension has no token preference to use instead.";
+  if (isLent(provider)) {
+    const token = preference ? ` Or add "${preference.title ?? preference.name}" in this extension's preferences.` : "";
+    return new Error(`Floe signs in to GitHub with the GitHub CLI. Install it, run "gh auth login", and allow it when Floe asks.${token}`);
+  }
   return new Error(`Floe can't sign in${service} yet. ${instead}`);
 }
 
@@ -219,15 +229,19 @@ export class PKCEClient {
     await request("oauth.setTokens", { providerId: this.providerId, tokens: toPlainTokens(tokens) });
   }
 
+  private get isLent(): boolean {
+    return isLent(this.options.providerId) || isLent(this.options.providerName);
+  }
+
   async getTokens(): Promise<TokenSet | undefined> {
-    if (!signInIsOn()) return undefined;
+    if (!signInIsOn() && !this.isLent) return undefined;
     const stored = await request("oauth.getTokens", { providerId: this.providerId });
     if (stored === null || stored === undefined) return undefined;
     return new TokenSet({ ...stored, updatedAt: new Date(stored.updatedAt) });
   }
 
   async removeTokens(): Promise<void> {
-    if (!signInIsOn()) return;
+    if (!signInIsOn() && !this.isLent) return;
     await request("oauth.removeTokens", { providerId: this.providerId });
   }
 }

@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:
 import fs from "node:fs";
 import path from "node:path";
 import * as api from "../api/index";
+import { isLent } from "../api/oauth";
 import { ctx, handleReply, handleReplyChunk } from "../bridge";
 import { installRuntime, sent } from "./support";
 
@@ -572,16 +573,43 @@ describe("OAuth while sign-in is parked", () => {
   const password = (name: string, title?: string) => ({ name, title, type: "password" });
 
   test("creating a client works, so an extension that also takes a token can load", async () => {
-    const client = new api.OAuth.PKCEClient({ providerName: "GitHub" });
+    const client = new api.OAuth.PKCEClient({ providerName: "Google" });
     expect(await client.getTokens()).toBeUndefined();
     expect(await client.removeTokens()).toBeUndefined();
     expect(sent("request")).toEqual([]);
   });
 
+  test("GitHub's tokens are asked of the app, which may lend the GitHub CLI's sign-in", async () => {
+    const client = new api.OAuth.PKCEClient({ providerName: "GitHub", providerId: "github" });
+    const lent = client.getTokens();
+    handleReply({ id: sent("request")[0].id, result: { accessToken: "gho_lent", scope: "repo", updatedAt: "2026-10-08T00:00:00.000Z" } });
+    const tokens = await lent;
+    expect(tokens?.accessToken).toBe("gho_lent");
+    expect(tokens?.isExpired()).toBe(false);
+
+    const declined = client.getTokens();
+    handleReply({ id: sent("request")[1].id, result: null });
+    expect(await declined).toBeUndefined();
+
+    const removed = client.removeTokens();
+    handleReply({ id: sent("request")[2].id, result: null });
+    await removed;
+    expect(sent("request").map((message) => [message.method, message.params.providerId])).toEqual([
+      ["oauth.getTokens", "github"],
+      ["oauth.getTokens", "github"],
+      ["oauth.removeTokens", "github"],
+    ]);
+  });
+
+  test("only GitHub is lent, by its id or its name", () => {
+    expect(["github", "GitHub", " GITHUB "].map((name) => isLent(name))).toEqual([true, true, true]);
+    expect(["github-enterprise", "Google", "", undefined].map((name) => isLent(name))).toEqual([false, false, false, false]);
+  });
+
   test("starting a sign-in fails and names the token preference to use instead", async () => {
     ctx.manifest = { name: "github", preferences: [password("personalAccessToken", "Personal Access Token")] };
     const client = new api.OAuth.PKCEClient({ providerName: "GitHub" });
-    const message = `Floe can't sign in to GitHub yet. Add "Personal Access Token" in this extension's preferences instead.`;
+    const message = `Floe signs in to GitHub with the GitHub CLI. Install it, run "gh auth login", and allow it when Floe asks. Or add "Personal Access Token" in this extension's preferences.`;
     await expect(client.authorizationRequest({ endpoint: "https://example.com", clientId: "cid", scope: "repo" })).rejects.toThrow(message);
     await expect(client.authorize({ url: "https://example.com" })).rejects.toThrow(message);
     await expect(client.setTokens({ accessToken: "abc" })).rejects.toThrow(message);

@@ -24,6 +24,14 @@ nonisolated enum HostRequest: Sendable, Equatable {
     case oauthRemoveTokens(providerId: String)
 
     /// Whether the OAuth broker answers this rather than `answer`.
+    /// Reading or removing saved tokens, which changes nothing outside Floe and starts no sign-in.
+    var asksOnlyForTokens: Bool {
+        switch self {
+        case .oauthGetTokens, .oauthRemoveTokens: true
+        default: false
+        }
+    }
+
     var isOAuth: Bool {
         switch self {
         case .oauthAuthorize, .oauthGetTokens, .oauthSetTokens, .oauthRemoveTokens:

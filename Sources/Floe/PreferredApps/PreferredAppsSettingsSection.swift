@@ -31,7 +31,12 @@ struct NotesAppPicker: View {
     var body: some View {
         Picker(selection: $settings.notesApp) {
             ForEach(NotesApp.allCases) { app in
-                Text(app.title).tag(app)
+                Label {
+                    Text(app.title)
+                } icon: {
+                    Image(nsImage: NotesAppPicker.icon(for: app))
+                }
+                .tag(app)
             }
         } label: {
             Text(AppRole.notes.title)
@@ -42,6 +47,59 @@ struct NotesAppPicker: View {
                 Text("URL")
                 Text("The link that makes a note, with {text} where the text goes.")
             }
+        }
+        if settings.notesApp == .folder {
+            LabeledContent {
+                Menu("Choose…") {
+                    ForEach(KnownNoteFolders.all()) { folder in
+                        Button {
+                            settings.notesFolder = folder.path
+                        } label: {
+                            Label {
+                                Text(folder.title)
+                            } icon: {
+                                Image(nsImage: NotesAppPicker.icon(forFile: folder.path))
+                            }
+                        }
+                    }
+                    Divider()
+                    Button("Another Folder…") { chooseFolder() }
+                }
+                .fixedSize()
+            } label: {
+                Text(settings.notesFolder.isEmpty ? String(localized: "No folder chosen", bundle: .floe) : (settings.notesFolder as NSString).abbreviatingWithTildeInPath)
+                Text("“note” and some text makes a Markdown file here. “append” adds a line to the day’s note. Obsidian, Octarine and other apps that keep notes as files show them as their own.")
+            }
+        }
+    }
+}
+
+extension NotesAppPicker {
+    /// The picture beside a choice, as the other pickers have one: the app's own icon when it is installed,
+    /// and a symbol for the two choices that are no app.
+    static func icon(for app: NotesApp) -> NSImage {
+        if let bundleID = app.bundleID, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
+            return icon(forFile: url.path)
+        }
+        let image = NSImage(systemSymbolName: app.symbol, accessibilityDescription: nil) ?? NSImage()
+        image.size = NSSize(width: 16, height: 16)
+        return image
+    }
+
+    static func icon(forFile path: String) -> NSImage {
+        let icon = NSWorkspace.shared.icon(forFile: path)
+        icon.size = NSSize(width: 16, height: 16)
+        return icon
+    }
+
+    private func chooseFolder() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.prompt = String(localized: "Choose", bundle: .floe)
+        if panel.runModal() == .OK, let url = panel.url {
+            settings.notesFolder = url.path
         }
     }
 }

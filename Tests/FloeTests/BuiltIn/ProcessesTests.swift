@@ -110,6 +110,7 @@ struct ProcessesTests {
     @Test func returnAsksAProcessToQuitAndTheActionForcesIt() throws {
         let defaults = try #require(UserDefaults(suiteName: "floe-process-tests-\(UUID().uuidString)"))
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
+        model.receipts = ReceiptStore(file: FileManager.default.temporaryDirectory.appendingPathComponent("floe-receipts-\(UUID().uuidString).json"))
         var ended: [String] = []
         var refuse = false
         model.shell.endProcess = { process, force in

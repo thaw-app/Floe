@@ -18,6 +18,9 @@ struct SearchContext {
     var emojiSkinTone = EmojiSkinTone.none
     /// How shell commands are treated. A context made by hand has them off, so a test of another provider sees none.
     var shell = ShellSettings.off
+    var checkpoints: [Checkpoint] = []
+    /// The names of the user's lists in Reminders. Filled only while a reminder is being typed.
+    var reminderLists: [String] = []
     var aliases: [String: String] = [:]
     var notesApp = NotesApp.appleNotes
     var frecency: (String) -> Double = { _ in 0 }

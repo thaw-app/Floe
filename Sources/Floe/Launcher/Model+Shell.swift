@@ -52,6 +52,10 @@ extension LauncherModel {
             let reading = ShellCommand.asReading(command)
             Task { [weak self, run = shell.run] in
                 let finished = await run(reading ?? command, folder)
+                // A manual that was read changed nothing: no receipt.
+                if reading == nil {
+                    self?.record(Receipt(date: Date(), kind: .command, subject: command, detail: finished.line))
+                }
                 if showingOutput || reading != nil {
                     self?.shell.showOutput(command, finished.output)
                 } else {
@@ -62,6 +66,7 @@ extension LauncherModel {
         }
         do {
             try ShellCommand.runInTerminal(command, terminal: terminal)
+            record(Receipt(date: Date(), kind: .command, subject: command, detail: String(localized: "Handed to the terminal", bundle: .floe)))
         } catch {
             showHUD(error.localizedDescription)
         }
@@ -96,6 +101,7 @@ extension LauncherModel {
         reset()
         Task { [weak self, run = shell.run] in
             let finished = await run(command, nil)
+            self?.record(Receipt(date: Date(), kind: .command, subject: command, detail: finished.line))
             NSPasteboard.general.copy(finished.output)
             self?.showHUD(String(localized: "Copied the output", bundle: .floe))
         }
@@ -135,6 +141,7 @@ extension LauncherModel {
     /// Ends a process and says so. The panel stays, with the list read again, for the next one.
     func end(_ process: RunningProcess, force: Bool) {
         if shell.endProcess(process, force) {
+            record(Receipt(date: Date(), kind: .process, subject: process.name, detail: Processes.label(for: process)))
             showHUD(force
                 ? String(localized: "Forced \(process.name) to quit", bundle: .floe, comment: "The placeholder is an app's name.")
                 : String(localized: "Quitting \(process.name)", bundle: .floe, comment: "The placeholder is an app's name."))

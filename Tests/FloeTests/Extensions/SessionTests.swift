@@ -45,6 +45,17 @@ struct ExtensionSessionTests {
         session.apply(message)
     }
 
+    @Test func whatTheExtensionReachedIsRecordedUnderItsNameAndNotHandedOn() {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-session-access-\(UUID().uuidString)/ExtensionAccess.json")
+        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        session.accessStore = ExtensionAccessStore(file: file)
+        apply(["type": "access", "hosts": ["hnrss.org"], "programs": ["git"]])
+        let recorded = session.accessStore.access(of: session.command.extensionName)
+        #expect(recorded.hosts == ["hnrss.org"])
+        #expect(recorded.programs == ["git"])
+        #expect(recorder.forwarded.isEmpty, "the record is the session's, not the launcher's to act on")
+    }
+
     private var planets: [String: Any] {
         Fixture.node("List", id: 60, children: [
             Fixture.item("Mercury", id: 1, actions: [Fixture.action("Show", id: 11), Fixture.action("Copy", id: 12)]),

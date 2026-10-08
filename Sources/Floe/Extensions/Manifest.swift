@@ -247,6 +247,16 @@ enum RootItem: Identifiable {
     case shell(ShellRow, terminal: ResolvedApp?)
     /// A running process, found by `kill` and a name; Return asks it to quit.
     case process(RunningProcess)
+    /// Something Floe did, listed by `receipts`; Return puts back what went to the Trash.
+    case receipt(Receipt)
+    /// A saved checkpoint; Return opens what it holds.
+    case checkpoint(Checkpoint)
+    /// The row that saves a checkpoint under the name typed after `pause`.
+    case checkpointDraft(name: String, note: String)
+    /// The row that adds a reminder from the sentence typed after `remind`.
+    case reminderDraft(ReminderDraft)
+    /// The row that adds a calendar event from the sentence typed after `event`.
+    case eventDraft(EventDraft)
 
     static let menuBarSearchKey = "builtin:menubar-search"
     static let emojiSearchKey = "builtin:emoji-search"
@@ -286,6 +296,11 @@ enum RootItem: Identifiable {
         case let .shortcut(shortcut): shortcut.id
         case let .shell(row, _): row.origin == .typed ? "shell-command" : "shell-suggestion:\(row.origin.rawValue):\(row.text)"
         case let .process(process): "process:\(process.pid)"
+        case let .receipt(receipt): "receipt:\(receipt.id.uuidString)"
+        case let .checkpoint(checkpoint): "checkpoint:\(checkpoint.id.uuidString)"
+        case .checkpointDraft: "checkpoint-draft"
+        case .reminderDraft: "reminder-draft"
+        case .eventDraft: "event-draft"
         }
     }
 
@@ -326,6 +341,11 @@ enum RootItem: Identifiable {
         case let .sshHost(host, _): host.alias
         case let .shortcut(shortcut): shortcut.name
         case let .process(process): process.name
+        case let .receipt(receipt): receipt.title
+        case let .checkpoint(checkpoint): String(localized: "Resume \(checkpoint.name)", bundle: .floe, comment: "The placeholder is the name the user gave a checkpoint.")
+        case let .checkpointDraft(name, _): String(localized: "Save Checkpoint “\(name)”", bundle: .floe, comment: "The placeholder is the name the user typed for a checkpoint.")
+        case let .reminderDraft(draft): String(localized: "Remind: \(draft.title)", bundle: .floe, comment: "The title of the row that adds a reminder. The placeholder is what the reminder is about, such as call mom.")
+        case let .eventDraft(draft): String(localized: "Event: \(draft.title)", bundle: .floe, comment: "The title of the row that adds a calendar event. The placeholder is what the event is called, such as lunch with Ana.")
         case let .shell(row, _): row.origin == .typed ? String(localized: "Run \(row.text)", bundle: .floe, comment: "The placeholder is a shell command the user typed.") : row.text
         }
     }
@@ -366,7 +386,7 @@ enum RootItem: Identifiable {
         case let .system(command): "system:\(command.rawValue)"
         case .snippet: id
         case .settings, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
-        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process: nil
+        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft: nil
         }
     }
 
@@ -385,7 +405,7 @@ enum RootItem: Identifiable {
         case .note: String(localized: "Notes", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a row that writes a note.")
         case .thaw: "Thaw"
         case .finderSelection: "Finder"
-        case .event: String(localized: "Event", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a calendar event.")
+        case .event, .eventDraft: String(localized: "Event", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a calendar event.")
         case .snippet: String(localized: "Snippet", bundle: .floe, comment: "The kind of a result, shown beside its title. A snippet is a saved piece of text.")
         case .emoji: String(localized: "Emoji", bundle: .floe)
         case .quicklink: String(localized: "Quicklink", bundle: .floe, comment: "The kind of a result, shown beside its title. A quicklink is a saved link or search.")
@@ -396,6 +416,9 @@ enum RootItem: Identifiable {
         case .askAI: String(localized: "AI", bundle: .floe, comment: "The kind of a result, shown beside its title. Short for artificial intelligence.")
         case .webAddress: String(localized: "Web Address", bundle: .floe)
         case .sshHost: "SSH"
+        case .checkpoint, .checkpointDraft: String(localized: "Checkpoint", bundle: .floe, comment: "The kind of a result, shown beside its title. A checkpoint is a saved set of files, tabs and a note.")
+        case .reminderDraft: String(localized: "Reminder", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a row that adds a reminder.")
+        case .receipt: String(localized: "Receipt", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a record of something Floe did.")
         case .process: String(localized: "Process", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a running program.")
         case let .shell(row, _): row.origin.label
         case .shortcut: String(localized: "Shortcut", bundle: .floe, comment: "The kind of a result, shown beside its title. Here one made in Apple's Shortcuts app.")

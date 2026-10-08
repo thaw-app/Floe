@@ -57,12 +57,21 @@ struct ExtensionSettingsView: View {
                         }
                     }
                     ExtensionAISourcePicker(settings: settings, extensionName: first.extensionName)
+                    if settings.lentSignIns.contains(LentProvider.github.key(for: first.extensionName)) {
+                        LabeledContent {
+                            Button("Take Back") { settings.lentSignIns.remove(LentProvider.github.key(for: first.extensionName)) }
+                        } label: {
+                            Text("GitHub sign-in")
+                            Text("This extension uses the sign-in of the GitHub CLI on this Mac.")
+                        }
+                    }
                 }
                 if !first.extensionPreferences.isEmpty {
                     ThawSection("Preferences") {
                         PreferencesEditor(fields: first.extensionPreferences, extensionName: first.extensionName, command: nil)
                     }
                 }
+                ExtensionAccessSection(extensionName: first.extensionName)
                 // Only what Floe installed is Floe's to remove: Raycast's own extensions and a checkout's samples stay.
                 if first.extensionDir.deletingLastPathComponent().standardizedFileURL == Paths.extensions.standardizedFileURL {
                     ThawSection {

@@ -375,6 +375,26 @@ extension SearchIndex {
             ).searchTerms
         ),
         privacy(
+            "reminders",
+            String(localized: "Reminders", bundle: .floe, comment: "Apple's Reminders app, as the title of a row in Privacy."),
+            section: String(localized: "Reminders and Events", bundle: .floe),
+            keywords: String(
+                localized: "reminders, remind, reminder, lists, to do, due",
+                bundle: .floe,
+                comment: "Words that find the Reminders row of Privacy in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
+            "keepsReceipts",
+            String(localized: "Keep receipts", bundle: .floe),
+            section: String(localized: "Receipts", bundle: .floe),
+            keywords: String(
+                localized: "receipts, history, log, undo, put back, trash, commands, record",
+                bundle: .floe,
+                comment: "Words that find the Keep receipts setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
             "remembersSearches",
             String(localized: "Remember searches", bundle: .floe),
             section: String(localized: "Search History", bundle: .floe),

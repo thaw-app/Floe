@@ -337,6 +337,16 @@ struct RootIcon: View {
             SymbolTile(symbol: AskAI.symbol)
         case .webAddress:
             SymbolTile(symbol: "globe")
+        case .checkpoint:
+            SymbolTile(symbol: "bookmark")
+        case .checkpointDraft:
+            SymbolTile(symbol: "bookmark.fill")
+        case .reminderDraft:
+            SymbolTile(symbol: "bell")
+        case .eventDraft:
+            SymbolTile(symbol: "calendar.badge.plus", tint: .red)
+        case let .receipt(receipt):
+            SymbolTile(symbol: receipt.canUndo ? "arrow.uturn.backward" : "list.bullet.clipboard")
         case let .shell(row, _):
             SymbolTile(symbol: row.origin.symbol)
         case let .process(process):

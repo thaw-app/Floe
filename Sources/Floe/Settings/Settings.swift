@@ -48,6 +48,8 @@ final class AppSettings: ObservableObject {
     /// The notes role's choice: where a note typed into the search goes, and the link for "Another App".
     @Published var notesApp = NotesApp.appleNotes
     @Published var notesURLTemplate = ""
+    /// The folder notes are written into when the notes app is a folder of notes.
+    @Published var notesFolder = ""
     /// The apps folders and files are opened in; nil is the role's default (see AppRole).
     @Published var terminalApp: AppChoice?
     @Published var editorApp: AppChoice?
@@ -94,6 +96,10 @@ final class AppSettings: ObservableObject {
     @Published var aiOnThisMacOnly = false
     /// Whether a search that ended in something being opened is kept for the Up arrow to bring back.
     @Published var remembersSearches = true
+    /// Whether a receipt is kept of what Floe did: commands run, files moved to the Trash, processes quit.
+    @Published var keepsReceipts = true
+    /// The extensions lent a sign-in from this Mac, each as "extension/provider".
+    @Published var lentSignIns: Set<String> = []
     @Published var shell = ShellSettings()
     /// Whether the calculator may download the European Central Bank's exchange rates. Off until the user says so.
     @Published var fetchesExchangeRates = false
@@ -137,6 +143,7 @@ final class AppSettings: ObservableObject {
         var menuBarCommands: Set<String>?
         var notesApp: NotesApp?
         var notesURLTemplate: String?
+        var notesFolder: String?
         var terminalApp: AppChoice?
         var editorApp: AppChoice?
         var browserApp: AppChoice?
@@ -165,6 +172,8 @@ final class AppSettings: ObservableObject {
         var aiToolModels: [String: String]?
         var aiOnThisMacOnly: Bool?
         var remembersSearches: Bool?
+        var keepsReceipts: Bool?
+        var lentSignIns: Set<String>?
         var shell: ShellSettings?
         var fetchesExchangeRates: Bool?
         var aiSourceByExtension: [String: AISource]?
@@ -270,6 +279,7 @@ final class AppSettings: ObservableObject {
         menuBarCommands = stored.menuBarCommands ?? []
         notesApp = stored.notesApp ?? notesApp
         notesURLTemplate = stored.notesURLTemplate ?? notesURLTemplate
+        notesFolder = stored.notesFolder ?? ""
         terminalApp = stored.terminalApp
         editorApp = stored.editorApp
         browserApp = stored.browserApp
@@ -298,6 +308,8 @@ final class AppSettings: ObservableObject {
         aiToolModels = stored.aiToolModels ?? [:]
         aiOnThisMacOnly = stored.aiOnThisMacOnly ?? aiOnThisMacOnly
         remembersSearches = stored.remembersSearches ?? true
+        keepsReceipts = stored.keepsReceipts ?? true
+        lentSignIns = stored.lentSignIns ?? []
         shell = stored.shell ?? ShellSettings()
         fetchesExchangeRates = stored.fetchesExchangeRates ?? false
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
@@ -323,6 +335,7 @@ final class AppSettings: ObservableObject {
             menuBarCommands: menuBarCommands,
             notesApp: notesApp,
             notesURLTemplate: notesURLTemplate,
+            notesFolder: notesFolder,
             terminalApp: terminalApp,
             editorApp: editorApp,
             browserApp: browserApp,
@@ -350,6 +363,8 @@ final class AppSettings: ObservableObject {
             aiToolModels: aiToolModels,
             aiOnThisMacOnly: aiOnThisMacOnly,
             remembersSearches: remembersSearches,
+            keepsReceipts: keepsReceipts,
+            lentSignIns: lentSignIns,
             shell: shell,
             fetchesExchangeRates: fetchesExchangeRates,
             aiSourceByExtension: aiSourceByExtension

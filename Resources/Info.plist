@@ -90,7 +90,7 @@
 	<key>NSAppleEventsUsageDescription</key>
 	<string>Floe uses AppleScript to read the Finder selection, to save a note in Notes, to list your open browser tabs and switch to one when you turn that on, and to run system commands such as Empty Trash and Toggle Dark Mode.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>Floe shows your upcoming events and meeting links when you search for them.</string>
+	<string>Floe shows your upcoming events and meeting links when you search for them, and adds an event when you type event and a sentence in the search.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Floe shows your upcoming events and meeting links when you search for them.</string>
 	<key>NSHighResolutionCapable</key>
@@ -99,6 +99,8 @@
 	<string>Copyright © 2026 René Jiménez et al.
 © 2026 Thaw-app
 </string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Floe adds a reminder to Reminders when you type remind and a sentence in the search.</string>
 	<key>SUFeedURL</key>
 	<string>https://thaw-app.github.io/Floe/appcast.xml</string>
 	<key>SUPublicEDKey</key>

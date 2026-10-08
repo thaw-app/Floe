@@ -27,6 +27,8 @@ struct ActionHost {
     let dismiss: () -> Void
     /// The roles a file can be opened in, each with its app: "Open in Ghostty".
     var preferredApps: [RoleApp] = []
+    /// Keeps a receipt of something that changed the Mac.
+    var record: (Receipt) -> Void = { _ in /* a host that keeps none */ }
 }
 
 enum ActionsMenu {
@@ -186,7 +188,7 @@ enum FileActions {
         let detail = String(localized: "You can put it back from the Trash until you empty it.", bundle: .floe)
         guard Confirm.destructive(String(localized: "Move “\(name)” to the Trash?", bundle: .floe, comment: "The placeholder is a file name."), detail: detail, button: String(localized: "Move to Trash", bundle: .floe)) else { return }
         do {
-            try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+            try host.record(ReceiptStore.trash(url))
             host.showHUD(String(localized: "Moved to Trash", bundle: .floe))
         } catch {
             host.showHUD(String(localized: "Couldn't move \(name) to the Trash", bundle: .floe, comment: "The placeholder is a file name."))

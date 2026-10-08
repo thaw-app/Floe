@@ -37,6 +37,8 @@ struct AlertState: Equatable {
 /// One running extension command: a Bun process speaking NDJSON over stdin/stdout.
 final class ExtensionSession: ObservableObject {
     let command: ExtensionCommand
+    /// Where what the extension reaches is recorded. Tests give one of their own.
+    var accessStore = ExtensionAccessStore.shared
     let arguments: [String: Any]
     let launchType: String
     @Published private(set) var root: Node?
@@ -152,6 +154,13 @@ final class ExtensionSession: ObservableObject {
         }
     }
 
+    /// Takes in a report of what the extension reached. Answers whether the message was one.
+    private func recordedAccess(_ fields: [String: Any]) -> Bool {
+        guard fields["type"] as? String == "access" else { return false }
+        accessStore.record(fields, for: command.extensionName)
+        return true
+    }
+
     private func apply(_ fields: [String: Any]) {
         switch fields["type"] as? String {
         case "toast":
@@ -195,7 +204,7 @@ final class ExtensionSession: ObservableObject {
             searchText = ""
         default:
             // Requests are in Session+Requests.swift; the rest is the model's.
-            if !handleRequest(fields) {
+            if !recordedAccess(fields), !handleRequest(fields) {
                 onMessage(fields)
             }
         }

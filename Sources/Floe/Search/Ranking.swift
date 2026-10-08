@@ -40,6 +40,7 @@ extension RootItem {
         case .clipboardApp: AppRole.clipboard.keywords
         case let .snippet(snippet): [snippet.keyword]
         case let .sshHost(host, _): host.keywords
+        case let .checkpoint(checkpoint): [checkpoint.name, Checkpoint.keyword, "checkpoint"]
         default: []
         }
     }

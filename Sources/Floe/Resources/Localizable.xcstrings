@@ -24,6 +24,17 @@
     "%@ Preferences" : {
       "comment" : "The placeholder is a command's name."
     },
+    "%@ and %@" : {
+      "comment" : "Two counts joined, such as 3 files and 5 tabs.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ and %2$@"
+          }
+        }
+      }
+    },
     "%@ can check for updates automatically. You can also check manually from the menu bar or Settings › About." : {
       "comment" : "The placeholder is the name of this app."
     },
@@ -55,6 +66,12 @@
     },
     "%@ is chosen, which is not on this Mac. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
       "comment" : "The placeholder is the address of a server."
+    },
+    "%@ is no longer in the Trash" : {
+      "comment" : "The placeholder is a file name."
+    },
+    "%@ is no longer where Floe wrote it" : {
+      "comment" : "The placeholder is the name of a note's file."
     },
     "%@ is still running, so it was not restarted" : {
       "comment" : "The placeholder is an app's name."
@@ -113,10 +130,14 @@
         }
       }
     },
+    "%@ was changed after Floe wrote it, so it stays where it is" : {
+      "comment" : "The placeholder is the name of a note's file."
+    },
     "%@ was not found on your PATH." : {
       "comment" : "The placeholder is the name of a command, and PATH is the shell variable and stays as written."
     },
     "%@ · %@" : {
+      "comment" : "Beside a reminder that goes to a list the user named. The first placeholder is when it is due, the second is the list.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -126,6 +147,24 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "%@ · can be deleted" : {
+      "comment" : "Beside the receipt of something Floe added. The placeholder is a time, such as 2 hr. ago."
+    },
+    "%@ · can be moved to the Trash" : {
+      "comment" : "Beside the receipt of a note Floe wrote. The placeholder is a time, such as 2 hr. ago."
+    },
+    "%@ · can be put back" : {
+      "comment" : "Beside a receipt. The placeholder is a time, such as 2 hr. ago."
+    },
+    "%@ · deleted" : {
+      "comment" : "Beside the receipt of something Floe added that was deleted again. The placeholder is a time, such as 2 hr. ago."
+    },
+    "%@ · moved to the Trash" : {
+      "comment" : "Beside the receipt of a note that was moved to the Trash again. The placeholder is a time, such as 2 hr. ago."
+    },
+    "%@ · put back" : {
+      "comment" : "Beside a receipt. The placeholder is a time, such as 2 hr. ago."
     },
     "%@, %@" : {
       "localizations" : {
@@ -137,6 +176,9 @@
         }
       },
       "shouldTranslate" : false
+    },
+    "%@, all day" : {
+      "comment" : "Beside an event that fills a day. The placeholder is the day, such as Fri 9 Oct."
     },
     "%@, on this Mac" : {
       "comment" : "The placeholder is the address of a server such as localhost:8080."
@@ -210,7 +252,7 @@
       }
     },
     "%lld files" : {
-      "comment" : "How many files were copied together.",
+      "comment" : "A count of files and folders in a checkpoint.\nHow many files were copied together.",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -266,6 +308,17 @@
         }
       }
     },
+    "%lld of %lld are missing" : {
+      "comment" : "Both placeholders are numbers: how many of a checkpoint's files are gone, and how many things it holds.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld of %2$lld are missing"
+          }
+        }
+      }
+    },
     "%lld results" : {
       "comment" : "The placeholder is how many settings a search found.",
       "localizations" : {
@@ -282,6 +335,29 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld results"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld tabs" : {
+      "comment" : "A count of browser tabs in a checkpoint.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tab"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tabs"
                 }
               }
             }
@@ -310,6 +386,7 @@
     "@raycast.argument%lld isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}." : {
       "comment" : "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument."
     },
+    "A Folder of Notes" : {},
     "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {},
     "A command line tool you are signed in to" : {},
     "A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts." : {},
@@ -385,10 +462,26 @@
       "comment" : "The label beside the shortcut that opens the menu of things to do with the selected result."
     },
     "Actions…" : {},
+    "Add Event" : {},
+    "Add Reminder" : {},
+    "Add a day or time" : {
+      "comment" : "Beside an event that cannot be added yet because its sentence names no date."
+    },
+    "Add a day or time to the event, such as Thursday noon" : {},
     "Add to Favorites" : {},
     "Add to Menu Bar" : {},
+    "Added a line to the note %@" : {
+      "comment" : "A receipt. The placeholder is the name of a note's file, such as 2026-10-08."
+    },
+    "Added the event %@" : {
+      "comment" : "The placeholder is what the event is called, such as lunch with Ana."
+    },
+    "Added the reminder %@" : {
+      "comment" : "The placeholder is what the reminder is about, such as call mom."
+    },
     "Added to Favorites" : {},
     "Added to Menu Bar" : {},
+    "Added to today’s note" : {},
     "Address" : {
       "comment" : "The web address of an AI service."
     },
@@ -420,14 +513,17 @@
     "All day · %@" : {
       "comment" : "The placeholder is the name of a calendar."
     },
+    "Allow" : {},
     "Allow Floe to Change Thaw Settings" : {},
     "Allow access" : {},
     "Allow it in System Settings, Privacy and Security, Automation." : {},
     "An OpenAI-compatible API" : {},
+    "An extension that signs in to GitHub can be lent the sign-in of the GitHub CLI on this Mac. Floe asks once for each extension, naming what that sign-in may do, and its page in Settings takes it back. The token goes to that extension and nowhere else." : {},
     "Angle" : {
       "comment" : "The direction of a gradient, in degrees."
     },
     "Another App" : {},
+    "Another Folder…" : {},
     "Another address" : {
       "comment" : "A choice in a list of AI services: one the user types the address of."
     },
@@ -457,6 +553,9 @@
     },
     "Append to Current Note" : {},
     "Append “%@” to Current Note" : {
+      "comment" : "The placeholder is the text added to the note."
+    },
+    "Append “%@” to Today’s Note" : {
       "comment" : "The placeholder is the text added to the note."
     },
     "Apple Account (System Settings)" : {
@@ -574,6 +673,8 @@
     "Calendar" : {
       "comment" : "Stands in for the name of a calendar that has none."
     },
+    "Calendar events" : {},
+    "Calendar has no calendar to add to." : {},
     "Cancel" : {
       "comment" : "A button that stops what is under way, such as recording a keyboard shortcut."
     },
@@ -605,6 +706,7 @@
     "Caution" : {
       "comment" : "The heading of a cautionary note in the release notes."
     },
+    "Changed" : {},
     "Check Automatically" : {},
     "Check Manually" : {},
     "Check Now" : {},
@@ -621,12 +723,16 @@
     "Checkout failed" : {
       "comment" : "What went wrong while installing an extension. Checkout is the git operation."
     },
+    "Checkpoint" : {
+      "comment" : "The kind of a result, shown beside its title. A checkpoint is a saved set of files, tabs and a note."
+    },
     "Choose" : {
       "comment" : "A verb on a button: pick the selected line."
     },
     "Choose Another" : {},
     "Choose Image…" : {},
     "Choose a clipboard app in Settings" : {},
+    "Choose a folder for your notes in Settings" : {},
     "Choose an App" : {},
     "Choose…" : {},
     "Claude stopped before finishing." : {},
@@ -702,6 +808,7 @@
     "Connected" : {
       "comment" : "A badge saying Floe is connected to the Thaw app."
     },
+    "Contacted" : {},
     "Continue" : {
       "comment" : "The button that goes to the next step of the welcome window."
     },
@@ -737,7 +844,9 @@
     "Copied Answer" : {},
     "Copied Path" : {},
     "Copied error details" : {},
+    "Copied the note" : {},
     "Copied the output" : {},
+    "Copied the receipt" : {},
     "Copied. Press ⌘V to paste." : {},
     "Copies you make show up here." : {},
     "Copy" : {
@@ -751,6 +860,7 @@
     "Copy File" : {},
     "Copy Host Name" : {},
     "Copy Name" : {},
+    "Copy Note" : {},
     "Copy Path" : {},
     "Copy Process ID" : {},
     "Copy SSH Command" : {},
@@ -810,6 +920,9 @@
     "Couldn't transfer settings" : {},
     "Couldn't turn Wi-Fi off" : {},
     "Couldn't turn Wi-Fi on" : {},
+    "Couldn’t save the note: %@" : {
+      "comment" : "The placeholder is the reason the system gave."
+    },
     "Credits" : {
       "comment" : "The title of the page that thanks contributors."
     },
@@ -850,10 +963,29 @@
     "Delete" : {
       "comment" : "A button that removes a copy from the history."
     },
+    "Delete Checkpoint" : {},
+    "Delete Checkpoint…" : {},
+    "Delete Event" : {},
     "Delete Quicklink" : {},
+    "Delete Reminder" : {},
+    "Delete the checkpoint “%@”?" : {
+      "comment" : "The placeholder is the name the user gave a checkpoint."
+    },
     "Delete this quicklink?" : {},
     "Delete “%@”?" : {
       "comment" : "The placeholder is the name of the thing about to be deleted."
+    },
+    "Deleted %@" : {
+      "comment" : "When something Floe added was deleted again. The placeholder is a date and time."
+    },
+    "Deleted the checkpoint %@" : {
+      "comment" : "The placeholder is the name the user gave a checkpoint."
+    },
+    "Deleted the event %@" : {
+      "comment" : "The placeholder is what the event is called, such as lunch with Ana."
+    },
+    "Deleted the reminder %@" : {
+      "comment" : "The placeholder is what the reminder is about, such as call mom."
     },
     "Delete…" : {},
     "Desktop & Dock (System Settings)" : {
@@ -917,6 +1049,7 @@
         }
       }
     },
+    "Don’t Allow" : {},
     "Download and install updates automatically" : {},
     "Download exchange rates" : {},
     "Draw a border" : {},
@@ -967,6 +1100,9 @@
     "Esc to cancel" : {},
     "Event" : {
       "comment" : "The kind of a result, shown beside its title. Here a calendar event."
+    },
+    "Event: %@" : {
+      "comment" : "The title of the row that adds a calendar event. The placeholder is what the event is called, such as lunch with Ana."
     },
     "Every permission is optional" : {},
     "Expand keywords as you type" : {},
@@ -1045,6 +1181,10 @@
       "comment" : "Floe is the name of this app."
     },
     "Floe Settings" : {},
+    "Floe can lend this extension the sign-in of the GitHub CLI on this Mac. The extension can then do everything that sign-in may, which is often more than the extension asks for. You can take this back on the extension’s page in Settings." : {},
+    "Floe can lend this extension the sign-in of the GitHub CLI on this Mac. This sign-in may: %@. The extension can then do all of it, which is often more than the extension asks for. You can take this back on the extension’s page in Settings." : {
+      "comment" : "The placeholder is a list of GitHub permission names, such as gist, repo, workflow."
+    },
     "Floe can't answer that request." : {},
     "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {},
     "Floe holds the rates of %@." : {
@@ -1052,6 +1192,8 @@
     },
     "Floe isn't running yet. Open Floe and try again." : {},
     "Floe lists the items apps put in the menu bar." : {},
+    "Floe may not use Calendar. Allow full access in System Settings > Privacy & Security > Calendars." : {},
+    "Floe may not use Reminders. Allow it in System Settings > Privacy & Security > Reminders." : {},
     "Floe needs Accessibility to list your menu bar items" : {
       "comment" : "Accessibility is the name of a permission in System Settings."
     },
@@ -1064,6 +1206,8 @@
       "comment" : "The placeholder is the name of a browser."
     },
     "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal." : {},
+    "Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac." : {},
+    "Floe records this from inside its runtime while the extension runs. An extension is not held to it and can reach things in ways Floe does not see, files most of all. Extensions run with everything your account may do." : {},
     "Floe renders List, Grid, Detail and Form." : {
       "comment" : "List, Grid, Detail and Form are names from the extension API and stay as written."
     },
@@ -1094,6 +1238,7 @@
     "Forced %@ to quit" : {
       "comment" : "The placeholder is an app's name."
     },
+    "Forget" : {},
     "Forget Them" : {},
     "Free and open source" : {},
     "Frequency" : {
@@ -1152,6 +1297,7 @@
     },
     "Get Thaw" : {},
     "Getting the selected text needs Accessibility access. Turn it on under System Settings › Privacy & Security › Accessibility." : {},
+    "GitHub sign-in" : {},
     "Glass" : {
       "comment" : "The heading over the settings for the launcher's glass material."
     },
@@ -1163,6 +1309,7 @@
     "Granted" : {
       "comment" : "Said of a permission the user has given."
     },
+    "Handed to the terminal" : {},
     "Help translate" : {
       "comment" : "A button that opens the page where volunteers translate this app."
     },
@@ -1221,11 +1368,14 @@
         }
       }
     },
+    "It replaced an older checkpoint of the same name. Deleting this one does not bring the older one back." : {},
+    "Its files and tabs are not touched. Only the list of them goes." : {},
     "Its folder goes to the Trash. Its preferences and what it stored are kept, for when it is installed again." : {},
     "Join the Discord" : {},
     "Keep %@ up to date?" : {
       "comment" : "The placeholder is the name of this app."
     },
+    "Keep receipts" : {},
     "Keeping your Mac awake" : {},
     "Keeps text, links, images and files you copy." : {},
     "Keeps text, links, images and files you copy. Pins survive Clear." : {},
@@ -1280,6 +1430,17 @@
     },
     "Length" : {
       "comment" : "A kind of unit, named in a calculator error."
+    },
+    "Let “%@” use your %@ sign-in?" : {
+      "comment" : "The first placeholder is an extension's name, the second a service such as GitHub.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Let “%1$@” use your %2$@ sign-in?"
+          }
+        }
+      }
     },
     "Licenses" : {
       "comment" : "The title of the page with the licenses of what Floe is built from."
@@ -1357,6 +1518,9 @@
     "Missing @raycast.title. Add `# @raycast.title My Script`." : {
       "comment" : "The word that starts with @raycast is typed into a script as it is."
     },
+    "Missing: %@" : {
+      "comment" : "A file a checkpoint held that is gone. The placeholder is its path."
+    },
     "Model" : {
       "comment" : "The AI model that answers."
     },
@@ -1383,7 +1547,13 @@
     "Move “%@” to the Trash?" : {
       "comment" : "The placeholder is a file name."
     },
+    "Moved %@ to the Trash" : {
+      "comment" : "A receipt. The placeholder is a file name."
+    },
     "Moved to Trash" : {},
+    "Moved to the Trash %@" : {
+      "comment" : "When a note Floe wrote was moved to the Trash again. The placeholder is a date and time."
+    },
     "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac." : {},
     "Muted" : {
       "comment" : "Said after the sound was turned off."
@@ -1426,14 +1596,19 @@
     "No app opens the clipboard link. Change it in Settings" : {},
     "No clipboard entries match" : {},
     "No copies match" : {},
+    "No date" : {
+      "comment" : "Beside a reminder that has no due date."
+    },
     "No disks to eject" : {},
     "No files are selected in the Finder." : {},
     "No files match" : {},
+    "No folder chosen" : {},
     "No items match" : {},
     "No matching actions" : {},
     "No menu bar items found" : {},
     "No menu bar items match" : {},
     "No open tabs match" : {},
+    "No receipts yet" : {},
     "No recent files" : {},
     "No running process matches" : {},
     "No script commands yet. Scripts are executable files with @raycast metadata." : {},
@@ -1478,11 +1653,13 @@
       "comment" : "The kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one."
     },
     "Nothing copied yet" : {},
+    "Nothing has been recorded for this extension yet." : {},
     "Nothing is listening on that port" : {},
     "Nothing matches" : {},
     "Nothing to copy yet" : {
       "comment" : "Shown when Return is pressed on a calculation that has no answer."
     },
+    "Nothing to save. Select files in Finder, open a browser window, or add a note after a colon." : {},
     "Notifications (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1535,6 +1712,7 @@
       }
     },
     "Open System Settings" : {},
+    "Open Today’s Note" : {},
     "Open With" : {
       "comment" : "The title of a submenu that lists apps."
     },
@@ -1649,6 +1827,15 @@
       "comment" : "The kind of a result, shown beside its title. Here a running program."
     },
     "Processes" : {},
+    "Put %@ back" : {
+      "comment" : "The placeholder is a file name."
+    },
+    "Put Back" : {
+      "comment" : "A verb on a button: take a file out of the Trash and put it where it was."
+    },
+    "Put back %@" : {
+      "comment" : "The placeholder is a date and time."
+    },
     "Questions are answered by Apple Intelligence on this Mac. Nothing is sent anywhere." : {},
     "Questions go to %@, with your key, and nowhere else." : {
       "comment" : "The placeholder is the address of a server."
@@ -1673,6 +1860,9 @@
     "Quit" : {
       "comment" : "An action that quits a running app.\nThe menu item that quits Floe."
     },
+    "Quit %@" : {
+      "comment" : "A receipt. The placeholder is a program's name."
+    },
     "Quit All Apps" : {
       "comment" : "A command that quits every open app."
     },
@@ -1681,14 +1871,23 @@
     "Quitting %@" : {
       "comment" : "The placeholder is an app's name."
     },
+    "Ran %@" : {
+      "comment" : "A receipt. The placeholder is a shell command."
+    },
     "Rates of %@" : {
       "comment" : "A label under a converted amount of money. The placeholder is a date as the bank writes it, such as 2026-10-07."
     },
     "Raycast" : {},
     "Raycast Extension Store" : {},
     "Raycast Extensions Folder" : {},
+    "Read from" : {},
     "Reading your menu bar…" : {},
     "Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over." : {},
+    "Receipt" : {
+      "comment" : "The kind of a result, shown beside its title. Here a record of something Floe did."
+    },
+    "Receipts" : {},
+    "Receipts kept" : {},
     "Recent" : {
       "comment" : "The heading over the menu bar items opened lately."
     },
@@ -1698,6 +1897,12 @@
     },
     "Record Shortcut" : {},
     "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts." : {},
+    "Recorded" : {
+      "comment" : "Beside a button that clears a record."
+    },
+    "Recorded since %@" : {
+      "comment" : "The placeholder is a date."
+    },
     "Redo" : {
       "comment" : "A verb in the Edit menu."
     },
@@ -1708,6 +1913,17 @@
     "Remember last search" : {},
     "Remember searches" : {},
     "Remembered searches" : {},
+    "Remind: %@" : {
+      "comment" : "The title of the row that adds a reminder. The placeholder is what the reminder is about, such as call mom."
+    },
+    "Reminder" : {
+      "comment" : "The kind of a result, shown beside its title. Here a row that adds a reminder."
+    },
+    "Reminders" : {
+      "comment" : "Apple's Reminders app, as the title of a row in Privacy."
+    },
+    "Reminders and Events" : {},
+    "Reminders has no list to add to." : {},
     "Remove" : {
       "comment" : "A button that uninstalls an extension."
     },
@@ -1717,6 +1933,9 @@
     "Remove “%@”?" : {},
     "Removed from Favorites" : {},
     "Removed from Menu Bar" : {},
+    "Removed the extension %@" : {
+      "comment" : "A receipt. The placeholder is an extension's name."
+    },
     "Removes every copy except pinned ones." : {},
     "Rename" : {
       "comment" : "A button that saves the new name of a menu bar item."
@@ -1750,6 +1969,15 @@
     },
     "Restore Original Name" : {},
     "Result" : {},
+    "Resume" : {
+      "comment" : "A verb on a button: open what a checkpoint holds."
+    },
+    "Resume %@" : {
+      "comment" : "The placeholder is the name the user gave a checkpoint."
+    },
+    "Resumed %@" : {
+      "comment" : "The placeholder is a checkpoint's name."
+    },
     "Return to root search" : {},
     "Rounded" : {
       "comment" : "A shape for the search field."
@@ -1763,6 +1991,7 @@
     "Run %@?" : {
       "comment" : "The placeholder is the name of a script."
     },
+    "Run Again" : {},
     "Run Command" : {},
     "Run Raycast extensions" : {},
     "Run an extension command in Floe." : {},
@@ -1782,12 +2011,32 @@
     "Save" : {
       "comment" : "A button that keeps the changes in a form."
     },
+    "Save Again" : {
+      "comment" : "An action that saves a checkpoint over itself with what is open now."
+    },
+    "Save Checkpoint “%@”" : {
+      "comment" : "The placeholder is the name the user typed for a checkpoint."
+    },
     "Save and Continue" : {},
     "Save as Script Command…" : {},
     "Save clipboard history" : {},
     "Save this command" : {},
     "Saved %@" : {
       "comment" : "Shown briefly after saving. The placeholder is the name the user gave."
+    },
+    "Saved %@: %@" : {
+      "comment" : "The first placeholder is a checkpoint's name, the second what it holds, such as 3 files and 5 tabs.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Saved %1$@: %2$@"
+          }
+        }
+      }
+    },
+    "Saved the checkpoint %@" : {
+      "comment" : "A receipt. The placeholder is the name the user gave a checkpoint."
     },
     "Saved to Notes" : {
       "comment" : "Notes is Apple's notes app."
@@ -1911,6 +2160,7 @@
       "comment" : "The placeholder is the name of an app."
     },
     "Show Again" : {},
+    "Show Details" : {},
     "Show Examples for %@" : {
       "comment" : "The placeholder is the name of a command-line program."
     },
@@ -1969,6 +2219,9 @@
     "Solid" : {
       "comment" : "A background tint choice: one color."
     },
+    "Something else is where %@ was, so it stays in the Trash" : {
+      "comment" : "The placeholder is a file name."
+    },
     "Sound (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1992,6 +2245,7 @@
       "comment" : "The update channel that only offers finished releases."
     },
     "Start color" : {},
+    "Started" : {},
     "Startup Disk (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2048,6 +2302,7 @@
       "comment" : "The names of two apps, as they stand in a sentence that asks for permission to control them."
     },
     "System Settings" : {},
+    "Take Back" : {},
     "Temperature" : {
       "comment" : "A kind of unit, named in a calculator error."
     },
@@ -2116,6 +2371,9 @@
     "The Finder isn't frontmost, so there is no Finder selection to read." : {},
     "The Finder selection couldn't be read." : {},
     "The calculator converts money with the European Central Bank’s daily rates. Floe downloads the bank’s public file when the rates it holds are half a day old, and sends nothing about you or what you typed. Off, nothing is asked for and the rates are removed." : {},
+    "The checkpoint %@ was already deleted" : {
+      "comment" : "The placeholder is the name the user gave a checkpoint."
+    },
     "The clipboard link isn't a URL. Change it in Settings" : {},
     "The command ended with code %d." : {
       "comment" : "The placeholder is a number, a command's exit code."
@@ -2125,6 +2383,9 @@
     },
     "The command line tool set in General is not installed, so no question is sent." : {},
     "The command line tool set up in General" : {},
+    "The event %@ was already deleted" : {
+      "comment" : "The placeholder is what the event is called, such as lunch with Ana."
+    },
     "The extension couldn't start." : {},
     "The extension isn't responding." : {},
     "The extension stopped unexpectedly." : {},
@@ -2136,6 +2397,7 @@
     },
     "The file couldn't be read as text." : {},
     "The introduction from the first launch." : {},
+    "The last 200 things Floe did that changed your Mac: commands it ran, files it moved to the Trash, processes it quit. Type “receipts” in the launcher to see them and to put a file back. They stay on this Mac. Switching this off forgets them." : {},
     "The last 50 searches that opened something are kept on this Mac, and the Up arrow in an empty search brings them back. Switching this off forgets them." : {},
     "The launcher is following Thaw's border." : {},
     "The launcher is following Thaw's glass." : {},
@@ -2149,12 +2411,18 @@
       "comment" : "A note under an AI answer in a long conversation: only the most recent questions and answers went along as context."
     },
     "The open source launcher for macOS" : {},
+    "The reminder %@ was already deleted" : {
+      "comment" : "The placeholder is what the reminder is about, such as call mom."
+    },
     "The repository could not be reached, so this is the last copy fetched." : {},
     "The search field is its own piece of glass, and the results are a second piece below it." : {},
     "The source chosen in General" : {},
     "The system command failed." : {},
     "This Mac can't run Apple Intelligence." : {},
     "This Mac has no Wi-Fi" : {},
+    "This cannot be undone." : {},
+    "This cannot be undone: the note may have been edited since Floe added the line." : {},
+    "This extension uses the sign-in of the GitHub CLI on this Mac." : {},
     "This file isn't a Floe settings export." : {},
     "This file was exported by a newer version of Floe." : {},
     "This output can't be muted" : {},
@@ -2370,6 +2638,7 @@
       "comment" : "The placeholder is the name of this app."
     },
     "Welcome window" : {},
+    "What It Has Reached" : {},
     "What’s New" : {},
     "What’s new in %@" : {
       "comment" : "The placeholder is the name of this app."
@@ -2389,6 +2658,9 @@
     },
     "Writes a log for troubleshooting to ~/Library/Logs/Floe." : {},
     "Writes a log to ~/Library/Logs/Floe for troubleshooting: launch and scan times, slow searches, and commands and AI requests that fail. Never what you type or ask. Turn it off when you are done." : {},
+    "Wrote the note %@" : {
+      "comment" : "A receipt. The placeholder is the name of a note's file."
+    },
     "Yesterday" : {
       "comment" : "The heading over what was copied yesterday."
     },
@@ -2397,6 +2669,9 @@
     "You will lose any changes you haven't saved." : {},
     "Your Mac can sleep again" : {},
     "Your Settings" : {},
+    "a note" : {
+      "comment" : "What a checkpoint holds when it has no files and no tabs."
+    },
     "about this mac, serial number" : {
       "comment" : "Words that find the About pane of System Settings, separated by commas."
     },
@@ -2728,11 +3003,17 @@
     "raycast, import, store, installed" : {
       "comment" : "Words that find the Include extensions installed in Raycast setting in the settings search, separated by commas."
     },
+    "receipts, history, log, undo, put back, trash, commands, record" : {
+      "comment" : "Words that find the Keep receipts setting in the settings search, separated by commas."
+    },
     "recognize, detect, prefix, command, automatic, without prefix" : {
       "comment" : "Words that find the Recognize commands without the prefix setting in the settings search, separated by commas."
     },
     "registered" : {
       "comment" : "Words that find the symbol ®, separated by commas."
+    },
+    "reminders, remind, reminder, lists, to do, due" : {
+      "comment" : "Words that find the Reminders row of Privacy in the settings search, separated by commas."
     },
     "restart, reboot" : {
       "comment" : "Words that find the Restart command, separated by commas."
@@ -2909,7 +3190,10 @@
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
     },
     "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {},
+    "“event” and a sentence adds one event to your default calendar, starting when the sentence says. This uses the same full access to Calendar that showing your upcoming events does, and macOS asks first. The event’s receipt deletes it again." : {},
     "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept." : {},
+    "“note” and some text makes a Markdown file here. “append” adds a line to the day’s note. Obsidian, Octarine and other apps that keep notes as files show them as their own." : {},
+    "“remind” and a sentence adds one reminder to Reminders, due when the sentence says. It goes to your default list, or to the list the sentence ends with, as in “in Work”. macOS asks first whether Floe may use Reminders. After that Floe reads the names of your lists, and none of the reminders in them." : {},
     "↵ Open" : {},
     "⌘Y Quick Look" : {},
     "⌘⇧C Copy Path" : {},

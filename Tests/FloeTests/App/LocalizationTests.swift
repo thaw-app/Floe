@@ -89,7 +89,7 @@ struct LocalizationCatalogTests {
 
     @Test func thePluralKeysAreTheOnesTheCodeCounts() {
         #expect(Catalog.keys.filter { Catalog.english($0)?.variations != nil } == [
-            "%lld characters", "%lld commands", "%lld files", "%lld items", "%lld results", "From Raycast · %lld commands",
+            "%lld characters", "%lld commands", "%lld files", "%lld items", "%lld results", "%lld tabs", "From Raycast · %lld commands",
         ])
     }
 }

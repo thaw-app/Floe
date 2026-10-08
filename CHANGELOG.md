@@ -37,6 +37,27 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 - **A command works without the prefix** when it starts with a program on your Mac and has a flag, a path or a pipe in it. It is offered under the other results.
 - **Save a command under a name** and the search finds it afterwards. `man` and a program's name opens its manual.
 
+### New: checkpoints
+
+- **`pause` and a name saves what you were doing:** the files and folders selected in Finder, the tabs of the browser window in front, and a note after a colon. `pause website redesign: fix the nav next`.
+- **Search for the name to resume it.** The files open in their apps, the tabs in your browser, and Floe shows your note.
+- **Floe says what is missing** when a file has moved or gone, and lists it. What is still there opens.
+- **Pausing again under the same name** replaces the checkpoint with what is open now.
+
+### New: receipts
+
+- **Floe keeps a receipt of what it changed:** commands it ran, files it moved to the Trash, processes it quit and extensions it removed. Type `receipts` to see them.
+- **Return puts a file back** from the Trash to where it was. If something newer is there now, Floe leaves both alone and says so.
+- **A command or a quit process cannot be undone**, and the receipt says that. Settings > Privacy turns receipts off and forgets them.
+- **Notes and checkpoints leave receipts too.** A note written to your folder goes to the Trash from its receipt if you have not changed it, and a checkpoint's receipt deletes it. A line added to the day's note cannot be undone.
+
+### New: reminders and events
+
+- **`remind` and a sentence adds a reminder to Apple Reminders.** `remind call mom tomorrow at 5pm` is due tomorrow at five, and the row shows the date before you press Return. Without a date in it, the reminder has none.
+- **Its receipt deletes it again.** macOS asks once whether Floe may use Reminders.
+- **End the sentence with a list's name to put it there.** `remind call mom tomorrow at 5pm in Work`, or `list Work`. The row shows the list.
+- **`event` and a sentence adds an event to Apple Calendar.** `event lunch with Ana Thursday noon` lasts an hour from Thursday at twelve, and a day with no time makes an all-day event. Its receipt deletes it again.
+
 ### New: processes and ports
 
 - **`kill` and a name lists the running processes that match**, with the memory each one holds. Return asks one to quit. Force Quit asks first.
@@ -47,6 +68,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 - **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
 - **An Extension Store page** browses, installs and updates extensions.
 - **Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
+- **GitHub extensions sign in with the GitHub CLI.** If `gh` is signed in on your Mac, Floe asks once per extension whether it may use that sign-in, and lists what the sign-in may do. Its page in Settings takes it back.
 - **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
 
@@ -54,6 +76,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 - **Turn off an extension, or one of its commands**, on its page in Settings. Floe leaves what is off out of the search, and a hotkey, the menu bar or Shortcuts will not run it.
 - **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension Floe installed.
+- **Each extension's page shows what it has reached:** the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It is a record, not a limit.
 
 ### New: built in
 
@@ -66,7 +89,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 ### New: your own apps
 
 - **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. Open With sends one link to another browser.
-- **`note` and some text** goes to Apple Notes, Antinote, or any app with a URL scheme.
+- **`note` and some text** goes to Apple Notes, Antinote, any app with a URL scheme, or a folder of Markdown files, which is what Obsidian and Octarine read. With a folder, `append` adds a line to the day's note.
 - **A preferred clipboard app.** Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies of its own.
 - **SSH hosts.** The hosts in `~/.ssh/config` are in the search, and `ssh` and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.
 - **Apple Shortcuts**, once turned on in Settings > Privacy. Return runs one in the background. If it fails, Floe shows the reason Shortcuts gave.
@@ -93,7 +116,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 ### What's next
 
-- Sign-in (OAuth) for extensions. They use a token preference until then.
+- Sign-in (OAuth) for extensions other than GitHub. They use a token preference until then.
 - `launchCommand`, deeplinks, AI tools and the grid layout for extensions.
 - Searching your notes and searching an app's menus.
 

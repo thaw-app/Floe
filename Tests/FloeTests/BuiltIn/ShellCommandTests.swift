@@ -297,6 +297,7 @@ struct ShellCommandTests {
         let defaults = try #require(UserDefaults(suiteName: "floe-shell-tests-\(UUID().uuidString)"))
         let usage = UsageStore(defaults: defaults)
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: usage, snapshot: CatalogSnapshot(apps: [], commands: []))
+        model.receipts = ReceiptStore(file: FileManager.default.temporaryDirectory.appendingPathComponent("floe-receipts-\(UUID().uuidString).json"))
         let ran = Commands()
         model.shell.hasProgram = { _ in false }
         model.shell.run = { command, folder in

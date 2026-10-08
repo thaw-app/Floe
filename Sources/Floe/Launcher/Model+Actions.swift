@@ -16,7 +16,8 @@ extension LauncherModel {
                 self?.hidePanel()
                 self?.reset()
             },
-            preferredApps: preferredApps
+            preferredApps: preferredApps,
+            record: { [weak self] in self?.record($0) }
         )
     }
 
@@ -40,7 +41,7 @@ extension LauncherModel {
         case .menuBarItem: String(localized: "Click Item", bundle: .floe)
         case .browserTab(.tab): String(localized: "Switch to Tab", bundle: .floe)
         case .webAddress: openInBrowserTitle
-        default: item.shellAction?.title ?? String(localized: "Open", bundle: .floe, comment: "A verb on a button: open the selected result.")
+        default: Self.laterTitle(for: item) ?? String(localized: "Open", bundle: .floe, comment: "A verb on a button: open the selected result.")
         }
     }
 
@@ -54,7 +55,7 @@ extension LauncherModel {
         case let .browserTab(.tab(tab)): switchToBrowserTab(tab)
         case let .browserTab(.access(browser)): SystemCommand.askForAutomation(toControl: browser.name)
         case let .webAddress(address): open(address)
-        default: item.shellAction.map(perform)
+        default: openLater(item)
         }
     }
 
@@ -94,7 +95,7 @@ extension LauncherModel {
         case .webAddress, .quicklink:
             actions += linkActions(for: item)
         default:
-            actions += shellActions(for: item)
+            actions += laterActions(for: item)
         }
         if Self.keepsItsPlace(item) {
             let favorite = isFavorite(item)
@@ -171,7 +172,7 @@ extension LauncherModel {
         case .calculator, .emoji, .searchFiles, .event, .quicklink: false
         case .file, .clipboardEntry, .menuBarItem, .menuBarAccess: false
         case .browserTab: false
-        case .askAI, .webAddress, .shell, .process: false
+        case .askAI, .webAddress, .shell, .process, .receipt, .checkpointDraft, .reminderDraft, .eventDraft: false
         default: true
         }
     }

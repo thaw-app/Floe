@@ -14,6 +14,9 @@ enum RootSearch {
     static let providers: [any SearchProvider] = [
         EmojiSearchProvider(),
         ShellCommandSearchProvider(),
+        CheckpointSearchProvider(),
+        ReminderSearchProvider(),
+        EventSearchProvider(),
         CalendarSearchProvider(),
         NoteSearchProvider(),
         CatalogSearchProvider(),

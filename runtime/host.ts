@@ -17,6 +17,7 @@ import { NavigationRoot, commandDrewItself, handleToastAction } from "./api/inde
 import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
 import { lineSplitter } from "./lines";
+import { observe } from "./access";
 
 const log = (...parts: unknown[]) =>
   process.stderr.write(parts.map((part) => (typeof part === "string" ? part : Bun.inspect(part))).join(" ") + "\n");
@@ -94,7 +95,14 @@ const launchProps = {
 };
 
 try {
-  const module = await import(await bundle(findEntry()));
+  const entry = await bundle(findEntry());
+  // From here on it is the extension that reads, writes and calls out. Its own folders are not news.
+  const report = observe({
+    own: [ctx.extDir, ctx.supportPath, import.meta.dir, fs.realpathSync(os.tmpdir())],
+    report: (found) => send({ type: "access", ...found }),
+  });
+  process.on("exit", report);
+  const module = await import(entry);
   // A CommonJS bundle (what Raycast installs) arrives as { default: module.exports }, whose own default is the command.
   const exported = module.default;
   const Command = typeof exported === "object" && exported !== null && "default" in exported ? exported.default : exported;
