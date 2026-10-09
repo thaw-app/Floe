@@ -362,13 +362,12 @@ To ship sync, in this order:
 4. `project.yml` already sets `CODE_SIGN_ENTITLEMENTS: $(FLOE_ENTITLEMENTS)` and
    `PROVISIONING_PROFILE_SPECIFIER: $(FLOE_PROFILE)` on the Floe target, with the first file and no profile
    as the defaults. On the target and not on the command line, where they would reach the package targets too.
-5. In org-ci, give `actions/build` an input for extra build settings, to pass
-   `FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements` and `FLOE_PROFILE=Floe Developer ID`, and give
-   `actions/export-and-package` an input for the profile's name, written into its export options as
-   `provisioningProfiles` with `com.thaw.floe` as the key.
-6. In `release.yml`, before the build: decode the secret into
-   `~/Library/Developer/Xcode/UserData/Provisioning Profiles/<UUID>.provisionprofile`, where the UUID is
-   `security cms -D -i <file> | plutil -extract UUID raw -`. Pass the new inputs and move the pinned org-ci commit.
+5. org-ci has what this needs from the commit that adds provisioning profiles: `configure-signing` installs
+   the profile and outputs its name, `build` takes extra build settings, and `export-and-package` names the
+   profile for a bundle identifier.
+6. `release.yml` and `build-dmg.yml` pass the secret to `configure-signing`, pass
+   `FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements` and `FLOE_PROFILE` to the build when a profile was
+   installed, and check the exported app before it is notarized. Without the secret they sign as before.
 7. Before publishing, check the exported app: `codesign -d --entitlements - Floe.app` shows
    `com.apple.developer.ubiquity-kvstore-identifier` with the team id in front, and
    `Floe.app/Contents/embedded.provisionprofile` exists. Then install it on two Macs and try the switch.

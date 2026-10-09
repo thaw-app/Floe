@@ -68,9 +68,13 @@ jobs:
         with:
           xcode-version: latest
 
+      # The profile is what lets the release carry iCloud. Without the secret
+      # the build is signed as before and sync says it is unavailable.
       - name: Configure signing
-        uses: thaw-app/org-ci/actions/configure-signing@d90bbc87aa4dff91d3bc9e30fb6ceef0765bd986
+        id: signing
+        uses: thaw-app/org-ci/actions/configure-signing@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
         with:
+          provisioning-profile: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
           apple-application-cert: ${{ secrets.APPLE_APPLICATION_CERT }}
           apple-application-cert-password: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           apple-id: ${{ secrets.APPLE_ID }}
@@ -80,12 +84,16 @@ jobs:
       # Overrides project.yml's ad hoc signing on the command line: Developer ID
       # identity, team, manual style and the hardened runtime.
       - name: Build
-        uses: thaw-app/org-ci/actions/build@d90bbc87aa4dff91d3bc9e30fb6ceef0765bd986
+        uses: thaw-app/org-ci/actions/build@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
         with:
           apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
           project-name: ${{ steps.source.outputs.project-name }}
           scheme-name: Floe
           deployment-target: ${{ steps.source.outputs.deployment-target }}
+          # project.yml maps these two to the Floe target's entitlements and profile.
+          build-settings: |
+            ${{ steps.signing.outputs.provisioning-profile-name != '' && 'FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements' || '' }}
+            ${{ steps.signing.outputs.provisioning-profile-name != '' && format('FLOE_PROFILE={0}', steps.signing.outputs.provisioning-profile-name) || '' }}
 
       # Before anything is sent to Apple: the archived app must contain Bun as
       # its developers signed it (team 7FRXF46ZSN).
@@ -98,14 +106,26 @@ jobs:
       # Exports with a secure timestamp, notarizes and staples the app, then
       # packages and signs the DMG.
       - name: Export Archive
-        uses: thaw-app/org-ci/actions/export-and-package@d90bbc87aa4dff91d3bc9e30fb6ceef0765bd986
+        uses: thaw-app/org-ci/actions/export-and-package@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
         with:
           apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
           app-name: ${{ env.APP_NAME }}
           dmg-name: ${{ env.DMG_NAME }}
+          provisioning-profile-name: ${{ steps.signing.outputs.provisioning-profile-name }}
+          bundle-identifier: com.thaw.floe
+
+      # A release that claims iCloud without the profile inside does not launch.
+      - name: Verify iCloud signing
+        if: steps.signing.outputs.provisioning-profile-name != ''
+        run: |
+          set -euo pipefail
+          app="build/Export/$APP_NAME"
+          test -f "$app/Contents/embedded.provisionprofile"
+          codesign -d --entitlements - "$app" 2>/dev/null | grep -q "com.apple.developer.ubiquity-kvstore-identifier"
+          codesign -d --entitlements - "$app" 2>/dev/null | grep -q "com.apple.security.automation.apple-events"
 
       - name: Notarize
-        uses: thaw-app/org-ci/actions/notarize-and-validate@d90bbc87aa4dff91d3bc9e30fb6ceef0765bd986
+        uses: thaw-app/org-ci/actions/notarize-and-validate@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
         with:
           dmg-name: ${{ env.DMG_NAME }}
           app-name: ${{ env.APP_NAME }}
@@ -127,4 +147,11 @@ jobs:
 
       - name: Cleanup keychain
         if: always()
-        run: security delete-keychain "$RUNNER_TEMP/buildagent.keychain" || true
+        env:
+          PROFILE_UUID: ${{ steps.signing.outputs.provisioning-profile-uuid }}
+        run: |
+          security delete-keychain "$RUNNER_TEMP/buildagent.keychain" || true
+          if [[ -n "$PROFILE_UUID" ]]; then
+            rm -f "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.provisionprofile" \
+              "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.provisionprofile"
+          fi
