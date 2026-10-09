@@ -94,10 +94,10 @@ struct ReceiptsTests {
         back.undone = now
         #expect(back.label(now: now).hasSuffix(" · put back"))
         #expect(!Receipt(date: now, kind: .process, subject: "Thaw", detail: "").label(now: now).contains("·"))
-        let kinds: [Receipt.Kind] = [.command, .trash, .process, .extensionRemoved, .reminder, .event, .note, .noteLine, .checkpoint]
+        let kinds: [Receipt.Kind] = [.command, .trash, .process, .extensionRemoved, .reminder, .event, .note, .noteLine, .checkpoint, .timer]
         #expect(kinds.map { Receipt(date: now, kind: $0, subject: "X", detail: "").title } == [
             "Ran X", "Moved X to the Trash", "Quit X", "Removed the extension X", "Added the reminder X", "Added the event X",
-            "Wrote the note X", "Added a line to the note X", "Saved the checkpoint X",
+            "Wrote the note X", "Added a line to the note X", "Saved the checkpoint X", "Started the timer X",
         ])
     }
 

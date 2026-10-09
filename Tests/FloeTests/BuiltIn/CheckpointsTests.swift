@@ -7,6 +7,7 @@
 
 @testable import Floe
 import Foundation
+import Synchronization
 import Testing
 
 @MainActor
@@ -185,6 +186,76 @@ struct CheckpointsTests {
         #expect(opened == [here.path, here.path], "what is there still opens")
         #expect(said.last == "1 of 2 are missing")
         #expect(shown == ["old|true"], "and the list says which")
+    }
+
+    // MARK: The preferred apps
+
+    private var zed: ResolvedApp {
+        ResolvedApp(url: URL(fileURLWithPath: "/Applications/Zed.app"))
+    }
+
+    /// A Mac that has the app with that bundle identifier, or none at all.
+    private func lookup(installed identifier: String?) -> AppLookup {
+        AppLookup(url: { [zed] in $0 == identifier ? zed.url : nil }, plainTextApp: { nil }, exists: { _ in false }, bundleIdentifier: { _ in nil })
+    }
+
+    @Test(arguments: [
+        ("main.swift", true), ("notes.md", true), ("readme.txt", true), ("page.html", true), ("data.json", true),
+        ("photo.png", false), ("invoice.pdf", false), ("song.mp3", false), ("archive.zip", false), ("Floe.app", false),
+    ])
+    func theEditorIsHandedTextAndCodeAndNothingElse(name: String, toEditor: Bool) {
+        let file = URL(fileURLWithPath: "/nowhere/\(name)")
+        let handoff = Checkpoint.editorHandoff(for: file, editor: zed) { _ in false }
+        #expect(handoff == (toEditor ? Handoff(urls: [file], application: zed.url) : nil))
+        #expect(Checkpoint.editorHandoff(for: file, editor: nil) { _ in false } == nil, "with no editor chosen every file is its own app's")
+    }
+
+    @Test func aFolderIsNeverTheEditorsEvenWhenItsNameReadsAsCode() {
+        let folder = URL(fileURLWithPath: "/nowhere/site.swift")
+        #expect(Checkpoint.editorHandoff(for: folder, editor: zed, isFolder: { _ in true }, isText: { _ in true }) == nil)
+        #expect(Checkpoint.editorHandoff(for: folder, editor: zed, isFolder: { _ in false }, isText: { _ in true }) != nil)
+    }
+
+    /// A checkpoint of a folder, two text files, a picture and a tab, all there, and what resuming it opened where.
+    private func resumed(in folder: URL, editor: AppChoice?, installed: String?) throws -> (editor: [String], own: [String], links: [String]) {
+        let model = model(in: folder)
+        model.settings.editorApp = editor
+        model.appLookup = lookup(installed: installed)
+        var editor: [String] = []
+        var own: [String] = []
+        let links = Mutex<[String]>([])
+        model.checkpointing.openFile = { own.append($0.lastPathComponent) }
+        model.checkpointing.openIn = { handoff in editor += handoff.urls.map { "\($0.lastPathComponent) in \(handoff.application.lastPathComponent)" } }
+        model.linkOpener = LinkOpener { url, _ in links.withLock { $0.append(url.absoluteString) } }
+        let site = folder.appendingPathComponent("site")
+        try FileManager.default.createDirectory(at: site, withIntermediateDirectories: true)
+        let names = ["main.swift", "notes.md", "photo.png"]
+        for name in names {
+            try Data().write(to: folder.appendingPathComponent(name))
+        }
+        let files = ([site] + names.map(folder.appendingPathComponent)).map { Checkpoint.Item(kind: .file, value: $0.path, title: $0.lastPathComponent) }
+        model.resume(Checkpoint(name: "site", note: "", items: files + [.init(kind: .link, value: "https://example.com/docs", title: "Docs")], saved: Date()))
+        return (editor, own, links.withLock { $0 })
+    }
+
+    @Test func resumeOpensTextAndCodeInTheChosenEditorFoldersInFinderAndTheRestInTheirApps() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let opened = try resumed(in: folder, editor: AppChoice(bundleIdentifier: "dev.zed.Zed", path: "/Applications/Zed.app"), installed: "dev.zed.Zed")
+        #expect(opened.editor == ["main.swift in Zed.app", "notes.md in Zed.app"])
+        #expect(opened.own == ["site", "photo.png"], "a folder goes to Finder and a picture to its own app")
+        #expect(opened.links == ["https://example.com/docs"])
+    }
+
+    @Test func withNoEditorChosenOrOneThatIsGoneEveryFileOpensInItsOwnApp() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let none = try resumed(in: folder.appendingPathComponent("none"), editor: nil, installed: "dev.zed.Zed")
+        #expect(none.editor.isEmpty)
+        #expect(none.own == ["site", "main.swift", "notes.md", "photo.png"])
+        let gone = try resumed(in: folder.appendingPathComponent("gone"), editor: AppChoice(bundleIdentifier: "dev.zed.Zed", path: "/Applications/Zed.app"), installed: nil)
+        #expect(gone.editor.isEmpty, "the stand-in for a missing editor is what text files open in anyway")
+        #expect(gone.own == ["site", "main.swift", "notes.md", "photo.png"])
     }
 
     @Test func deletingAsksFirstAndLeavesTheFilesAlone() throws {

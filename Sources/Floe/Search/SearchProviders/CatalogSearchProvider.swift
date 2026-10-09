@@ -14,7 +14,7 @@ struct CatalogSearchProvider: SearchProvider {
         let builtIns: [RootItem] = [.menuBarSearch, .emojiSearch, ClipboardApps.row(for: context.clipboardDestination), .fileSearch, .settings]
         let found = context.commands.map(RootItem.command) + context.scripts.map(RootItem.script) + context.apps.map(RootItem.app)
         let own = builtIns + SystemCommand.allCases.map(RootItem.system) + context.snippets.map(RootItem.snippet)
-            + context.notesApp.actions.map { RootItem.note($0, text: "") } + context.thawActions.map(RootItem.thaw)
+            + context.notesApp.actions.filter(\.standsAlone).map { RootItem.note($0, text: "") } + context.thawActions.map(RootItem.thaw)
         return SearchContribution(ranked: found + own, searchOnly: context.settingsPanes.map(RootItem.settingsPane))
     }
 }

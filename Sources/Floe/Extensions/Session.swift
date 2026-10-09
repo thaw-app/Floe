@@ -39,6 +39,8 @@ final class ExtensionSession: ObservableObject {
     let command: ExtensionCommand
     /// Where what the extension reaches is recorded. Tests give one of their own.
     var accessStore = ExtensionAccessStore.shared
+    /// Whether the record is kept, as Settings has it now. Tests answer for themselves.
+    var recordsAccess: () -> Bool = { AppSettings.shared.recordsExtensionAccess }
     let arguments: [String: Any]
     let launchType: String
     @Published private(set) var root: Node?
@@ -154,10 +156,13 @@ final class ExtensionSession: ObservableObject {
         }
     }
 
-    /// Takes in a report of what the extension reached. Answers whether the message was one.
+    /// Takes in a report of what the extension reached, or drops it while the record is off. Answers whether the message was one.
     private func recordedAccess(_ fields: [String: Any]) -> Bool {
         guard fields["type"] as? String == "access" else { return false }
-        accessStore.record(fields, for: command.extensionName)
+        // A host started before the switch went off still reports.
+        if recordsAccess() {
+            accessStore.record(fields, for: command.extensionName)
+        }
         return true
     }
 

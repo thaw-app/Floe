@@ -77,6 +77,30 @@ nonisolated struct ShortcutsTool: Sendable {
         return String(localized: "\(shortcut.name) failed: \(line)", bundle: .floe, comment: "The first placeholder is the name of a shortcut and the second is what the Shortcuts tool said.")
     }
 
+    /// What runs a shortcut by its name with a file as its input. The name comes after "--", so one that starts with a hyphen is not read as an option.
+    static func arguments(running name: String, inputFile: String) -> [String] {
+        ["run", "--input-path", inputFile, "--", name]
+    }
+
+    /// Runs a shortcut by name with a text as its input. The tool takes input as a file, so the text is in one while it runs.
+    /// Returns the line for the HUD when it failed.
+    @concurrent
+    func run(named name: String, input: String) async -> String? {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-shortcut-input-\(UUID().uuidString).txt")
+        do {
+            try Data(input.utf8).write(to: file)
+        } catch {
+            return error.localizedDescription
+        }
+        defer { try? FileManager.default.removeItem(at: file) }
+        let result = await run(Self.arguments(running: name, inputFile: file.path))
+        guard !result.succeeded else { return nil }
+        guard let line = Self.lastLine(result.errorOutput) else {
+            return String(localized: "\(name) failed. Open it in Shortcuts to see why.", bundle: .floe, comment: "The placeholder is the name of a shortcut, and Shortcuts is the app.")
+        }
+        return String(localized: "\(name) failed: \(line)", bundle: .floe, comment: "The first placeholder is the name of a shortcut and the second is what the Shortcuts tool said.")
+    }
+
     /// Shows a shortcut in the Shortcuts app. The tool's "view" takes a name, so "--" keeps a
     /// name that starts with a hyphen from being read as an option.
     @concurrent
@@ -178,6 +202,16 @@ final class AppleShortcutLibrary {
     func run(_ shortcut: AppleShortcut, showHUD: @escaping (String) -> Void) -> Task<Void, Never> {
         Task { [tool] in
             if let failure = await tool.run(shortcut) {
+                showHUD(failure)
+            }
+        }
+    }
+
+    /// Starts a run of the shortcut by that name, with a text as its input. `showHUD` hears only of a failure.
+    @discardableResult
+    func run(named name: String, input: String, showHUD: @escaping (String) -> Void) -> Task<Void, Never> {
+        Task { [tool] in
+            if let failure = await tool.run(named: name, input: input) {
                 showHUD(failure)
             }
         }

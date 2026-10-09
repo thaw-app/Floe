@@ -46,7 +46,7 @@ final class QuicklinkStore: ObservableObject {
     }
 
     private static func stored(in file: URL) -> [Quicklink]? {
-        (try? Data(contentsOf: file)).flatMap { try? JSONDecoder().decode([Quicklink].self, from: $0) }
+        JSONFile.read([Quicklink].self, from: file)
     }
 
     /// Reads the file again, after another process saved it. Nothing is written back.

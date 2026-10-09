@@ -118,9 +118,13 @@ extension ExtensionSession {
         self.toast = nil
     }
 
-    /// What the host starts with: the login shell's environment, the command's preferences, and
-    /// whether `AI.ask` has a tool to run on.
-    static func hostVariables(_ base: [String: String], preferences: Data?, hasAI: Bool, launchType: String = "userInitiated") -> [String: String] {
+    /// The variable that tells the host not to watch what the extension reaches, and the value that says so.
+    static let accessVariable = "FLOE_ACCESS"
+    static let accessOff = "off"
+
+    /// What the host starts with: the login shell's environment, the command's preferences, whether `AI.ask`
+    /// has a tool to run on, and whether what the extension reaches is recorded.
+    static func hostVariables(_ base: [String: String], preferences: Data?, hasAI: Bool, launchType: String = "userInitiated", recordsAccess: Bool = true) -> [String: String] {
         var variables = base
         // Preferences go through the environment so the host has them before the command's first line runs.
         if let preferences {
@@ -129,6 +133,7 @@ extension ExtensionSession {
         variables["FLOE_AI"] = hasAI ? "1" : nil
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launchType
+        variables[accessVariable] = recordsAccess ? nil : accessOff
         return variables
     }
 }

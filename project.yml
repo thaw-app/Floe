@@ -158,9 +158,10 @@ targets:
         # which answers over plain http.
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
-        NSAppleEventsUsageDescription: Floe uses AppleScript to read the Finder selection, to save a note in Notes, to list your open browser tabs and switch to one when you turn that on, and to run system commands such as Empty Trash and Toggle Dark Mode.
+        NSAppleEventsUsageDescription: Floe uses AppleScript to read the Finder selection, to save a note in Notes, to list your open browser tabs and switch to one when you turn that on, to run system commands such as Empty Trash and Toggle Dark Mode, and to control playback in Music or Spotify.
         NSCalendarsFullAccessUsageDescription: Floe shows your upcoming events and meeting links when you search for them, and adds an event when you type event and a sentence in the search.
         NSCalendarsUsageDescription: Floe shows your upcoming events and meeting links when you search for them.
+        NSContactsUsageDescription: Floe finds people in your Contacts when you type contact and a name in the search.
         NSRemindersFullAccessUsageDescription: Floe adds a reminder to Reminders when you type remind and a sentence in the search.
         NSHighResolutionCapable: true
         # Sparkle updates. The appcast is published to this repository's gh-pages branch by

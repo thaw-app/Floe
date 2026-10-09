@@ -125,7 +125,7 @@ enum PreferredApps {
     }
 
     /// A folder to work in. A package is a folder on disk but stands for one thing, like a file.
-    static func isFolder(_ url: URL) -> Bool {
+    static nonisolated func isFolder(_ url: URL) -> Bool {
         let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .isPackageKey])
         return values?.isDirectory == true && values?.isPackage != true
     }

@@ -25,10 +25,12 @@ struct CalendarSearchProvider: SearchProvider {
 
 /// `:` followed by a name lists the emoji and symbols that match it.
 struct EmojiSearchProvider: SearchProvider {
+    static let prefix = ":"
+
     func contribution(for context: SearchContext) -> SearchContribution {
-        guard context.query.hasPrefix(":") else { return SearchContribution() }
+        guard context.query.hasPrefix(Self.prefix) else { return SearchContribution() }
         let matches = EmojiCatalog.search(
-            term: String(context.query.dropFirst()),
+            term: String(context.query.dropFirst(Self.prefix.count)),
             frecency: { context.frecency(EmojiResult.id(for: $0)) }
         )
         let section = String(localized: "Emoji & Symbols", bundle: .floe)

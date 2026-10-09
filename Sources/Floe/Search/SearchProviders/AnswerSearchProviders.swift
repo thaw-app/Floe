@@ -16,13 +16,14 @@ struct CalculatorSearchProvider: SearchProvider {
     }
 }
 
-/// `note buy milk` leads with the note it would make.
+/// `note buy milk` leads with the note it would make, and `todo` alone with the row that opens the day's note.
 struct NoteSearchProvider: SearchProvider {
     func contribution(for context: SearchContext) -> SearchContribution {
-        guard !context.query.isEmpty, let note = Notes.request(in: context.trimmed, app: context.notesApp) else {
-            return SearchContribution()
+        if let note = Notes.request(in: context.trimmed, app: context.notesApp) {
+            return SearchContribution(pinned: [RootResult(item: .note(note.action, text: note.text), section: nil)])
         }
-        return SearchContribution(pinned: [RootResult(item: .note(note.action, text: note.text), section: nil)])
+        guard Notes.opensDaysNote(context.trimmed, app: context.notesApp) else { return SearchContribution() }
+        return SearchContribution(pinned: [RootResult(item: .note(.today, text: ""), section: nil)])
     }
 }
 

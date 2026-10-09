@@ -22,6 +22,12 @@ final nonisolated class TimedCache<Key: Hashable & Sendable, Value: Sendable>: S
         return value
     }
 
+    /// The value kept for the key, when there is one no older than `lifetime`. Nothing is made.
+    func kept(for key: Key, lasting lifetime: TimeInterval = .infinity, now: Date = Date()) -> Value? {
+        guard let entry = kept.withLock({ $0[key] }), now.timeIntervalSince(entry.taken) < lifetime else { return nil }
+        return entry.value
+    }
+
     func forget() {
         kept.withLock { $0.removeAll() }
     }

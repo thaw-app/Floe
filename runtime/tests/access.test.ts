@@ -8,9 +8,11 @@
 import { describe, expect, test } from "bun:test";
 import childProcess from "node:child_process";
 import fs from "node:fs";
+import http from "node:http";
+import https from "node:https";
 import os from "node:os";
 import path from "node:path";
-import { hostOf, observe, place, programOf, type AccessReport } from "../access";
+import { hostOf, isRecording, observe, place, programOf, type AccessReport } from "../access";
 
 describe("where a path is, as the page shows it", () => {
   const home = "/Users/me";
@@ -99,5 +101,38 @@ describe("recording", () => {
     expect(() => fs.readFileSync(Symbol("odd") as unknown as string)).toThrow();
     stop();
     expect([fs.readFileSync, fs.writeFileSync, globalThis.fetch, childProcess.execSync]).toEqual(before);
+  });
+
+  test("the app's variable says whether to record, and anything but off records", () => {
+    expect(isRecording({})).toBe(true);
+    expect(isRecording({ FLOE_ACCESS: "" })).toBe(true);
+    expect(isRecording({ FLOE_ACCESS: "on" })).toBe(true);
+    expect(isRecording({ FLOE_ACCESS: "off" })).toBe(false);
+  });
+
+  test("with the variable saying off, nothing is wrapped and nothing is reported", async () => {
+    const folder = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), "floe-access-off-"));
+    fs.writeFileSync(path.join(folder, "theirs.txt"), "x");
+    const bun = globalThis.Bun as unknown as Record<string, unknown>;
+    const watched = () => [
+      fs.readFileSync, fs.writeFileSync, fs.promises.readFile, globalThis.fetch, http.request, https.get,
+      childProcess.execSync, childProcess.spawn, bun.spawn, bun.file, bun.write,
+    ];
+    const before = watched();
+    const reports: AccessReport[] = [];
+    const stop = observe({ own: [], report: (found) => reports.push(found), delay: 10, recording: isRecording({ FLOE_ACCESS: "off" }) });
+    const untouched = () => watched().every((found, index) => found === before[index]);
+    try {
+      expect(untouched()).toBe(true);
+      fs.readFileSync(path.join(folder, "theirs.txt"));
+      fs.writeFileSync(path.join(folder, "made.txt"), "y");
+      await fs.promises.readFile(path.join(folder, "theirs.txt"));
+      await Bun.sleep(40);
+    } finally {
+      stop();
+    }
+    expect(reports).toEqual([]);
+    expect(untouched()).toBe(true);
+    fs.rmSync(folder, { recursive: true });
   });
 });

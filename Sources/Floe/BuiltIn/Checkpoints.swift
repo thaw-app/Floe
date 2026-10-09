@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import Foundation
+import UniformTypeIdentifiers
 
 /// What the user was doing, saved to come back to: the files and folders selected in Finder, the tabs of the
 /// browser window in front, and a note of the next step. Not which apps were open.
@@ -75,6 +76,19 @@ nonisolated struct Checkpoint: Codable, Identifiable, Hashable, Sendable {
         return lines.joined(separator: "\n")
     }
 
+    /// Whether a file is one an editor is for: plain text or source code, by what the system says it is.
+    static func isText(_ file: URL) -> Bool {
+        let type = (try? file.resourceValues(forKeys: [.contentTypeKey]))?.contentType ?? UTType(filenameExtension: file.pathExtension)
+        return type.map { $0.conforms(to: .text) || $0.conforms(to: .sourceCode) } ?? false
+    }
+
+    /// What the chosen editor is handed when a checkpoint is resumed: a text or code file. Nil for a folder, which is
+    /// Finder's, for any other file, which is its own app's, and while no editor is chosen.
+    static func editorHandoff(for item: URL, editor: ResolvedApp?, isFolder: (URL) -> Bool = PreferredApps.isFolder, isText: (URL) -> Bool = isText) -> Handoff? {
+        guard let editor, !isFolder(item), isText(item) else { return nil }
+        return Handoff(urls: [item], application: editor.url)
+    }
+
     /// The tabs of the window in front in each browser: the first window a browser lists is the one in front.
     static func frontWindowTabs(_ tabs: [BrowserTab]) -> [BrowserTab] {
         var front: [String: String] = [:]
@@ -102,7 +116,7 @@ final nonisolated class CheckpointStore: Sendable {
     }
 
     var all: [Checkpoint] {
-        (try? Data(contentsOf: file)).flatMap { try? JSONDecoder().decode([Checkpoint].self, from: $0) } ?? []
+        JSONFile.read([Checkpoint].self, from: file) ?? []
     }
 
     /// Saves a checkpoint. One of the same name is replaced: pausing a task again is the newer state of it.
@@ -116,7 +130,7 @@ final nonisolated class CheckpointStore: Sendable {
 
     private func write(_ checkpoints: [Checkpoint]) {
         try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? JSONEncoder().encode(checkpoints).write(to: file, options: .atomic)
+        JSONFile.write(checkpoints, to: file)
     }
 }
 

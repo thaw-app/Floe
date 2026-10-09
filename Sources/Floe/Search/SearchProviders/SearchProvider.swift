@@ -18,9 +18,15 @@ struct SearchContext {
     var emojiSkinTone = EmojiSkinTone.none
     /// How shell commands are treated. A context made by hand has them off, so a test of another provider sees none.
     var shell = ShellSettings.off
+    /// The optional sources whose switch is on, by id. `keywords` leaves out the word of one that is off.
+    var searchSources: Set<String> = []
     var checkpoints: [Checkpoint] = []
     /// The names of the user's lists in Reminders. Filled only while a reminder is being typed.
     var reminderLists: [String] = []
+    /// The timers that are counting down, for `timers` to list.
+    var timers: [RunningTimer] = []
+    /// The name of the Shortcut that sets a Focus. Empty until the user names one in Settings.
+    var focusShortcut = ""
     var aliases: [String: String] = [:]
     var notesApp = NotesApp.appleNotes
     var frecency: (String) -> Double = { _ in 0 }

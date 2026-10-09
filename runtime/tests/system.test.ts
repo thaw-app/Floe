@@ -601,9 +601,24 @@ describe("OAuth while sign-in is parked", () => {
     ]);
   });
 
-  test("only GitHub is lent, by its id or its name", () => {
-    expect(["github", "GitHub", " GITHUB "].map((name) => isLent(name))).toEqual([true, true, true]);
-    expect(["github-enterprise", "Google", "", undefined].map((name) => isLent(name))).toEqual([false, false, false, false]);
+  test("GitLab's tokens are asked of the app too, which may lend the GitLab CLI's sign-in", async () => {
+    const client = new api.OAuth.PKCEClient({ providerName: "GitLab", providerId: "gitlab" });
+    const lent = client.getTokens();
+    handleReply({ id: sent("request")[0].id, result: { accessToken: "glpat-lent", updatedAt: "2026-10-08T00:00:00.000Z" } });
+    expect((await lent)?.accessToken).toBe("glpat-lent");
+    const removed = client.removeTokens();
+    handleReply({ id: sent("request")[1].id, result: null });
+    await removed;
+    expect(sent("request").map((message) => [message.method, message.params.providerId])).toEqual([
+      ["oauth.getTokens", "gitlab"],
+      ["oauth.removeTokens", "gitlab"],
+    ]);
+  });
+
+  test("only GitHub and GitLab are lent, by their id or their name", () => {
+    expect(["github", "GitHub", " GITHUB ", "gitlab", "GitLab", " GITLAB "].map((name) => isLent(name))).toEqual([true, true, true, true, true, true]);
+    const others = ["github-enterprise", "gitlab-self-hosted", "Google", "toString", "constructor", "", undefined];
+    expect(others.map((name) => isLent(name))).toEqual(others.map(() => false));
   });
 
   test("starting a sign-in fails and names the token preference to use instead", async () => {
@@ -613,6 +628,18 @@ describe("OAuth while sign-in is parked", () => {
     await expect(client.authorizationRequest({ endpoint: "https://example.com", clientId: "cid", scope: "repo" })).rejects.toThrow(message);
     await expect(client.authorize({ url: "https://example.com" })).rejects.toThrow(message);
     await expect(client.setTokens({ accessToken: "abc" })).rejects.toThrow(message);
+    expect(sent("request")).toEqual([]);
+  });
+
+  test("the message names the tool of the provider that is lent", async () => {
+    ctx.manifest = { name: "gitlab", preferences: [password("token", "API Token")] };
+    const gitlab = new api.OAuth.PKCEClient({ providerName: "GitLab" });
+    const message = `Floe signs in to GitLab with the GitLab CLI. Install it, run "glab auth login", and allow it when Floe asks. Or add "API Token" in this extension's preferences.`;
+    await expect(gitlab.authorize({ url: "https://example.com" })).rejects.toThrow(message);
+    await expect(gitlab.setTokens({ accessToken: "abc" })).rejects.toThrow(message);
+    ctx.manifest = { name: "gitlab", preferences: [] };
+    const bare = `Floe signs in to GitLab with the GitLab CLI. Install it, run "glab auth login", and allow it when Floe asks.`;
+    await expect(gitlab.authorize({ url: "https://example.com" })).rejects.toThrow(new Error(bare));
     expect(sent("request")).toEqual([]);
   });
 

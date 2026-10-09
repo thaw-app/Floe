@@ -375,6 +375,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         privacy(
+            "recordsExtensionAccess",
+            String(localized: "Record what extensions reach", bundle: .floe),
+            section: String(localized: "Shell Commands", bundle: .floe),
+            keywords: String(
+                localized: "extensions, record, access, hosts, folders, programs, network, reached, forget",
+                bundle: .floe,
+                comment: "Words that find the Record what extensions reach setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
             "reminders",
             String(localized: "Reminders", bundle: .floe, comment: "Apple's Reminders app, as the title of a row in Privacy."),
             section: String(localized: "Reminders and Events", bundle: .floe),
@@ -382,6 +392,16 @@ extension SearchIndex {
                 localized: "reminders, remind, reminder, lists, to do, due",
                 bundle: .floe,
                 comment: "Words that find the Reminders row of Privacy in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
+            "contacts",
+            String(localized: "Contacts", bundle: .floe, comment: "Apple's Contacts app, as the title of a section in Privacy."),
+            section: String(localized: "Contacts", bundle: .floe, comment: "Apple's Contacts app, as the title of a section in Privacy."),
+            keywords: String(
+                localized: "contacts, contact, people, person, address book, phone, email",
+                bundle: .floe,
+                comment: "Words that find the Contacts section of Privacy in the settings search, separated by commas."
             ).searchTerms
         ),
         privacy(
@@ -486,6 +506,17 @@ extension SearchIndex {
                 localized: "emoji, skin tone, skin colour, skin color, hand, people",
                 bundle: .floe,
                 comment: "Words that find the Emoji skin tone setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "focusShortcut",
+            String(localized: "Shortcut for Focus", bundle: .floe),
+            description: String(localized: "The name of a Shortcut you made that sets your Focus. Toggle Focus, “focus 1 hour” and “focus off” in the launcher run it. It receives one text: the number of minutes, the word off, or the word toggle.", bundle: .floe),
+            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
+            keywords: String(
+                localized: "focus, do not disturb, dnd, shortcut, shortcuts, notifications, quiet",
+                bundle: .floe,
+                comment: "Words that find the Shortcut for Focus setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .general(

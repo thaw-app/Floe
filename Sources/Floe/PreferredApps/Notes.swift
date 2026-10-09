@@ -51,7 +51,7 @@ enum NotesApp: String, Codable, CaseIterable, Identifiable {
     var actions: [NoteAction] {
         switch self {
         case .antinote: [.new, .append]
-        case .folder: [.new, .today]
+        case .folder: [.new, .today, .task, .log]
         case .appleNotes, .custom: [.new]
         }
     }
@@ -62,12 +62,18 @@ enum NoteAction: String, CaseIterable {
     case append
     /// Adds a line to the day's note in a folder of notes, so quick thoughts collect in one file.
     case today
+    /// Adds a line to the day's note as a task: Obsidian and Octarine draw `- [ ]` as a checkbox.
+    case task
+    /// Adds a line to the day's note with the time in front, as a journal keeps them.
+    case log
 
     /// The word that starts a note from the search: `note buy milk`.
     var keyword: String {
         switch self {
         case .new: "note"
         case .append, .today: "append"
+        case .task: "todo"
+        case .log: "log"
         }
     }
 
@@ -75,7 +81,19 @@ enum NoteAction: String, CaseIterable {
         switch self {
         case .new: "square.and.pencil"
         case .append, .today: "text.append"
+        case .task: "checklist"
+        case .log: "clock"
         }
+    }
+
+    /// Whether the action writes into the day's note of a folder.
+    var addsToDaysNote: Bool {
+        self == .today || self == .task || self == .log
+    }
+
+    /// Whether the action has a row of its own with nothing typed. A task and a journal line share the day's note's.
+    var standsAlone: Bool {
+        self != .task && self != .log
     }
 
     func title(text: String) -> String {
@@ -84,8 +102,10 @@ enum NoteAction: String, CaseIterable {
         case (.new, false): String(localized: "New Note “\(text)”", bundle: .floe, comment: "The placeholder is the text of the note.")
         case (.append, true): String(localized: "Append to Current Note", bundle: .floe)
         case (.append, false): String(localized: "Append “\(text)” to Current Note", bundle: .floe, comment: "The placeholder is the text added to the note.")
-        case (.today, true): String(localized: "Open Today’s Note", bundle: .floe)
+        case (.today, true), (.task, true), (.log, true): String(localized: "Open Today’s Note", bundle: .floe)
         case (.today, false): String(localized: "Append “\(text)” to Today’s Note", bundle: .floe, comment: "The placeholder is the text added to the note.")
+        case (.task, false): String(localized: "Add Task “\(text)” to Today’s Note", bundle: .floe, comment: "The placeholder is what the task is, such as renew passport.")
+        case (.log, false): String(localized: "Log “\(text)” in Today’s Note", bundle: .floe, comment: "Log is a verb: write a line with the time in a journal. The placeholder is the line.")
         }
     }
 }
@@ -105,11 +125,10 @@ enum Notes {
         return nil
     }
 
-    /// Text as one value of a URL's query: everything but unreserved characters is escaped, so an
-    /// ampersand or an equals sign in a note does not end it.
-    static func encoded(_ text: String) -> String {
-        let unreserved = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
-        return text.addingPercentEncoding(withAllowedCharacters: unreserved) ?? text
+    /// Whether a query is one of the day's note's words and nothing else, with an app that keeps one. `todo` and `log` alone stay ordinary searches, so Todoist and Logseq are still found.
+    static func opensDaysNote(_ query: String, app: NotesApp) -> Bool {
+        let word = query.trimmingCharacters(in: .whitespaces).lowercased()
+        return app.actions.contains { $0.addsToDaysNote && $0.standsAlone && $0.keyword == word }
     }
 
     /// The link that hands a note to an app with a URL scheme; nil for Apple Notes, which is scripted,
@@ -122,9 +141,9 @@ enum Notes {
             // Without text there is nothing to make or add: the app is opened instead.
             guard !text.isEmpty else { return URL(string: "antinote://") }
             let path = action == .new ? "createNote" : "appendToCurrent"
-            return URL(string: "antinote://x-callback-url/\(path)?content=\(encoded(text))")
+            return URL(string: "antinote://x-callback-url/\(path)?content=\(LinkText.escaped(text))")
         case .custom:
-            return URL(string: template.replacingOccurrences(of: placeholder, with: encoded(text)))
+            return URL(string: template.replacingOccurrences(of: placeholder, with: LinkText.escaped(text)))
         }
     }
 
@@ -226,6 +245,15 @@ enum NoteFiles {
         return existing + (existing.hasSuffix("\n") ? "" : "\n") + text + "\n"
     }
 
+    /// The line an action adds to the day's note: the text, a task with an empty checkbox, or the local time and the text.
+    static func line(_ action: NoteAction, text: String, now: Date, in zone: TimeZone = .current) -> String {
+        switch action {
+        case .task: "- [ ] \(text)"
+        case .log: "- \(stamp("HH:mm", now, in: zone)) \(text)"
+        default: text
+        }
+    }
+
     /// Writes a new note. Never over a file that is there.
     @discardableResult
     static func write(_ text: String, in folder: URL, now: Date = Date()) throws -> URL {
@@ -234,29 +262,41 @@ enum NoteFiles {
         return file
     }
 
+    /// What a vault's settings say about daily notes: `folder` and `format`. Empty for a folder that is not Obsidian's, or is Octarine's.
+    static func obsidianDailyNotes(in folder: URL) -> [String: Any] {
+        guard !FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path),
+              let data = try? Data(contentsOf: folder.appendingPathComponent(".obsidian/daily-notes.json")) else { return [:] }
+        return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+    }
+
     /// Where the app that owns a folder keeps the day's note, so a line Floe adds lands in the note the app
     /// shows for today. Octarine keeps it in Daily; Obsidian in the vault, or in the folder its settings name.
     static func dayFolder(in folder: URL) -> URL {
-        let manager = FileManager.default
-        if manager.fileExists(atPath: folder.appendingPathComponent(".octarine").path) {
+        if FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path) {
             return folder.appendingPathComponent("Daily", isDirectory: true)
         }
-        let settings = folder.appendingPathComponent(".obsidian/daily-notes.json")
-        if let data = try? Data(contentsOf: settings), let chosen = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["folder"] as? String,
-           !chosen.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")).isEmpty
-        {
+        if let chosen = obsidianDailyNotes(in: folder)["folder"] as? String, !chosen.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")).isEmpty {
             return folder.appendingPathComponent(chosen, isDirectory: true)
         }
         return folder
     }
 
-    /// The day's note in a folder: the app's own place for it, under today's date where the user is. Octarine
+    /// The day's note as a pattern names it, subfolders and all. A pattern Floe cannot read gives the standard name,
+    /// which is where Obsidian looks when it has none.
+    static func dayName(format: String?, now: Date, in zone: TimeZone = .current) -> String {
+        let named = format.flatMap { $0.isEmpty ? nil : MomentPattern.text($0, for: now, in: zone) }
+        return (named ?? stamp("yyyy-MM-dd", now, in: zone)) + ".md"
+    }
+
+    /// The day's note in a folder: the app's own place and name for it, for today where the user is. Octarine
     /// was seen to date a note by the day in UTC: when only that one is there, it is the note the app shows for today.
-    static func dayFile(in folder: URL, now: Date) -> URL {
+    static func dayFile(in folder: URL, now: Date, timeZone: TimeZone = .current) -> URL {
         let place = dayFolder(in: folder)
-        let local = place.appendingPathComponent(todayName(now: now))
-        guard let utc = TimeZone(identifier: "UTC") else { return local }
-        let elsewhere = place.appendingPathComponent(todayName(now: now, in: utc))
+        let format = obsidianDailyNotes(in: folder)["format"] as? String
+        let local = place.appendingPathComponent(dayName(format: format, now: now, in: timeZone))
+        guard FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path),
+              let utc = TimeZone(identifier: "UTC") else { return local }
+        let elsewhere = place.appendingPathComponent(dayName(format: format, now: now, in: utc))
         let manager = FileManager.default
         return !manager.fileExists(atPath: local.path) && manager.fileExists(atPath: elsewhere.path) ? elsewhere : local
     }
@@ -292,18 +332,19 @@ enum NoteFiles {
             return String(localized: "Choose a folder for your notes in Settings", bundle: .floe)
         }
         do {
-            switch (action, text.isEmpty) {
-            case (.today, true):
+            switch (action.addsToDaysNote, text.isEmpty) {
+            case (true, true):
                 let today = dayFile(in: folder, now: now)
                 open(FileManager.default.fileExists(atPath: today.path) ? today : folder)
                 return nil
-            case (_, true):
+            case (false, true):
                 open(folder)
                 return nil
-            case (.today, false):
-                try record(.noteLine(text, in: append(text, in: folder, now: now), now: now))
+            case (true, false):
+                let line = line(action, text: text, now: now)
+                try record(.noteLine(line, in: append(line, in: folder, now: now), now: now))
                 return String(localized: "Added to today’s note", bundle: .floe)
-            case (_, false):
+            case (false, false):
                 let file = try write(text, in: folder, now: now)
                 record(.note(file, now: now))
                 return String(localized: "Saved \(file.deletingPathExtension().lastPathComponent)", bundle: .floe, comment: "Shown briefly after saving. The placeholder is the name the user gave.")
@@ -311,52 +352,5 @@ enum NoteFiles {
         } catch {
             return String(localized: "Couldn’t save the note: \(error.localizedDescription)", bundle: .floe, comment: "The placeholder is the reason the system gave.")
         }
-    }
-}
-
-/// The folders of notes that apps on this Mac already keep, offered in Settings so the user need not find them.
-enum KnownNoteFolders {
-    struct Folder: Identifiable, Hashable {
-        let app: String
-        let path: String
-
-        var id: String {
-            path
-        }
-
-        /// "Obsidian: Documents", by the app and the folder's name.
-        var title: String {
-            "\(app): \((path as NSString).lastPathComponent)"
-        }
-    }
-
-    /// Obsidian's vaults, from the list it keeps of them.
-    static func obsidianVaults(in data: Data?) -> [String] {
-        guard let data, let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let vaults = root["vaults"] as? [String: [String: Any]] else { return [] }
-        return vaults.values.compactMap { $0["path"] as? String }.sorted()
-    }
-
-    /// Octarine's workspaces, from the table it keeps of them. Read with the system's sqlite3, without opening the app.
-    static func octarineWorkspaces(database: URL) -> [String] {
-        guard FileManager.default.fileExists(atPath: database.path) else { return [] }
-        let sqlite = Process()
-        sqlite.executableURL = URL(fileURLWithPath: "/usr/bin/sqlite3")
-        sqlite.arguments = ["-readonly", database.path, "select path from workspaces;"]
-        let pipe = Pipe()
-        sqlite.standardOutput = pipe
-        sqlite.standardError = FileHandle.nullDevice
-        guard (try? sqlite.run()) != nil else { return [] }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        sqlite.waitUntilExit()
-        return (String(bytes: data, encoding: .utf8) ?? "").split(whereSeparator: \.isNewline).map(String.init).filter { $0.hasPrefix("/") }.sorted()
-    }
-
-    /// Every folder an app keeps notes in that is still there.
-    static func all(home: URL = FileManager.default.homeDirectoryForCurrentUser) -> [Folder] {
-        let support = home.appendingPathComponent("Library/Application Support")
-        let obsidian = obsidianVaults(in: try? Data(contentsOf: support.appendingPathComponent("obsidian/obsidian.json"))).map { Folder(app: "Obsidian", path: $0) }
-        let octarine = octarineWorkspaces(database: support.appendingPathComponent("Octarine/octarine.sqlite")).map { Folder(app: "Octarine", path: $0) }
-        return (obsidian + octarine).filter { FileManager.default.fileExists(atPath: $0.path) }
     }
 }

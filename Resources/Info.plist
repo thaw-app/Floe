@@ -88,11 +88,13 @@
 		<true/>
 	</dict>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>Floe uses AppleScript to read the Finder selection, to save a note in Notes, to list your open browser tabs and switch to one when you turn that on, and to run system commands such as Empty Trash and Toggle Dark Mode.</string>
+	<string>Floe uses AppleScript to read the Finder selection, to save a note in Notes, to list your open browser tabs and switch to one when you turn that on, to run system commands such as Empty Trash and Toggle Dark Mode, and to control playback in Music or Spotify.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Floe shows your upcoming events and meeting links when you search for them, and adds an event when you type event and a sentence in the search.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Floe shows your upcoming events and meeting links when you search for them.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Floe finds people in your Contacts when you type contact and a name in the search.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>

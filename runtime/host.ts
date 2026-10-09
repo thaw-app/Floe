@@ -17,7 +17,7 @@ import { NavigationRoot, commandDrewItself, handleToastAction } from "./api/inde
 import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
 import { lineSplitter } from "./lines";
-import { observe } from "./access";
+import { isRecording, observe } from "./access";
 
 const log = (...parts: unknown[]) =>
   process.stderr.write(parts.map((part) => (typeof part === "string" ? part : Bun.inspect(part))).join(" ") + "\n");
@@ -100,6 +100,7 @@ try {
   const report = observe({
     own: [ctx.extDir, ctx.supportPath, import.meta.dir, fs.realpathSync(os.tmpdir())],
     report: (found) => send({ type: "access", ...found }),
+    recording: isRecording(),
   });
   process.on("exit", report);
   const module = await import(entry);

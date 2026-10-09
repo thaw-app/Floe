@@ -111,7 +111,7 @@ struct NotesTests {
     }
 
     @Test func aFolderOfNotesTakesNewNotesAndAppendsToTheDaysNote() {
-        #expect(NotesApp.folder.actions == [.new, .today])
+        #expect(NotesApp.folder.actions == [.new, .today, .task, .log])
         #expect(NotesApp.folder.title == "A Folder of Notes")
         #expect(Notes.request(in: "note buy milk", app: .folder)?.action == .new)
         #expect(Notes.request(in: "append call the bank", app: .folder)?.action == .today)
@@ -119,6 +119,109 @@ struct NotesTests {
         #expect(NoteAction.today.title(text: "call the bank") == "Append “call the bank” to Today’s Note")
         #expect(NoteAction.today.title(text: "") == "Open Today’s Note")
         #expect(Notes.url(.new, text: "x", app: .folder, template: "") == nil, "a file is written, no link is opened")
+    }
+
+    // MARK: Tasks and journal lines
+
+    @Test func todoAndLogAreAFoldersAndOrdinarySearchesForEveryOtherApp() throws {
+        let task = try #require(Notes.request(in: "todo renew passport", app: .folder))
+        #expect(task.action == .task)
+        #expect(task.text == "renew passport")
+        let log = try #require(Notes.request(in: "Log  shipped the build ", app: .folder))
+        #expect(log.action == .log)
+        #expect(log.text == "shipped the build")
+        for app in NotesApp.allCases where app != .folder {
+            #expect(Notes.request(in: "todo renew passport", app: app) == nil, "\(app.rawValue)")
+            #expect(Notes.request(in: "log shipped the build", app: app) == nil, "\(app.rawValue)")
+            #expect(!Notes.opensDaysNote("todo", app: app), "\(app.rawValue)")
+        }
+        #expect(NotesApp.allCases.filter { $0.actions.contains(.task) || $0.actions.contains(.log) } == [.folder])
+        #expect(Notes.request(in: "todos for the week", app: .folder) == nil, "a longer word is not the keyword")
+        #expect(Notes.request(in: "logs", app: .folder) == nil)
+
+        #expect(NoteAction.task.title(text: "renew passport") == "Add Task “renew passport” to Today’s Note")
+        #expect(NoteAction.log.title(text: "shipped the build") == "Log “shipped the build” in Today’s Note")
+        #expect(NoteAction.task.title(text: "") == "Open Today’s Note")
+        #expect(NoteAction.log.title(text: "") == "Open Today’s Note")
+        #expect(NoteAction.allCases.filter(\.addsToDaysNote) == [.today, .task, .log])
+        #expect(NoteAction.allCases.filter { !$0.standsAlone } == [.task, .log])
+    }
+
+    @Test func aTaskIsACheckboxAndAJournalLineStartsWithTheLocalTime() throws {
+        let pacific = try #require(TimeZone(identifier: "America/Los_Angeles"))
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = pacific
+        let afternoon = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 8, hour: 14, minute: 5)))
+        let morning = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 8, hour: 9, minute: 30)))
+        #expect(NoteFiles.line(.task, text: "renew passport", now: afternoon, in: pacific) == "- [ ] renew passport")
+        #expect(NoteFiles.line(.log, text: "shipped the build", now: afternoon, in: pacific) == "- 14:05 shipped the build")
+        #expect(NoteFiles.line(.log, text: "standup", now: morning, in: pacific) == "- 09:30 standup", "twenty-four hours, two digits")
+        #expect(NoteFiles.line(.today, text: "call the bank", now: afternoon, in: pacific) == "call the bank")
+    }
+
+    @Test func tasksAndJournalLinesGoIntoTheSameNoteAppendWritesTo() throws {
+        let folder = try scratchFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        var opened: [String] = []
+        let open: (URL) -> Void = { opened.append($0.lastPathComponent) }
+        var receipts: [Receipt] = []
+        let record: (Receipt) -> Void = { receipts.append($0) }
+        let time = NoteFiles.stamp("HH:mm", noon)
+
+        #expect(NoteFiles.perform(.task, text: "", folder: folder.path, now: noon, open: open, record: record) == nil)
+        #expect(NoteFiles.perform(.log, text: "", folder: folder.path, now: noon, open: open, record: record) == nil)
+        #expect(opened == [folder.lastPathComponent, folder.lastPathComponent], "with no note for the day yet, the folder")
+
+        #expect(NoteFiles.perform(.today, text: "call the bank", folder: folder.path, now: noon, open: open, record: record) == "Added to today’s note")
+        #expect(NoteFiles.perform(.task, text: "renew passport", folder: folder.path, now: noon, open: open, record: record) == "Added to today’s note")
+        #expect(NoteFiles.perform(.log, text: "shipped the build", folder: folder.path, now: noon, open: open, record: record) == "Added to today’s note")
+        let note = folder.appendingPathComponent("2026-10-08.md")
+        #expect(try String(contentsOf: note, encoding: .utf8) == "call the bank\n- [ ] renew passport\n- \(time) shipped the build\n")
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.path) == ["2026-10-08.md"], "one file for all three")
+
+        #expect(receipts.map(\.kind) == [.noteLine, .noteLine, .noteLine], "the receipt an appended line leaves")
+        #expect(receipts.map(\.subject) == ["2026-10-08", "2026-10-08", "2026-10-08"])
+        #expect(receipts[1].detail.hasSuffix("/2026-10-08.md\n- [ ] renew passport"), "the receipt holds the line as it was written")
+        #expect(receipts[2].detail.hasSuffix("\n- \(time) shipped the build"))
+        #expect(receipts.filter(\.canUndo).isEmpty)
+
+        #expect(NoteFiles.perform(.task, text: "", folder: folder.path, now: noon, open: open, record: record) == nil)
+        #expect(NoteFiles.perform(.log, text: "", folder: folder.path, now: noon, open: open, record: record) == nil)
+        #expect(opened.suffix(2) == ["2026-10-08.md", "2026-10-08.md"], "without text the day's note is opened, as append does")
+        #expect(receipts.count == 3, "opening leaves no receipt")
+    }
+
+    @Test func theSearchLeadsWithTheTaskOrTheJournalLineAndWithTheDaysNoteForAppendAlone() throws {
+        let folder = try scratchFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let model = makeModel(app: .folder)
+        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+
+        model.query = "todo renew passport"
+        let task = try #require(model.results.first?.item)
+        #expect(task.id == "note:task")
+        #expect(task.title == "Add Task “renew passport” to Today’s Note")
+        #expect(task.kind == "Notes")
+        model.query = "log shipped the build"
+        #expect(model.results.first?.item.id == "note:log")
+        #expect(model.results.first?.item.title == "Log “shipped the build” in Today’s Note")
+
+        model.query = "append"
+        #expect(model.results.first?.item.id == "note:today")
+        #expect(model.results.first?.item.title == "Open Today’s Note")
+        for word in ["todo", "log", "Todo "] {
+            #expect(!Notes.opensDaysNote(word, app: .folder), "\(word) alone is an ordinary search, so Todoist and Logseq are found")
+        }
+        model.query = "today"
+        #expect(model.results.filter { $0.item.title == "Open Today’s Note" }.count == 1, "one row opens the day's note, not three")
+
+        let apple = makeModel(app: .appleNotes)
+        for query in ["todo renew passport", "log shipped the build", "todo", "log"] {
+            apple.query = query
+            #expect(!apple.results.contains { $0.item.kind == "Notes" && $0.id != "note:new" }, "\(query)")
+            #expect(apple.results.first?.item.id != "note:new", "\(query)")
+        }
     }
 
     @Test func aNotesFileIsNamedByItsFirstLine() {
@@ -214,28 +317,29 @@ struct NotesTests {
         #expect(try String(contentsOf: obsidian.appendingPathComponent("2026-10-08.md"), encoding: .utf8) == "existing\nadded\n", "what the app wrote is kept")
     }
 
-    @Test func theDayIsTheUsersOwnAndAnAppsNoteDatedInUTCIsStillFound() throws {
-        let pacific = try #require(TimeZone(identifier: "America/Los_Angeles"))
-        let utc = try #require(TimeZone(identifier: "UTC"))
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = pacific
-        let evening = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 8, hour: 17, minute: 24)))
-        #expect(NoteFiles.todayName(now: evening, in: pacific) == "2026-10-08.md", "the evening of the 8th where the user is")
-        #expect(NoteFiles.todayName(now: evening, in: utc) == "2026-10-09.md", "is already the 9th in UTC")
-        #expect(NoteFiles.stamp("yyyy-MM-dd HH.mm", evening, in: pacific) == "2026-10-08 17.24")
-
+    @Test(arguments: ["", ".obsidian", ".octarine"], [2, -7])
+    func onlyOctarineUsesAnExistingUTCNote(marker: String, offset: Int) throws {
+        let zone = try #require(TimeZone(secondsFromGMT: offset * 3600))
+        let utc = try #require(TimeZone(secondsFromGMT: 0))
+        let instant = offset > 0 ? "2026-10-08T23:30:00Z" : "2026-10-09T00:30:00Z"
+        let now = try #require(ISO8601DateFormatter().date(from: instant))
         let folder = try scratchFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let now = Date()
-        let local = folder.appendingPathComponent(NoteFiles.todayName(now: now))
-        let inUTC = folder.appendingPathComponent(NoteFiles.todayName(now: now, in: utc))
-        #expect(NoteFiles.dayFile(in: folder, now: now).path == local.path, "with no note yet, the user's own day")
-        if local.path != inUTC.path {
-            try Data("the app's".utf8).write(to: inUTC)
-            #expect(NoteFiles.dayFile(in: folder, now: now).path == inUTC.path, "the app's note for its today is the one to add to")
-            try Data("mine".utf8).write(to: local)
-            #expect(NoteFiles.dayFile(in: folder, now: now).path == local.path, "once the user's day has a note, that one")
+        if !marker.isEmpty {
+            try FileManager.default.createDirectory(at: folder.appendingPathComponent(marker), withIntermediateDirectories: true)
         }
+        let place = NoteFiles.dayFolder(in: folder)
+        try FileManager.default.createDirectory(at: place, withIntermediateDirectories: true)
+        let local = place.appendingPathComponent(NoteFiles.todayName(now: now, in: zone))
+        let inUTC = place.appendingPathComponent(NoteFiles.todayName(now: now, in: utc))
+        try #require(local != inUTC)
+        #expect(NoteFiles.dayFile(in: folder, now: now, timeZone: zone) == local)
+
+        try Data("the other day's note".utf8).write(to: inUTC)
+        let expected = marker == ".octarine" ? inUTC : local
+        #expect(NoteFiles.dayFile(in: folder, now: now, timeZone: zone) == expected)
+        try Data("today's note".utf8).write(to: local)
+        #expect(NoteFiles.dayFile(in: folder, now: now, timeZone: zone) == local)
     }
 
     @Test func theFoldersAppsAlreadyKeepAreFoundFromTheirOwnLists() throws {

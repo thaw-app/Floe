@@ -76,7 +76,8 @@ extension ExtensionSession {
             LoginEnvironment.current,
             preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
             hasAI: AIAnswer.isAvailable(for: command.extensionName),
-            launchType: launchType
+            launchType: launchType,
+            recordsAccess: recordsAccess()
         )
         return Environment.custom(Dictionary(uniqueKeysWithValues: variables.map { (Environment.Key(stringLiteral: $0.key), $0.value) }))
     }

@@ -41,6 +41,7 @@ extension RootItem {
         case let .snippet(snippet): [snippet.keyword]
         case let .sshHost(host, _): host.keywords
         case let .checkpoint(checkpoint): [checkpoint.name, Checkpoint.keyword, "checkpoint"]
+        case .focus: FocusRequest.keywords.keywordList
         default: []
         }
     }

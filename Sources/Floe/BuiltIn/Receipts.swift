@@ -13,6 +13,8 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
         case command, trash, process, extensionRemoved, reminder, event
         /// A note written as a new file, a line added to the day's note, and a checkpoint saved.
         case note, noteLine, checkpoint
+        /// A timer started. Its identifier is the timer's, and stops it while it runs.
+        case timer
     }
 
     var id = UUID()
@@ -59,6 +61,7 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
         case .note: String(localized: "Wrote the note \(subject)", bundle: .floe, comment: "A receipt. The placeholder is the name of a note's file.")
         case .noteLine: String(localized: "Added a line to the note \(subject)", bundle: .floe, comment: "A receipt. The placeholder is the name of a note's file, such as 2026-10-08.")
         case .checkpoint: String(localized: "Saved the checkpoint \(subject)", bundle: .floe, comment: "A receipt. The placeholder is the name the user gave a checkpoint.")
+        case .timer: String(localized: "Started the timer \(subject)", bundle: .floe, comment: "A receipt. The placeholder is a timer's label, or how long it runs, such as 10 min.")
         }
     }
 
@@ -71,6 +74,11 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
             return undone != nil
                 ? String(localized: "\(when) · moved to the Trash", bundle: .floe, comment: "Beside the receipt of a note that was moved to the Trash again. The placeholder is a time, such as 2 hr. ago.")
                 : String(localized: "\(when) · can be moved to the Trash", bundle: .floe, comment: "Beside the receipt of a note Floe wrote. The placeholder is a time, such as 2 hr. ago.")
+        }
+        if kind == .timer {
+            return undone != nil
+                ? String(localized: "\(when) · stopped", bundle: .floe, comment: "Beside the receipt of a timer that was stopped. The placeholder is a time, such as 2 hr. ago.")
+                : String(localized: "\(when) · can be stopped", bundle: .floe, comment: "Beside the receipt of a timer Floe started. The placeholder is a time, such as 2 hr. ago.")
         }
         if identifier != nil {
             return undone != nil
@@ -102,6 +110,9 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
     private func undoneLine(_ when: String) -> String {
         if kind == .note {
             return String(localized: "Moved to the Trash \(when)", bundle: .floe, comment: "When a note Floe wrote was moved to the Trash again. The placeholder is a date and time.")
+        }
+        if kind == .timer {
+            return String(localized: "Stopped \(when)", bundle: .floe, comment: "When a timer Floe started was stopped. The placeholder is a date and time.")
         }
         return identifier != nil
             ? String(localized: "Deleted \(when)", bundle: .floe, comment: "When something Floe added was deleted again. The placeholder is a date and time.")
@@ -220,6 +231,7 @@ nonisolated enum ReceiptUndo {
         switch kind {
         case .event: String(localized: "Deleted the event \(subject)", bundle: .floe, comment: "The placeholder is what the event is called, such as lunch with Ana.")
         case .checkpoint: String(localized: "Deleted the checkpoint \(subject)", bundle: .floe, comment: "The placeholder is the name the user gave a checkpoint.")
+        case .timer: String(localized: "Stopped the timer \(subject)", bundle: .floe, comment: "The placeholder is a timer's label, or how long it runs, such as 10 min.")
         default: String(localized: "Deleted the reminder \(subject)", bundle: .floe, comment: "The placeholder is what the reminder is about, such as call mom.")
         }
     }
@@ -228,6 +240,7 @@ nonisolated enum ReceiptUndo {
         switch kind {
         case .event: String(localized: "The event \(subject) was already deleted", bundle: .floe, comment: "The placeholder is what the event is called, such as lunch with Ana.")
         case .checkpoint: String(localized: "The checkpoint \(subject) was already deleted", bundle: .floe, comment: "The placeholder is the name the user gave a checkpoint.")
+        case .timer: String(localized: "The timer \(subject) is no longer running", bundle: .floe, comment: "The placeholder is a timer's label, or how long it ran, such as 10 min.")
         default: String(localized: "The reminder \(subject) was already deleted", bundle: .floe, comment: "The placeholder is what the reminder is about, such as call mom.")
         }
     }
@@ -246,7 +259,7 @@ final nonisolated class ReceiptStore: Sendable {
     }
 
     var all: [Receipt] {
-        (try? Data(contentsOf: file)).flatMap { try? JSONDecoder().decode([Receipt].self, from: $0) } ?? []
+        JSONFile.read([Receipt].self, from: file) ?? []
     }
 
     func add(_ receipt: Receipt) {
@@ -269,7 +282,7 @@ final nonisolated class ReceiptStore: Sendable {
 
     private func write(_ receipts: [Receipt]) {
         try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? JSONEncoder().encode(receipts).write(to: file, options: .atomic)
+        JSONFile.write(receipts, to: file)
     }
 
     /// Moves something to the Trash and answers with the receipt that can put it back.

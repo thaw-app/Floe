@@ -163,6 +163,34 @@ struct NoteAndCheckpointReceiptsTests {
         #expect(try String(contentsOf: folder.appendingPathComponent("Notes/\(today)"), encoding: .utf8) == "call the bank\n")
     }
 
+    @Test func aTaskAndAJournalLineLeaveTheReceiptAnAppendedLineLeaves() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let model = model(in: folder)
+        var said: [String] = []
+        model.showHUD = { said.append($0) }
+        let today = NoteFiles.todayName(now: Date())
+
+        model.activate(.note(.task, text: "renew passport"))
+        model.activate(.note(.log, text: "shipped the build"))
+        #expect(said == ["Added to today’s note", "Added to today’s note"])
+        let written = try String(contentsOf: folder.appendingPathComponent("Notes/\(today)"), encoding: .utf8)
+        #expect(written.hasPrefix("- [ ] renew passport\n- "))
+        #expect(written.wholeMatch(of: #/- \[ \] renew passport\n- \d\d:\d\d shipped the build\n/#) != nil)
+
+        let receipts = model.receipts.all
+        #expect(receipts.count == 2)
+        let titles = Set(receipts.map(\.title))
+        #expect(titles == ["Added a line to the note \((today as NSString).deletingPathExtension)"])
+        #expect(receipts.map(\.kind) == [.noteLine, .noteLine])
+        #expect(receipts.contains { $0.detail.hasSuffix("/Notes/\(today)\n- [ ] renew passport") })
+        #expect(receipts.filter(\.canUndo).isEmpty)
+
+        model.settings.keepsReceipts = false
+        model.activate(.note(.task, text: "no receipt"))
+        #expect(model.receipts.all.count == 2, "switched off, nothing more is kept")
+    }
+
     // MARK: Where no receipt is left
 
     @Test func whatFloeCannotUndoOrDidNotWriteLeavesNoReceipt() throws {

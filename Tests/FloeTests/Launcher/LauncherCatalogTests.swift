@@ -147,7 +147,7 @@ struct LauncherCatalogTests {
         #expect(
             // Snippets come from the user's own file, and Thaw's actions and the Finder selection rows from the apps on this Mac.
             model.results.map(\.id).filter { !$0.hasPrefix("snippet:") && !$0.hasPrefix("thaw:") && !$0.hasPrefix("finder-selection:") }.sorted()
-                == (["builtin:clipboard-history", "builtin:emoji-search", "builtin:file-search", "builtin:menubar-search", "note:new", "settings"]
+                == (["builtin:clipboard-history", "builtin:emoji-search", "builtin:file-search", "builtin:menubar-search", "focus-toggle", "note:new", "settings"]
                     + SystemCommand.allCases.map { "system:\($0.rawValue)" }).sorted(),
             "the built-ins are there before any catalog arrives"
         )

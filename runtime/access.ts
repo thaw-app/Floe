@@ -60,11 +60,18 @@ const writing = [
 ] as const;
 const starting = ["exec", "execSync", "execFile", "execFileSync", "spawn", "spawnSync"] as const;
 
+// Whether the app asked for the record. It says "off" when the user switched the record off in Settings.
+export function isRecording(env: Record<string, string | undefined> = process.env): boolean {
+  return env.FLOE_ACCESS !== "off";
+}
+
 type Wrapped = { owner: Record<string, any>; name: string; original: unknown };
 
 // Starts recording. `report` is given only what is new, a moment after it is first seen. The function
 // returned puts everything back as it was.
-export function observe(options: { own: string[]; report: (found: AccessReport) => void; delay?: number }): () => void {
+export function observe(options: { own: string[]; report: (found: AccessReport) => void; delay?: number; recording?: boolean }): () => void {
+  // Switched off: nothing is wrapped, so there is nothing to put back.
+  if (options.recording === false) return () => {};
   const seen: Record<AccessKind, Set<string>> = { hosts: new Set(), reads: new Set(), writes: new Set(), programs: new Set() };
   let fresh: Record<AccessKind, string[]> = { hosts: [], reads: [], writes: [], programs: [] };
   let timer: ReturnType<typeof setTimeout> | undefined;

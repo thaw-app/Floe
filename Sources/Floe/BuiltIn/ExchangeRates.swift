@@ -49,12 +49,12 @@ nonisolated enum ExchangeRateStore {
     }
 
     static func load(from file: URL = file) -> ExchangeRates? {
-        (try? Data(contentsOf: file)).flatMap { try? JSONDecoder().decode(ExchangeRates.self, from: $0) }
+        JSONFile.read(ExchangeRates.self, from: file)
     }
 
     static func save(_ rates: ExchangeRates, to file: URL = file) {
         try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? JSONEncoder().encode(rates).write(to: file, options: .atomic)
+        JSONFile.write(rates, to: file)
     }
 
     static func remove(_ file: URL = file) {

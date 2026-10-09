@@ -49,11 +49,27 @@ struct ExtensionSessionTests {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-session-access-\(UUID().uuidString)/ExtensionAccess.json")
         defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
         session.accessStore = ExtensionAccessStore(file: file)
+        session.recordsAccess = { true }
         apply(["type": "access", "hosts": ["hnrss.org"], "programs": ["git"]])
         let recorded = session.accessStore.access(of: session.command.extensionName)
         #expect(recorded.hosts == ["hnrss.org"])
         #expect(recorded.programs == ["git"])
         #expect(recorder.forwarded.isEmpty, "the record is the session's, not the launcher's to act on")
+    }
+
+    @Test func withTheRecordSwitchedOffAReportIsDroppedAndStillNotHandedOn() {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-session-access-\(UUID().uuidString)/ExtensionAccess.json")
+        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        session.accessStore = ExtensionAccessStore(file: file)
+        var records = false
+        session.recordsAccess = { records }
+        apply(["type": "access", "hosts": ["hnrss.org"]])
+        #expect(session.accessStore.access(of: session.command.extensionName).isEmpty)
+        #expect(!FileManager.default.fileExists(atPath: file.path), "nothing is written")
+        #expect(recorder.forwarded.isEmpty)
+        records = true
+        apply(["type": "access", "hosts": ["hnrss.org"]])
+        #expect(session.accessStore.access(of: session.command.extensionName).hosts == ["hnrss.org"], "the switch is read at each report")
     }
 
     private var planets: [String: Any] {
@@ -475,6 +491,15 @@ struct ExtensionSessionTests {
         ])
         let background = ExtensionSession.hostVariables(base, preferences: nil, hasAI: false, launchType: "background")
         #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background"])
+    }
+
+    @Test func theHostIsToldNotToWatchWhileTheRecordIsOff() {
+        let stale = ["PATH": "/opt/homebrew/bin", "FLOE_ACCESS": "off"]
+        let off = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: false)
+        #expect(off == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "userInitiated", "FLOE_ACCESS": "off"])
+        let recording = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: true)
+        #expect(recording[ExtensionSession.accessVariable] == nil, "what the shell held is not passed on")
+        #expect(ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false)[ExtensionSession.accessVariable] == nil, "recorded unless said otherwise")
     }
 
     // MARK: Actions

@@ -70,6 +70,46 @@ struct ExtensionAccessTests {
         #expect(!store.access(of: "proton-pass").isEmpty, "the others are kept")
     }
 
+    @Test func forgettingEverythingLeavesNoRecordAndNoFile() {
+        let (store, file) = scratchStore()
+        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        store.forgetAll()
+        #expect(store.access(of: "hacker-news").isEmpty, "nothing to forget is no failure")
+        store.record(["hosts": ["hnrss.org"]], for: "hacker-news")
+        store.record(["programs": ["pass-cli"]], for: "proton-pass")
+        store.forgetAll()
+        #expect(store.access(of: "hacker-news").isEmpty)
+        #expect(store.access(of: "proton-pass").isEmpty)
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        store.record(["hosts": ["hnrss.org"]], for: "hacker-news")
+        #expect(store.access(of: "hacker-news").hosts == ["hnrss.org"], "and recording starts again from nothing")
+    }
+
+    @MainActor
+    @Test func theRecordIsOnUntilSwitchedOffAndSwitchingItOffForgetsWhatWasRecorded() throws {
+        let suite = "floe-access-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let (store, file) = scratchStore()
+        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
+        #expect(settings.recordsExtensionAccess, "on until the user switches it off")
+
+        store.record(["hosts": ["hnrss.org"]], for: "hacker-news")
+        settings.setRecordsExtensionAccess(true, store: store)
+        #expect(!store.access(of: "hacker-news").isEmpty, "switching it on forgets nothing")
+        settings.setRecordsExtensionAccess(false, store: store)
+        #expect(!settings.recordsExtensionAccess)
+        #expect(store.access(of: "hacker-news").isEmpty)
+        settings.save()
+        #expect(!AppSettings(defaults: defaults, savesAfterEdits: false).recordsExtensionAccess, "the switch is kept with the settings")
+
+        let entry = try #require(SearchIndex.staticEntries.first { $0.id == "privacy.recordsExtensionAccess" })
+        #expect(entry.title == "Record what extensions reach")
+        #expect(entry.pane == .privacy)
+        #expect(entry.keywords.contains("extensions"))
+    }
+
     @Test func thePageSaysSinceWhen() {
         #expect(ExtensionAccessSection.since(nil) == "Recorded")
         #expect(ExtensionAccessSection.since(Date(timeIntervalSince1970: 0)).hasPrefix("Recorded since "))

@@ -98,11 +98,15 @@ final class AppSettings: ObservableObject {
     @Published var remembersSearches = true
     /// Whether a receipt is kept of what Floe did: commands run, files moved to the Trash, processes quit.
     @Published var keepsReceipts = true
+    /// Whether what each extension reaches is recorded. Off, its reports are dropped and its process is told not to watch.
+    @Published var recordsExtensionAccess = true
     /// The extensions lent a sign-in from this Mac, each as "extension/provider".
     @Published var lentSignIns: Set<String> = []
     @Published var shell = ShellSettings()
     /// Whether the calculator may download the European Central Bank's exchange rates. Off until the user says so.
     @Published var fetchesExchangeRates = false
+    /// The name of the Shortcut that sets a Focus, which Toggle Focus and `focus 1 hour` run. Empty until the user names one.
+    @Published var focusShortcut = ""
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
 
@@ -173,9 +177,11 @@ final class AppSettings: ObservableObject {
         var aiOnThisMacOnly: Bool?
         var remembersSearches: Bool?
         var keepsReceipts: Bool?
+        var recordsExtensionAccess: Bool?
         var lentSignIns: Set<String>?
         var shell: ShellSettings?
         var fetchesExchangeRates: Bool?
+        var focusShortcut: String?
         var aiSourceByExtension: [String: AISource]?
     }
 
@@ -289,6 +295,25 @@ final class AppSettings: ObservableObject {
         menuBarItemNames = stored.menuBarItemNames ?? [:]
         showInDock = stored.showInDock ?? false
         hasSeenOnboarding = stored.hasSeenOnboarding ?? false
+        applyAppearance(stored)
+        aiSource = stored.aiSource ?? aiSource
+        aiBaseURL = stored.aiBaseURL ?? aiBaseURL
+        aiModel = stored.aiModel ?? aiModel
+        aiTool = stored.aiTool
+        aiToolModels = stored.aiToolModels ?? [:]
+        aiOnThisMacOnly = stored.aiOnThisMacOnly ?? aiOnThisMacOnly
+        remembersSearches = stored.remembersSearches ?? true
+        keepsReceipts = stored.keepsReceipts ?? true
+        recordsExtensionAccess = stored.recordsExtensionAccess ?? true
+        lentSignIns = stored.lentSignIns ?? []
+        shell = stored.shell ?? ShellSettings()
+        fetchesExchangeRates = stored.fetchesExchangeRates ?? false
+        focusShortcut = stored.focusShortcut ?? ""
+        aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
+    }
+
+    /// How the launcher looks, taken in apart from the rest so neither list grows past reading.
+    private func applyAppearance(_ stored: Stored) {
         // A tint saved before light and dark variants existed becomes the light one.
         launcherTintLight = stored.launcherTintLight ?? stored.launcherTint ?? launcherTintLight
         launcherTintDark = stored.launcherTintDark ?? launcherTintDark
@@ -301,18 +326,6 @@ final class AppSettings: ObservableObject {
         launcherLayout = stored.launcherLayout ?? launcherLayout
         searchFieldShape = stored.searchFieldShape ?? .rounded
         separatesSearchField = stored.separatesSearchField ?? false
-        aiSource = stored.aiSource ?? aiSource
-        aiBaseURL = stored.aiBaseURL ?? aiBaseURL
-        aiModel = stored.aiModel ?? aiModel
-        aiTool = stored.aiTool
-        aiToolModels = stored.aiToolModels ?? [:]
-        aiOnThisMacOnly = stored.aiOnThisMacOnly ?? aiOnThisMacOnly
-        remembersSearches = stored.remembersSearches ?? true
-        keepsReceipts = stored.keepsReceipts ?? true
-        lentSignIns = stored.lentSignIns ?? []
-        shell = stored.shell ?? ShellSettings()
-        fetchesExchangeRates = stored.fetchesExchangeRates ?? false
-        aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
     }
 
     /// Runs on its own shortly after any change; callable directly when the change must be on disk now.
@@ -364,9 +377,11 @@ final class AppSettings: ObservableObject {
             aiOnThisMacOnly: aiOnThisMacOnly,
             remembersSearches: remembersSearches,
             keepsReceipts: keepsReceipts,
+            recordsExtensionAccess: recordsExtensionAccess,
             lentSignIns: lentSignIns,
             shell: shell,
             fetchesExchangeRates: fetchesExchangeRates,
+            focusShortcut: focusShortcut,
             aiSourceByExtension: aiSourceByExtension
         )
         if let data = try? JSONEncoder().encode(stored) {

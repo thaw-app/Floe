@@ -169,7 +169,7 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
 }
 
 /// A file that failed to parse, with its typed failure.
-nonisolated struct ScriptFailure: Identifiable, Sendable {
+nonisolated struct ScriptFailure: Identifiable, Sendable, Equatable {
     let file: String
     let error: ScriptParseError
     var id: String {

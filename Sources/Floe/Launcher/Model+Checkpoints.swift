@@ -16,7 +16,10 @@ struct CheckpointEnvironment {
         await Task.detached { BrowserTabs.read(BrowserApp.all.filter(BrowserApp.isRunning), run: AppleScript.run).tabs }.value
     }
 
+    /// Opens a file in its own app, or a folder in Finder.
     var openFile: (URL) -> Void = { NSWorkspace.shared.open($0) }
+    /// Opens files in the app a role stands for.
+    var openIn: (Handoff) -> Void = { PreferredApps.open($0) }
     var confirmsDelete: (Checkpoint) -> Bool = { checkpoint in
         Confirm.destructive(
             String(localized: "Delete the checkpoint “\(checkpoint.name)”?", bundle: .floe, comment: "The placeholder is the name the user gave a checkpoint."),
@@ -54,14 +57,17 @@ extension LauncherModel {
         }
     }
 
-    /// Opens what a checkpoint holds: files in their apps, links in the chosen browser. What is gone is said, and listed.
+    /// Opens what a checkpoint holds: text and code in the editor chosen in Settings, other files in their apps, folders
+    /// in Finder, links in the chosen browser. What is gone is said, and listed.
     func resume(_ checkpoint: Checkpoint) {
         hidePanel()
         reset()
         let missing = checkpoint.missing()
+        // Only an editor the user chose: the role's stand-in is the app text files open in anyway.
+        let editor = PreferredApps.chosenApp(settings.appChoice(for: .editor), installed: appLookup)
         for item in checkpoint.items where !missing.contains(item) {
             switch item.kind {
-            case .file: checkpointing.openFile(URL(fileURLWithPath: item.value))
+            case .file: open(URL(fileURLWithPath: item.value), editor: editor)
             case .link: URL(string: item.value).map(openLink)
             }
         }
@@ -70,6 +76,14 @@ extension LauncherModel {
         } else {
             showHUD(String(localized: "\(missing.count) of \(checkpoint.items.count) are missing", bundle: .floe, comment: "Both placeholders are numbers: how many of a checkpoint's files are gone, and how many things it holds."))
             shell.showOutput(checkpoint.name, checkpoint.details())
+        }
+    }
+
+    private func open(_ file: URL, editor: ResolvedApp?) {
+        if let handoff = Checkpoint.editorHandoff(for: file, editor: editor) {
+            checkpointing.openIn(handoff)
+        } else {
+            checkpointing.openFile(file)
         }
     }
 

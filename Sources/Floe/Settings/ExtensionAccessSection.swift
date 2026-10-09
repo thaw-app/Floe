@@ -11,12 +11,17 @@ import ThawUI
 /// On an extension's page: what it has been seen to reach, and that this is a record and not a limit.
 struct ExtensionAccessSection: View {
     let extensionName: String
+    /// Whether the record is kept, as its switch in Privacy has it.
+    var records = true
     var store = ExtensionAccessStore.shared
     @State private var access = ExtensionAccess()
 
     var body: some View {
         ThawSection("What It Has Reached") {
-            if access.isEmpty {
+            if !records {
+                Text("The record is switched off. Settings › Privacy turns it on.")
+                    .foregroundStyle(.secondary)
+            } else if access.isEmpty {
                 Text("Nothing has been recorded for this extension yet.")
                     .foregroundStyle(.secondary)
             } else {

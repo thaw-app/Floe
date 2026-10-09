@@ -257,6 +257,16 @@ enum RootItem: Identifiable {
     case reminderDraft(ReminderDraft)
     /// The row that adds a calendar event from the sentence typed after `event`.
     case eventDraft(EventDraft)
+    /// The row that starts a timer from what was typed after `timer`, or a timer that is counting down.
+    case timer(TimerRow)
+    /// A person from Contacts, found by `contact` and a name, or the row that stands in for them until Floe may read them.
+    case contact(ContactRow)
+    /// The row that opens a mail or message draft from what was typed after `mail` or `message`.
+    case outgoing(OutgoingDraft)
+    /// Toggle Focus, or the row for what was typed after `focus`. With the Shortcut that sets it, empty while none is named.
+    case focus(FocusRequest, shortcut: String)
+    /// A word the search answers to, listed by `keywords`; Return types it into the search.
+    case keyword(KeywordHint)
 
     static let menuBarSearchKey = "builtin:menubar-search"
     static let emojiSearchKey = "builtin:emoji-search"
@@ -301,6 +311,11 @@ enum RootItem: Identifiable {
         case .checkpointDraft: "checkpoint-draft"
         case .reminderDraft: "reminder-draft"
         case .eventDraft: "event-draft"
+        case let .timer(row): row.id
+        case let .contact(row): row.id
+        case let .outgoing(draft): "\(draft.kind.rawValue)-draft"
+        case let .focus(request, _): request == .toggle ? "focus-toggle" : "focus-request"
+        case let .keyword(hint): "keyword:\(hint.keyword)"
         }
     }
 
@@ -346,6 +361,11 @@ enum RootItem: Identifiable {
         case let .checkpointDraft(name, _): String(localized: "Save Checkpoint “\(name)”", bundle: .floe, comment: "The placeholder is the name the user typed for a checkpoint.")
         case let .reminderDraft(draft): String(localized: "Remind: \(draft.title)", bundle: .floe, comment: "The title of the row that adds a reminder. The placeholder is what the reminder is about, such as call mom.")
         case let .eventDraft(draft): String(localized: "Event: \(draft.title)", bundle: .floe, comment: "The title of the row that adds a calendar event. The placeholder is what the event is called, such as lunch with Ana.")
+        case let .timer(row): row.title
+        case let .contact(row): row.title
+        case let .outgoing(draft): draft.title
+        case let .focus(request, _): request.title
+        case let .keyword(hint): hint.example
         case let .shell(row, _): row.origin == .typed ? String(localized: "Run \(row.text)", bundle: .floe, comment: "The placeholder is a shell command the user typed.") : row.text
         }
     }
@@ -385,8 +405,9 @@ enum RootItem: Identifiable {
         case .fileSearch: Self.fileSearchKey
         case let .system(command): "system:\(command.rawValue)"
         case .snippet: id
+        case let .focus(request, _): request == .toggle ? id : nil
         case .settings, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
-        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft: nil
+        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword: nil
         }
     }
 
@@ -418,6 +439,12 @@ enum RootItem: Identifiable {
         case .sshHost: "SSH"
         case .checkpoint, .checkpointDraft: String(localized: "Checkpoint", bundle: .floe, comment: "The kind of a result, shown beside its title. A checkpoint is a saved set of files, tabs and a note.")
         case .reminderDraft: String(localized: "Reminder", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a row that adds a reminder.")
+        case let .outgoing(draft) where draft.kind == .mail: String(localized: "Mail", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a row that opens an email draft.")
+        case .outgoing: String(localized: "Message", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a row that opens a message draft.")
+        case .focus: String(localized: "Focus", bundle: .floe, comment: "The kind of a result, shown beside its title. Focus is the macOS feature that silences notifications.")
+        case .keyword: String(localized: "Keyword", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a word the search answers to.")
+        case .contact: String(localized: "Contact", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a person from Contacts.")
+        case .timer: String(localized: "Timer", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a countdown.")
         case .receipt: String(localized: "Receipt", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a record of something Floe did.")
         case .process: String(localized: "Process", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a running program.")
         case let .shell(row, _): row.origin.label

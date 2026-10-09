@@ -157,6 +157,9 @@ final class LauncherModel: ObservableObject {
     var checkpointing = CheckpointEnvironment()
     var reminding = ReminderEnvironment()
     var scheduling = EventEnvironment()
+    var timing = TimerEnvironment()
+    var music = MusicEnvironment()
+    let runningTimers = RunningTimers()
     /// The saved checkpoints, read when the launcher opens and when one is saved or deleted.
     var checkpoints: [Checkpoint] = []
     /// Where in the remembered searches the field stands, while the Up arrow walks back through them.
@@ -319,8 +322,11 @@ final class LauncherModel: ObservableObject {
     private func finishScripts(generation: Int, scan: ScriptScan) {
         guard generation == scriptsGeneration else { return }
         scriptsTask = nil
+        // The folder is scanned each time the panel opens and is nearly always the same: then nothing is redrawn.
+        let isSame = hasLoadedScripts && scan.commands == allScripts && scan.failures == scriptFailures
         hasLoadedScripts = true
         isLoadingCatalog = !hasLoadedApps || !hasLoadedCommands || !hasLoadedScripts
+        guard !isSame else { return }
         allScripts = scan.commands
         scriptFailures = scan.failures
         refresh()
@@ -427,8 +433,11 @@ final class LauncherModel: ObservableObject {
         context.hidden = Set(settings.hiddenResults.keys)
         context.emojiSkinTone = settings.emojiSkinTone
         context.shell = settings.shell
+        context.searchSources = settings.searchSources
         context.checkpoints = checkpoints
         context.reminderLists = context.trimmed.lowercased().hasPrefix(ReminderDraft.keyword + " ") ? reminding.lists() : []
+        context.timers = runningTimers.all
+        context.focusShortcut = settings.focusShortcut
         context.aliases = settings.aliases
         context.notesApp = settings.notesApp
         context.frecency = { [usage] in usage.frecency(of: $0) }
@@ -551,7 +560,7 @@ final class LauncherModel: ObservableObject {
         case .menuBarSearch:
             openMenuBarSearch()
         case .emojiSearch:
-            query = ":"
+            query = EmojiSearchProvider.prefix
             focusToken += 1
         case .clipboardHistory, .clipboardApp:
             openClipboardHistory()
@@ -619,6 +628,10 @@ final class LauncherModel: ObservableObject {
         }
         if let flip = command.flip {
             showHUD(flip())
+            return
+        }
+        if let control = command.music {
+            controlMusic(control)
             return
         }
         command.perform()

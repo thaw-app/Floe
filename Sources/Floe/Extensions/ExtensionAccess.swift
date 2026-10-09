@@ -60,7 +60,7 @@ final nonisolated class ExtensionAccessStore: Sendable {
     }
 
     private var all: [String: ExtensionAccess] {
-        (try? Data(contentsOf: file)).flatMap { try? JSONDecoder().decode([String: ExtensionAccess].self, from: $0) } ?? [:]
+        JSONFile.read([String: ExtensionAccess].self, from: file) ?? [:]
     }
 
     func access(of extensionName: String) -> ExtensionAccess {
@@ -82,8 +82,23 @@ final nonisolated class ExtensionAccessStore: Sendable {
         write(everything)
     }
 
+    /// Forgets every extension's record. The file goes, so nothing of it is left on disk.
+    func forgetAll() {
+        try? FileManager.default.removeItem(at: file)
+    }
+
     private func write(_ everything: [String: ExtensionAccess]) {
         try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? JSONEncoder().encode(everything).write(to: file, options: .atomic)
+        JSONFile.write(everything, to: file)
+    }
+}
+
+extension AppSettings {
+    /// Switches the record of what extensions reach on or off. Off also forgets what was recorded.
+    func setRecordsExtensionAccess(_ records: Bool, store: ExtensionAccessStore = .shared) {
+        recordsExtensionAccess = records
+        if !records {
+            store.forgetAll()
+        }
     }
 }

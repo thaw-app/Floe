@@ -172,7 +172,8 @@ extension LauncherModel {
         case .calculator, .emoji, .searchFiles, .event, .quicklink: false
         case .file, .clipboardEntry, .menuBarItem, .menuBarAccess: false
         case .browserTab: false
-        case .askAI, .webAddress, .shell, .process, .receipt, .checkpointDraft, .reminderDraft, .eventDraft: false
+        case let .focus(request, _): request == .toggle
+        case .askAI, .webAddress, .shell, .process, .receipt, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword: false
         default: true
         }
     }

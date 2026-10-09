@@ -15,11 +15,11 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 ### New: search
 
-- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too. Two apps with the same name each get their own row.
-- **Scattered letters match.** The letters that matched show in a stronger weight.
+- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too. Two apps with the same name each get their own row. Scattered letters match, and the ones that matched show in a stronger weight.
 - **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `clipboard meeting`, `menu wifi`, `tabs invoice`.
 - **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions.
+- **`keywords` or `?` lists every word the search answers to**, each with an example and what it does: `remind call mom tomorrow at 5pm`, `timer 10 minutes tea`. Type more to narrow the list. Return puts the keyword in the search for you to finish. What is switched off is left out.
 
 ### New: results and actions
 
@@ -40,7 +40,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 ### New: checkpoints
 
 - **`pause` and a name saves what you were doing:** the files and folders selected in Finder, the tabs of the browser window in front, and a note after a colon. `pause website redesign: fix the nav next`.
-- **Search for the name to resume it.** The files open in their apps, the tabs in your browser, and Floe shows your note.
+- **Search for the name to resume it.** Text and code files open in the editor you chose in Settings, other files in their own apps, folders in Finder and the tabs in your browser. Floe shows your note.
 - **Floe says what is missing** when a file has moved or gone, and lists it. What is still there opens.
 - **Pausing again under the same name** replaces the checkpoint with what is open now.
 
@@ -58,6 +58,14 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 - **End the sentence with a list's name to put it there.** `remind call mom tomorrow at 5pm in Work`, or `list Work`. The row shows the list.
 - **`event` and a sentence adds an event to Apple Calendar.** `event lunch with Ana Thursday noon` lasts an hour from Thursday at twelve, and a day with no time makes an all-day event. Its receipt deletes it again.
 
+### New: timers, people and controls
+
+- **`timer 10 minutes` starts a countdown.** `timer 25m`, `timer 1h 30m` and `timer 5 min tea` work too, and a notification with a sound says when it ends. `timers` lists the ones running, and Return stops one. Timers end when Floe quits.
+- **`contact ana` finds people in your Contacts** by name, with a phone number or an email address beside each. Return opens the card, and the Actions menu calls, starts FaceTime, writes a message or an email, or copies the number or the address. macOS asks once whether Floe may read Contacts.
+- **`mail` and `message` open a draft.** `mail toni@example.com the build is ready` opens a new email to Toni in your mail app, and `message +15551234567 running late` a new message in Messages. Without an address or a number first, the draft has no recipient. Nothing is sent until you send it.
+- **Play/Pause, Next Track, Previous Track and Now Playing** control Spotify or Music, whichever is open. Search for `pause`, `skip`, `previous` or `what's playing`. Now Playing shows the track and its artist. macOS asks once whether Floe may control the app.
+- **Toggle Focus, `focus 1 hour` and `focus off`** run a Shortcut you name in Settings > General. macOS gives apps no switch for Focus, so the Shortcut sets it: Floe hands it the minutes, or the word `off` or `toggle`. Until you name one, the row says so and Return opens Shortcuts.
+
 ### New: processes and ports
 
 - **`kill` and a name lists the running processes that match**, with the memory each one holds. Return asks one to quit. Force Quit asks first.
@@ -68,15 +76,15 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 - **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
 - **An Extension Store page** browses, installs and updates extensions.
 - **Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
-- **GitHub extensions sign in with the GitHub CLI.** If `gh` is signed in on your Mac, Floe asks once per extension whether it may use that sign-in, and lists what the sign-in may do. Its page in Settings takes it back.
 - **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
 
-### New: extension settings
+### New: extension settings and sign-in
 
 - **Turn off an extension, or one of its commands**, on its page in Settings. Floe leaves what is off out of the search, and a hotkey, the menu bar or Shortcuts will not run it.
 - **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension Floe installed.
-- **Each extension's page shows what it has reached:** the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It is a record, not a limit.
+- **Each extension's page shows what it has reached:** the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It is a record, not a limit. Settings > Privacy switches the record off and forgets it.
+- **GitHub and GitLab extensions sign in with the GitHub CLI and the GitLab CLI.** If `gh` or `glab` is signed in on your Mac, Floe asks once per extension whether it may use that sign-in. For GitHub it lists what the sign-in may do. The extension's page in Settings takes it back.
 
 ### New: built in
 
@@ -89,10 +97,15 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 ### New: your own apps
 
 - **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. Open With sends one link to another browser.
-- **`note` and some text** goes to Apple Notes, Antinote, any app with a URL scheme, or a folder of Markdown files, which is what Obsidian and Octarine read. With a folder, `append` adds a line to the day's note.
 - **A preferred clipboard app.** Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies of its own.
 - **SSH hosts.** The hosts in `~/.ssh/config` are in the search, and `ssh` and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.
 - **Apple Shortcuts**, once turned on in Settings > Privacy. Return runs one in the background. If it fails, Floe shows the reason Shortcuts gave.
+
+### New: notes
+
+- **`note` and some text** goes to Apple Notes, Antinote, any app with a URL scheme, or a folder of Markdown files, which is what Obsidian and Octarine read. With a folder, `append` adds a line to the day's note.
+- **In an Obsidian vault, the day's note is the one Obsidian opens.** Floe follows the folder and the date format set under Daily notes, such as `YYYY/MM/DD` or `dddd, MMMM Do YYYY`, with English month and day names. A format it cannot read falls back to `YYYY-MM-DD`.
+- **`todo` and `log` write to the day's note.** `todo renew passport` adds a checkbox, `- [ ] renew passport`, and `log shipped the build` adds the line with the time in front, `- 14:05 shipped the build`. `append` alone opens the day's note.
 
 ### New: AI
 

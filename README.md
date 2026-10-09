@@ -56,7 +56,7 @@ cd runtime && bun install && cd ..
 
 ## Not built yet
 
-- OAuth sign-in for extensions, other than GitHub through the GitHub CLI. They use a token preference for now.
+- OAuth sign-in for extensions, other than GitHub and GitLab through their command line tools. They use a token preference for now.
 - `launchCommand`, deeplinks, AI tools, the grid layout, and Swift or Rust helpers in extensions.
 - Searching your notes, searching an app's menus, and AI chat.
 - iCloud integration, the same as Thaw's.
@@ -66,7 +66,7 @@ cd runtime && bun install && cd ..
 What we plan to work on next, in this order. The order can change.
 
 1. Documentation, and Floe's section on the Thaw website. It starts with a guide for extension authors: how to run a local extension in Floe, what works and what does not.
-2. OAuth sign-in for extensions beyond GitHub.
+2. OAuth sign-in for extensions beyond GitHub and GitLab.
 3. The grid layout, `launchCommand` and deeplinks.
 4. Searching the front app's menus, built on the menu scanner in [CMD-Z](https://github.com/stonerl/CMD-Z) and shared with Thaw.
 5. A fuzzy file finder with its own index.

@@ -40,12 +40,99 @@ struct LentSignInTests {
         )
     }
 
-    @Test func onlyGitHubIsLentByItsIdOrItsName() {
+    @Test func onlyGitHubAndGitLabAreLentByTheirIdOrTheirName() {
+        #expect(LentProvider.allCases == [.github, .gitlab])
         #expect(LentProvider(providerId: "github") == .github)
         #expect(LentProvider(providerId: " GitHub ") == .github)
+        #expect(LentProvider(providerId: "gitlab") == .gitlab)
+        #expect(LentProvider(providerId: " GitLab ") == .gitlab)
         #expect(LentProvider(providerId: "github-enterprise") == nil)
+        #expect(LentProvider(providerId: "gitlab-self-hosted") == nil)
         #expect(LentProvider(providerId: "google") == nil)
         #expect(LentProvider.github.key(for: "github-stars") == "github-stars/github")
+        #expect(LentProvider.gitlab.key(for: "gitlab") == "gitlab/gitlab")
+    }
+
+    @Test func eachProviderNamesItsServiceAndItsTool() {
+        #expect(LentProvider.allCases.map(\.name) == ["GitHub", "GitLab"])
+        #expect(LentProvider.allCases.map(\.toolName) == ["GitHub CLI", "GitLab CLI"])
+        #expect(LentProvider.allCases.map(\.tool) == ["gh", "glab"])
+        #expect(LentProvider.allCases.map(\.listsScopes) == [true, false], "the GitLab CLI does not say what its sign-in may do")
+    }
+
+    @Test func anExtensionsPageListsEachProviderItIsLent() {
+        let lent: Set = ["gitlab/gitlab", "github/github", "devtools/gitlab", "devtools/github", "stars/github"]
+        #expect(LentProvider.lent(to: "devtools", in: lent) == [.github, .gitlab])
+        #expect(LentProvider.lent(to: "gitlab", in: lent) == [.gitlab])
+        #expect(LentProvider.lent(to: "stars", in: lent) == [.github])
+        #expect(LentProvider.lent(to: "hacker-news", in: lent).isEmpty)
+        #expect(LentProvider.lent(to: "github", in: []).isEmpty)
+    }
+
+    // MARK: GitLab
+
+    @Test func gitLabIsAskedForAndLentUnderItsOwnNameAndWithNoScopesToName() async {
+        let book = Book()
+        book.token.withLock { $0 = "glpat-token" }
+        book.scopes.withLock { $0 = [] }
+        let lender = lender(book)
+        let lent = await lender.tokens(for: .gitlab, extensionName: "gitlab", extensionTitle: "GitLab")
+        #expect(lent?["accessToken"] as? String == "glpat-token")
+        #expect(book.questions.withLock { $0 } == ["GitLab → GitLab"])
+        #expect(book.named.withLock { $0 } == [[]])
+        #expect(book.allowed.withLock { $0 } == ["gitlab/gitlab"])
+
+        _ = await lender.tokens(for: .github, extensionName: "gitlab", extensionTitle: "GitLab")
+        #expect(book.questions.withLock { $0 } == ["GitLab → GitLab", "GitLab → GitHub"], "one provider allowed is not the other allowed")
+        #expect(book.allowed.withLock { $0 } == ["gitlab/gitlab", "gitlab/github"])
+        await lender.signOut(of: .gitlab, extensionName: "gitlab")
+        #expect(book.allowed.withLock { $0 } == ["gitlab/github"])
+    }
+
+    @Test(arguments: [("glpat-abc123_DEF\n", "glpat-abc123_DEF"), ("  gho_token  \n\n", "gho_token"), ("x", "x")])
+    func theTokenIsTheOneWordTheToolPrinted(output: String, token: String) {
+        #expect(SignInLender.token(printed: output) == token)
+    }
+
+    @Test(arguments: [
+        "", "  \n", "Manage glab's authentication state.\n\nUSAGE\n  glab auth <command> [flags]\n", "no token found", "glpat-abc\nglpat-def",
+    ])
+    func helpTextSeveralLinesOrNothingIsNoToken(output: String) {
+        #expect(SignInLender.token(printed: output) == nil)
+    }
+
+    @Test func theTokenIsReadFromWhatTheGitLabCLIPrintsAboutItsStatus() {
+        let status = """
+        gitlab.com
+          ✓ Logged in to gitlab.com as rene (/Users/rene/.config/glab-cli/config.yml)
+          ✓ Git operations for gitlab.com configured to use ssh protocol.
+          ✓ API calls for gitlab.com are made over https protocol.
+          ✓ REST API Endpoint: https://gitlab.com/api/v4/
+          ✓ GraphQL Endpoint: https://gitlab.com/api/graphql/
+          ✓ Token: glpat-abc123_DEF
+        """
+        #expect(SignInLender.token(inStatus: status) == "glpat-abc123_DEF")
+        #expect(SignInLender.token(inStatus: "\n" + status) == "glpat-abc123_DEF", "standard output was empty and it came on standard error")
+        #expect(SignInLender.token(inStatus: "  ✓ Token found: glpat-xyz") == "glpat-xyz", "the wording of a newer version")
+        #expect(SignInLender.token(inStatus: "Token: glpat-plain  ") == "glpat-plain")
+        #expect(SignInLender.token(inStatus: "  ✓ Token found in operating system keyring: glpat-kept") == "glpat-kept", "glab 1.121")
+        let two = "gitlab.example.com\n  ✓ Token: glpat-first\ngitlab.com\n  ✓ Token: glpat-second"
+        #expect(SignInLender.token(inStatus: two) == "glpat-first", "with several hosts, the first listed")
+        #expect(SignInLender.token(inStatus: "  ✓ Token: **************************\n  ✓ Token: glpat-shown") == "glpat-shown", "a hidden one is passed over")
+    }
+
+    @Test(arguments: [
+        "  ✓ Token: **************************",
+        "  ✓ Token: ",
+        "  ✓ Token: two words",
+        "  x gitlab.com: api call failed: GET https://gitlab.com/api/v4/user: 401 {message: 401 Unauthorized}",
+        "No GitLab instances have been authenticated with glab. Run `glab auth login` to authenticate.",
+        "  ✓ REST API Endpoint: https://gitlab.com/api/v4/",
+        "MyToken: glpat-not-this",
+        "",
+    ])
+    func aHiddenTokenAMalformedLineOrNoLineReadsAsNoToken(status: String) {
+        #expect(SignInLender.token(inStatus: status) == nil)
     }
 
     @Test func theUserIsAskedOnceForAnExtensionAndThenItIsLentTheToken() async {
@@ -106,13 +193,18 @@ struct LentSignInTests {
     }
 
     @Test func theQuestionListsTheScopesOrSpeaksInGeneralWithoutThem() {
-        let named = SignInLender.explanation(scopes: ["admin:org", "copilot", "gist", "project", "repo", "workflow"])
+        let named = SignInLender.explanation(scopes: ["admin:org", "copilot", "gist", "project", "repo", "workflow"], provider: .github)
         #expect(named.contains("This sign-in may: admin:org, copilot, gist, project, repo, workflow."))
         #expect(named.hasPrefix("Floe can lend this extension the sign-in of the GitHub CLI on this Mac."))
         #expect(named.hasSuffix("You can take this back on the extension’s page in Settings."))
-        let general = SignInLender.explanation(scopes: [])
+        let general = SignInLender.explanation(scopes: [], provider: .github)
         #expect(!general.contains("This sign-in may"))
         #expect(general.contains("The extension can then do everything that sign-in may"))
+
+        let gitlab = SignInLender.explanation(scopes: [], provider: .gitlab)
+        #expect(gitlab.hasPrefix("Floe can lend this extension the sign-in of the GitLab CLI on this Mac. The extension can then do everything that sign-in may"))
+        #expect(!gitlab.contains("GitHub"))
+        #expect(gitlab.hasSuffix("You can take this back on the extension’s page in Settings."))
     }
 
     @Test func theScopesAreReadFromWhatTheCLIPrints() {
@@ -172,6 +264,10 @@ struct LentSignInTests {
         let lender = lender(book)
         let lent = await OAuthBroker.lent(.oauthGetTokens(providerId: "github"), extensionName: "github", extensionTitle: "GitHub", lender: lender) as? [String: Any]
         #expect(lent?["accessToken"] as? String == "gho_token")
+        let gitlab = await OAuthBroker.lent(.oauthGetTokens(providerId: "GitLab"), extensionName: "gitlab", extensionTitle: "GitLab", lender: lender) as? [String: Any]
+        #expect(gitlab?["accessToken"] as? String == "gho_token", "the stand-in has one token for both")
+        #expect(book.questions.withLock { $0.last } == "GitLab → GitLab")
+        #expect(await OAuthBroker.lent(.oauthRemoveTokens(providerId: "gitlab"), extensionName: "gitlab", extensionTitle: "GitLab", lender: lender) is NSNull)
         #expect(await OAuthBroker.lent(.oauthGetTokens(providerId: "google"), extensionName: "drive", extensionTitle: "Drive", lender: lender) == nil)
         #expect(await OAuthBroker.lent(.oauthSetTokens(providerId: "github", tokens: "{}"), extensionName: "github", extensionTitle: "GitHub", lender: lender) == nil)
 

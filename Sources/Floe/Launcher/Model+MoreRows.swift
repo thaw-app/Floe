@@ -7,7 +7,7 @@
 
 import AppKit
 
-/// The rows that came after the first set: the shell's, receipts, checkpoints, reminders and events. One place answers what Return does on
+/// The rows that came after the first set: the shell's, receipts, checkpoints, reminders, events, timers, contacts, drafts, Focus and keywords. One place answers what Return does on
 /// each, what its button says and what its menu holds, so the switches over every kind of row stay as they are.
 extension LauncherModel {
     /// What Return does on one of these rows, as its button says it. Nil for any other row.
@@ -24,13 +24,26 @@ extension LauncherModel {
         if case .checkpointDraft = item {
             return String(localized: "Save", bundle: .floe)
         }
-        if case .reminderDraft = item {
-            return String(localized: "Add Reminder", bundle: .floe)
+        if case .keyword = item {
+            return String(localized: "Type Keyword", bundle: .floe, comment: "A button that puts the selected keyword into the search field, for the user to go on typing.")
         }
-        if case .eventDraft = item {
-            return String(localized: "Add Event", bundle: .floe)
+        return draftTitle(for: item)
+    }
+
+    /// What Return does on a row that makes or stops something from what was typed. Nil for any other row.
+    private static func draftTitle(for item: RootItem) -> String? {
+        switch item {
+        case .reminderDraft: String(localized: "Add Reminder", bundle: .floe)
+        case .eventDraft: String(localized: "Add Event", bundle: .floe)
+        case .timer(.draft): String(localized: "Start Timer", bundle: .floe)
+        case .timer(.running): String(localized: "Stop Timer", bundle: .floe)
+        case .contact(.person): String(localized: "Open in Contacts", bundle: .floe, comment: "Contacts is the name of Apple's app.")
+        case let .focus(_, shortcut) where shortcut.isEmpty: String(localized: "Open Shortcuts", bundle: .floe, comment: "A button that opens Apple's Shortcuts app.")
+        case .focus: String(localized: "Run Shortcut", bundle: .floe, comment: "A button that runs the Shortcut the user named for Focus.")
+        case .outgoing: String(localized: "Open Draft", bundle: .floe, comment: "A button that opens a new email or message with the text filled in. Nothing is sent.")
+        case .contact(.access): String(localized: "Open Privacy Settings", bundle: .floe, comment: "A button that opens the Privacy pane of System Settings.")
+        default: nil
         }
-        return nil
     }
 
     /// What undoing a receipt is called: a file is put back, what Floe added is deleted, a note goes to the Trash. Nil when it cannot be undone.
@@ -40,6 +53,7 @@ extension LauncherModel {
         case .reminder: return String(localized: "Delete Reminder", bundle: .floe)
         case .event: return String(localized: "Delete Event", bundle: .floe)
         case .checkpoint: return String(localized: "Delete Checkpoint", bundle: .floe)
+        case .timer: return String(localized: "Stop Timer", bundle: .floe)
         case .note: return String(localized: "Move to Trash", bundle: .floe)
         default: return String(localized: "Put Back", bundle: .floe, comment: "A verb on a button: take a file out of the Trash and put it where it was.")
         }
@@ -53,15 +67,34 @@ extension LauncherModel {
             resume(checkpoint)
         } else if case let .checkpointDraft(name, note) = item {
             saveCheckpoint(named: name, note: note)
-        } else if case let .reminderDraft(draft) = item {
-            addReminder(draft)
-        } else if case let .eventDraft(draft) = item {
-            addEvent(draft)
         } else if case let .receipt(receipt) = item, receipt.canUndo {
             undo(receipt)
         } else if case let .receipt(receipt) = item {
             showDetails(of: receipt)
+        } else {
+            openTyped(item)
         }
+    }
+
+    /// Return on a row that makes, stops or reaches something from what was typed.
+    private func openTyped(_ item: RootItem) {
+        switch item {
+        case let .reminderDraft(draft): addReminder(draft)
+        case let .eventDraft(draft): addEvent(draft)
+        case let .timer(.draft(draft)): startTimer(draft)
+        case let .timer(.running(timer)): stop(timer)
+        case let .contact(row): open(row)
+        case let .outgoing(draft): reach(draft.link)
+        case let .focus(request, shortcut): setFocus(request, shortcut: shortcut)
+        case let .keyword(hint): type(hint)
+        default: break
+        }
+    }
+
+    /// Puts a keyword into the search, ready for the rest to be typed after it.
+    func type(_ hint: KeywordHint) {
+        query = hint.typed
+        focusToken += 1
     }
 
     /// The Actions menu of one of these rows, after what Return does.
@@ -71,6 +104,9 @@ extension LauncherModel {
         }
         if case let .checkpoint(checkpoint) = item {
             return checkpointActions(checkpoint)
+        }
+        if case let .contact(.person(person)) = item {
+            return contactActions(for: person)
         }
         return shellActions(for: item)
     }
@@ -97,6 +133,7 @@ extension LauncherModel {
         let delete: (String) throws -> Bool = switch receipt.kind {
         case .event: scheduling.delete
         case .checkpoint: deleteCheckpoint
+        case .timer: stopTimer
         default: reminding.delete
         }
         let outcome = ReceiptUndo.undo(receipt, delete: delete)

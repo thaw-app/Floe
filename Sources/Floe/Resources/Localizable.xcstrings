@@ -41,6 +41,9 @@
     "%@ couldn’t load the release notes." : {
       "comment" : "The placeholder is the name of this app."
     },
+    "%@ did not answer" : {
+      "comment" : "The placeholder is the name of a music app, Spotify or Music."
+    },
     "%@ failed" : {
       "comment" : "The placeholder is the name of a command."
     },
@@ -99,11 +102,17 @@
     "%@ isn't supported yet" : {
       "comment" : "The placeholder is the name of a kind of view, such as Grid."
     },
+    "%@ left" : {
+      "comment" : "Beside a running timer. The placeholder is the time left on its clock, such as 4:12."
+    },
     "%@ needs these before it can run. Change them later in Floe Settings." : {
       "comment" : "The placeholder is the name of an extension or one of its commands."
     },
     "%@ ran into an error" : {
       "comment" : "The placeholder is the name of a command."
+    },
+    "%@ sign-in" : {
+      "comment" : "The placeholder is a service, such as GitHub."
     },
     "%@ stopped" : {
       "comment" : "The placeholder is the name of a command."
@@ -137,7 +146,7 @@
       "comment" : "The placeholder is the name of a command, and PATH is the shell variable and stays as written."
     },
     "%@ · %@" : {
-      "comment" : "Beside a reminder that goes to a list the user named. The first placeholder is when it is due, the second is the list.",
+      "comment" : "Beside a reminder that goes to a list the user named. The first placeholder is when it is due, the second is the list.\nThe track that is playing. The first placeholder is its name, the second is the artist.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -157,6 +166,9 @@
     "%@ · can be put back" : {
       "comment" : "Beside a receipt. The placeholder is a time, such as 2 hr. ago."
     },
+    "%@ · can be stopped" : {
+      "comment" : "Beside the receipt of a timer Floe started. The placeholder is a time, such as 2 hr. ago."
+    },
     "%@ · deleted" : {
       "comment" : "Beside the receipt of something Floe added that was deleted again. The placeholder is a time, such as 2 hr. ago."
     },
@@ -165,6 +177,9 @@
     },
     "%@ · put back" : {
       "comment" : "Beside a receipt. The placeholder is a time, such as 2 hr. ago."
+    },
+    "%@ · stopped" : {
+      "comment" : "Beside the receipt of a timer that was stopped. The placeholder is a time, such as 2 hr. ago."
     },
     "%@, %@" : {
       "localizations" : {
@@ -464,10 +479,18 @@
     "Actions…" : {},
     "Add Event" : {},
     "Add Reminder" : {},
+    "Add Task “%@” to Today’s Note" : {
+      "comment" : "The placeholder is what the task is, such as renew passport."
+    },
+    "Add a calendar event" : {},
     "Add a day or time" : {
       "comment" : "Beside an event that cannot be added yet because its sentence names no date."
     },
     "Add a day or time to the event, such as Thursday noon" : {},
+    "Add a line to a note" : {},
+    "Add a line with the time to today’s note" : {},
+    "Add a reminder" : {},
+    "Add a task to today’s note" : {},
     "Add to Favorites" : {},
     "Add to Menu Bar" : {},
     "Added a line to the note %@" : {
@@ -518,7 +541,7 @@
     "Allow access" : {},
     "Allow it in System Settings, Privacy and Security, Automation." : {},
     "An OpenAI-compatible API" : {},
-    "An extension that signs in to GitHub can be lent the sign-in of the GitHub CLI on this Mac. Floe asks once for each extension, naming what that sign-in may do, and its page in Settings takes it back. The token goes to that extension and nowhere else." : {},
+    "An extension that signs in to GitHub or GitLab can be lent the sign-in of the GitHub CLI or the GitLab CLI on this Mac. Floe asks once for each extension, and for GitHub it names what that sign-in may do. The extension’s page in Settings takes it back. The token goes to that extension and nowhere else." : {},
     "Angle" : {
       "comment" : "The direction of a gradient, in degrees."
     },
@@ -605,6 +628,7 @@
     "Ask" : {
       "comment" : "A verb on a button: send the question to AI."
     },
+    "Ask AI a question" : {},
     "Ask AI “%@”" : {
       "comment" : "The placeholder is the question the user typed."
     },
@@ -675,6 +699,9 @@
     },
     "Calendar events" : {},
     "Calendar has no calendar to add to." : {},
+    "Call" : {
+      "comment" : "A verb on a button: phone the person."
+    },
     "Cancel" : {
       "comment" : "A button that stops what is under way, such as recording a keyboard shortcut."
     },
@@ -756,6 +783,7 @@
     "Click Item" : {
       "comment" : "A button that clicks the selected menu bar item."
     },
+    "Click a menu bar item" : {},
     "Clipboard" : {
       "comment" : "The kind of a result, shown beside its title.\nThe kind of app that keeps a clipboard history, as the label of the picker that chooses one."
     },
@@ -805,10 +833,17 @@
     "Connect" : {
       "comment" : "A verb on a button: open an SSH connection to the host."
     },
+    "Connect to an SSH host" : {},
     "Connected" : {
       "comment" : "A badge saying Floe is connected to the Thaw app."
     },
+    "Contact" : {
+      "comment" : "The kind of a result, shown beside its title. Here a person from Contacts."
+    },
     "Contacted" : {},
+    "Contacts" : {
+      "comment" : "A section title. Contacts are the people in Apple's Contacts app.\nApple's Contacts app, as the title of a section in Privacy."
+    },
     "Continue" : {
       "comment" : "The button that goes to the next step of the welcome window."
     },
@@ -857,11 +892,13 @@
     "Copy Bundle Identifier" : {},
     "Copy Command" : {},
     "Copy Details" : {},
+    "Copy Email" : {},
     "Copy File" : {},
     "Copy Host Name" : {},
     "Copy Name" : {},
     "Copy Note" : {},
     "Copy Path" : {},
+    "Copy Phone" : {},
     "Copy Process ID" : {},
     "Copy SSH Command" : {},
     "Copy the version, build and commit for a bug report" : {},
@@ -1075,6 +1112,9 @@
     "Ejected disks: %lld" : {
       "comment" : "The placeholder is a number."
     },
+    "Email" : {
+      "comment" : "A verb on a button: write the person an email."
+    },
     "Emoji" : {
       "comment" : "The kind of a result, shown beside its title."
     },
@@ -1171,7 +1211,12 @@
       "comment" : "A button that puts the cursor in the settings search field."
     },
     "Find a menu bar item by name and open its menu. This is the one feature that needs Accessibility." : {},
+    "Find a person in Contacts" : {
+      "comment" : "Contacts is the name of Apple's app."
+    },
+    "Find an emoji or a symbol" : {},
     "Find an item in the menu bar and open its menu." : {},
+    "Find files by name" : {},
     "Find the items in your menu bar and read their names." : {},
     "Finder" : {},
     "Finds the shortcuts you made in the Shortcuts app by name and runs the one you pick. Floe asks the Shortcuts command line tool for the names each time the launcher opens. The list stays on this Mac and is not saved. Type “shortcuts” and a space to see them all." : {
@@ -1181,9 +1226,19 @@
       "comment" : "Floe is the name of this app."
     },
     "Floe Settings" : {},
-    "Floe can lend this extension the sign-in of the GitHub CLI on this Mac. The extension can then do everything that sign-in may, which is often more than the extension asks for. You can take this back on the extension’s page in Settings." : {},
-    "Floe can lend this extension the sign-in of the GitHub CLI on this Mac. This sign-in may: %@. The extension can then do all of it, which is often more than the extension asks for. You can take this back on the extension’s page in Settings." : {
-      "comment" : "The placeholder is a list of GitHub permission names, such as gist, repo, workflow."
+    "Floe can lend this extension the sign-in of the %@ on this Mac. The extension can then do everything that sign-in may, which is often more than the extension asks for. You can take this back on the extension’s page in Settings." : {
+      "comment" : "The placeholder is the name of a command line tool, such as GitHub CLI."
+    },
+    "Floe can lend this extension the sign-in of the %@ on this Mac. This sign-in may: %@. The extension can then do all of it, which is often more than the extension asks for. You can take this back on the extension’s page in Settings." : {
+      "comment" : "The first placeholder is the name of a command line tool, such as GitHub CLI. The second is a list of permission names, such as gist, repo, workflow.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Floe can lend this extension the sign-in of the %1$@ on this Mac. This sign-in may: %2$@. The extension can then do all of it, which is often more than the extension asks for. You can take this back on the extension’s page in Settings."
+          }
+        }
+      }
     },
     "Floe can't answer that request." : {},
     "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {},
@@ -1199,6 +1254,9 @@
     },
     "Floe needs Accessibility to list your menu bar items." : {},
     "Floe needs Automation access to read the Finder selection. Turn it on under System Settings › Privacy & Security › Automation, then try again. (-1743)" : {},
+    "Floe needs access to Contacts to find people" : {
+      "comment" : "Contacts is the name of Apple's app and of a permission in System Settings."
+    },
     "Floe needs permission to control %@." : {
       "comment" : "The placeholder is the name of an app, or of two."
     },
@@ -1206,12 +1264,15 @@
       "comment" : "The placeholder is the name of a browser."
     },
     "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal." : {},
-    "Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac." : {},
+    "Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac. Switching this off forgets every record, and nothing more is kept, also of an extension that is running now." : {},
     "Floe records this from inside its runtime while the extension runs. An extension is not held to it and can reach things in ways Floe does not see, files most of all. Extensions run with everything your account may do." : {},
     "Floe renders List, Grid, Detail and Form." : {
       "comment" : "List, Grid, Detail and Form are names from the extension API and stay as written."
     },
     "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {},
+    "Focus" : {
+      "comment" : "The kind of a result, shown beside its title. Focus is the macOS feature that silences notifications."
+    },
     "Focus (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1223,6 +1284,9 @@
           }
         }
       }
+    },
+    "Focus for %@" : {
+      "comment" : "The title of the row that turns a Focus on for a while. The placeholder is how long, such as 1 hr."
     },
     "Follow Thaw's Appearance" : {},
     "Follow Thaw's menu bar appearance" : {},
@@ -1297,7 +1361,7 @@
     },
     "Get Thaw" : {},
     "Getting the selected text needs Accessibility access. Turn it on under System Settings › Privacy & Security › Accessibility." : {},
-    "GitHub sign-in" : {},
+    "GitHub and GitLab sign-in" : {},
     "Glass" : {
       "comment" : "The heading over the settings for the launcher's glass material."
     },
@@ -1393,7 +1457,10 @@
       }
     },
     "Keyword" : {
-      "comment" : "The word typed in the search to use a quicklink or a snippet."
+      "comment" : "The kind of a result, shown beside its title. Here a word the search answers to.\nThe word typed in the search to use a quicklink or a snippet."
+    },
+    "Keywords" : {
+      "comment" : "A section title. Keywords are the words the search answers to, such as remind or timer."
     },
     "Keywords and fallbacks for web search" : {},
     "Keywords and fallbacks for web search." : {},
@@ -1455,6 +1522,7 @@
     "Liquid Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
+    "List the timers that are running" : {},
     "Listening on the Port" : {},
     "Loading extensions…" : {},
     "Loading…" : {},
@@ -1478,6 +1546,9 @@
     },
     "Log files" : {},
     "Log out now?" : {},
+    "Log “%@” in Today’s Note" : {
+      "comment" : "Log is a verb: write a line with the time in a journal. The placeholder is the line."
+    },
     "Login Items (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1490,6 +1561,19 @@
         }
       }
     },
+    "Mail" : {
+      "comment" : "The kind of a result, shown beside its title. Here a row that opens an email draft."
+    },
+    "Mail to %@" : {
+      "comment" : "The title of the row that opens an empty email draft. The placeholder is an email address."
+    },
+    "Mail: %@" : {
+      "comment" : "The title of the row that opens an email draft. The placeholder is the first line of what was typed."
+    },
+    "Make a Shortcut that sets your Focus, then name it in Settings › General" : {
+      "comment" : "Shortcut is what Apple's Shortcuts app makes. Focus is the macOS feature that silences notifications."
+    },
+    "Make a note" : {},
     "Mass" : {
       "comment" : "A kind of unit, named in a calculator error."
     },
@@ -1509,6 +1593,15 @@
     },
     "Menu Bar Commands" : {},
     "Menu Bar Items" : {},
+    "Message" : {
+      "comment" : "A verb on a button: write the person a message.\nThe kind of a result, shown beside its title. Here a row that opens a message draft."
+    },
+    "Message to %@" : {
+      "comment" : "The title of the row that opens an empty message draft. The placeholder is a phone number."
+    },
+    "Message: %@" : {
+      "comment" : "The title of the row that opens a message draft. The placeholder is the first line of what was typed."
+    },
     "Minimize" : {
       "comment" : "The Window menu item that puts the window in the Dock."
     },
@@ -1561,6 +1654,9 @@
     "Name" : {
       "comment" : "A text field's placeholder: the name to give a saved command.\nThe label of the field for a name."
     },
+    "Neither Spotify nor Music is open" : {
+      "comment" : "Spotify and Music are the names of two apps."
+    },
     "Network (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -1584,8 +1680,14 @@
     "New Quicklink" : {},
     "New Script" : {},
     "New Snippet" : {},
+    "Next Track" : {
+      "comment" : "A command that skips to the next song."
+    },
     "No Results" : {},
     "No SSH hosts match" : {},
+    "No Shortcut named in Settings" : {
+      "comment" : "Beside a Focus row while the user has not said which Shortcut sets their Focus."
+    },
     "No View" : {},
     "No analytics" : {},
     "No analytics or tracking" : {},
@@ -1595,6 +1697,7 @@
     "No app opens that URL" : {},
     "No app opens the clipboard link. Change it in Settings" : {},
     "No clipboard entries match" : {},
+    "No contact matches" : {},
     "No copies match" : {},
     "No date" : {
       "comment" : "Beside a reminder that has no due date."
@@ -1604,12 +1707,16 @@
     "No files match" : {},
     "No folder chosen" : {},
     "No items match" : {},
+    "No keyword matches" : {},
     "No matching actions" : {},
     "No menu bar items found" : {},
     "No menu bar items match" : {},
     "No open tabs match" : {},
     "No receipts yet" : {},
     "No recent files" : {},
+    "No recipient" : {
+      "comment" : "Beside a mail or message draft whose text names nobody to send it to."
+    },
     "No running process matches" : {},
     "No script commands yet. Scripts are executable files with @raycast metadata." : {},
     "No settings found" : {},
@@ -1619,6 +1726,7 @@
     "No shortcuts match" : {},
     "No snippets yet." : {},
     "No sound output" : {},
+    "No timer is running" : {},
     "None" : {
       "comment" : "Shown where a file or folder would be, when none is chosen."
     },
@@ -1655,6 +1763,9 @@
     "Nothing copied yet" : {},
     "Nothing has been recorded for this extension yet." : {},
     "Nothing is listening on that port" : {},
+    "Nothing is playing in %@" : {
+      "comment" : "The placeholder is the name of a music app, Spotify or Music."
+    },
     "Nothing matches" : {},
     "Nothing to copy yet" : {
       "comment" : "Shown when Return is pressed on a calculation that has no answer."
@@ -1671,6 +1782,9 @@
           }
         }
       }
+    },
+    "Now Playing" : {
+      "comment" : "A command that shows the song that is playing and its artist."
     },
     "OK" : {},
     "Off" : {
@@ -1692,12 +1806,18 @@
     "Open %@" : {
       "comment" : "The placeholder is a web address.\nThe placeholder is the name of an app.\nThe placeholder is the name of this app."
     },
+    "Open Draft" : {
+      "comment" : "A button that opens a new email or message with the text filled in. Nothing is sent."
+    },
     "Open Finder Selection in %@" : {
       "comment" : "The placeholder is an app's name."
     },
     "Open Floe" : {},
     "Open Floe from its menu bar icon. You can set a hotkey in Settings." : {},
     "Open Floe's search of the menu bar's items." : {},
+    "Open Privacy Settings" : {
+      "comment" : "A button that opens the Privacy pane of System Settings."
+    },
     "Open Settings" : {},
     "Open Settings (System Settings)" : {
       "comment" : "A button that opens System Settings.",
@@ -1711,15 +1831,23 @@
         }
       }
     },
+    "Open Shortcuts" : {
+      "comment" : "A button that opens Apple's Shortcuts app."
+    },
     "Open System Settings" : {},
     "Open Today’s Note" : {},
     "Open With" : {
       "comment" : "The title of a submenu that lists apps."
     },
+    "Open a message draft" : {},
     "Open an Item by Letter" : {},
+    "Open an email draft" : {},
     "Open an item's menu when you pick it in the search." : {},
     "Open in %@" : {
       "comment" : "The placeholder is the name of an app."
+    },
+    "Open in Contacts" : {
+      "comment" : "Contacts is the name of Apple's app."
     },
     "Open in Shortcuts" : {
       "comment" : "Shortcuts is the name of Apple's app."
@@ -1762,6 +1890,7 @@
     "Path" : {
       "comment" : "A label before the place of a command line tool on disk."
     },
+    "People" : {},
     "Percentage" : {
       "comment" : "A label on the calculator result that says what kind of calculation it is."
     },
@@ -1779,6 +1908,9 @@
       "comment" : "The heading over the copies the user pinned."
     },
     "Placeholders: {clipboard} {date} {time} {datetime} {uuid} {day}" : {},
+    "Play/Pause" : {
+      "comment" : "A command that pauses the music, or plays it again."
+    },
     "Power" : {
       "comment" : "A kind of unit, named in a calculator error."
     },
@@ -1795,6 +1927,9 @@
     },
     "Preview" : {
       "comment" : "The heading over a picture of how the launcher will look."
+    },
+    "Previous Track" : {
+      "comment" : "A command that goes back to the song before."
     },
     "Printers & Scanners (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1867,6 +2002,7 @@
       "comment" : "A command that quits every open app."
     },
     "Quit Floe" : {},
+    "Quit a running process" : {},
     "Quit all apps now?" : {},
     "Quitting %@" : {
       "comment" : "The placeholder is an app's name."
@@ -1897,6 +2033,7 @@
     },
     "Record Shortcut" : {},
     "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts." : {},
+    "Record what extensions reach" : {},
     "Recorded" : {
       "comment" : "Beside a button that clears a record."
     },
@@ -1994,11 +2131,18 @@
     "Run Again" : {},
     "Run Command" : {},
     "Run Raycast extensions" : {},
+    "Run Shortcut" : {
+      "comment" : "A button that runs the Shortcut the user named for Focus."
+    },
+    "Run a shell command" : {},
     "Run an extension command in Floe." : {},
     "Run and Copy Output" : {},
     "Run and Show Output" : {},
     "Run in Finder’s Folder" : {},
     "Run in Terminal" : {},
+    "Run one of your Shortcuts" : {
+      "comment" : "Shortcuts are what the user makes in Apple's Shortcuts app."
+    },
     "Run shell commands from the search" : {},
     "Running Processes" : {},
     "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse." : {},
@@ -2017,6 +2161,7 @@
     "Save Checkpoint “%@”" : {
       "comment" : "The placeholder is the name the user typed for a checkpoint."
     },
+    "Save a checkpoint of your files and tabs" : {},
     "Save and Continue" : {},
     "Save as Script Command…" : {},
     "Save clipboard history" : {},
@@ -2104,9 +2249,12 @@
     "Search files…" : {},
     "Search menu bar items…" : {},
     "Search the menu bar" : {},
+    "Search what you copied" : {},
     "Searching files…" : {},
     "Searching the menu bar needs Accessibility. The launcher and your extensions work without it." : {},
     "Search…" : {},
+    "See what Floe did, and undo it" : {},
+    "See what is listening on a port" : {},
     "Select" : {
       "comment" : "The label of a menu before anything is chosen in it."
     },
@@ -2153,6 +2301,7 @@
     "Shortcut" : {
       "comment" : "The kind of a result, shown beside its title. Here one made in Apple's Shortcuts app."
     },
+    "Shortcut for Focus" : {},
     "Shortcuts" : {
       "comment" : "A section title. Shortcuts are what the user makes in Apple's Shortcuts app."
     },
@@ -2244,8 +2393,13 @@
     "Stable" : {
       "comment" : "The update channel that only offers finished releases."
     },
+    "Start Timer" : {},
+    "Start a countdown" : {},
     "Start color" : {},
     "Started" : {},
+    "Started the timer %@" : {
+      "comment" : "A receipt. The placeholder is a timer's label, or how long it runs, such as 10 min."
+    },
     "Startup Disk (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2270,6 +2424,13 @@
         }
       }
     },
+    "Stop Timer" : {},
+    "Stopped %@" : {
+      "comment" : "When a timer Floe started was stopped. The placeholder is a date and time."
+    },
+    "Stopped the timer %@" : {
+      "comment" : "The placeholder is a timer's label, or how long it runs, such as 10 min."
+    },
     "Storage (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2292,6 +2453,7 @@
     "Support Floe" : {},
     "Swap Shown and Hidden Items" : {},
     "Switch to Tab" : {},
+    "Switch to an open browser tab" : {},
     "Symbol" : {
       "comment" : "The icon of a quicklink."
     },
@@ -2407,10 +2569,12 @@
     "The link that opens your clipboard app's history." : {},
     "The model gave no answer." : {},
     "The model's name, as the API lists it" : {},
+    "The name of a Shortcut you made that sets your Focus. Toggle Focus, “focus 1 hour” and “focus off” in the launcher run it. It receives one text: the number of minutes, the word off, or the word toggle." : {},
     "The oldest questions and answers were not sent with this one." : {
       "comment" : "A note under an AI answer in a long conversation: only the most recent questions and answers went along as context."
     },
     "The open source launcher for macOS" : {},
+    "The record is switched off. Settings › Privacy turns it on." : {},
     "The reminder %@ was already deleted" : {
       "comment" : "The placeholder is what the reminder is about, such as call mom."
     },
@@ -2418,11 +2582,16 @@
     "The search field is its own piece of glass, and the results are a second piece below it." : {},
     "The source chosen in General" : {},
     "The system command failed." : {},
+    "The timer %@ is no longer running" : {
+      "comment" : "The placeholder is a timer's label, or how long it ran, such as 10 min."
+    },
     "This Mac can't run Apple Intelligence." : {},
     "This Mac has no Wi-Fi" : {},
     "This cannot be undone." : {},
     "This cannot be undone: the note may have been edited since Floe added the line." : {},
-    "This extension uses the sign-in of the GitHub CLI on this Mac." : {},
+    "This extension uses the sign-in of the %@ on this Mac." : {
+      "comment" : "The placeholder is the name of a command line tool, such as GitHub CLI."
+    },
     "This file isn't a Floe settings export." : {},
     "This file was exported by a newer version of Floe." : {},
     "This output can't be muted" : {},
@@ -2431,6 +2600,22 @@
     "Time" : {
       "comment" : "A kind of unit, named in a calculator error."
     },
+    "Timer" : {
+      "comment" : "The kind of a result, shown beside its title. Here a countdown."
+    },
+    "Timer ended" : {
+      "comment" : "The title of the notification a timer posts when it ends."
+    },
+    "Timer ended: %@" : {
+      "comment" : "The placeholder is a timer's label, or how long it ran, such as 10 min."
+    },
+    "Timer started: %@" : {
+      "comment" : "The placeholder is a timer's label, or how long it runs, such as 10 min."
+    },
+    "Timer: %@" : {
+      "comment" : "The title of the row that starts a timer. The placeholder is how long it runs, such as 10 min."
+    },
+    "Timers" : {},
     "Tint" : {
       "comment" : "The colour laid over the launcher's glass."
     },
@@ -2455,6 +2640,9 @@
     },
     "Toggle Dark Mode" : {
       "comment" : "A command that switches between the light and the dark appearance."
+    },
+    "Toggle Focus" : {
+      "comment" : "A command that turns a Focus, such as Do Not Disturb, on or off."
     },
     "Toggle Hiding Application Menus" : {},
     "Toggle Keep Awake" : {
@@ -2525,9 +2713,18 @@
     "Try part of an app's or a command's name, or an alias." : {},
     "Try part of the copied text, link or app name." : {},
     "Try part of the item's name or the app that owns it." : {},
+    "Turn Focus Off" : {
+      "comment" : "The title of the row that turns a Focus, such as Do Not Disturb, off."
+    },
     "Turn Thaw Bar On or Off" : {},
+    "Turn a Focus on for a while" : {
+      "comment" : "Focus is the macOS feature that silences notifications."
+    },
     "Turn on Apple Intelligence in System Settings to use it here." : {},
     "Turn on Save clipboard history in Settings to keep copies here." : {},
+    "Type Keyword" : {
+      "comment" : "A button that puts the selected keyword into the search field, for the user to go on typing."
+    },
     "Type Shortcut" : {},
     "Type a snippet's keyword in any app and Floe replaces it with the snippet. Needs Accessibility. Password fields are skipped." : {},
     "Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal." : {},
@@ -2777,6 +2974,9 @@
     "clipboard, history, copy, paste, copies, pin, clear" : {
       "comment" : "Words that find the Save clipboard history setting in the settings search, separated by commas."
     },
+    "contacts, contact, people, person, address book, phone, email" : {
+      "comment" : "Words that find the Contacts section of Privacy in the settings search, separated by commas."
+    },
     "copyright" : {
       "comment" : "Words that find the symbol ©, separated by commas."
     },
@@ -2846,6 +3046,9 @@
     "extension, enabled, enable, disable" : {
       "comment" : "Words that find an extension in the settings search, separated by commas."
     },
+    "extensions, record, access, hosts, folders, programs, network, reached, forget" : {
+      "comment" : "Words that find the Record what extensions reach setting in the settings search, separated by commas."
+    },
     "fallback, default, search, results" : {
       "comment" : "Words that find the Use as fallback setting in the settings search, separated by commas."
     },
@@ -2866,6 +3069,12 @@
     },
     "fire, flame, hot, lit" : {
       "comment" : "Words that find the symbol 🔥, separated by commas."
+    },
+    "focus, do not disturb, dnd, quiet, silence notifications" : {
+      "comment" : "Words that find the Toggle Focus command, separated by commas."
+    },
+    "focus, do not disturb, dnd, shortcut, shortcuts, notifications, quiet" : {
+      "comment" : "Words that find the Shortcut for Focus setting in the settings search, separated by commas."
     },
     "gestures, tap to click" : {
       "comment" : "Words that find the Trackpad pane of System Settings, separated by commas."
@@ -2946,6 +3155,9 @@
     "new, add, create, quicklink" : {
       "comment" : "Words that find the New Quicklink setting in the settings search, separated by commas."
     },
+    "next song, skip, skip song, music, spotify" : {
+      "comment" : "Words that find the Next Track command, separated by commas."
+    },
     "not set" : {
       "comment" : "Read aloud for an app picker with no app chosen."
     },
@@ -2976,8 +3188,14 @@
     "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
       "comment" : "The word pi is the name of a command and stays as written."
     },
+    "play, pause, resume, stop music, music, spotify" : {
+      "comment" : "Words that find the Play/Pause command, separated by commas."
+    },
     "pop to root, delay, timeout, reset, close, immediately, seconds, minutes" : {
       "comment" : "Words that find the Return to root search setting in the settings search, separated by commas."
+    },
+    "previous, previous song, last song, go back, music, spotify" : {
+      "comment" : "Words that find the Previous Track command, separated by commas."
     },
     "privacy, permissions, network, analytics, tracking, data" : {
       "comment" : "Words that find the Privacy page in the settings search, separated by commas."
@@ -3183,6 +3401,9 @@
     "volume, audio, output, input, microphone" : {
       "comment" : "Words that find the Sound pane of System Settings, separated by commas."
     },
+    "what's playing, what is playing, current song, song, track, music, spotify" : {
+      "comment" : "Words that find the Now Playing command, separated by commas."
+    },
     "wifi, wireless, airport, turn wi-fi off, turn wi-fi on" : {
       "comment" : "Words that find the Toggle Wi-Fi command, separated by commas."
     },
@@ -3190,6 +3411,7 @@
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
     },
     "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {},
+    "“contact” and a name finds people in your Contacts and shows a phone number or an email address beside each. macOS asks first whether Floe may read them, and only once you type that word and a name. The names are held in memory for a minute and are not saved." : {},
     "“event” and a sentence adds one event to your default calendar, starting when the sentence says. This uses the same full access to Calendar that showing your upcoming events does, and macOS asks first. The event’s receipt deletes it again." : {},
     "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept." : {},
     "“note” and some text makes a Markdown file here. “append” adds a line to the day’s note. Obsidian, Octarine and other apps that keep notes as files show them as their own." : {},

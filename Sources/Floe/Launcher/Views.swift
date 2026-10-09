@@ -345,6 +345,16 @@ struct RootIcon: View {
             SymbolTile(symbol: "bell")
         case .eventDraft:
             SymbolTile(symbol: "calendar.badge.plus", tint: .red)
+        case let .contact(row):
+            SymbolTile(symbol: row == .access ? "hand.raised" : "person.crop.circle")
+        case let .outgoing(draft):
+            SymbolTile(symbol: draft.kind == .mail ? "envelope" : "message")
+        case .focus:
+            SymbolTile(symbol: "moon")
+        case .keyword:
+            SymbolTile(symbol: "character.cursor.ibeam")
+        case .timer:
+            SymbolTile(symbol: "timer")
         case let .receipt(receipt):
             SymbolTile(symbol: receipt.canUndo ? "arrow.uturn.backward" : "list.bullet.clipboard")
         case let .shell(row, _):

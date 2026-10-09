@@ -20,10 +20,20 @@ function tokenPreference() {
   return secrets.find(named) ?? secrets[0] ?? declared.find(named);
 }
 
-// A provider whose sign-in the app can lend from one the user already has on this Mac: GitHub, from the GitHub CLI.
+// The providers whose sign-in the app can lend from one the user already has on this Mac, each with the tool it comes from.
+const lenders: Record<string, { service: string; tool: string; login: string }> = {
+  github: { service: "GitHub", tool: "GitHub CLI", login: "gh auth login" },
+  gitlab: { service: "GitLab", tool: "GitLab CLI", login: "glab auth login" },
+};
+
+function lender(provider?: string) {
+  const name = provider?.trim().toLowerCase() ?? "";
+  return Object.hasOwn(lenders, name) ? lenders[name] : undefined;
+}
+
 // The app asks the user before it lends. An extension asks for saved tokens first, so it never starts a sign-in.
 export function isLent(provider?: string): boolean {
-  return /^github$/i.test(provider?.trim() ?? "");
+  return lender(provider) !== undefined;
 }
 
 function signInUnavailable(provider?: string) {
@@ -32,9 +42,10 @@ function signInUnavailable(provider?: string) {
   const instead = preference
     ? `Add "${preference.title ?? preference.name}" in this extension's preferences instead.`
     : "This extension has no token preference to use instead.";
-  if (isLent(provider)) {
+  const lent = lender(provider);
+  if (lent) {
     const token = preference ? ` Or add "${preference.title ?? preference.name}" in this extension's preferences.` : "";
-    return new Error(`Floe signs in to GitHub with the GitHub CLI. Install it, run "gh auth login", and allow it when Floe asks.${token}`);
+    return new Error(`Floe signs in to ${lent.service} with the ${lent.tool}. Install it, run "${lent.login}", and allow it when Floe asks.${token}`);
   }
   return new Error(`Floe can't sign in${service} yet. ${instead}`);
 }
