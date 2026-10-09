@@ -428,7 +428,7 @@ struct CalculatorTests {
         }
     }
 
-    @Test @MainActor func testSuperscriptSwiftUIRendering() {
+    @Test @MainActor func superscriptSwiftUIRendering() {
         let attr = CalculatorFormatter.format("e^(i * pi)")
         let renderer = ImageRenderer(content: Text(attr).font(.system(size: 26, weight: .bold)))
         #expect(renderer.nsImage != nil)

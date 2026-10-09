@@ -171,7 +171,9 @@ extension CalculatorFormatter {
         var scan = str.index(after: index)
         while scan < str.endIndex {
             let ch = str[scan]
-            if ch == "√" { return true }
+            if ch == "√" {
+                return true
+            }
             if supToAscii[ch] != nil {
                 scan = str.index(after: scan)
             } else {

@@ -31,8 +31,6 @@ enum FendCorpusLedger {
     not shown	1g	1 g	
     not shown	5 m	5 m	
     not shown	base	base	
-    not shown	π	approx. 3.1415926536	
-    not shown	τ	approx. 6.2831853072	
     not shown	dp	dp	
     not shown	10 dp	10 dp	
     not shown	float	float	

@@ -509,6 +509,8 @@ enum FendCorpusDrawn {
     cos (-5pi/3)	0.5⟨primary⟩
     tau	≈ ⟨secondary⟩6.2831853072⟨primary⟩
     sin (tau / 2)	0⟨primary⟩
+    π	≈ ⟨secondary⟩3.1415926536⟨primary⟩
+    τ	≈ ⟨secondary⟩6.2831853072⟨primary⟩
     tan 0	0⟨primary⟩
     tan pi	0⟨primary⟩
     tan (2pi)	0⟨primary⟩
