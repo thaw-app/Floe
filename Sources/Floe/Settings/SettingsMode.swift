@@ -128,6 +128,8 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
             }
         case .fileIndexState:
             FileIndexStatus.shared.state = FileIndexService.State(text: message.payload)
+        case .syncState:
+            SettingsSyncStatus.shared.status = SyncStatus(text: message.payload) ?? SyncStatus()
         default:
             break
         }

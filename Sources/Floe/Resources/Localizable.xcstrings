@@ -266,6 +266,9 @@
         }
       }
     },
+    "%lld entries in iCloud could not be read and were skipped." : {
+      "comment" : "The placeholder is a count."
+    },
     "%lld files" : {
       "comment" : "A count of files and folders in a checkpoint.\nHow many files were copied together.",
       "localizations" : {
@@ -557,6 +560,8 @@
     "Aliases and hotkeys for apps." : {},
     "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports." : {},
     "Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out." : {},
+    "Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out." : {},
+    "Aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks are kept in your iCloud account." : {},
     "All day · %@" : {
       "comment" : "The placeholder is the name of a calendar."
     },
@@ -1048,6 +1053,7 @@
     "Deleted the reminder %@" : {
       "comment" : "The placeholder is what the reminder is about, such as call mom."
     },
+    "Deletes the copy in iCloud and switches sync off on every Mac. Each Mac keeps its own settings." : {},
     "Delete…" : {},
     "Desktop & Dock (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -1297,6 +1303,7 @@
     },
     "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {},
     "Floe sees only part of what an extension does, files least of all. Extensions run with everything your account may do." : {},
+    "Floe's space in iCloud is full. Changes made on this Mac are not uploaded." : {},
     "Focus" : {
       "comment" : "The kind of a result, shown beside its title. Focus is the macOS feature that silences notifications."
     },
@@ -1517,6 +1524,9 @@
       "comment" : "The placeholder is a date and time."
     },
     "Last opened" : {},
+    "Last synced %@" : {
+      "comment" : "The placeholder is a date and a time."
+    },
     "Launch at Login" : {},
     "Launcher" : {},
     "Launcher layout" : {},
@@ -1910,6 +1920,7 @@
         }
       }
     },
+    "Passwords, keys, clipboard history, receipts and what you search are never sent." : {},
     "Paste" : {
       "comment" : "A button that pastes the selected entry.\nA verb: insert what is on the clipboard."
     },
@@ -2093,8 +2104,11 @@
       "comment" : "A button that uninstalls an extension."
     },
     "Remove Extension…" : {},
+    "Remove Floe's settings from iCloud?" : {},
+    "Remove Settings from iCloud…" : {},
     "Remove from Favorites" : {},
     "Remove from Menu Bar" : {},
+    "Remove from iCloud" : {},
     "Remove “%@”?" : {},
     "Removed from Favorites" : {},
     "Removed from Menu Bar" : {},
@@ -2305,6 +2319,7 @@
     "Set a link for your clipboard app in Settings" : {},
     "Settings file" : {},
     "Settings imported" : {},
+    "Settings sync is off, so nothing is kept in iCloud." : {},
     "Settings…" : {},
     "Shadow" : {
       "comment" : "The heading over the launcher's shadow setting."
@@ -2441,6 +2456,7 @@
       }
     },
     "Startup, hotkeys and built-in commands" : {},
+    "Status" : {},
     "Step %lld of %lld" : {
       "comment" : "Spoken for the dots that show how far the welcome window has got. Both placeholders are numbers.",
       "localizations" : {
@@ -2485,6 +2501,10 @@
     "Symbol" : {
       "comment" : "The icon of a quicklink."
     },
+    "Sync is off." : {},
+    "Sync is switched off on every Mac that uses it. The settings on each Mac stay as they are." : {},
+    "Sync settings with iCloud" : {},
+    "Syncing…" : {},
     "System" : {
       "comment" : "The kind of a result, shown beside its title. Here a system command such as Sleep."
     },
@@ -2764,6 +2784,8 @@
     "URL" : {
       "comment" : "The label of the field for a web address."
     },
+    "Unavailable: this Mac is not signed in to iCloud." : {},
+    "Unavailable: this build of Floe is not signed for iCloud." : {},
     "Undo" : {
       "comment" : "A verb in the Edit menu."
     },
@@ -3141,6 +3163,8 @@
     "hotkey, shortcut, keyboard, menu bar, status items, icons" : {
       "comment" : "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."
     },
+    "iCloud" : {},
+    "iCloud copy" : {},
     "keyboard shortcuts, input sources, dictation, text replacements" : {
       "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
     },
@@ -3342,6 +3366,9 @@
     },
     "symbol, icon, glyph" : {
       "comment" : "Words that find the Symbol setting in the settings search, separated by commas."
+    },
+    "sync, icloud, cloud, macs, devices, backup, share, remove" : {
+      "comment" : "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
     },
     "tabs, browser, safari, open tabs, automation, applescript, source" : {
       "comment" : "Words that find the Browser Tabs setting in the settings search, separated by commas."

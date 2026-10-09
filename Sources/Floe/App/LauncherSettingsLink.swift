@@ -17,6 +17,7 @@ final class LauncherSettingsLink {
     private let process = SettingsProcess()
     private let link: ProcessLink
     private var recording = RemoteRecording()
+    private lazy var sync = SettingsSyncService(settings: settings)
     private var cancellables = Set<AnyCancellable>()
 
     init(model: LauncherModel, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
@@ -50,6 +51,7 @@ final class LauncherSettingsLink {
             }
             .store(in: &cancellables)
         FileIndexService.shared.observe { link.send(LinkMessage(.fileIndexState, $0.text)) }
+        sync.start { link.send(LinkMessage(.syncState, $0.text)) }
         if UpdatesManager.shared.isAvailable {
             UpdatesManager.shared.observeState { link.send(LinkMessage(.updatesState, UpdatesManager.shared.state.text)) }
         }
@@ -95,6 +97,7 @@ final class LauncherSettingsLink {
             link.send(LinkMessage(.thawStatus, ThawAppearanceFollower.shared.status.rawValue))
             link.send(LinkMessage(.updatesState, UpdatesManager.shared.state.text))
             link.send(LinkMessage(.fileIndexState, FileIndexService.shared.state.text))
+            link.send(LinkMessage(.syncState, sync.engine.status.text))
         case .pageChanged:
             process.lastPage = message.payload
         case .recording:
@@ -132,6 +135,8 @@ final class LauncherSettingsLink {
             rescan(message.scan)
         case .clearClipboardHistory:
             ClipboardHistoryStore.shared.clear()
+        case .removeSyncedSettings:
+            sync.engine.removeFromCloud()
         case .forwardURL:
             if let url = URL(string: message.payload) {
                 IncomingURLRouter.shared.route(url)

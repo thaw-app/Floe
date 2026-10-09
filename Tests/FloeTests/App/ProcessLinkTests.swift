@@ -55,7 +55,7 @@ struct LinkMessageTests {
         #expect(LinkMessage.Kind.settingsChanged.isMeant(for: .settings))
         #expect(LinkMessage.Kind.showPage.isMeant(for: .settings))
         #expect(!LinkMessage.Kind.showPage.isMeant(for: .launcher))
-        for kind in [LinkMessage.Kind.ready, .pageChanged, .recording, .updates, .rescan, .clearClipboardHistory, .forwardURL, .quit] {
+        for kind in [LinkMessage.Kind.ready, .pageChanged, .recording, .updates, .rescan, .clearClipboardHistory, .forwardURL, .removeSyncedSettings, .quit] {
             #expect(kind.isMeant(for: .launcher))
             #expect(!kind.isMeant(for: .settings), "\(kind) is something the settings process says, not hears")
         }
@@ -70,6 +70,9 @@ struct LinkMessageTests {
         #expect(!LinkMessage.recording(false).isRecording)
         #expect(!LinkMessage(.recording, "yes").isWellFormed)
         #expect(!LinkMessage(.quit, "now").isWellFormed)
+        #expect(LinkMessage(.syncState, SyncStatus(state: .full, skipped: 2).text).isWellFormed)
+        #expect(!LinkMessage(.syncState, "soon").isWellFormed)
+        #expect(!LinkMessage(.removeSyncedSettings, "all").isWellFormed)
         #expect(LinkMessage(.showPage, "").isWellFormed, "no page means only come forward")
     }
 }
@@ -99,7 +102,7 @@ struct ProcessLinkTests {
         let outbox = Outbox()
         let link = ProcessLink(role: .settings, gate: LinkGate(ownPid: 7) { 1 }, transport: outbox.transport)
         link.start()
-        #expect(Set(outbox.observed) == Set([LinkMessage.Kind.settingsChanged, .storeChanged, .showPage, .updatesState, .thawStatus, .fileIndexState].map(\.name)))
+        #expect(Set(outbox.observed) == Set([LinkMessage.Kind.settingsChanged, .storeChanged, .showPage, .updatesState, .thawStatus, .fileIndexState, .syncState].map(\.name)))
     }
 
     @Test func theLauncherActsOnItsSettingsProcessOnly() {

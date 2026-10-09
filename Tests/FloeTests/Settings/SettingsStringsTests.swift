@@ -57,7 +57,7 @@ struct SettingsStringsTests {
             "general.checkForUpdates",
             "general.diagnosticLogging", "general.menuBarSearchHotkey", "general.builtInHotkeys", "general.menuBarSearchAlias", "general.thawSupport", "general.menuBarCommands",
             "general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp", "general.clipboardHistory",
-            "general.clearClipboardHistory", "general.transferSettings", "general.includeRaycastExtensions", "general.extensionsFolder", "general.runtime",
+            "general.clearClipboardHistory", "general.syncsWithICloud", "general.transferSettings", "general.includeRaycastExtensions", "general.extensionsFolder", "general.runtime",
             "general.scriptsFolder", "general.aiSource", "general.aiTool", "general.aiAddress", "general.aiModel", "general.aiKey",
             "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol", "quicklinks.fallback",
             "quicklinks.fallbacks",

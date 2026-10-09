@@ -134,6 +134,11 @@ After you install:
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
 - **What's New and detailed logging.** What's New, in About, shows these notes in the app. Detailed logging is off by default and writes to `~/Library/Logs/Floe`. It never logs what you type or ask.
 
+### New: sync
+
+- **Settings sync with iCloud**, off until you switch it on in Settings > General. Aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks are the same on your Macs, and the newest change wins.
+- **Some things stay on each Mac:** folders, permissions, AI settings and keys, extension preferences, clipboard history and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
+
 ### Known issues
 
 - **Extensions can sign in only to GitHub and GitLab**, through their command line tools. Others use a token preference until OAuth is built.

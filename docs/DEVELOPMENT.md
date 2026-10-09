@@ -74,6 +74,8 @@ pair as its sender. The welcome window at first launch is still the launcher's.
   - `Settings`: the settings model (`Settings.swift`), its window, pages and sections, settings search entries,
     import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process, and
     `SettingsCatalog.swift` the commands, scripts and apps it lists.
+  - `Sync`: settings sync through iCloud's key-value store, written to be moved to Thaw as it is. It knows records,
+    not Floe's settings (see "Settings sync").
   - `Picker`: `Floe --pick`.
   - `PreferredApps`, `Thaw` and `DroppyCode` are described below. `Tests/FloeTests` has the same folders.
 - `runtime/host.ts`: bundles a command, renders it with a custom React reconciler, speaks NDJSON on stdio.
@@ -311,6 +313,73 @@ Sparkle tools version in `release.yml` (`sparkle-version` and its checksum) must
 To rehearse an update with a Debug build, serve an appcast locally and point the build at it:
 `defaults write com.thaw.floe FloeDebugFeedURL http://localhost:8000/appcast.xml`. Release builds
 ignore that key, and without it a Debug build refuses to check.
+
+## Settings sync
+
+Off by default; the switch is in Settings › General. `Sources/Floe/Sync` is the engine and names no type of Floe's:
+`SyncRecord.swift` (a record and the merge, with no store or clock in it), `SyncStore.swift` (the store's protocol
+and how a record is written into it), `UbiquitousSyncStore.swift` (iCloud's store, and the two checks that say
+whether it may be used), `MemorySyncStore.swift` (a store and a pretend cloud for tests) and `SyncEngine.swift`.
+Floe's part is `Settings/SettingsSync.swift`, the table of what syncs and what stays on one Mac, and
+`App/SettingsSyncService.swift`, which runs in the launcher. A stored setting in neither list of the table fails
+`SettingsSyncTests` and is not synced.
+
+- One record per item: an alias, a hotkey, a hidden result, a snippet, a quicklink, or a whole setting such as the
+  layout. Favorites, snippets and quicklinks have one record per member and one more for their order.
+- The newest change wins, by the clock of the Mac that made it; a tie goes to the higher device id. A change made
+  after a record was seen is stamped later than that record, so a Mac with a fast clock cannot pin a value. Two Macs
+  that change the same record without seeing each other are ordered by their clocks, which may be wrong.
+- A removal is a record too, forgotten after 90 days. A Mac away for longer can bring the value back.
+- Changes are dated while sync is off as well (`Sync.json` in the support folder), so switching it on merges by age.
+  A setting still at its default counts as never changed and is never uploaded. This keeps a fresh Mac's empty
+  local cache from overwriting a cloud value before the first download. An explicit edit back to a default still syncs.
+- Removing the cloud copy leaves a clear marker. Each Mac remembers markers it has actually seen, not its local
+  clock when it enabled sync. A deliberate join accepts an existing marker from the cache or first download;
+  a restart with sync already on still obeys an unseen removal.
+- iCloud's store takes 1 MB, 1024 keys and keys of 64 bytes. The engine stops writing at 90% of the first two and
+  says so in the status; a longer key is stored under a digest. The number of keys is what runs out first: a
+  test's heavy user (150 aliases, 60 hotkeys, 60 hidden results, 40 favorites, 200 snippets, 57 quicklinks) is 587
+  records and 220 KB.
+- No test touches iCloud. Nothing here has run against the real store, on a signed build or between two Macs.
+
+A build signed ad hoc has no entitlement for iCloud, says "Unavailable" and never opens the store
+(`SyncAvailability.system` asks the running process). Two files hold the entitlements:
+
+- `Resources/Floe.entitlements` is what every build is signed with. It holds what the hardened runtime of a
+  release needs to send Apple events and to ask for Calendar, Reminders and Contacts. Without them a release is
+  refused with no prompt (tried: an app with the hardened runtime and no Apple events entitlement gets -1743).
+- `Resources/Floe-iCloud.entitlements` adds iCloud's key-value store and time-sensitive notifications. Those two
+  need the provisioning profile, and an app signed with them and without it does not launch.
+
+To ship sync, in this order:
+
+1. developer.apple.com, Identifiers: open `com.thaw.floe`, or register it as an explicit App ID if it is not there,
+   and switch on iCloud. The key-value store needs no container.
+2. Profiles: add a Developer ID profile for that App ID with the Developer ID Application certificate the release
+   uses, name it `Floe Developer ID`, and download the `.provisionprofile`.
+3. Add it to the `prod` environment as a secret, for example `APPLE_PROVISIONING_PROFILE`:
+   `base64 -i Floe_Developer_ID.provisionprofile | gh secret set APPLE_PROVISIONING_PROFILE --env prod`.
+4. `project.yml` already sets `CODE_SIGN_ENTITLEMENTS: $(FLOE_ENTITLEMENTS)` and
+   `PROVISIONING_PROFILE_SPECIFIER: $(FLOE_PROFILE)` on the Floe target, with the first file and no profile
+   as the defaults. On the target and not on the command line, where they would reach the package targets too.
+5. In org-ci, give `actions/build` an input for extra build settings, to pass
+   `FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements` and `FLOE_PROFILE=Floe Developer ID`, and give
+   `actions/export-and-package` an input for the profile's name, written into its export options as
+   `provisioningProfiles` with `com.thaw.floe` as the key.
+6. In `release.yml`, before the build: decode the secret into
+   `~/Library/Developer/Xcode/UserData/Provisioning Profiles/<UUID>.provisionprofile`, where the UUID is
+   `security cms -D -i <file> | plutil -extract UUID raw -`. Pass the new inputs and move the pinned org-ci commit.
+7. Before publishing, check the exported app: `codesign -d --entitlements - Floe.app` shows
+   `com.apple.developer.ubiquity-kvstore-identifier` with the team id in front, and
+   `Floe.app/Contents/embedded.provisionprofile` exists. Then install it on two Macs and try the switch.
+
+Read from the code: the build action passes a fixed list of settings (`DEVELOPMENT_TEAM`, `CODE_SIGN_STYLE=Manual`,
+the Developer ID identity, the hardened runtime) and has no input for more, and the export action writes
+`signingStyle manual` with no `provisioningProfiles`. So both need the change in step 5. From Apple's documentation
+or from memory, and not tried here: that this entitlement needs a provisioning profile outside the App Store,
+that an app signed with it and without the profile is refused at launch, that the key-value store needs no
+container, where Xcode looks for profiles, that an empty `CODE_SIGN_ENTITLEMENTS` means none, that settings given
+on the command line reach package targets, and that an export with manual signing must be told the profile.
 
 ## Checks
 

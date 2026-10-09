@@ -111,6 +111,8 @@ final class AppSettings: ObservableObject {
     @Published var focusShortcut = ""
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
+    /// Whether the settings in `SettingsSync.synced` are kept in step with iCloud. Off until the user says so.
+    @Published var syncsWithICloud = false
 
     /// Whether a command may be found and run: its extension is on, and so is the command.
     func isEnabled(_ command: ExtensionCommand) -> Bool {
@@ -186,6 +188,7 @@ final class AppSettings: ObservableObject {
         var fetchesExchangeRates: Bool?
         var focusShortcut: String?
         var aiSourceByExtension: [String: AISource]?
+        var syncsWithICloud: Bool?
     }
 
     private static let defaultsKey = "settings"
@@ -314,6 +317,7 @@ final class AppSettings: ObservableObject {
         fetchesExchangeRates = stored.fetchesExchangeRates ?? false
         focusShortcut = stored.focusShortcut ?? ""
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
+        syncsWithICloud = stored.syncsWithICloud ?? false
     }
 
     /// How the launcher looks, taken in apart from the rest so neither list grows past reading.
@@ -387,7 +391,8 @@ final class AppSettings: ObservableObject {
             shell: shell,
             fetchesExchangeRates: fetchesExchangeRates,
             focusShortcut: focusShortcut,
-            aiSourceByExtension: aiSourceByExtension
+            aiSourceByExtension: aiSourceByExtension,
+            syncsWithICloud: syncsWithICloud
         )
         if let data = try? JSONEncoder().encode(stored) {
             write(data)
@@ -419,6 +424,33 @@ extension AppSettings {
         }
         apply(stored)
         save()
+    }
+}
+
+/// What settings sync needs of the stored blob: its field names, a fresh install's values, and a way in.
+extension AppSettings {
+    /// The name of every stored setting, for the test that each one is classified for sync.
+    static var storedFields: [String] {
+        Mirror(reflecting: Stored()).children.compactMap(\.label)
+    }
+
+    /// The settings a fresh install stores, read from a defaults domain nothing is ever written to.
+    static func freshStoredJSON() -> Data {
+        guard let empty = UserDefaults(suiteName: "com.thaw.floe.fresh-settings") else { return Data("{}".utf8) }
+        return AppSettings(defaults: empty, savesAfterEdits: false).base ?? Data("{}".utf8)
+    }
+
+    /// Changes the stored settings and takes the result in the way the other process's save is taken, then tells that process.
+    func takeStored(_ change: ([String: Any]) -> [String: Any]) {
+        if hasUnsavedChanges {
+            save()
+        }
+        let stored = defaults.data(forKey: Self.defaultsKey)
+        let object = stored.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] } ?? [:]
+        guard let data = try? JSONSerialization.data(withJSONObject: change(object)), !SettingsMerge.isSame(data, stored) else { return }
+        defaults.set(data, forKey: Self.defaultsKey)
+        reload()
+        onSaved?()
     }
 }
 

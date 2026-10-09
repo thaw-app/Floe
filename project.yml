@@ -182,6 +182,12 @@ targets:
         CODE_SIGN_IDENTITY: "-"
         DEVELOPMENT_TEAM: ""
         ENABLE_HARDENED_RUNTIME: NO
+        # What the hardened runtime of a release needs for AppleScript, Calendar, Reminders and Contacts.
+        # A release signed with the provisioning profile passes Floe-iCloud.entitlements and the profile's name.
+        FLOE_ENTITLEMENTS: Resources/Floe.entitlements
+        FLOE_PROFILE: ""
+        CODE_SIGN_ENTITLEMENTS: $(FLOE_ENTITLEMENTS)
+        PROVISIONING_PROFILE_SPECIFIER: $(FLOE_PROFILE)
         GENERATE_INFOPLIST_FILE: NO
         # The runtime embed step reads the checkout and Homebrew's Bun.
         ENABLE_USER_SCRIPT_SANDBOXING: NO

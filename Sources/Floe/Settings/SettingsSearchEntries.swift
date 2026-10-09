@@ -668,6 +668,17 @@ extension SearchIndex {
         ),
     ] + clipboardEntries + [
         .general(
+            "syncsWithICloud",
+            String(localized: "Sync settings with iCloud", bundle: .floe),
+            description: String(localized: "Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out.", bundle: .floe),
+            section: String(localized: "iCloud", bundle: .floe),
+            keywords: String(
+                localized: "sync, icloud, cloud, macs, devices, backup, share, remove",
+                bundle: .floe,
+                comment: "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
             "transferSettings",
             String(localized: "Export or import settings", bundle: .floe),
             description: String(localized: "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac.", bundle: .floe),

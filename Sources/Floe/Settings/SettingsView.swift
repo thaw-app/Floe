@@ -369,6 +369,7 @@ struct GeneralSettingsView: View {
             PreferredAppsSettingsSection(settings: settings)
             ClipboardSettingsSection(settings: settings)
             AISettingsSection(settings: settings)
+            SyncSettingsSection(settings: settings)
             ThawSection("Your Settings") {
                 LabeledContent {
                     HStack {

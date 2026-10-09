@@ -143,6 +143,8 @@ enum TimerAlerts {
         content.title = String(localized: "Timer ended", bundle: .floe, comment: "The title of the notification a timer posts when it ends.")
         content.body = timer.name
         content.sound = .default
+        // A timer the user set is worth a Focus. Without the entitlement the system treats it as an ordinary one.
+        content.interruptionLevel = .timeSensitive
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: timer.id.uuidString, content: content, trigger: nil))
     }
 

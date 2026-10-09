@@ -59,7 +59,7 @@ cd runtime && bun install && cd ..
 - OAuth sign-in for extensions, other than GitHub and GitLab through their command line tools. They use a token preference for now.
 - `launchCommand`, deeplinks, AI tools, the grid layout, and Swift or Rust helpers in extensions.
 - Searching your notes, searching an app's menus, and AI chat.
-- iCloud integration, the same as Thaw's.
+- iCloud sync of extension preferences and script commands. Settings, snippets and quicklinks sync, once a release is signed for iCloud ([Development](docs/DEVELOPMENT.md#settings-sync) has the steps).
 
 ## Roadmap
 
@@ -69,7 +69,7 @@ What we plan to work on next, in this order. The order can change.
 2. OAuth sign-in for extensions beyond GitHub and GitLab.
 3. The grid layout, `launchCommand` and deeplinks.
 4. Searching the front app's menus, built on the menu scanner in [CMD-Z](https://github.com/stonerl/CMD-Z) and shared with Thaw.
-5. iCloud integration, the same as Thaw's.
+5. Signing releases for iCloud so settings sync can be switched on, and the same sync in Thaw.
 
 Later: a small `@floe/api` package for what Raycast's API cannot express, searching your notes, and calculator history.
 

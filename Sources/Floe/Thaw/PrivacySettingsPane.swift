@@ -11,7 +11,7 @@
 //  The network rows are Floe's own, since what it contacts is not what Thaw does, and Thaw's
 //  capture inspector and connection status sections have nothing to describe here.
 //  The search sources' switches, the switch for the index of file names, the switch that keeps
-//  AI on this Mac and the row about follow-up questions are Floe's too.
+//  AI on this Mac, the row about follow-up questions and the row about iCloud are Floe's too.
 
 import SwiftUI
 import ThawUI
@@ -142,6 +142,7 @@ struct PrivacySettingsPane: View {
                     Text("Only use AI that runs on this Mac")
                     Text("A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place.")
                 }
+                row("iCloud", SettingsSyncText.privacyLine(isOn: settings.syncsWithICloud))
                 row("Release notes", String(localized: "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy.", bundle: .floe))
                 row("Extensions", String(localized: "Each extension makes its own requests, and the images it shows are loaded from wherever it points.", bundle: .floe))
             }

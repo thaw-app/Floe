@@ -28,6 +28,8 @@ struct LinkMessage: Equatable {
         case thawStatus
         /// How the launcher's index of file names is doing. Payload: `FileIndexService.State.text`.
         case fileIndexState
+        /// How the launcher's settings sync is doing. Payload: `SyncStatus.text`.
+        case syncState
 
         // Settings to launcher.
 
@@ -45,6 +47,8 @@ struct LinkMessage: Equatable {
         case clearClipboardHistory
         /// A `floe://` link the system handed to the settings process instead of the launcher. Payload: the link.
         case forwardURL
+        /// Remove Settings from iCloud was confirmed: the launcher holds the store.
+        case removeSyncedSettings
         /// Quit was chosen in the settings process, which quits Floe as it did when Settings was a window of it.
         case quit
 
@@ -56,8 +60,8 @@ struct LinkMessage: Equatable {
         func isMeant(for role: ProcessLink.Role) -> Bool {
             switch self {
             case .settingsChanged, .storeChanged: true
-            case .showPage, .updatesState, .thawStatus, .fileIndexState: role == .settings
-            case .ready, .pageChanged, .recording, .updates, .rescan, .clearClipboardHistory, .forwardURL, .quit: role == .launcher
+            case .showPage, .updatesState, .thawStatus, .fileIndexState, .syncState: role == .settings
+            case .ready, .pageChanged, .recording, .updates, .rescan, .clearClipboardHistory, .forwardURL, .removeSyncedSettings, .quit: role == .launcher
             }
         }
     }
@@ -74,6 +78,7 @@ struct LinkMessage: Equatable {
     static let ready = LinkMessage(.ready)
     static let clearClipboardHistory = LinkMessage(.clearClipboardHistory)
     static let quit = LinkMessage(.quit)
+    static let removeSyncedSettings = LinkMessage(.removeSyncedSettings)
 
     static func storeChanged(_ store: LinkStore) -> LinkMessage {
         LinkMessage(.storeChanged, store.rawValue)
@@ -105,7 +110,8 @@ struct LinkMessage: Equatable {
         case .storeChanged: store != nil
         case .rescan: scan != nil
         case .recording: payload == "1" || payload == "0"
-        case .settingsChanged, .ready, .clearClipboardHistory, .quit: payload.isEmpty
+        case .settingsChanged, .ready, .clearClipboardHistory, .removeSyncedSettings, .quit: payload.isEmpty
+        case .syncState: SyncStatus(text: payload) != nil
         case .showPage, .updatesState, .thawStatus, .fileIndexState, .pageChanged, .updates, .forwardURL: true
         }
     }

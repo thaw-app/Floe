@@ -57,8 +57,14 @@ final class QuicklinkStore: ObservableObject {
         isLoading = false
     }
 
+    /// The same id on every Mac, so the links Floe comes with are one link to settings sync and not one per Mac.
+    private static func defaultID(_ number: Int) -> UUID {
+        UUID(uuidString: "F10E0000-0000-4000-8000-00000000000\(number)") ?? UUID()
+    }
+
     static let defaults: [Quicklink] = [
         Quicklink(
+            id: defaultID(1),
             name: "Google",
             keyword: "g",
             url: "https://www.google.com/search?q={query}",
@@ -66,36 +72,42 @@ final class QuicklinkStore: ObservableObject {
             symbol: "magnifyingglass"
         ),
         Quicklink(
+            id: defaultID(2),
             name: "DuckDuckGo",
             keyword: "ddg",
             url: "https://duckduckgo.com/?q={query}",
             symbol: "magnifyingglass.circle"
         ),
         Quicklink(
+            id: defaultID(3),
             name: "GitHub",
             keyword: "gh",
             url: "https://github.com/search?q={query}",
             symbol: "chevron.left.forwardslash.chevron.right"
         ),
         Quicklink(
+            id: defaultID(4),
             name: "YouTube",
             keyword: "yt",
             url: "https://www.youtube.com/results?search_query={query}",
             symbol: "play.rectangle"
         ),
         Quicklink(
+            id: defaultID(5),
             name: "Wikipedia",
             keyword: "wiki",
             url: "https://en.wikipedia.org/wiki/Special:Search?search={query}",
             symbol: "book"
         ),
         Quicklink(
+            id: defaultID(6),
             name: "Apple Maps",
             keyword: "maps",
             url: "maps://?q={query}",
             symbol: "map"
         ),
         Quicklink(
+            id: defaultID(7),
             name: String(localized: "Translate", bundle: .floe, comment: "The name of the quicklink that opens Google Translate."),
             keyword: "tr",
             url: "https://translate.google.com/?text={query}",
