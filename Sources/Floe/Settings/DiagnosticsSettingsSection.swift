@@ -17,7 +17,7 @@ struct DiagnosticsSettingsSection: View {
         ThawSection("Diagnostics") {
             Toggle(isOn: $settings.diagnosticLogging) {
                 Text("Detailed logging")
-                Text("Writes a log to ~/Library/Logs/Floe for troubleshooting: launch and scan times, slow searches, and commands and AI requests that fail. Never what you type or ask. Turn it off when you are done.")
+                Text("Writes launch times, slow searches and failures to ~/Library/Logs/Floe. Never what you type or ask.")
             }
             LabeledContent {
                 Button("Show Log Files in Finder") { NSWorkspace.shared.open(DiagnosticLogger.shared.logDirectory) }

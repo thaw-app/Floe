@@ -521,7 +521,7 @@ extension SearchIndex {
         .general(
             "focusShortcut",
             String(localized: "Shortcut for Focus", bundle: .floe),
-            description: String(localized: "The name of a Shortcut you made that sets your Focus. Toggle Focus, “focus 1 hour” and “focus off” in the launcher run it. It receives one text: the number of minutes, the word off, or the word toggle.", bundle: .floe),
+            description: String(localized: "A Shortcut of yours that sets Focus. It receives the number of minutes, or the word off or toggle.", bundle: .floe),
             section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
             keywords: String(
                 localized: "focus, do not disturb, dnd, shortcut, shortcuts, notifications, quiet",

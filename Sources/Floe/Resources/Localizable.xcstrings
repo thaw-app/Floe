@@ -425,10 +425,11 @@
       "comment" : "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument."
     },
     "A Folder of Notes" : {},
-    "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {},
+    "A Shortcut of yours that sets Focus. It receives the number of minutes, or the word off or toggle." : {},
+    "A command line tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it." : {},
     "A command line tool you are signed in to" : {},
     "A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts." : {},
-    "A follow-up in Ask AI sends the earlier questions and answers of that conversation again, to the same place. Floe keeps them in memory until the answer view closes and saves none of it." : {
+    "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it." : {
       "comment" : "Ask AI is the name of the feature that answers a question in the launcher."
     },
     "A search that starts with a program on this Mac and has a flag, a path or a pipe in it gets a Run row under the other results." : {},
@@ -531,7 +532,7 @@
     "Address" : {
       "comment" : "The web address of an AI service."
     },
-    "Adds up to three files found by name, by Spotlight or by Fast file search when that is on. The search runs on this Mac and nothing leaves it. Type “files” and a name to see every match." : {
+    "Adds up to three files found by name, searched on this Mac. Type “files” and a name to see every match." : {
       "comment" : "“files” is a word the user types. It is a command and stays in English."
     },
     "After 30 seconds" : {},
@@ -564,7 +565,7 @@
     "Allow access" : {},
     "Allow it in System Settings, Privacy and Security, Automation." : {},
     "An OpenAI-compatible API" : {},
-    "An extension that signs in to GitHub or GitLab can be lent the sign-in of the GitHub CLI or the GitLab CLI on this Mac. Floe asks once for each extension, and for GitHub it names what that sign-in may do. The extension’s page in Settings takes it back. The token goes to that extension and nowhere else." : {},
+    "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension." : {},
     "Angle" : {
       "comment" : "The direction of a gradient, in degrees."
     },
@@ -1118,7 +1119,7 @@
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
     "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {},
-    "Earlier commands from your shell's history, programs and paths appear under the command. Tab finishes the selected one. The history file is read on this Mac and nothing from it is kept." : {},
+    "Earlier commands, programs and paths appear under the command, and Tab finishes the selected one. Your shell history is read, not kept." : {},
     "Edit" : {
       "comment" : "The title of the Edit menu in the menu bar."
     },
@@ -1193,7 +1194,7 @@
       "comment" : "The heading over the settings for extensions."
     },
     "Extensions Folder" : {},
-    "Extensions come from the Raycast store's open source repository. Floe installs them with Bun; some need Raycast features Floe doesn't have yet." : {},
+    "Extensions come from Raycast's open source repository. Some need Raycast features Floe doesn't have yet." : {},
     "Extensions folder" : {},
     "Extensions that ask AI a question get their answer from here." : {},
     "Fallbacks" : {
@@ -1271,6 +1272,7 @@
       "comment" : "The placeholder is a date as the bank writes it, such as 2026-10-07."
     },
     "Floe isn't running yet. Open Floe and try again." : {},
+    "Floe keeps the names of your files in memory, so file search answers as you type. macOS will ask about Desktop, Documents and Downloads." : {},
     "Floe lists the items apps put in the menu bar." : {},
     "Floe may not use Calendar. Allow full access in System Settings > Privacy & Security > Calendars." : {},
     "Floe may not use Reminders. Allow it in System Settings > Privacy & Security > Reminders." : {},
@@ -1289,13 +1291,12 @@
       "comment" : "The placeholder is the name of a browser."
     },
     "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal." : {},
-    "Floe reads the names of the files and folders in your home folder and keeps them in memory, so a file search is answered as you type and does not wait for Spotlight. Reading them makes macOS ask whether Floe may access your Desktop, Documents and Downloads folders, which searching with Spotlight did not need. Only names are read, never what is in a file. Spotlight is asked which files you opened in the last thirty days, so those come first. Library, hidden folders and the insides of apps are left out. The list is not written to disk, it is read again each time Floe starts, and nothing leaves this Mac. Off, file search asks Spotlight as before." : {},
-    "Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac. Switching this off forgets every record, and nothing more is kept, also of an extension that is running now." : {},
-    "Floe records this from inside its runtime while the extension runs. An extension is not held to it and can reach things in ways Floe does not see, files most of all. Extensions run with everything your account may do." : {},
+    "Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them." : {},
     "Floe renders List, Grid, Detail and Form." : {
       "comment" : "List, Grid, Detail and Form are names from the extension API and stay as written."
     },
     "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {},
+    "Floe sees only part of what an extension does, files least of all. Extensions run with everything your account may do." : {},
     "Focus" : {
       "comment" : "The kind of a result, shown beside its title. Focus is the macOS feature that silences notifications."
     },
@@ -1882,7 +1883,6 @@
     "Open source" : {},
     "Open source under the AGPL, so you can read how it works" : {},
     "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy." : {},
-    "Opening the Extension Store lists extensions from GitHub. Installing or updating one downloads it from GitHub and its packages from the npm registry." : {},
     "Opens a file or a folder from the Actions menu or from Finder." : {},
     "Opens a folder from the Actions menu or from Finder, and the SSH hosts you pick in the search." : {},
     "Opens from Clipboard History in the search. With another app chosen, Floe saves no copies and keeps the history it has." : {},
@@ -2533,7 +2533,7 @@
     "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {},
     "Thaw's tint follows the wallpaper, which the launcher cannot copy, so it is left out." : {},
     "Thaw's tint follows the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint." : {},
-    "The %@ tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
+    "The %@ tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it." : {
       "comment" : "The placeholder is the name of a command line tool."
     },
     "The %@ tool, on your account" : {
@@ -2557,9 +2557,11 @@
       "comment" : "The placeholder is an HTTP status number such as 500."
     },
     "The API set up in General" : {},
+    "The Extension Store lists and downloads extensions from GitHub, and their packages from the npm registry." : {},
     "The Finder isn't frontmost, so there is no Finder selection to read." : {},
     "The Finder selection couldn't be read." : {},
-    "The calculator converts money with the European Central Bank’s daily rates. Floe downloads the bank’s public file when the rates it holds are half a day old, and sends nothing about you or what you typed. Off, nothing is asked for and the rates are removed." : {},
+    "The Up arrow in an empty search brings back the last 50 searches that opened something. Off forgets them." : {},
+    "The calculator converts money with the European Central Bank’s daily rates, downloaded about twice a day. Off removes them." : {},
     "The checkpoint %@ was already deleted" : {
       "comment" : "The placeholder is the name the user gave a checkpoint."
     },
@@ -2586,8 +2588,7 @@
     },
     "The file couldn't be read as text." : {},
     "The introduction from the first launch." : {},
-    "The last 200 things Floe did that changed your Mac: commands it ran, files it moved to the Trash, processes it quit. Type “receipts” in the launcher to see them and to put a file back. They stay on this Mac. Switching this off forgets them." : {},
-    "The last 50 searches that opened something are kept on this Mac, and the Up arrow in an empty search brings them back. Switching this off forgets them." : {},
+    "The last 200 things Floe changed: commands run, files trashed, processes quit. Type “receipts” to see them. Off forgets them." : {},
     "The launcher is following Thaw's border." : {},
     "The launcher is following Thaw's glass." : {},
     "The launcher is following Thaw's shadow." : {},
@@ -2596,7 +2597,6 @@
     "The link that opens your clipboard app's history." : {},
     "The model gave no answer." : {},
     "The model's name, as the API lists it" : {},
-    "The name of a Shortcut you made that sets your Focus. Toggle Focus, “focus 1 hour” and “focus off” in the launcher run it. It receives one text: the number of minutes, the word off, or the word toggle." : {},
     "The oldest questions and answers were not sent with this one." : {
       "comment" : "A note under an AI answer in a long conversation: only the most recent questions and answers went along as context."
     },
@@ -2623,7 +2623,7 @@
     "This file was exported by a newer version of Floe." : {},
     "This output can't be muted" : {},
     "This output has no volume to change" : {},
-    "This source is not on this Mac, and Privacy is set to only use AI that runs on this Mac. Nothing will be asked until one of the two changes." : {},
+    "This source is not on this Mac, and Privacy allows only AI that runs on this Mac. Nothing is asked until one of them changes." : {},
     "Time" : {
       "comment" : "A kind of unit, named in a calculator error."
     },
@@ -2881,7 +2881,7 @@
       "comment" : "The title of the Window menu in the menu bar."
     },
     "Writes a log for troubleshooting to ~/Library/Logs/Floe." : {},
-    "Writes a log to ~/Library/Logs/Floe for troubleshooting: launch and scan times, slow searches, and commands and AI requests that fail. Never what you type or ask. Turn it off when you are done." : {},
+    "Writes launch times, slow searches and failures to ~/Library/Logs/Floe. Never what you type or ask." : {},
     "Wrote the note %@" : {
       "comment" : "A receipt. The placeholder is the name of a note's file."
     },
@@ -3441,11 +3441,11 @@
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
     },
     "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {},
-    "“contact” and a name finds people in your Contacts and shows a phone number or an email address beside each. macOS asks first whether Floe may read them, and only once you type that word and a name. The names are held in memory for a minute and are not saved." : {},
-    "“event” and a sentence adds one event to your default calendar, starting when the sentence says. This uses the same full access to Calendar that showing your upcoming events does, and macOS asks first. The event’s receipt deletes it again." : {},
+    "“contact” and a name finds people in your Contacts. macOS asks first, and only once you type that word and a name. Nothing is saved." : {},
+    "“event” and a sentence adds an event to your default calendar. macOS asks first, and the event’s receipt deletes it again." : {},
     "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept." : {},
-    "“note” and some text makes a Markdown file here. “append” adds a line to the day’s note. Obsidian, Octarine and other apps that keep notes as files show them as their own." : {},
-    "“remind” and a sentence adds one reminder to Reminders, due when the sentence says. It goes to your default list, or to the list the sentence ends with, as in “in Work”. macOS asks first whether Floe may use Reminders. After that Floe reads the names of your lists, and none of the reminders in them." : {},
+    "“note” makes a Markdown file here and “append” adds a line to the day’s note. Obsidian and Octarine read the same files." : {},
+    "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders." : {},
     "↵ Open" : {},
     "⌘Y Quick Look" : {},
     "⌘⇧C Copy Path" : {},

@@ -30,7 +30,7 @@ struct ExtensionStoreSettingsPage: View {
         VStack(spacing: 0) {
             content
             Divider()
-            Text("Extensions come from the Raycast store's open source repository. Floe installs them with Bun; some need Raycast features Floe doesn't have yet.")
+            Text("Extensions come from Raycast's open source repository. Some need Raycast features Floe doesn't have yet.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -27,7 +27,7 @@ struct ShellCommandsSettingsSection: View {
             .disabled(!settings.shell.runs)
             Toggle(isOn: $settings.shell.suggests) {
                 Text("Suggest while typing a command")
-                Text("Earlier commands from your shell's history, programs and paths appear under the command. Tab finishes the selected one. The history file is read on this Mac and nothing from it is kept.")
+                Text("Earlier commands, programs and paths appear under the command, and Tab finishes the selected one. Your shell history is read, not kept.")
             }
             .disabled(!settings.shell.runs)
             Toggle(isOn: $settings.shell.recognizes) {

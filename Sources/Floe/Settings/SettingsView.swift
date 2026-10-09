@@ -327,7 +327,7 @@ struct GeneralSettingsView: View {
                 }
                 TextField(text: $settings.focusShortcut, prompt: Text("None")) {
                     Text("Shortcut for Focus")
-                    Text("The name of a Shortcut you made that sets your Focus. Toggle Focus, “focus 1 hour” and “focus off” in the launcher run it. It receives one text: the number of minutes, the word off, or the word toggle.")
+                    Text("A Shortcut of yours that sets Focus. It receives the number of minutes, or the word off or toggle.")
                 }
             }
             ShellCommandsSettingsSection(settings: settings)

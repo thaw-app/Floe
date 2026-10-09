@@ -56,7 +56,7 @@ struct PrivacySettingsPane: View {
                 }
                 Toggle(isOn: $settings.indexesFileNames) {
                     Text("Fast file search")
-                    Text("Floe reads the names of the files and folders in your home folder and keeps them in memory, so a file search is answered as you type and does not wait for Spotlight. Reading them makes macOS ask whether Floe may access your Desktop, Documents and Downloads folders, which searching with Spotlight did not need. Only names are read, never what is in a file. Spotlight is asked which files you opened in the last thirty days, so those come first. Library, hidden folders and the insides of apps are left out. The list is not written to disk, it is read again each time Floe starts, and nothing leaves this Mac. Off, file search asks Spotlight as before.")
+                    Text("Floe keeps the names of your files in memory, so file search answers as you type. macOS will ask about Desktop, Documents and Downloads.")
                 }
                 if settings.indexesFileNames, let line = fileIndex.state?.line {
                     LabeledContent("File names held") { Text(line) }
@@ -72,9 +72,9 @@ struct PrivacySettingsPane: View {
                     set: { settings.setRecordsExtensionAccess($0) }
                 )) {
                     Text("Record what extensions reach")
-                    Text("Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac. Switching this off forgets every record, and nothing more is kept, also of an extension that is running now.")
+                    Text("Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them.")
                 }
-                row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can be lent the sign-in of the GitHub CLI or the GitLab CLI on this Mac. Floe asks once for each extension, and for GitHub it names what that sign-in may do. The extension’s page in Settings takes it back. The token goes to that extension and nowhere else.", bundle: .floe))
+                row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension.", bundle: .floe))
                 row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
             }
             ThawSection("Search History") {
@@ -88,7 +88,7 @@ struct PrivacySettingsPane: View {
                     }
                 )) {
                     Text("Remember searches")
-                    Text("The last 50 searches that opened something are kept on this Mac, and the Up arrow in an empty search brings them back. Switching this off forgets them.")
+                    Text("The Up arrow in an empty search brings back the last 50 searches that opened something. Off forgets them.")
                 }
                 LabeledContent("Remembered searches") {
                     Button("Forget Them") {
@@ -99,11 +99,11 @@ struct PrivacySettingsPane: View {
                 }
             }
             ThawSection("Reminders and Events") {
-                row("Reminders", String(localized: "“remind” and a sentence adds one reminder to Reminders, due when the sentence says. It goes to your default list, or to the list the sentence ends with, as in “in Work”. macOS asks first whether Floe may use Reminders. After that Floe reads the names of your lists, and none of the reminders in them.", bundle: .floe))
-                row("Calendar events", String(localized: "“event” and a sentence adds one event to your default calendar, starting when the sentence says. This uses the same full access to Calendar that showing your upcoming events does, and macOS asks first. The event’s receipt deletes it again.", bundle: .floe))
+                row("Reminders", String(localized: "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders.", bundle: .floe))
+                row("Calendar events", String(localized: "“event” and a sentence adds an event to your default calendar. macOS asks first, and the event’s receipt deletes it again.", bundle: .floe))
             }
             ThawSection("Contacts") {
-                row("People", String(localized: "“contact” and a name finds people in your Contacts and shows a phone number or an email address beside each. macOS asks first whether Floe may read them, and only once you type that word and a name. The names are held in memory for a minute and are not saved.", bundle: .floe))
+                row("People", String(localized: "“contact” and a name finds people in your Contacts. macOS asks first, and only once you type that word and a name. Nothing is saved.", bundle: .floe))
             }
             ThawSection("Receipts") {
                 Toggle(isOn: Binding(
@@ -116,7 +116,7 @@ struct PrivacySettingsPane: View {
                     }
                 )) {
                     Text("Keep receipts")
-                    Text("The last 200 things Floe did that changed your Mac: commands it ran, files it moved to the Trash, processes it quit. Type “receipts” in the launcher to see them and to put a file back. They stay on this Mac. Switching this off forgets them.")
+                    Text("The last 200 things Floe changed: commands run, files trashed, processes quit. Type “receipts” to see them. Off forgets them.")
                 }
                 LabeledContent("Receipts kept") {
                     Button("Forget Them") {
@@ -131,9 +131,9 @@ struct PrivacySettingsPane: View {
                     AutomaticUpdateCheckToggle()
                     row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started doing this.", bundle: .floe, comment: "The placeholder is the address of a server."))
                 }
-                row("Extension Store", String(localized: "Opening the Extension Store lists extensions from GitHub. Installing or updating one downloads it from GitHub and its packages from the npm registry.", bundle: .floe))
+                row("Extension Store", String(localized: "The Extension Store lists and downloads extensions from GitHub, and their packages from the npm registry.", bundle: .floe))
                 row("AI", PrivacyNetwork.aiLine(source: settings.aiSource, baseURL: settings.aiBaseURL, tool: AskAI.configuredTool(settings), onThisMacOnly: settings.aiOnThisMacOnly))
-                row("Follow-up questions", String(localized: "A follow-up in Ask AI sends the earlier questions and answers of that conversation again, to the same place. Floe keeps them in memory until the answer view closes and saves none of it.", bundle: .floe, comment: "Ask AI is the name of the feature that answers a question in the launcher."))
+                row("Follow-up questions", String(localized: "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it.", bundle: .floe, comment: "Ask AI is the name of the feature that answers a question in the launcher."))
                 Toggle(isOn: $settings.fetchesExchangeRates) {
                     Text("Download exchange rates")
                     Text(PrivacyNetwork.exchangeRatesLine(held: ExchangeRateStore.load()?.date))
@@ -175,7 +175,7 @@ struct PrivacySettingsPane: View {
 extension PrivacyNetwork {
     /// What the switch for exchange rates says: what is asked of whom and how often, and the day of the rates held.
     static func exchangeRatesLine(held date: String?) -> String {
-        let what = String(localized: "The calculator converts money with the European Central Bank’s daily rates. Floe downloads the bank’s public file when the rates it holds are half a day old, and sends nothing about you or what you typed. Off, nothing is asked for and the rates are removed.", bundle: .floe)
+        let what = String(localized: "The calculator converts money with the European Central Bank’s daily rates, downloaded about twice a day. Off removes them.", bundle: .floe)
         guard let date else { return what }
         return what + " " + String(localized: "Floe holds the rates of \(date).", bundle: .floe, comment: "The placeholder is a date as the bank writes it, such as 2026-10-07.")
     }
@@ -196,9 +196,9 @@ enum PrivacyNetwork {
         switch source {
         case .tools where onThisMacOnly:
             guard let tool else {
-                return String(localized: "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent.", bundle: .floe)
+                return String(localized: "A command line tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it.", bundle: .floe)
             }
-            return String(localized: "The \(tool) tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent.", bundle: .floe, comment: "The placeholder is the name of a command line tool.")
+            return String(localized: "The \(tool) tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it.", bundle: .floe, comment: "The placeholder is the name of a command line tool.")
         case .tools:
             guard let tool else { return String(localized: "The command line tool set in General is not installed, so no question is sent.", bundle: .floe) }
             return String(localized: "Questions go to the \(tool) tool, which sends them to the service it is signed in to, on your account there.", bundle: .floe, comment: "The placeholder is the name of a command line tool.")

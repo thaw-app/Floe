@@ -37,7 +37,7 @@ struct AISettingsSection: View {
                 Text("Extensions that ask AI a question get their answer from here.")
             }
             if choice != .api(nil), AIAnswer.refusal(for: choice, localOnly: settings.aiOnThisMacOnly) != nil {
-                warning(String(localized: "This source is not on this Mac, and Privacy is set to only use AI that runs on this Mac. Nothing will be asked until one of the two changes.", bundle: .floe))
+                warning(String(localized: "This source is not on this Mac, and Privacy allows only AI that runs on this Mac. Nothing is asked until one of them changes.", bundle: .floe))
             }
             switch settings.aiSource {
             case .tools:

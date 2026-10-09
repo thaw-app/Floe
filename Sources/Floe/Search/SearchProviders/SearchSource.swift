@@ -44,7 +44,7 @@ struct SearchSourceInfo: Identifiable, Equatable {
     static let files = SearchSourceInfo(
         id: "files",
         title: String(localized: "Files", bundle: .floe),
-        detail: String(localized: "Adds up to three files found by name, by Spotlight or by Fast file search when that is on. The search runs on this Mac and nothing leaves it. Type “files” and a name to see every match.", bundle: .floe, comment: "“files” is a word the user types. It is a command and stays in English.")
+        detail: String(localized: "Adds up to three files found by name, searched on this Mac. Type “files” and a name to see every match.", bundle: .floe, comment: "“files” is a word the user types. It is a command and stays in English.")
     )
     static let tabs = SearchSourceInfo(
         id: "tabs",

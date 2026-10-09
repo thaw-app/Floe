@@ -136,7 +136,7 @@ struct SettingsStringsTests {
         #expect(NoteAction.append.title(text: "") == "Append to Current Note")
         #expect(
             PrivacyNetwork.aiLine(source: .tools, baseURL: "", onThisMacOnly: true)
-                == "A command line tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent."
+                == "A command line tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it."
         )
         #expect(SettingsTransfer.TransferError.newerVersion(9).errorDescription == "This file was exported by a newer version of Floe.")
     }

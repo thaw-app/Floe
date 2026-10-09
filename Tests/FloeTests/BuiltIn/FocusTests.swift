@@ -254,6 +254,6 @@ struct FocusTests {
         let entry = try #require(SearchIndex.staticEntries.first { $0.id == "general.focusShortcut" })
         #expect(entry.title == "Shortcut for Focus")
         #expect(entry.pane == .general)
-        #expect(entry.descriptionText?.contains("the number of minutes, the word off, or the word toggle") == true)
+        #expect(entry.descriptionText?.contains("the number of minutes, or the word off or toggle") == true)
     }
 }

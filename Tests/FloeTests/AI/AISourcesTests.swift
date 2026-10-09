@@ -271,10 +271,10 @@ struct AISourcesTests {
 
     @Test func thePrivacyLineSaysASourceIsRefusedWhileTheSwitchIsOn() {
         let tools = PrivacyNetwork.aiLine(source: .tools, baseURL: "", onThisMacOnly: true)
-        #expect(tools.contains("refuses to ask it"))
+        #expect(tools.contains("does not ask it"))
         for tool in AITool.allCases {
             let named = PrivacyNetwork.aiLine(source: .tools, baseURL: "", tool: tool.command, onThisMacOnly: true)
-            #expect(named == "The \(tool.command) tool is chosen, which sends questions to the service it is signed in to. While the switch below is on, Floe refuses to ask it, so no question is sent.")
+            #expect(named == "The \(tool.command) tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it.")
         }
         let remote = PrivacyNetwork.aiLine(source: .api, baseURL: "https://openrouter.ai/api/v1", onThisMacOnly: true)
         #expect(remote == "openrouter.ai is chosen, which is not on this Mac. While the switch below is on, Floe refuses to ask it, so no question is sent.")

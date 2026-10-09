@@ -11,7 +11,14 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 **macOS 26 and later · Build 1**
 
-Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens things in the apps you already use. This is the first release, and it is early: the [README](https://github.com/thaw-app/Floe#not-built-yet) lists what is not built yet. Report issues at [github.com/thaw-app/Floe/issues](https://github.com/thaw-app/Floe/issues).
+Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens things in the apps you already use. This is the first release, and it is early.
+
+After you install:
+
+1. Press ⌃⌥Space to open the search. Settings > General changes the hotkey.
+2. Open the Extension Store from the search to install extensions.
+3. Look at Settings > Privacy. Files, browser tabs, Shortcuts, Fast file search and currency rates are off until you turn them on.
+4. If something looks wrong, [open an issue](https://github.com/thaw-app/Floe/issues).
 
 ### New: search
 
@@ -74,7 +81,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 ### New: extensions
 
 - **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
-- **An Extension Store page** browses, installs and updates extensions.
+- **An Extension Store page** browses, installs and updates extensions. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **Forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
 - **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
@@ -88,11 +95,11 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 
 ### New: built in
 
-- **Clipboard history, snippets with text expansion, and quicklinks** with fallback searches.
-- **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy, and shows the day the rates are from.
-- **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > General.
-- **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder in memory and answers from those: scattered letters match, at each key, and files you opened lately come first. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders.
-- **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too.
+- **Clipboard history, snippets with text expansion, and quicklinks** with fallback searches. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy, and shows the day the rates are from. Powers are drawn as real superscripts, and `pi` is π. By @lylythechosenone in [#7](https://github.com/thaw-app/Floe/pull/7).
+- **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > General. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder in memory and answers from those: scattered letters match, at each key, and files you opened lately come first. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 
 ### New: your own apps
 
@@ -127,22 +134,18 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
 - **What's New and detailed logging.** What's New, in About, shows these notes in the app. Detailed logging is off by default and writes to `~/Library/Logs/Floe`. It never logs what you type or ask.
 
-### What's next
+### Known issues
 
-- Sign-in (OAuth) for extensions other than GitHub. They use a token preference until then.
-- `launchCommand`, deeplinks, AI tools and the grid layout for extensions.
-- Searching your notes and searching an app's menus.
-
-### Contributors
-
-- Owen Cope (@OwenCope): the built-in search features, the extension APIs behind them and the Extension Store ([#6](https://github.com/thaw-app/Floe/pull/6)).
-- @lylythechosenone: the calculator built on fend ([#7](https://github.com/thaw-app/Floe/pull/7)).
-- @unsecretised: the first bug report ([#3](https://github.com/thaw-app/Floe/issues/3)).
+- **Extensions can sign in only to GitHub and GitLab**, through their command line tools. Others use a token preference until OAuth is built.
+- **`launchCommand`, deeplinks, AI tools and the grid layout** for extensions are not built yet.
+- **The record of what an extension reaches misses some file access.** It sees hosts and programs more reliably than files.
+- **Timers end when Floe quits.** They are held in memory.
+- **Fast file search leaves out iCloud Drive**, which macOS keeps inside Library.
 
 ### Acknowledgements
 
-- [fend](https://github.com/printfn/fend) by printfn is the calculator's engine.
+- [fend](https://github.com/printfn/fend) by printfn is the calculator's engine. Exchange rates are the European Central Bank's euro foreign exchange reference rates.
 - Code from [Droppy Code](https://getdroppycode.app) by Jordy Spruit is used with his permission.
 - Extensions are written for the [Raycast extensions](https://github.com/raycast/extensions) API. Raycast is a trademark of Raycast Technologies Inc.; Floe is not affiliated with Raycast.
-- Exchange rates are the European Central Bank's euro foreign exchange reference rates.
+- @unsecretised reported the first bugs, in the Settings window ([#3](https://github.com/thaw-app/Floe/issues/3)).
 - [Credits](https://github.com/thaw-app/Floe/blob/main/CREDITS.md) lists every package Floe ships with.

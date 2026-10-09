@@ -38,7 +38,7 @@ struct ExtensionAccessSection: View {
                     Text(ExtensionAccessSection.since(access.since))
                 }
             }
-            Text("Floe records this from inside its runtime while the extension runs. An extension is not held to it and can reach things in ways Floe does not see, files most of all. Extensions run with everything your account may do.")
+            Text("Floe sees only part of what an extension does, files least of all. Extensions run with everything your account may do.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }
