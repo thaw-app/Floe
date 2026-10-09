@@ -99,7 +99,7 @@ struct ProcessLinkTests {
         let outbox = Outbox()
         let link = ProcessLink(role: .settings, gate: LinkGate(ownPid: 7) { 1 }, transport: outbox.transport)
         link.start()
-        #expect(Set(outbox.observed) == Set([LinkMessage.Kind.settingsChanged, .storeChanged, .showPage, .updatesState, .thawStatus].map(\.name)))
+        #expect(Set(outbox.observed) == Set([LinkMessage.Kind.settingsChanged, .storeChanged, .showPage, .updatesState, .thawStatus, .fileIndexState].map(\.name)))
     }
 
     @Test func theLauncherActsOnItsSettingsProcessOnly() {

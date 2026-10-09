@@ -8,6 +8,8 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use fend_core::{Context, ExchangeRateFnV2, ExchangeRateFnV2Options, Interrupt};
 
+mod index;
+
 /// How long one evaluation may run. The launcher evaluates on every keystroke and waits for the answer.
 const TIME_LIMIT: Duration = Duration::from_millis(200);
 

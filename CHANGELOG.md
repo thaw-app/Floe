@@ -91,7 +91,7 @@ Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens th
 - **Clipboard history, snippets with text expansion, and quicklinks** with fallback searches.
 - **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy, and shows the day the rates are from.
 - **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > General.
-- **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard.
+- **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder in memory and answers from those: scattered letters match, at each key, and files you opened lately come first. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders.
 - **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too.
 
 ### New: your own apps

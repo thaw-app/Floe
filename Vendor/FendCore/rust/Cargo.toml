@@ -8,6 +8,9 @@ crate-type = ["staticlib"]
 
 [dependencies]
 fend-core = "1.5.8"
+ignore = "0.4"
+nucleo-matcher = "0.3.1"
+rayon = "1.10"
 
 [profile.release]
 opt-level = 3

@@ -13,7 +13,7 @@ Floe has no translations yet, so this one lists who builds the app and what it i
 from the files that pin them, so run it again after changing a dependency:
     Package.resolved      Swift packages
     runtime/package.json  the extension runtime's packages
-    Vendor/FendCore/rust/Cargo.lock  the Rust crates behind the calculator
+    Vendor/FendCore/rust/Cargo.lock  the Rust crates behind the calculator and the index of file names
 Links come from FloeLinks in project.yml, the one place the app's web links are kept.
 
 Every path is fixed and relative to the repository, so the script reads and writes nowhere else.
@@ -85,6 +85,9 @@ DEPENDENCIES = [
     Dependency("swift-collections", "swiftCollections", APACHE_2, "Used by swift-async-algorithms",
                "swift", "swift-collections"),
     Dependency("fend", "fend", "MIT", "Calculates and converts units in the search", "cargo", "fend-core"),
+    Dependency("nucleo", "nucleo", "MPL-2.0", "Matches file names in the fast file search", "cargo", "nucleo-matcher"),
+    Dependency("ignore", "ignore", "MIT", "Walks the home folder for the fast file search", "cargo", "ignore"),
+    Dependency("Rayon", "rayon", "MIT", "Matches file names on several cores at once", "cargo", "rayon"),
     Dependency("Bun", "bun", "MIT", "Runs extensions"),
     Dependency("React", "react", "MIT", "Renders extensions", "runtime", "react"),
     Dependency("react-reconciler", "react", "MIT", "Turns what an extension renders into Floe's views",

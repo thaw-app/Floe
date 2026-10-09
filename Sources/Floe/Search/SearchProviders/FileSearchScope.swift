@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-/// `files invoice`: the files Spotlight finds, listed as they come in.
+/// `files invoice`: the files Spotlight or Floe's own index finds, listed as they come in.
 /// Only the main thread touches it; the end of a stream hops back there before it does.
 final class FileSearchScope: SearchScope {
     let keyword = "files"
@@ -16,10 +16,15 @@ final class FileSearchScope: SearchScope {
     let emptyTitle = String(localized: "No files match", bundle: .floe)
 
     /// Its own search, so the file search view's results are left alone.
-    private lazy var search = FileSearch(publishesProgress: true)
+    private lazy var search = FileSearch(publishesProgress: true, index: index)
+    private let index: FileIndexService
     /// Bumped per query, so a stream that ends late does not stop the search that replaced it.
     private var round = 0
     private var subscriptions: Set<AnyCancellable> = []
+
+    init(index: FileIndexService = .shared) {
+        self.index = index
+    }
 
     func results(for _: String, context _: SearchContext) -> [RootItem] {
         []

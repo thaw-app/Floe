@@ -312,6 +312,29 @@
         }
       }
     },
+    "%lld names, %@" : {
+      "comment" : "How many file names Floe holds and the memory they take, such as “203,000 names, 8 MB”.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld name, %@"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld names, %@"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld of %lld" : {
       "comment" : "How many lines of a list match what was typed: 3 of 40.",
       "localizations" : {
@@ -508,7 +531,7 @@
     "Address" : {
       "comment" : "The web address of an AI service."
     },
-    "Adds up to three files that Spotlight finds by name. The search runs on this Mac and nothing leaves it. Type “files” and a name to see every match." : {
+    "Adds up to three files found by name, by Spotlight or by Fast file search when that is on. The search runs on this Mac and nothing leaves it. Type “files” and a name to see every match." : {
       "comment" : "“files” is a word the user types. It is a command and stays in English."
     },
     "After 30 seconds" : {},
@@ -1188,6 +1211,7 @@
         }
       }
     },
+    "Fast file search" : {},
     "Favorite" : {
       "comment" : "A verb on a button: add the selected result to the favorites."
     },
@@ -1199,6 +1223,7 @@
     "File" : {
       "comment" : "A kind of copied thing.\nThe kind of a result, shown beside its title."
     },
+    "File names held" : {},
     "Files" : {
       "comment" : "Files on this Mac, as a source of search results.\nThe kind of a result, shown beside its title."
     },
@@ -1264,6 +1289,7 @@
       "comment" : "The placeholder is the name of a browser."
     },
     "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal." : {},
+    "Floe reads the names of the files and folders in your home folder and keeps them in memory, so a file search is answered as you type and does not wait for Spotlight. Reading them makes macOS ask whether Floe may access your Desktop, Documents and Downloads folders, which searching with Spotlight did not need. Only names are read, never what is in a file. Spotlight is asked which files you opened in the last thirty days, so those come first. Library, hidden folders and the insides of apps are left out. The list is not written to disk, it is read again each time Floe starts, and nothing leaves this Mac. Off, file search asks Spotlight as before." : {},
     "Floe records the hosts an extension contacts, the folders it reads and changes and the programs it starts, as far as its runtime sees them. Each extension’s page in Settings shows its record and forgets it. The record stays on this Mac. Switching this off forgets every record, and nothing more is kept, also of an extension that is running now." : {},
     "Floe records this from inside its runtime while the extension runs. An extension is not held to it and can reach things in ways Floe does not see, files most of all. Extensions run with everything your account may do." : {},
     "Floe renders List, Grid, Detail and Form." : {
@@ -2017,6 +2043,7 @@
     "Raycast Extension Store" : {},
     "Raycast Extensions Folder" : {},
     "Read from" : {},
+    "Reading the names of your files…" : {},
     "Reading your menu bar…" : {},
     "Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over." : {},
     "Receipt" : {
@@ -3057,6 +3084,9 @@
     },
     "family sharing" : {
       "comment" : "Words that find the Family pane of System Settings, separated by commas."
+    },
+    "file search, files, file names, index, fuzzy, spotlight, folder access, desktop, documents, downloads" : {
+      "comment" : "Words that find the Fast file search setting in the settings search, separated by commas."
     },
     "file search, spotlight, documents, source" : {
       "comment" : "Words that find the Files setting in the settings search, separated by commas."

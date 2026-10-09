@@ -41,6 +41,15 @@ final class LauncherSettingsLink {
             .receive(on: DispatchQueue.main)
             .sink { link.send(LinkMessage(.thawStatus, $0.rawValue)) }
             .store(in: &cancellables)
+        // The index of file names follows its switch from here on, and Settings is told how it is doing.
+        settings.$indexesFileNames.removeDuplicates()
+            .sink { isOn in
+                FileIndexService.shared.set(on: isOn)
+                // The order of the matches uses when files were last opened, which Spotlight knows.
+                RecentFileUse.shared.follow(isOn)
+            }
+            .store(in: &cancellables)
+        FileIndexService.shared.observe { link.send(LinkMessage(.fileIndexState, $0.text)) }
         if UpdatesManager.shared.isAvailable {
             UpdatesManager.shared.observeState { link.send(LinkMessage(.updatesState, UpdatesManager.shared.state.text)) }
         }
@@ -85,6 +94,7 @@ final class LauncherSettingsLink {
             process.activate()
             link.send(LinkMessage(.thawStatus, ThawAppearanceFollower.shared.status.rawValue))
             link.send(LinkMessage(.updatesState, UpdatesManager.shared.state.text))
+            link.send(LinkMessage(.fileIndexState, FileIndexService.shared.state.text))
         case .pageChanged:
             process.lastPage = message.payload
         case .recording:

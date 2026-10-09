@@ -10,8 +10,8 @@
 //  Ported to Floe from Thaw 3's Privacy pane: the notice, the permissions and the network list.
 //  The network rows are Floe's own, since what it contacts is not what Thaw does, and Thaw's
 //  capture inspector and connection status sections have nothing to describe here.
-//  The search sources' switches, the switch that keeps AI on this Mac and the row about
-//  follow-up questions are Floe's too.
+//  The search sources' switches, the switch for the index of file names, the switch that keeps
+//  AI on this Mac and the row about follow-up questions are Floe's too.
 
 import SwiftUI
 import ThawUI
@@ -20,6 +20,7 @@ import ThawUI
 struct PrivacySettingsPane: View {
     @ObservedObject var settings: AppSettings
     var permissions: AppPermissions = .shared
+    @ObservedObject var fileIndex: FileIndexStatus = .shared
     @State private var forgotSearches = false
     @State private var forgotReceipts = false
 
@@ -52,6 +53,13 @@ struct PrivacySettingsPane: View {
                         Text(source.title)
                         Text(source.detail)
                     }
+                }
+                Toggle(isOn: $settings.indexesFileNames) {
+                    Text("Fast file search")
+                    Text("Floe reads the names of the files and folders in your home folder and keeps them in memory, so a file search is answered as you type and does not wait for Spotlight. Reading them makes macOS ask whether Floe may access your Desktop, Documents and Downloads folders, which searching with Spotlight did not need. Only names are read, never what is in a file. Spotlight is asked which files you opened in the last thirty days, so those come first. Library, hidden folders and the insides of apps are left out. The list is not written to disk, it is read again each time Floe starts, and nothing leaves this Mac. Off, file search asks Spotlight as before.")
+                }
+                if settings.indexesFileNames, let line = fileIndex.state?.line {
+                    LabeledContent("File names held") { Text(line) }
                 }
                 row("SSH Hosts", String(localized: "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal.", bundle: .floe))
             }

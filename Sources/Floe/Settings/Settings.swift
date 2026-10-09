@@ -43,6 +43,8 @@ final class AppSettings: ObservableObject {
     @Published var diagnosticLogging = false
     /// The search sources that are switched on, by `SearchSource.id`. All are off until switched on in Privacy.
     @Published var searchSources: Set<String> = []
+    /// Whether Floe keeps its own index of the file names in the home folder. Off until switched on in Privacy.
+    @Published var indexesFileNames = false
     /// The menu-bar commands that have a status item, by command id. A command is added by running it.
     @Published var menuBarCommands: Set<String> = []
     /// The notes role's choice: where a note typed into the search goes, and the link for "Another App".
@@ -144,6 +146,7 @@ final class AppSettings: ObservableObject {
         var clipboardHistoryEnabled: Bool?
         var diagnosticLogging: Bool?
         var searchSources: Set<String>?
+        var indexesFileNames: Bool?
         var menuBarCommands: Set<String>?
         var notesApp: NotesApp?
         var notesURLTemplate: String?
@@ -282,6 +285,7 @@ final class AppSettings: ObservableObject {
         clipboardHistoryEnabled = stored.clipboardHistoryEnabled ?? true
         diagnosticLogging = stored.diagnosticLogging ?? false
         searchSources = stored.searchSources ?? []
+        indexesFileNames = stored.indexesFileNames ?? false
         menuBarCommands = stored.menuBarCommands ?? []
         notesApp = stored.notesApp ?? notesApp
         notesURLTemplate = stored.notesURLTemplate ?? notesURLTemplate
@@ -345,6 +349,7 @@ final class AppSettings: ObservableObject {
             clipboardHistoryEnabled: clipboardHistoryEnabled,
             diagnosticLogging: diagnosticLogging,
             searchSources: searchSources,
+            indexesFileNames: indexesFileNames,
             menuBarCommands: menuBarCommands,
             notesApp: notesApp,
             notesURLTemplate: notesURLTemplate,

@@ -213,7 +213,12 @@ struct RootRow: View, Equatable {
     init(model: LauncherModel, item: RootItem, selected: Bool) {
         self.item = item
         self.selected = selected
-        matched = Fuzzy.match(model.searchedQuery, item.title)?.matched ?? []
+        if case let .file(file) = item, !file.matched.isEmpty {
+            // The index matched the name itself, also when the query began with a scope's word.
+            matched = file.matched
+        } else {
+            matched = Fuzzy.match(model.searchedQuery, item.title)?.matched ?? []
+        }
         if case let .command(command) = item {
             isInMenuBar = model.isInMenuBar(command)
         } else {

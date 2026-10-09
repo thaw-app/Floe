@@ -69,8 +69,7 @@ What we plan to work on next, in this order. The order can change.
 2. OAuth sign-in for extensions beyond GitHub and GitLab.
 3. The grid layout, `launchCommand` and deeplinks.
 4. Searching the front app's menus, built on the menu scanner in [CMD-Z](https://github.com/stonerl/CMD-Z) and shared with Thaw.
-5. A fuzzy file finder with its own index.
-6. iCloud integration, the same as Thaw's.
+5. iCloud integration, the same as Thaw's.
 
 Later: a small `@floe/api` package for what Raycast's API cannot express, searching your notes, and calculator history.
 

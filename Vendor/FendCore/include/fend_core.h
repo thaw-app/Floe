@@ -116,6 +116,51 @@ const char* _Nullable fend_completions_get_item(const FendCompletions* _Nonnull 
 /// Returns the underlying fend-core library version string.
 const char* _Nonnull fend_get_version(void);
 
+/// The names of the files under one folder, held in memory. Every function may be called from any thread,
+/// and every string is UTF-8.
+typedef struct FloeFileIndex FloeFileIndex;
+
+/// Create an empty index. Returns NULL on failure.
+FloeFileIndex* _Nullable floe_index_new(void);
+
+/// Free an index. No other call on it may be running.
+void floe_index_free(FloeFileIndex* _Nullable index);
+
+/// Walk `root` and replace what the index holds. Folders named in `excluded_names` are left out, as is every
+/// name that starts with a dot; a folder whose name ends in one of `package_suffixes` is listed and not entered.
+/// Blocks until the walk is done. Returns the number of entries, or -1 on failure.
+int64_t floe_index_build(
+    const FloeFileIndex* _Nonnull index,
+    const char* _Nonnull root,
+    const char* _Nullable const* _Nullable excluded_names,
+    size_t excluded_name_count,
+    const char* _Nullable const* _Nullable package_suffixes,
+    size_t package_suffix_count
+);
+
+/// Bring one folder in line with the disk: what is directly in it, or with `recursive` everything under it.
+void floe_index_rescan(const FloeFileIndex* _Nonnull index, const char* _Nonnull path, bool recursive);
+
+/// The best `limit` matches for `query`, as one block of `*length` bytes to free with `floe_index_block_free`.
+/// Numbers are little-endian uint32 and not aligned: the count of hits, then for each hit its score, one byte
+/// that is 1 for a folder, the length of its path, the path, the count of matched characters in the file name
+/// and their offsets. Returns NULL on failure.
+uint8_t* _Nullable floe_index_search(
+    const FloeFileIndex* _Nonnull index,
+    const char* _Nonnull query,
+    size_t limit,
+    size_t* _Nonnull length
+);
+
+/// Free a block that `floe_index_search` returned.
+void floe_index_block_free(uint8_t* _Nullable block, size_t length);
+
+/// The number of entries in the index.
+size_t floe_index_count(const FloeFileIndex* _Nullable index);
+
+/// Roughly how much memory the index holds, in bytes.
+size_t floe_index_byte_size(const FloeFileIndex* _Nullable index);
+
 #ifdef __cplusplus
 }
 #endif

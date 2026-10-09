@@ -9,12 +9,14 @@ import AppKit
 import AsyncAlgorithms
 import Combine
 
-struct FileResult: Identifiable, Equatable {
+nonisolated struct FileResult: Identifiable, Equatable, Sendable {
     let url: URL
     let name: String
     let displayPath: String
     let contentType: String?
     let lastUsed: Date?
+    /// The offsets of the letters of the name that the query matched, when the index found the file.
+    var matched: [Int] = []
     var id: String {
         url.path
     }
@@ -33,9 +35,13 @@ final class FileSearch: ObservableObject {
     private var observers: [NSObjectProtocol] = []
     /// Whether what Spotlight has found so far is published while it is still gathering.
     private let publishesProgress: Bool
+    /// Floe's own index of file names, which answers in place of Spotlight once it is switched on and built.
+    private let index: FileIndexService
+    private var answering: Task<Void, Never>?
 
-    init(publishesProgress: Bool = false) {
+    init(publishesProgress: Bool = false, index: FileIndexService = .shared) {
         self.publishesProgress = publishesProgress
+        self.index = index
         let stream = queries.stream
         settling = Task { @MainActor [weak self] in
             for await query in stream.debounce(for: .milliseconds(150)) {
@@ -46,11 +52,42 @@ final class FileSearch: ObservableObject {
     }
 
     func search(_ query: String) {
-        queries.continuation.yield((round, query))
+        guard Self.asksIndex(query, state: index.state) else {
+            queries.continuation.yield((round, query))
+            return
+        }
+        // The round moves on, so a query still waiting for its pause is dropped and an older answer does not land late.
+        round += 1
+        let asked = round
+        answering?.cancel()
+        answering = Task { [weak self, index] in
+            let files = await Self.files(matching: query, in: index)
+            guard let self, asked == round else { return }
+            guard let files else {
+                // Not built yet, or switched off since: Spotlight answers as before.
+                queries.continuation.yield((round, query))
+                return
+            }
+            stopQuery()
+            results = files
+            isSearching = false
+        }
+    }
+
+    /// Whether a query goes to Floe's index first. The recent files of an empty query are Spotlight's to know:
+    /// the index holds names and no dates.
+    static nonisolated func asksIndex(_ query: String, state: FileIndexService.State) -> Bool {
+        state != .off && !query.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    @concurrent
+    private static nonisolated func files(matching query: String, in index: FileIndexService) async -> [FileResult]? {
+        index.files(matching: query)
     }
 
     func cancel() {
         round += 1
+        answering?.cancel()
         stopQuery()
         results = []
         isSearching = false
@@ -154,6 +191,7 @@ final class FileSearch: ObservableObject {
     }
 
     isolated deinit {
+        answering?.cancel()
         settling?.cancel()
         queries.continuation.finish()
         for observer in observers {

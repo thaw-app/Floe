@@ -43,8 +43,14 @@
 		<string>https://gitlab.com/droppyformac1/droppy-code</string>
 		<key>fend</key>
 		<string>https://github.com/printfn/fend</string>
+		<key>ignore</key>
+		<string>https://github.com/BurntSushi/ripgrep/tree/master/crates/ignore</string>
+		<key>nucleo</key>
+		<string>https://github.com/helix-editor/nucleo</string>
 		<key>raycastExtensions</key>
 		<string>https://github.com/raycast/extensions</string>
+		<key>rayon</key>
+		<string>https://github.com/rayon-rs/rayon</string>
 		<key>react</key>
 		<string>https://react.dev</string>
 		<key>repository</key>

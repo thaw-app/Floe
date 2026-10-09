@@ -823,6 +823,9 @@ final class LauncherModel: ObservableObject {
         menuBarSearch.warm()
         ExchangeRateUpdater.shared.refreshIfStale()
         reloadCheckpoints()
+        if FileIndexService.shared.state != .off {
+            RecentFileUse.shared.refreshIfStale()
+        }
     }
 
     /// Runs the command that failed again, with the same arguments.

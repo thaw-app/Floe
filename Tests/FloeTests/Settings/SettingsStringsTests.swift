@@ -52,7 +52,7 @@ struct SettingsStringsTests {
             "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.separatesSearchField", "appearance.glassEffect",
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
-            "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
+            "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
             "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.popToRootDelay", "general.emojiSkinTone", "general.focusShortcut", "general.runsShellCommands", "general.suggestsShellCommands", "general.recognizesCommands",
             "general.checkForUpdates",
             "general.diagnosticLogging", "general.menuBarSearchHotkey", "general.menuBarSearchAlias", "general.thawSupport", "general.menuBarCommands",

@@ -26,10 +26,12 @@ struct LinkMessage: Equatable {
         case updatesState
         /// How the launcher's Thaw follower is doing. Payload: `ThawAppearanceFollower.Status`.
         case thawStatus
+        /// How the launcher's index of file names is doing. Payload: `FileIndexService.State.text`.
+        case fileIndexState
 
         // Settings to launcher.
 
-        /// The settings window is up: the launcher answers with `updatesState` and `thawStatus`.
+        /// The settings window is up: the launcher answers with `updatesState`, `thawStatus` and `fileIndexState`.
         case ready
         /// The page on screen, so the next opening starts there. Payload: `SettingsPage.id`.
         case pageChanged
@@ -54,7 +56,7 @@ struct LinkMessage: Equatable {
         func isMeant(for role: ProcessLink.Role) -> Bool {
             switch self {
             case .settingsChanged, .storeChanged: true
-            case .showPage, .updatesState, .thawStatus: role == .settings
+            case .showPage, .updatesState, .thawStatus, .fileIndexState: role == .settings
             case .ready, .pageChanged, .recording, .updates, .rescan, .clearClipboardHistory, .forwardURL, .quit: role == .launcher
             }
         }
@@ -104,7 +106,7 @@ struct LinkMessage: Equatable {
         case .rescan: scan != nil
         case .recording: payload == "1" || payload == "0"
         case .settingsChanged, .ready, .clearClipboardHistory, .quit: payload.isEmpty
-        case .showPage, .updatesState, .thawStatus, .pageChanged, .updates, .forwardURL: true
+        case .showPage, .updatesState, .thawStatus, .fileIndexState, .pageChanged, .updates, .forwardURL: true
         }
     }
 }

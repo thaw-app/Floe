@@ -144,6 +144,9 @@ targets:
           swiftCollections: https://github.com/apple/swift-collections
           swiftSystem: https://github.com/apple/swift-system
           fend: https://github.com/printfn/fend
+          nucleo: https://github.com/helix-editor/nucleo
+          ignore: https://github.com/BurntSushi/ripgrep/tree/master/crates/ignore
+          rayon: https://github.com/rayon-rs/rayon
         # Filled in from git by the Embed Runtime step.
         GitCommitSHA: unknown
         CFBundleShortVersionString: "0.1.0"

@@ -27,6 +27,9 @@ language, join the project there.
 - [swift-async-algorithms](https://github.com/apple/swift-async-algorithms) `1.1.3`: Waits for typing and folder changes to settle. Apache-2.0.
 - [swift-collections](https://github.com/apple/swift-collections) `1.6.0`: Used by swift-async-algorithms. Apache-2.0.
 - [fend](https://github.com/printfn/fend) `1.5.8`: Calculates and converts units in the search. MIT.
+- [nucleo](https://github.com/helix-editor/nucleo) `0.3.1`: Matches file names in the fast file search. MPL-2.0.
+- [ignore](https://github.com/BurntSushi/ripgrep/tree/master/crates/ignore) `0.4.33`: Walks the home folder for the fast file search. MIT.
+- [Rayon](https://github.com/rayon-rs/rayon) `1.12.0`: Matches file names on several cores at once. MIT.
 - [Bun](https://bun.sh): Runs extensions. MIT.
 - [React](https://react.dev) `^19.3.0`: Renders extensions. MIT.
 - [react-reconciler](https://react.dev) `^0.34.0`: Turns what an extension renders into Floe's views. MIT.

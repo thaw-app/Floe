@@ -107,7 +107,7 @@ struct FileSearchRow: View {
     }
 
     var body: some View {
-        PaletteRow(title: file.name, subtitle: nil, selected: selected) {
+        PaletteRow(title: file.name, subtitle: nil, selected: selected, matched: file.matched) {
             AppIconView(path: file.url.path, size: 24)
         } trailing: {
             Text(parentName)

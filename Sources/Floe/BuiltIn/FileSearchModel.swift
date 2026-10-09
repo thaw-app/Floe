@@ -18,10 +18,14 @@ final class FileSearchModel: ObservableObject {
 
     @Published var selection = 0
     /// Finds the files. It publishes its own results, which the view observes beside this model.
-    let spotlight = FileSearch()
+    let spotlight: FileSearch
     var host = ModeHost()
     /// The roles a file can be opened in, read each time the Actions menu is built.
     var preferredApps: () -> [RoleApp] = { [] }
+
+    init(index: FileIndexService = .shared) {
+        spotlight = FileSearch(index: index)
+    }
 
     var selectedFile: FileResult? {
         spotlight.results.indices.contains(selection) ? spotlight.results[selection] : nil

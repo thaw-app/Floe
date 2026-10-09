@@ -126,6 +126,8 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
             if let status = ThawAppearanceFollower.Status(rawValue: message.payload) {
                 ThawAppearanceFollower.shared.mirror(status)
             }
+        case .fileIndexState:
+            FileIndexStatus.shared.state = FileIndexService.State(text: message.payload)
         default:
             break
         }

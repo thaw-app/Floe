@@ -365,6 +365,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         privacy(
+            "indexesFileNames",
+            String(localized: "Fast file search", bundle: .floe),
+            section: String(localized: "Search Sources", bundle: .floe),
+            keywords: String(
+                localized: "file search, files, file names, index, fuzzy, spotlight, folder access, desktop, documents, downloads",
+                bundle: .floe,
+                comment: "Words that find the Fast file search setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        privacy(
             "shellCommands",
             String(localized: "Shell Commands", bundle: .floe),
             section: String(localized: "Shell Commands", bundle: .floe),
