@@ -191,8 +191,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 self?.model.run(script)
             }
         }
-        if let keyCombination = settings.commandHotkeys[RootItem.menuBarSearchKey] {
-            _ = hotkeys.register(keyCombination) { [weak self] in self?.model.openMenuBarSearch() }
+        for (item, keyCombination) in LauncherModel.assigned(settings.commandHotkeys) {
+            _ = hotkeys.register(keyCombination) { [weak self] in self?.model.runFromHotkey(item) }
         }
         for app in model.apps {
             guard let key = RootItem.app(app).settingsKey, let keyCombination = settings.commandHotkeys[key] else { continue }

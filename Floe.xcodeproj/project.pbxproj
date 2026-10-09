@@ -61,6 +61,7 @@
 		361E83BBF8F979512CD7AEF3 /* OnboardingSequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEDEE9B782C234A4509ADE9E /* OnboardingSequencer.swift */; };
 		3708D44C226149ED3BCE44C0 /* SettingsSearchNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96930AAEECE7733AB82EE655 /* SettingsSearchNavigation.swift */; };
 		38510714DE1C1296051ADCA4 /* PreferredApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 534A56A698DEE1BC017447F0 /* PreferredApps.swift */; };
+		38C8BB9392715194297B6B0D /* Model+Hotkeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98ACB02E799D643634A013D4 /* Model+Hotkeys.swift */; };
 		3A1E1665F4CCCE6EA9CC5F64 /* IncomingURLRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E2C5C29CB5FB6EA6176046 /* IncomingURLRouter.swift */; };
 		3A1F84EB0C1D33947F6AAA6A /* ThawConcurrency in Frameworks */ = {isa = PBXBuildFile; productRef = 173A0A05D7E3A728FA4139D5 /* ThawConcurrency */; };
 		3AD35881F6B724143FF6B7E6 /* LoginEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54900730524DDEA357356AE /* LoginEnvironment.swift */; };
@@ -77,6 +78,7 @@
 		4902891941C787A1667EB50E /* SearchBench.swift in Sources */ = {isa = PBXBuildFile; fileRef = 066BDD252E1518F183DFBD42 /* SearchBench.swift */; };
 		496FDCD30118A03CE6E622D5 /* AskAITranscript.swift in Sources */ = {isa = PBXBuildFile; fileRef = E700A5F2E4C01384C9978EEB /* AskAITranscript.swift */; };
 		4A198B56D23C732C3A2F6798 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 6472032988506CF0BF94BAC1 /* Sparkle */; };
+		4BDD5737AE035F0AA9E854CF /* BuiltInHotkeysSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 938E4F22F92672AE90884DFF /* BuiltInHotkeysSection.swift */; };
 		4D4FB99AD6D0D2F60B8AF7C5 /* Fuzzy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC14F1E0566FC342201715D0 /* Fuzzy.swift */; };
 		4D97246D3977B8B852742EE9 /* HotReload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E2DD9407CEA946488F4FC2 /* HotReload.swift */; };
 		4E0D222D8B25ACF24D81A565 /* Calculator+Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C111C74FE8C998059BB71F9 /* Calculator+Result.swift */; };
@@ -454,12 +456,14 @@
 		8FD2C9E681123818C940E794 /* Model+AskAI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+AskAI.swift"; sourceTree = "<group>"; };
 		904F7F168FD09FD071DA42DD /* Model+Contacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Contacts.swift"; sourceTree = "<group>"; };
 		92EFACED3FB57AE107F4B30B /* UpdateConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateConsentSheet.swift; sourceTree = "<group>"; };
+		938E4F22F92672AE90884DFF /* BuiltInHotkeysSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltInHotkeysSection.swift; sourceTree = "<group>"; };
 		93C9A4E8B1189CAE2502F5A5 /* SearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchModel.swift; sourceTree = "<group>"; };
 		955281ED200D7C89B75825BD /* Model+Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Keys.swift"; sourceTree = "<group>"; };
 		95D5E9CBA2030703F9BE0381 /* FormViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViews.swift; sourceTree = "<group>"; };
 		95F42770ECB0255BA11434C8 /* Timers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timers.swift; sourceTree = "<group>"; };
 		96930AAEECE7733AB82EE655 /* SettingsSearchNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSearchNavigation.swift; sourceTree = "<group>"; };
 		975C93B46D2CE2C1CB09E1ED /* AppleScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScript.swift; sourceTree = "<group>"; };
+		98ACB02E799D643634A013D4 /* Model+Hotkeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Hotkeys.swift"; sourceTree = "<group>"; };
 		98B85F76361B4A8D64F39246 /* TypedPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TypedPath.swift; sourceTree = "<group>"; };
 		998C70C5CB4479FCE15FB95F /* Ranking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ranking.swift; sourceTree = "<group>"; };
 		99AB656A4E0B8D90F2163B46 /* ClipboardHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistory.swift; sourceTree = "<group>"; };
@@ -790,6 +794,7 @@
 			children = (
 				873178EA70279DFA5A5FB656 /* AISettingsSection.swift */,
 				EB4F5761AF75C9E1E6A5A4FF /* AppearanceSettingsPane.swift */,
+				938E4F22F92672AE90884DFF /* BuiltInHotkeysSection.swift */,
 				13D930183FBABDD9AA57D1BD /* DiagnosticsSettingsSection.swift */,
 				48E70E737A40E9F3F1036BA0 /* ExtensionAccessSection.swift */,
 				3093D2F53465270315B2B310 /* ExtensionSettingsView.swift */,
@@ -891,6 +896,7 @@
 				131B24A184BFA978BDBF3E32 /* Model+Events.swift */,
 				2234D2B648CB43AAC46A640C /* Model+FileSearch.swift */,
 				40FFE661ADB0830ABDC35B01 /* Model+Focus.swift */,
+				98ACB02E799D643634A013D4 /* Model+Hotkeys.swift */,
 				955281ED200D7C89B75825BD /* Model+Keys.swift */,
 				EF6B799E39D0FE2587889128 /* Model+MenuBar.swift */,
 				0C79EAD93A4B7A60D278A13D /* Model+Modes.swift */,
@@ -1191,6 +1197,7 @@
 				B4022E41A6B70A45AEDD4A3B /* Browser.swift in Sources */,
 				173CC8FBD3F3597C06824F27 /* BrowserActions.swift in Sources */,
 				2B1A399FDE1939D1D734D098 /* BrowserTabs.swift in Sources */,
+				4BDD5737AE035F0AA9E854CF /* BuiltInHotkeysSection.swift in Sources */,
 				7E6BE34495E0D03B075CB14B /* Calculator+Number.swift in Sources */,
 				5A2A511E5353D8640DB6CB19 /* Calculator+Query.swift in Sources */,
 				4E0D222D8B25ACF24D81A565 /* Calculator+Result.swift in Sources */,
@@ -1300,6 +1307,7 @@
 				A57BC5FA8376CB2A1F0C85EA /* Model+Events.swift in Sources */,
 				7D2D1045117CC5A14C8132C4 /* Model+FileSearch.swift in Sources */,
 				221F0119530D85508CFDA5CA /* Model+Focus.swift in Sources */,
+				38C8BB9392715194297B6B0D /* Model+Hotkeys.swift in Sources */,
 				BB8D224EECF97CF0DA06BA5A /* Model+Keys.swift in Sources */,
 				806D93EDFEDA6D9ABA6D3B18 /* Model+MenuBar.swift in Sources */,
 				032B04028211B1932FD13B7E /* Model+Modes.swift in Sources */,

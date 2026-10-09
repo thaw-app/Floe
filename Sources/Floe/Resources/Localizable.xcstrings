@@ -1420,6 +1420,7 @@
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
     },
+    "Hotkeys for Built-in Commands" : {},
     "How Floe works" : {},
     "How long a closed launcher keeps the command you had open." : {},
     "Icon" : {},
@@ -2487,6 +2488,7 @@
     "System" : {
       "comment" : "The kind of a result, shown beside its title. Here a system command such as Sleep."
     },
+    "System Commands" : {},
     "System Events and Finder" : {
       "comment" : "The names of two apps, as they stand in a sentence that asks for permission to control them."
     },
@@ -3129,6 +3131,9 @@
     },
     "history, searches, queries, recent, remember, forget, clear, up arrow" : {
       "comment" : "Words that find the Remember searches setting in the settings search, separated by commas."
+    },
+    "hotkey, shortcut, keyboard, emoji, clipboard, file search, system commands, lock, sleep, play, pause" : {
+      "comment" : "Words that find the hotkeys for Floe's own commands in the settings search, separated by commas."
     },
     "hotkey, shortcut, keyboard, global, toggle, show, launcher, summon" : {
       "comment" : "Words that find the Open Floe setting in the settings search, separated by commas."

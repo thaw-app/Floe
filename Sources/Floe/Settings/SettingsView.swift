@@ -340,6 +340,7 @@ struct GeneralSettingsView: View {
                     }
                 }
             }
+            BuiltInHotkeysSection(settings: settings)
             ThawSection("Menu Bar Items") {
                 HotkeyRecorder(
                     keyCombination: Binding(

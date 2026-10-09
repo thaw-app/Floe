@@ -591,6 +591,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         .general(
+            "builtInHotkeys",
+            String(localized: "Hotkeys for Built-in Commands", bundle: .floe),
+            section: String(localized: "Hotkeys for Built-in Commands", bundle: .floe),
+            keywords: String(
+                localized: "hotkey, shortcut, keyboard, emoji, clipboard, file search, system commands, lock, sleep, play, pause",
+                bundle: .floe,
+                comment: "Words that find the hotkeys for Floe's own commands in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
             "menuBarSearchAlias",
             String(localized: "Alias", bundle: .floe, comment: "A short name typed in the search to find a command."),
             section: String(localized: "Menu Bar Items", bundle: .floe),

@@ -55,7 +55,7 @@ struct SettingsStringsTests {
             "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
             "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.popToRootDelay", "general.emojiSkinTone", "general.focusShortcut", "general.runsShellCommands", "general.suggestsShellCommands", "general.recognizesCommands",
             "general.checkForUpdates",
-            "general.diagnosticLogging", "general.menuBarSearchHotkey", "general.menuBarSearchAlias", "general.thawSupport", "general.menuBarCommands",
+            "general.diagnosticLogging", "general.menuBarSearchHotkey", "general.builtInHotkeys", "general.menuBarSearchAlias", "general.thawSupport", "general.menuBarCommands",
             "general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp", "general.clipboardHistory",
             "general.clearClipboardHistory", "general.transferSettings", "general.includeRaycastExtensions", "general.extensionsFolder", "general.runtime",
             "general.scriptsFolder", "general.aiSource", "general.aiTool", "general.aiAddress", "general.aiModel", "general.aiKey",

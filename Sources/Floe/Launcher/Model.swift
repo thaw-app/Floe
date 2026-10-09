@@ -620,7 +620,7 @@ final class LauncherModel: ObservableObject {
     }
 
     /// Risky commands ask first; the panel goes away before anything runs.
-    private func runSystemCommand(_ command: SystemCommand) {
+    func runSystemCommand(_ command: SystemCommand) {
         hidePanel()
         reset()
         if let question = command.confirmation {
