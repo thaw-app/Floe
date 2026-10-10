@@ -7,6 +7,7 @@
 
 import Combine
 import Foundation
+import Security
 
 /// Floe's side of settings sync: what the engine reads and writes here, and when it looks.
 /// It runs in the launcher, the process that stays; Settings only shows what it reports.
@@ -127,7 +128,10 @@ nonisolated enum SettingsSyncText {
     }
 
     /// The Privacy pane's row: what goes to iCloud, and what never does.
-    static func privacyLine(isOn: Bool, includesExtensions: Bool) -> String {
+    static func privacyLine(isOn: Bool, includesExtensions: Bool, passwords: Bool = false) -> String {
+        let neverSent = passwords
+            ? String(localized: "Extension passwords and API keys are kept in iCloud Keychain. Clipboard history, receipts and what you search are never sent.", bundle: .floe)
+            : String(localized: "Passwords, keys, clipboard history, receipts and what you search are never sent.", bundle: .floe)
         guard isOn else {
             return String(localized: "Settings sync is off, so nothing is kept in iCloud.", bundle: .floe) + " " + neverSent
         }
@@ -137,7 +141,25 @@ nonisolated enum SettingsSyncText {
         return what + " " + neverSent
     }
 
-    private static var neverSent: String {
-        String(localized: "Passwords, keys, clipboard history, receipts and what you search are never sent.", bundle: .floe)
+    /// The row under the password switch: where the passwords are, and why the last change failed if it did.
+    static func passwordLine(for status: SecretSyncStatus) -> String {
+        guard status.isAvailable else {
+            return String(localized: "Unavailable: this build of Floe is not signed for iCloud Keychain.", bundle: .floe)
+        }
+        var line = String(localized: "Passwords stay on this Mac.", bundle: .floe)
+        if status.isOn {
+            line = status.kept == 0
+                ? String(localized: "Passwords are kept in iCloud Keychain.", bundle: .floe)
+                : String(localized: "\(status.kept) of your passwords could not be moved to iCloud Keychain and stay on this Mac.", bundle: .floe, comment: "The placeholder is a count.")
+        }
+        guard let failure = status.failure else { return line }
+        return line + " " + String(localized: "The last change failed: \(reason(for: failure))", bundle: .floe, comment: "The placeholder is the system's description of an error.")
+    }
+
+    static func reason(for failure: OSStatus) -> String {
+        if failure == errSecMissingEntitlement {
+            return String(localized: "this build of Floe may not use iCloud Keychain.", bundle: .floe)
+        }
+        return (SecCopyErrorMessageString(failure, nil) as String?) ?? String(localized: "error \(Int(failure)).", bundle: .floe, comment: "The placeholder is an error number.")
     }
 }

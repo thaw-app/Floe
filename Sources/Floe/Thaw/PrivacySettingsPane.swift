@@ -142,7 +142,7 @@ struct PrivacySettingsPane: View {
                     Text("Only use AI that runs on this Mac")
                     Text("A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place.")
                 }
-                row("iCloud", SettingsSyncText.privacyLine(isOn: settings.syncsWithICloud, includesExtensions: settings.syncsExtensionSettings))
+                row("iCloud", SettingsSyncText.privacyLine(isOn: settings.syncsWithICloud, includesExtensions: settings.syncsExtensionSettings, passwords: Keychain.vault.isOn))
                 row("Release notes", String(localized: "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy.", bundle: .floe))
                 row("Extensions", String(localized: "Each extension makes its own requests, and the images it shows are loaded from wherever it points.", bundle: .floe))
             }

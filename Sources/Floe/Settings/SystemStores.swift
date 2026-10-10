@@ -6,7 +6,6 @@
 //  Licensed under the GNU AGPLv3
 
 import Foundation
-import Security
 import ServiceManagement
 
 extension AppSettings {
@@ -141,37 +140,5 @@ enum InstalledApps {
             }
         }
         .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-    }
-}
-
-nonisolated enum Keychain {
-    private static let service = "com.thaw.floe.preferences"
-
-    private static func query(_ account: String) -> [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account]
-    }
-
-    static func read(account: String) -> String? {
-        var query = query(account)
-        query[kSecReturnData as String] = true
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-        var result: AnyObject?
-        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess, let data = result as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    static func write(_ value: String, account: String) {
-        let data = Data(value.utf8)
-        if SecItemUpdate(query(account) as CFDictionary, [kSecValueData as String: data] as CFDictionary) == errSecItemNotFound {
-            var item = query(account)
-            item[kSecValueData as String] = data
-            // Secrets (OAuth tokens among them) stay on this device and need it unlocked.
-            item[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-            SecItemAdd(item as CFDictionary, nil)
-        }
-    }
-
-    static func delete(account: String) {
-        SecItemDelete(query(account) as CFDictionary)
     }
 }

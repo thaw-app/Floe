@@ -233,6 +233,7 @@
 		C970B52A7B428A83D32F4329 /* SystemSettingsPanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70CF65BDA95BF501847A21BE /* SystemSettingsPanes.swift */; };
 		C9BAEA1DB299E5B8BD25CDDC /* ShellCommandsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E988DE65E609D0E3B8F836 /* ShellCommandsSettingsSection.swift */; };
 		CABB2AAE0CB58A33DCC1A8A0 /* LauncherLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AB9468971A521D2FC58DD1 /* LauncherLayout.swift */; };
+		CB95D1A1C45DFF7DDFC766A8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5254060A4A42F0A46B71A696 /* Keychain.swift */; };
 		CBD4E75613D543B26DCB2538 /* CalculatorFormatter+Text.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F4B16687B47CF928DDD9310 /* CalculatorFormatter+Text.swift */; };
 		CBE78561206450FCCE7D2DC4 /* SectionSearchProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF0097F0CFA320C91859D542 /* SectionSearchProviders.swift */; };
 		CCA71CDC9331E4A014C96384 /* ExtensionStoreSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F245C534BE2C8F28BF639F5B /* ExtensionStoreSettingsPage.swift */; };
@@ -410,6 +411,7 @@
 		4FA646DF9F19D7ED1E8C4DD0 /* HostRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostRequest.swift; sourceTree = "<group>"; };
 		51CAA5D12A91D04BD800DEFE /* MomentPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentPattern.swift; sourceTree = "<group>"; };
 		51D72E96AACE0D8FF8122F69 /* ClaudeTextStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeTextStream.swift; sourceTree = "<group>"; };
+		5254060A4A42F0A46B71A696 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
 		534A56A698DEE1BC017447F0 /* PreferredApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferredApps.swift; sourceTree = "<group>"; };
 		54BA866B297886E737D4037E /* MenuBarSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarSearchModel.swift; sourceTree = "<group>"; };
 		555B14F53474E2CB55338A18 /* CalculatorFormatter+Roots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CalculatorFormatter+Roots.swift"; sourceTree = "<group>"; };
@@ -829,6 +831,7 @@
 				6DA122EF4A321FB332D7C2F4 /* ExtensionSettingsSync.swift */,
 				3093D2F53465270315B2B310 /* ExtensionSettingsView.swift */,
 				F245C534BE2C8F28BF639F5B /* ExtensionStoreSettingsPage.swift */,
+				5254060A4A42F0A46B71A696 /* Keychain.swift */,
 				C0D0CD81D8D94FE9134AF130 /* MenuBarCommandsSettingsSection.swift */,
 				0740127A73E231F715377D0B /* OnboardingTourView.swift */,
 				1BF8D4B47628BB959BFF6E65 /* QuicklinksSettingsPage.swift */,
@@ -1325,6 +1328,7 @@
 				F5C2DC1C6A98B377558A5033 /* JSONFile.swift in Sources */,
 				BA801F87D598934046F77403 /* KeyCode.swift in Sources */,
 				0A296B921416DFE1A91C9108 /* KeyCombination.swift in Sources */,
+				CB95D1A1C45DFF7DDFC766A8 /* Keychain.swift in Sources */,
 				8D75F667CD0C24CDD292A1B1 /* Keywords.swift in Sources */,
 				EAC0EDDF7C87EF1A2DB07471 /* KnownNoteFolders.swift in Sources */,
 				ED5A0F0AF32BEA4E555C82DD /* LauncherAppearance.swift in Sources */,

@@ -360,6 +360,9 @@
         }
       }
     },
+    "%lld of your passwords could not be moved to iCloud Keychain and stay on this Mac." : {
+      "comment" : "The placeholder is a count."
+    },
     "%lld results" : {
       "comment" : "The placeholder is how many settings a search found.",
       "localizations" : {
@@ -1197,6 +1200,8 @@
       "comment" : "The name of a settings page."
     },
     "Extension error" : {},
+    "Extension passwords and API keys are kept in iCloud Keychain, which has its own switch in System Settings." : {},
+    "Extension passwords and API keys are kept in iCloud Keychain. Clipboard history, receipts and what you search are never sent." : {},
     "Extensions" : {
       "comment" : "The heading over the settings for extensions."
     },
@@ -1922,6 +1927,9 @@
         }
       }
     },
+    "Passwords" : {},
+    "Passwords are kept in iCloud Keychain." : {},
+    "Passwords stay on this Mac." : {},
     "Passwords, keys, clipboard history, receipts and what you search are never sent." : {},
     "Paste" : {
       "comment" : "A button that pastes the selected entry.\nA verb: insert what is on the clipboard."
@@ -1957,7 +1965,7 @@
     "Preferences" : {
       "comment" : "The heading over an extension's own settings."
     },
-    "Preferences of your extensions sync too. Passwords, files, folders and chosen apps stay on this Mac." : {},
+    "Preferences of your extensions sync too, except passwords, files, folders and chosen apps." : {},
     "Preferred Apps" : {},
     "Prefix" : {},
     "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
@@ -2106,8 +2114,11 @@
     "Remove" : {
       "comment" : "A button that uninstalls an extension."
     },
+    "Remove Everywhere" : {},
     "Remove Extension…" : {},
+    "Remove Floe's passwords from iCloud Keychain?" : {},
     "Remove Floe's settings from iCloud?" : {},
+    "Remove Passwords from iCloud Keychain…" : {},
     "Remove Settings from iCloud…" : {},
     "Remove from Favorites" : {},
     "Remove from Menu Bar" : {},
@@ -2501,11 +2512,13 @@
     "Swap Shown and Hidden Items" : {},
     "Switch to Tab" : {},
     "Switch to an open browser tab" : {},
+    "Switching the sync off leaves the passwords in iCloud Keychain. This deletes them there, on every device." : {},
     "Symbol" : {
       "comment" : "The icon of a quicklink."
     },
     "Sync is off." : {},
     "Sync is switched off on every Mac that uses it. The settings on each Mac stay as they are." : {},
+    "Sync passwords with iCloud Keychain" : {},
     "Sync settings with iCloud" : {},
     "Syncing…" : {},
     "System" : {
@@ -2614,6 +2627,9 @@
     "The file couldn't be read as text." : {},
     "The introduction from the first launch." : {},
     "The last 200 things Floe changed: commands run, files trashed, processes quit. Type “receipts” to see them. Off forgets them." : {},
+    "The last change failed: %@" : {
+      "comment" : "The placeholder is the system's description of an error."
+    },
     "The launcher is following Thaw's border." : {},
     "The launcher is following Thaw's glass." : {},
     "The launcher is following Thaw's shadow." : {},
@@ -2639,6 +2655,7 @@
     },
     "This Mac can't run Apple Intelligence." : {},
     "This Mac has no Wi-Fi" : {},
+    "This Mac keeps its own copies. Your other devices lose these passwords unless password sync is switched off there first." : {},
     "This cannot be undone." : {},
     "This cannot be undone: the note may have been edited since Floe added the line." : {},
     "This extension uses the sign-in of the %@ on this Mac." : {
@@ -2788,6 +2805,7 @@
       "comment" : "The label of the field for a web address."
     },
     "Unavailable: this Mac is not signed in to iCloud." : {},
+    "Unavailable: this build of Floe is not signed for iCloud Keychain." : {},
     "Unavailable: this build of Floe is not signed for iCloud." : {},
     "Undo" : {
       "comment" : "A verb in the Edit menu."
@@ -3085,6 +3103,9 @@
     "erase, migration" : {
       "comment" : "Words that find the Transfer or Reset pane of System Settings, separated by commas."
     },
+    "error %lld." : {
+      "comment" : "The placeholder is an error number."
+    },
     "ethernet, dns, proxy, firewall" : {
       "comment" : "Words that find the Network pane of System Settings, separated by commas."
     },
@@ -3167,6 +3188,7 @@
       "comment" : "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."
     },
     "iCloud" : {},
+    "iCloud Keychain copy" : {},
     "iCloud copy" : {},
     "keyboard shortcuts, input sources, dictation, text replacements" : {
       "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
@@ -3237,6 +3259,9 @@
     },
     "party, celebrate, celebration, tada, congrats" : {
       "comment" : "Words that find the symbol 🎉, separated by commas."
+    },
+    "passwords, keychain, icloud keychain, api key, secrets, tokens, sync, remove" : {
+      "comment" : "Words that find the Sync passwords with iCloud Keychain setting in the settings search, separated by commas."
     },
     "permission, privacy, access, grant, trusted, menu bar" : {
       "comment" : "Words that find the Accessibility setting in the settings search, separated by commas."
@@ -3433,6 +3458,7 @@
     "thaw, zen, focus" : {
       "comment" : "Words that find the Toggle Zen Mode command of the app Thaw, separated by commas."
     },
+    "this build of Floe may not use iCloud Keychain." : {},
     "thumbs up, thumbsup, like, approve, yes" : {
       "comment" : "Words that find the symbol 👍, separated by commas."
     },

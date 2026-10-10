@@ -59,7 +59,7 @@ cd runtime && bun install && cd ..
 - OAuth sign-in for extensions, other than GitHub and GitLab through their command line tools. They use a token preference for now.
 - `launchCommand`, deeplinks, AI tools, the grid layout, and Swift or Rust helpers in extensions.
 - Searching your notes, searching an app's menus, and AI chat.
-- iCloud sync of script commands, passwords and keys. Settings, snippets, quicklinks and extension settings sync, once a release is signed for iCloud ([Development](docs/DEVELOPMENT.md#settings-sync) has the steps).
+- iCloud sync of script commands. Settings, snippets, quicklinks and extension settings sync, and passwords can go through iCloud Keychain, once a release is signed for iCloud ([Development](docs/DEVELOPMENT.md#settings-sync) has the steps).
 
 ## Roadmap
 

@@ -137,10 +137,12 @@ After you install:
 ### New: sync
 
 - **Settings sync with iCloud**, off until you switch it on in Settings > General. Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are the same on your Macs, and the newest change wins.
-- **Some things stay on each Mac:** folders, permissions, AI settings and keys, an extension's passwords, files, folders and chosen apps, clipboard history and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
+- **Passwords through iCloud Keychain**, a second switch that is off until you choose it. Extension passwords and API keys become iCloud Keychain items; off copies them back to this Mac and leaves them in iCloud Keychain.
+- **Some things stay on each Mac:** folders, permissions, AI settings, an extension's files, folders and chosen apps, sign-ins, clipboard history and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
 
 ### Known issues
 
+- **Sync has not run between two Macs.** It needs a release signed for iCloud, and no such release exists yet.
 - **Extensions can sign in only to GitHub and GitLab**, through their command line tools. Others use a token preference until OAuth is built.
 - **`launchCommand`, deeplinks, AI tools and the grid layout** for extensions are not built yet.
 - **The record of what an extension reaches misses some file access.** It sees hosts and programs more reliably than files.

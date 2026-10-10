@@ -353,6 +353,28 @@ Floe's part is `Settings/SettingsSync.swift`, the table of what syncs and what s
   extension removes no record. Settings tells the launcher of an edit with `storeChanged(.preferences)`.
 - No test touches iCloud. Nothing here has run against the real store, on a signed build or between two Macs.
 
+Passwords never go through the key-value store. `Settings/Keychain.swift` holds every Keychain call behind
+`KeychainAccess` (`SystemKeychain` over the Security framework, `MemoryKeychain` for tests), and `SecretVault` decides
+where a secret lives. "Sync passwords with iCloud Keychain" is off by default and its state is a defaults key of its
+own (`syncsPasswordsWithKeychain`), outside `AppSettings`, so an import or a sync cannot switch it without the copy.
+
+- Off, every call is the local one it always was. On, extension passwords and the AI key are synchronizable items
+  (`kSecAttrSynchronizable` with `kSecUseDataProtectionKeychain`); reads try that item first and the local one second.
+  OAuth tokens (`<extension>/oauth/<provider>`) are never synchronizable.
+- Switching on copies each local secret, reads the copy back and only then deletes the local item. Where iCloud
+  Keychain already holds a different value, the item changed last wins. A write the keychain refuses stays a local
+  item and the status row says why; if nothing could be stored the switch goes back off.
+- Switching off copies the synchronizable secrets to local items and stops reading them. It deletes none, because
+  deleting one deletes it on every device. "Remove Passwords from iCloud Keychain" does that, after a confirmation.
+- Clearing a password while on deletes it on every device. A sync write that fails while an older synchronizable
+  item can still be read leaves that older value in use, since reads prefer the synchronizable item.
+- The switch is offered only when the running process has `com.apple.application-identifier` or
+  `keychain-access-groups` (`SecretVault.hasKeychainEntitlement`). No entitlement was added: by Apple's "Sharing
+  access to keychain items among a collection of apps", the application identifier is itself an access group and
+  the default one when `keychain-access-groups` is absent, and TN3137 says these must come from a provisioning
+  profile. Read from the SDK header: a synchronizable item cannot use a "ThisDeviceOnly" accessibility, and updating
+  or deleting one affects every device. Not tried: any call to the data protection keychain, on any build.
+
 A build signed ad hoc has no entitlement for iCloud, says "Unavailable" and never opens the store
 (`SyncAvailability.system` asks the running process). Two files hold the entitlements:
 

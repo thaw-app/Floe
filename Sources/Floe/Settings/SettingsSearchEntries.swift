@@ -681,12 +681,23 @@ extension SearchIndex {
         .general(
             "syncsExtensionSettings",
             String(localized: "Include extension settings", bundle: .floe),
-            description: String(localized: "Preferences of your extensions sync too. Passwords, files, folders and chosen apps stay on this Mac.", bundle: .floe),
+            description: String(localized: "Preferences of your extensions sync too, except passwords, files, folders and chosen apps.", bundle: .floe),
             section: String(localized: "iCloud", bundle: .floe),
             keywords: String(
                 localized: "sync, icloud, extensions, extension preferences, extension settings, macs",
                 bundle: .floe,
                 comment: "Words that find the Include extension settings setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "syncsPasswords",
+            String(localized: "Sync passwords with iCloud Keychain", bundle: .floe),
+            description: String(localized: "Extension passwords and API keys are kept in iCloud Keychain, which has its own switch in System Settings.", bundle: .floe),
+            section: String(localized: "iCloud", bundle: .floe),
+            keywords: String(
+                localized: "passwords, keychain, icloud keychain, api key, secrets, tokens, sync, remove",
+                bundle: .floe,
+                comment: "Words that find the Sync passwords with iCloud Keychain setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .general(
