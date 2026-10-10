@@ -21,6 +21,10 @@ struct AppLookup {
     var appForURL: (URL) -> URL? = { _ in nil }
     /// The browsers on this Mac, as the system lists them now.
     var browsers: () -> [URL] = { [] }
+    /// Where a command line program is, if it is on the user's path.
+    var program: (String) -> URL? = { _ in nil }
+    /// The distribution the user's Neovim is set up with, such as LazyVim, for its name in the picker.
+    var neovimFlavor: () -> String? = { nil }
 
     static let system = AppLookup(
         url: { NSWorkspace.shared.urlForApplication(withBundleIdentifier: $0) },
@@ -28,7 +32,9 @@ struct AppLookup {
         exists: { FileManager.default.fileExists(atPath: $0.path) },
         bundleIdentifier: { Bundle(url: $0)?.bundleIdentifier },
         appForURL: { NSWorkspace.shared.urlForApplication(toOpen: $0) },
-        browsers: { Browsers.onThisMac() }
+        browsers: { Browsers.onThisMac() },
+        program: { LoginEnvironment.which($0) },
+        neovimFlavor: { TerminalEditor.neovimFlavor(inConfig: TerminalEditor.neovimConfig()) }
     )
 }
 
@@ -102,6 +108,7 @@ enum PreferredApps {
             }
         }
         options += role == .browser ? Browsers.options(installed: installed) : []
+        options += role == .editor ? terminalEditors(installed: installed) : []
         guard let choice, !options.contains(where: { $0.id == choice.key }) else { return options }
         if let app = chosenApp(choice, installed: installed) {
             options.append(AppOption(choice: choice, title: app.name, url: app.url))
@@ -110,6 +117,17 @@ enum PreferredApps {
             options.append(AppOption(choice: choice, title: String(localized: "\(name) (not installed)", bundle: .floe, comment: "The placeholder is the name of an app."), url: nil))
         }
         return options
+    }
+
+    /// The editors that run in a terminal and are on this Mac. One has no bundle, so its choice is the program's path.
+    static func terminalEditors(installed: AppLookup) -> [AppOption] {
+        TerminalEditor.known.compactMap { editor in
+            installed.program(editor.command).map { program in
+                let flavor = editor.command == TerminalEditor.neovim ? installed.neovimFlavor() : nil
+                let title = flavor.map { "\(editor.title) (\($0))" } ?? editor.title
+                return AppOption(choice: AppChoice(bundleIdentifier: nil, path: program.path), title: title, url: program)
+            }
+        }
     }
 
     /// What the role's app is handed for some items: a terminal gets folders, so a file becomes the
@@ -131,7 +149,14 @@ enum PreferredApps {
     }
 
     static func open(_ handoff: Handoff) {
-        NSWorkspace.shared.open(handoff.urls, withApplicationAt: handoff.application, configuration: NSWorkspace.OpenConfiguration())
+        guard TerminalEditor.isProgram(handoff.application) else {
+            NSWorkspace.shared.open(handoff.urls, withApplicationAt: handoff.application, configuration: NSWorkspace.OpenConfiguration())
+            return
+        }
+        // A program has no window of its own: it runs in the terminal the user chose.
+        let terminal = app(for: .terminal, choice: AppSettings.shared.terminalApp, installed: .system)
+        let command = TerminalEditor.commandLine(program: handoff.application, items: handoff.urls, isFolder: isFolder)
+        try? ShellCommand.runInTerminal(command, terminal: terminal)
     }
 }
 

@@ -113,6 +113,7 @@
 		692B392B1C4097AAA7635316 /* UpdatesLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70891E9ABBE4E3EFF52220DE /* UpdatesLink.swift */; };
 		6949E79181513479011C9C02 /* PropFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DCFAEAF70527DFBFD4F4FF1 /* PropFormat.swift */; };
 		6958B0B9E6D87E2783CFD57A /* GlassSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A48EE7BCE3DB6DB75403FC86 /* GlassSupport.swift */; };
+		695E36D51A16139156DC307A /* TerminalEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F00706E74B04A7E2F37D0BE /* TerminalEditor.swift */; };
 		69AA9DBF6BCB09577B11454A /* SSHConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2609D6E7C4247E7397CA71E3 /* SSHConnection.swift */; };
 		69FA09CF14D792E717C7D569 /* Permission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44808651241F3E3186FE6311 /* Permission.swift */; };
 		6CBE43C1A44F0870BE884A74 /* ShellCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01DE9A8F192C3A915D449B54 /* ShellCommand.swift */; };
@@ -446,6 +447,7 @@
 		7BACDBEF9B0113F5AD2F9866 /* Emoji.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Emoji.swift; sourceTree = "<group>"; };
 		7DB0B59E18CDED97CC2F777E /* Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shell.swift; sourceTree = "<group>"; };
 		7E56A00A425C8E51794B5129 /* AppPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPermissions.swift; sourceTree = "<group>"; };
+		7F00706E74B04A7E2F37D0BE /* TerminalEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalEditor.swift; sourceTree = "<group>"; };
 		80740EC675CC466D11F41A52 /* OutgoingDrafts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutgoingDrafts.swift; sourceTree = "<group>"; };
 		838202A59776C019564D4C7C /* WebAddress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebAddress.swift; sourceTree = "<group>"; };
 		843B3C472EC58D16CB047C34 /* RecentFileUse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentFileUse.swift; sourceTree = "<group>"; };
@@ -1082,6 +1084,7 @@
 				B0B52EC136B33C6626E18EDC /* PreferredAppActions.swift */,
 				534A56A698DEE1BC017447F0 /* PreferredApps.swift */,
 				5A2019932B9B6873D549A377 /* PreferredAppsSettingsSection.swift */,
+				7F00706E74B04A7E2F37D0BE /* TerminalEditor.swift */,
 			);
 			path = PreferredApps;
 			sourceTree = "<group>";
@@ -1450,6 +1453,7 @@
 				48347EBF42AD598EA81D8285 /* SystemStores.swift in Sources */,
 				6D1ED192BA73E3475E34A4F3 /* SystemToggles.swift in Sources */,
 				5D2356005B214FA51E5A71A0 /* TabSearchSource.swift in Sources */,
+				695E36D51A16139156DC307A /* TerminalEditor.swift in Sources */,
 				DE24BEC6112E282D23DADFCC /* TextExpander.swift in Sources */,
 				AA9C7E355B2F52EE97B6C97B /* TextGeneration.swift in Sources */,
 				30006369197A5CD610686735 /* ThawAppearance.swift in Sources */,

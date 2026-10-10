@@ -132,7 +132,7 @@ nonisolated struct ResolvedApp: Hashable {
     let url: URL
 
     var name: String {
-        url.deletingPathExtension().lastPathComponent
+        TerminalEditor.at(url)?.title ?? url.deletingPathExtension().lastPathComponent
     }
 }
 
