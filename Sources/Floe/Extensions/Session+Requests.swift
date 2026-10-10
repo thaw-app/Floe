@@ -119,12 +119,13 @@ extension ExtensionSession {
     }
 
     /// The variable that tells the host not to watch what the extension reaches, and the value that says so.
+    static let developmentVariable = "FLOE_DEVELOPMENT"
     static let accessVariable = "FLOE_ACCESS"
     static let accessOff = "off"
 
     /// What the host starts with: the login shell's environment, the command's preferences, whether `AI.ask`
     /// has a tool to run on, and whether what the extension reaches is recorded.
-    static func hostVariables(_ base: [String: String], preferences: Data?, hasAI: Bool, launchType: String = "userInitiated", recordsAccess: Bool = true) -> [String: String] {
+    static func hostVariables(_ base: [String: String], preferences: Data?, hasAI: Bool, launchType: String = "userInitiated", recordsAccess: Bool = true, isDevelopment: Bool = false) -> [String: String] {
         var variables = base
         // Preferences go through the environment so the host has them before the command's first line runs.
         if let preferences {
@@ -134,6 +135,13 @@ extension ExtensionSession {
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launchType
         variables[accessVariable] = recordsAccess ? nil : accessOff
+        variables[developmentVariable] = isDevelopment ? "1" : nil
         return variables
+    }
+
+    /// Whether an extension is one being worked on in the checkout, and not one that was installed.
+    static func isUnderDevelopment(_ folder: URL, developmentFolder: URL? = Paths.developmentExtensions) -> Bool {
+        guard let developmentFolder else { return false }
+        return folder.standardizedFileURL.path.hasPrefix(developmentFolder.standardizedFileURL.path + "/")
     }
 }

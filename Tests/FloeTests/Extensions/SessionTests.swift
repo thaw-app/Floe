@@ -500,6 +500,15 @@ struct ExtensionSessionTests {
         let recording = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: true)
         #expect(recording[ExtensionSession.accessVariable] == nil, "what the shell held is not passed on")
         #expect(ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false)[ExtensionSession.accessVariable] == nil, "recorded unless said otherwise")
+
+        let installed = ExtensionSession.hostVariables(["FLOE_DEVELOPMENT": "1"], preferences: nil, hasAI: false)
+        #expect(installed["FLOE_DEVELOPMENT"] == nil, "an installed extension is not in development, whatever the app inherited")
+        #expect(ExtensionSession.hostVariables([:], preferences: nil, hasAI: false, isDevelopment: true)["FLOE_DEVELOPMENT"] == "1")
+        let checkout = URL(fileURLWithPath: "/Users/someone/floe/extensions")
+        #expect(ExtensionSession.isUnderDevelopment(checkout.appendingPathComponent("hello"), developmentFolder: checkout))
+        #expect(!ExtensionSession.isUnderDevelopment(URL(fileURLWithPath: "/Users/someone/Library/Application Support/Floe/Extensions/proton-pass"), developmentFolder: checkout))
+        #expect(!ExtensionSession.isUnderDevelopment(URL(fileURLWithPath: "/Users/someone/floe/extensions-old/hello"), developmentFolder: checkout))
+        #expect(!ExtensionSession.isUnderDevelopment(checkout.appendingPathComponent("hello"), developmentFolder: nil), "a release has no checkout")
     }
 
     // MARK: Actions

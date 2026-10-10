@@ -458,7 +458,9 @@ export const environment = {
   get supportPath() { return ctx.supportPath; },
   get ownerOrAuthorName() { return ctx.manifest.owner ?? ctx.manifest.author ?? ""; },
   raycastVersion: "1.100.0",
-  isDevelopment: true,
+  // True only for an extension run from the checkout, as it is in Raycast for one being developed.
+  // Extensions switch to sample data and extra logging on it.
+  get isDevelopment() { return process.env.FLOE_DEVELOPMENT === "1"; },
   appearance: "dark",
   theme: "dark",
   textSize: "medium",

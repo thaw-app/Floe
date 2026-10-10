@@ -476,6 +476,14 @@ describe("AI", () => {
     expect((api.AI.Model as Record<symbol, unknown>)[Symbol.iterator]).toBeUndefined();
   });
 
+  test("an installed extension is not in development, so it does not show its sample data", () => {
+    delete process.env.FLOE_DEVELOPMENT;
+    expect(api.environment.isDevelopment).toBe(false);
+    process.env.FLOE_DEVELOPMENT = "1";
+    expect(api.environment.isDevelopment).toBe(true);
+    delete process.env.FLOE_DEVELOPMENT;
+  });
+
   test("extensions can use AI when the app found a tool for it", () => {
     delete process.env.FLOE_AI;
     expect(api.environment.canAccess(api.AI)).toBe(false);
