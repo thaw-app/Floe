@@ -45,7 +45,8 @@ struct ToastWithoutFooterTests {
 
     /// Applies a message the way the host's output is applied, through the production parser.
     private func send(_ json: [String: Any], to session: ExtensionSession) throws {
-        let message = try #require(DecodedHostMessage.decode(JSONSerialization.data(withJSONObject: json)))
+        var kept = KeptRender()
+        let message = try #require(try DecodedHostMessage.decode(JSONSerialization.data(withJSONObject: json), kept: &kept))
         session.apply(message)
     }
 

@@ -59,6 +59,11 @@ export function sent(type?: string): Message[] {
   return received.filter((message) => message.type !== "render" && (type === undefined || message.type === type));
 }
 
+// The render messages as they were sent, references and all.
+export function renders(): Message[] {
+  return received.filter((message) => message.type === "render");
+}
+
 export function renderCount(): number {
   return received.filter((message) => message.type === "render").length;
 }

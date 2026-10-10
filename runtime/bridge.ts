@@ -41,6 +41,11 @@ export function send(message: Record<string, unknown>) {
   sink(JSON.stringify(message) + "\n");
 }
 
+// For a message already written as JSON: a render is put together from text the renderer keeps.
+export function sendLine(json: string) {
+  sink(json + "\n");
+}
+
 let popHandler: () => void = () => send({ type: "exit" });
 export function setPopHandler(handler: () => void) {
   popHandler = handler;

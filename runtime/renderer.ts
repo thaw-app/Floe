@@ -9,17 +9,19 @@
 import React from "react";
 import Reconciler from "react-reconciler";
 import { ConcurrentRoot, DefaultEventPriority } from "react-reconciler/constants";
-import { send } from "./bridge";
+import { send, sendLine } from "./bridge";
 
-type Instance = {
+type Sent = { sentRound?: number; sentHead?: string; sentChildren?: Child[] };
+type Instance = Sent & {
   id: number;
   type: string;
   props: Record<string, unknown>;
   children: (Instance | TextInstance)[];
   parent?: Instance;
 };
-type TextInstance = { id: number; text: string; parent?: Instance };
+type TextInstance = Sent & { id: number; text: string; parent?: Instance };
 type Child = Instance | TextInstance;
+const noChildren: Child[] = [];
 
 let nextId = 1;
 const instances = new Map<number, Instance>();
@@ -75,30 +77,75 @@ function plain(value: unknown, seen: Set<object>, depth = 0): unknown {
   return result;
 }
 
-function serialize(node: Child): unknown {
-  if ("text" in node) return { id: node.id, type: "#text", text: node.text };
+// Each node carries what the app holds for it: its own text and its children as they were last sent,
+// and the render that sent them. Only the one before this is the app's, so a screen that was hidden is sent anew.
+let round = 0;
+let heldRound = -1;
+let referenced = false;
+let sequence = 0;
+
+// The app says which references it reads; with any other answer every render is sent whole.
+export const referenceVersion = 1;
+let references = process.env.FLOE_RENDER_REFERENCES === String(referenceVersion);
+export function setReferences(enabled: boolean) {
+  references = enabled;
+  heldRound = -1;
+}
+
+function head(node: Child): string {
+  if ("text" in node) return JSON.stringify({ id: node.id, type: "#text", text: node.text });
   const props: Record<string, unknown> = {};
   const handlers: string[] = [];
   for (const [key, value] of Object.entries(node.props)) {
     if (key === "children" || key === "ref" || value === undefined) continue;
     if (typeof value === "function") handlers.push(key);
-    else props[key] = plain(value, new Set());
+    else props[key] = typeof value === "object" ? plain(value, new Set()) : value;
   }
-  return { id: node.id, type: node.type, props, handlers, children: node.children.map(serialize) };
+  return `${JSON.stringify({ id: node.id, type: node.type, props, handlers }).slice(0, -1)},"children":[`;
+}
+
+const sameChildren = (sent: Child[] | undefined, now: Child[]) =>
+  sent !== undefined && sent.length === now.length && now.every((child, index) => child === sent[index]);
+
+// The node's JSON, or nothing when the app already holds this very subtree: the parent then names it by id.
+// Compared as text, so anything that would be sent differently counts as a change, a handler's name included.
+function write(node: Child, children: Child[]): string | undefined {
+  const own = head(node);
+  let same = node.sentRound === heldRound && node.sentHead === own && sameChildren(node.sentChildren, children);
+  const parts = children.map((child) => write(child, "text" in child ? noChildren : child.children));
+  if (parts.some((part) => part !== undefined)) same = false;
+  if (references) {
+    node.sentRound = round;
+    node.sentHead = own;
+    if (!sameChildren(node.sentChildren, children)) node.sentChildren = [...children];
+  }
+  if (same) return undefined;
+  if ("text" in node) return own;
+  if (parts.includes(undefined)) referenced = true;
+  return `${own}${parts.map((part, index) => part ?? `{"ref":${children[index].id}}`).join(",")}]}`;
 }
 
 // Navigation keeps lower screens mounted so Back can restore them, but Swift only shows the last one:
-// the envelope keeps every non-screen root child in place while hidden screen subtrees are skipped
-// before serialization ever walks them. The live tree is not touched.
-function serializeRoot(root: Instance) {
-  const visible = visibleScreen(root);
-  return {
-    id: root.id,
-    type: root.type,
-    props: {},
-    handlers: [],
-    children: root.children.flatMap((child) => (child !== visible && child.type === "_screen" ? [] : [serialize(child)])),
-  };
+// hidden screen subtrees are skipped before serialization ever walks them. The live tree is not touched.
+function flush() {
+  const visible = visibleScreen(container);
+  const shown = container.children.filter((child) => child === visible || child.type !== "_screen");
+  round += 1;
+  referenced = false;
+  const tree = write(container, shown);
+  heldRound = references ? round : -1;
+  // Nothing the app is shown changed, so there is nothing to tell it.
+  if (tree === undefined) return;
+  sequence += 1;
+  const base = referenced ? `"base":${sequence - 1},"references":${referenceVersion},` : "";
+  sendLine(`{"type":"render","sequence":${sequence},${base}"tree":${tree}}`);
+}
+
+// The app could not place a reference, or missed a render: the next one is sent whole.
+export function renderInFull() {
+  heldRound = -1;
+  dirty = true;
+  scheduleFlush();
 }
 
 let flushScheduled = false;
@@ -108,7 +155,7 @@ function scheduleFlush() {
   setTimeout(() => {
     flushScheduled = false;
     dirty = false;
-    send({ type: "render", tree: serializeRoot(container) });
+    flush();
   }, 4);
 }
 

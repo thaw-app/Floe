@@ -40,7 +40,7 @@ struct ExtensionView: View {
                         isLoading: view?.bool("isLoading") ?? (view == nil)
                     ) {
                         if let dropdown = view?.slot("searchBarAccessory") {
-                            DropdownView(node: dropdown, session: session)
+                            DropdownView(node: dropdown, session: session).equatable()
                         }
                     }
                 } content: {
@@ -60,7 +60,7 @@ struct ExtensionView: View {
             if let view {
                 switch view.type {
                 case "List", "Grid": ListBody(session: session, view: view)
-                case "Detail": DetailBody(node: view, assetsPath: session.command.assetsPath)
+                case "Detail": DetailBody(node: view, assetsPath: session.command.assetsPath).equatable()
                 case "Form": FormBody(session: session, focusToken: model.focusToken)
                 default: Placeholder(title: String(localized: "\(view.type) isn't supported yet", bundle: .floe, comment: "The placeholder is the name of a kind of view, such as Grid."), detail: String(localized: "Floe renders List, Grid, Detail and Form.", bundle: .floe, comment: "List, Grid, Detail and Form are names from the extension API and stay as written."), systemImage: "hammer")
                 }
@@ -168,9 +168,14 @@ struct ConfirmAlertOverlay: View {
     }
 }
 
-struct DropdownView: View {
+/// A list's dropdown. Its items are walked for the title only when the host sent the dropdown anew, not at every keystroke.
+struct DropdownView: View, Equatable {
     let node: Node
     let session: ExtensionSession
+
+    static func == (lhs: DropdownView, rhs: DropdownView) -> Bool {
+        lhs.node.revision == rhs.node.revision && lhs.session === rhs.session
+    }
 
     var body: some View {
         let entries = DropdownMenu.entries(for: node)

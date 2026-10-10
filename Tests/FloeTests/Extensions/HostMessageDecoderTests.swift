@@ -32,6 +32,7 @@ struct HostMessageDecoderTests {
     private func name(of message: DecodedHostMessage) -> String {
         switch message {
         case .render: "render"
+        case .unresolvedRender: "unresolvedRender"
         case let .fields(fields): fields["type"] as? String ?? ""
         }
     }

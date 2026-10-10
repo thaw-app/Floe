@@ -16,6 +16,8 @@ struct ExtensionSessionTests {
     private final class Recorder {
         var sent: [[String: Any]] = []
         var forwarded: [[String: Any]] = []
+        /// What the decoder of a running host would hold between renders.
+        var kept = KeptRender()
 
         func sentEvents(_ prop: String) -> [[String: Any]] {
             sent.filter { $0["type"] as? String == "event" && $0["prop"] as? String == prop }
@@ -37,7 +39,7 @@ struct ExtensionSessionTests {
     /// Serializes a message the way the host sends it and applies it through the production parser.
     private func apply(_ json: [String: Any]) {
         guard let encoded = try? JSONSerialization.data(withJSONObject: json),
-              let message = DecodedHostMessage.decode(encoded)
+              let message = DecodedHostMessage.decode(encoded, kept: &recorder.kept)
         else {
             Issue.record("the test message \(json["type"] as? String ?? "") is not representable")
             return
@@ -496,20 +498,33 @@ struct ExtensionSessionTests {
         #expect(recorder.sent.isEmpty)
     }
 
+    @Test func aRenderThatNamesWhatTheAppDoesNotHoldAsksForAWholeOneAndLeavesTheListAsItWas() {
+        render(Fixture.node("List", id: 3, children: [Fixture.item("Mercury", id: 10), Fixture.item("Venus", id: 11)]))
+        session.selection = 1
+        let missed = Fixture.node("root", id: 0, children: [Fixture.node("_screen", id: 50, children: [
+            Fixture.node("List", id: 3, children: [["ref": 10], ["ref": 99]]),
+        ])])
+        apply(["type": "render", "sequence": 2, "base": 1, "references": KeptRender.referenceVersion, "tree": missed])
+        #expect(recorder.sent.map { $0["type"] as? String } == ["fullRender"])
+        #expect(session.rows.map(\.id) == [10, 11], "no hole is drawn where the reference was")
+        #expect(session.selection == 1)
+    }
+
     @Test func theHostStartsWithTheShellsVariablesItsPreferencesAndWhetherAIIsThere() {
         let base = ["PATH": "/opt/homebrew/bin", "FLOE_AI": "stale"]
         let with = ExtensionSession.hostVariables(base, preferences: Data(#"{"unit":"metric"}"#.utf8), hasAI: true)
         #expect(with == [
             "PATH": "/opt/homebrew/bin", "FLOE_PREFERENCES": #"{"unit":"metric"}"#, "FLOE_AI": "1", "FLOE_LAUNCH_TYPE": "userInitiated",
+            "FLOE_RENDER_REFERENCES": "1",
         ])
         let background = ExtensionSession.hostVariables(base, preferences: nil, hasAI: false, launchType: "background")
-        #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background"])
+        #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background", "FLOE_RENDER_REFERENCES": "1"])
     }
 
     @Test func theHostIsToldNotToWatchWhileTheRecordIsOff() {
         let stale = ["PATH": "/opt/homebrew/bin", "FLOE_ACCESS": "off"]
         let off = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: false)
-        #expect(off == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "userInitiated", "FLOE_ACCESS": "off"])
+        #expect(off == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "userInitiated", "FLOE_ACCESS": "off", "FLOE_RENDER_REFERENCES": "1"])
         let recording = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: true)
         #expect(recording[ExtensionSession.accessVariable] == nil, "what the shell held is not passed on")
         #expect(ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false)[ExtensionSession.accessVariable] == nil, "recorded unless said otherwise")
@@ -645,6 +660,90 @@ struct ExtensionSessionTests {
 
         render(Fixture.node("List", id: 60, children: [Fixture.item("Mercury", id: 1), Fixture.item("Venus", id: 2, actions: [Fixture.action("Show", id: 21)])]))
         #expect(session.actionPath.isEmpty)
+    }
+
+    @Test func anOpenSubmenuListsItsActionsAsTheLatestRenderHasThem() throws {
+        render(planets)
+        session.selection = 1
+        session.actionMenuOpen = true
+        let submenu = try #require(session.menuEntries.first { $0.isSubmenu })
+        session.openSubmenu(submenu.node)
+        #expect(session.menuEntries.map { $0.node.string("title") } == ["Inner"])
+
+        render(Fixture.node("List", id: 60, children: [
+            Fixture.item("Mercury", id: 1),
+            Fixture.item("Venus", id: 2, actions: [
+                Fixture.node("ActionPanel.Submenu", id: 22, props: ["title": "More"], children: [Fixture.action("Inner", id: 23), Fixture.action("Loaded later", id: 24)]),
+            ]),
+        ]))
+        #expect(session.actionPath.map(\.id) == [22])
+        #expect(session.menuEntries.map { $0.node.string("title") } == ["Inner", "Loaded later"])
+    }
+
+    /// A list of three items with a detail each, and the render that follows when only Venus's detail arrives.
+    private func renderPlanetsThenVenusDetail() {
+        func item(_ title: String, id: Int, detail: String) -> [String: Any] {
+            Fixture.node("List.Item", id: id, props: ["title": title], children: [
+                Fixture.node("_slot", id: id + 5, props: ["name": "actions"], children: [Fixture.node("ActionPanel", id: id + 1, children: [Fixture.action("Open \(title)", id: id + 2)])]),
+                Fixture.node("_slot", id: id + 3, props: ["name": "detail"], children: [Fixture.node("List.Item.Detail", id: id + 4, props: ["markdown": detail])]),
+            ])
+        }
+        func root(_ items: [[String: Any]], loading: Bool) -> [String: Any] {
+            Fixture.node("root", id: 0, children: [Fixture.node("_screen", id: 50, children: [
+                Fixture.node("List", id: 60, props: ["isShowingDetail": true, "isLoading": loading], children: items),
+            ])])
+        }
+        let items = [item("Mercury", id: 100, detail: "…"), item("Venus", id: 200, detail: "…"), item("Mars", id: 300, detail: "…")]
+        apply(["type": "render", "sequence": 1, "tree": root(items, loading: true)])
+        session.selection = 1
+        apply(["type": "render", "sequence": 2, "base": 1, "references": KeptRender.referenceVersion, "tree": root([["ref": 100], ["ref": 200], ["ref": 300]], loading: false)])
+        let venus = Fixture.node("List.Item", id: 200, props: ["title": "Venus"], children: [
+            ["ref": 205],
+            Fixture.node("_slot", id: 203, props: ["name": "detail"], children: [Fixture.node("List.Item.Detail", id: 204, props: ["markdown": "# Venus"])]),
+        ])
+        apply(["type": "render", "sequence": 3, "base": 2, "references": KeptRender.referenceVersion, "tree": root([["ref": 100], venus, ["ref": 300]], loading: false)])
+    }
+
+    @Test func aRenderByReferenceLeavesTheSelectionAndShowsTheSelectedItemsNewDetail() {
+        renderPlanetsThenVenusDetail()
+        #expect(recorder.sent.isEmpty, "every reference was placed")
+        #expect(session.selection == 1)
+        #expect(session.selectedRow?.node.string("title") == "Venus")
+        #expect(session.selectedRow?.node.slot("detail")?.string("markdown") == "# Venus")
+        #expect(session.actions.map { $0.string("title") } == ["Open Venus"], "the action panel that was kept is still the selected item's")
+        #expect(session.rows.map { $0.node.slot("detail")?.string("markdown") } == ["…", "# Venus", "…"])
+    }
+
+    @Test func theRowsOnlyCountAsChangedWhenARenderSentOneOfThemAnew() {
+        func list(_ titles: [String], loading: Bool) -> [String: Any] {
+            Fixture.node("root", id: 0, children: [Fixture.node("_screen", id: 50, children: [
+                Fixture.node("List", id: 60, props: ["isLoading": loading], children: titles.enumerated().map { Fixture.item($1, id: 100 + $0) }),
+            ])])
+        }
+        func kept(_ ids: [Int], loading: Bool) -> [String: Any] {
+            Fixture.node("root", id: 0, children: [Fixture.node("_screen", id: 50, children: [
+                Fixture.node("List", id: 60, props: ["isLoading": loading], children: ids.map { ["ref": $0] }),
+            ])])
+        }
+        apply(["type": "render", "sequence": 1, "tree": list(["Mercury", "Venus"], loading: true)])
+        let first = session.rowsVersion
+        let revisions = session.rows.map(\.node.revision)
+
+        apply(["type": "render", "sequence": 2, "base": 1, "references": KeptRender.referenceVersion, "tree": kept([100, 101], loading: false)])
+        #expect(session.view?.bool("isLoading") == false)
+        #expect(session.rowsVersion == first, "the list changed, its rows did not")
+        #expect(session.rows.map(\.node.revision) == revisions)
+
+        apply(["type": "render", "sequence": 3, "base": 2, "references": KeptRender.referenceVersion, "tree": kept([101, 100], loading: false)])
+        #expect(session.rowsVersion == first + 1, "the same rows in another order are other rows")
+        #expect(session.rows.map(\.id) == [101, 100])
+
+        apply(["type": "render", "sequence": 4, "tree": list(["Mercury", "Venus"], loading: false)])
+        #expect(session.rowsVersion == first + 2, "sent whole, every row is new to the app even when nothing in it differs")
+        let afterWhole = session.rowsVersion
+        session.searchText = "ven"
+        #expect(session.rows.map(\.id) == [101])
+        #expect(session.rowsVersion == afterWhole + 1)
     }
 
     @Test func activatingAnEntryThatIsNotThereDoesNothing() {

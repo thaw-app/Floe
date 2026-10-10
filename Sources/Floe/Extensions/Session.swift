@@ -80,6 +80,8 @@ final class ExtensionSession: ObservableObject {
     @Published private(set) var actionPath: [Node] = []
     /// Recomputed only when the tree or the search text changes, not on every redraw.
     @Published private(set) var rows: [Row] = []
+    /// Counts the times `rows` changed, so a view can tell without walking them.
+    private(set) var rowsVersion = 0
     @Published var searchText = "" {
         didSet {
             guard searchText != oldValue else { return }
@@ -144,9 +146,8 @@ final class ExtensionSession: ObservableObject {
             let previousScreen = screen?.id
             root = tree
             recomputeRows()
-            // Keep the open submenu only while it still exists.
-            if let open = actionPath.last, actionPanel?.descendants(ofType: "ActionPanel.Submenu").contains(where: { $0.id == open.id }) != true {
-                actionPath = []
+            if !actionPath.isEmpty {
+                refreshActionPath()
             }
             if screen?.id != previousScreen {
                 formValues = [:]
@@ -156,6 +157,9 @@ final class ExtensionSession: ObservableObject {
                 selection = 0
                 actionMenuOpen = false
             }
+        case .unresolvedRender:
+            // The last good tree stays on show until the whole one arrives.
+            send(["type": "fullRender"])
         case let .fields(message):
             apply(message)
         }
@@ -273,8 +277,12 @@ final class ExtensionSession: ObservableObject {
         ViewState.isList(view)
     }
 
+    /// A render that kept every row leaves `rows` alone, and with it the views that draw them.
     private func recomputeRows() {
-        rows = ViewState.rows(of: view, searchText: searchText)
+        let next = ViewState.rows(of: view, searchText: searchText)
+        guard next != rows else { return }
+        rows = next
+        rowsVersion += 1
     }
 
     var selectedRow: Row? {
@@ -291,6 +299,18 @@ final class ExtensionSession: ObservableObject {
 
     var menuEntries: [MenuEntry] {
         ViewState.menuEntries(in: actionPath.last ?? actionPanel, query: actionQuery)
+    }
+
+    /// Keeps the open submenus only while they still exist, and as this render has them: the path
+    /// holds nodes of the render they were opened in.
+    private func refreshActionPath() {
+        let submenus = actionPanel?.descendants(ofType: "ActionPanel.Submenu") ?? []
+        let current = actionPath.compactMap { open in submenus.first { $0.id == open.id } }
+        if current.count != actionPath.count {
+            actionPath = []
+        } else if current.map(\.revision) != actionPath.map(\.revision) {
+            actionPath = current
+        }
     }
 
     func openSubmenu(_ submenu: Node) {

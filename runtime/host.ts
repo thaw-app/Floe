@@ -12,7 +12,7 @@ import os from "node:os";
 import path from "node:path";
 import React from "react";
 import { ctx, handlePop, handlePopToRoot, handleReply, handleReplyChunk, send, type Manifest } from "./bridge";
-import { dispatchEvent, render, toError } from "./renderer";
+import { dispatchEvent, render, renderInFull, toError } from "./renderer";
 import { NavigationRoot, commandDrewItself, handleToastAction } from "./api/index";
 import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
@@ -81,6 +81,7 @@ process.stdin.on(
     else if (message.type === "popToRoot") handlePopToRoot();
     else if (message.type === "replyChunk") handleReplyChunk(message);
     else if (message.type === "reply") handleReply(message);
+    else if (message.type === "fullRender") renderInFull();
     else if (message.type === "toastAction") handleToastAction(message.id, message.which);
     // The app's watchdog: a host stuck in synchronous code cannot answer.
     else if (message.type === "ping") send({ type: "pong" });

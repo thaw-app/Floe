@@ -121,6 +121,8 @@ extension ExtensionSession {
     /// The variable that tells the host not to watch what the extension reaches, and the value that says so.
     static let developmentVariable = "FLOE_DEVELOPMENT"
     static let accessVariable = "FLOE_ACCESS"
+    /// Tells the host which render references this app reads; a host that writes another kind sends whole renders.
+    static let referencesVariable = "FLOE_RENDER_REFERENCES"
     static let accessOff = "off"
 
     /// What the host starts with: the login shell's environment, the command's preferences, whether `AI.ask`
@@ -134,6 +136,7 @@ extension ExtensionSession {
         variables["FLOE_AI"] = hasAI ? "1" : nil
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launchType
+        variables[referencesVariable] = String(KeptRender.referenceVersion)
         variables[accessVariable] = recordsAccess ? nil : accessOff
         variables[developmentVariable] = isDevelopment ? "1" : nil
         return variables
