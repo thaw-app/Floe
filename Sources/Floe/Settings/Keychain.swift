@@ -164,7 +164,7 @@ nonisolated struct SecretSyncStatus: Equatable, Sendable {
 /// Floe's secrets: extension passwords, the AI key and OAuth tokens. With password sync on, the first two are
 /// synchronizable items; tokens never are, because a token refreshed on one Mac would end the other's.
 final nonisolated class SecretVault: Sendable {
-    static let service = "com.thaw.floe.preferences"
+    static let service = "org.thaw.floe.preferences"
     /// Kept apart from `AppSettings`, so an import or a sync cannot switch it without the copy that goes with it.
     static let onKey = "syncsPasswordsWithKeychain"
     static let failureKey = "passwordSyncFailure"
@@ -215,7 +215,16 @@ final nonisolated class SecretVault: Sendable {
         if isOn, Self.syncs(account), let value = keychain.read(service: Self.service, account: account, synchronizable: true) {
             return value
         }
-        return keychain.read(service: Self.service, account: account, synchronizable: false)
+        return keychain.read(service: Self.service, account: account, synchronizable: false) ?? takeEarlier(account)
+    }
+
+    /// A secret saved before Floe was renamed, moved to where it is looked for now. macOS asks before handing it over.
+    private func takeEarlier(_ account: String) -> String? {
+        let service = EarlierIdentifier.secretService
+        guard let value = keychain.read(service: service, account: account, synchronizable: false) else { return nil }
+        write(value, account: account)
+        keychain.delete(service: service, account: account, synchronizable: false)
+        return value
     }
 
     func write(_ value: String, account: String) {

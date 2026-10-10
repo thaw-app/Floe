@@ -47,7 +47,7 @@ struct LinkMessageTests {
     @Test func everyKindHasItsOwnNotificationName() {
         let names = Set(LinkMessage.Kind.allCases.map(\.name))
         #expect(names.count == LinkMessage.Kind.allCases.count)
-        #expect(names.allSatisfy { $0.rawValue.hasPrefix("com.thaw.floe.link.") })
+        #expect(names.allSatisfy { $0.rawValue.hasPrefix("org.thaw.floe.link.") })
     }
 
     @Test func eachSideTakesOnlyWhatTheOtherSends() {
@@ -131,7 +131,7 @@ struct ProcessLinkTests {
         link.handler = { received.append($0) }
         link.receive(name: LinkMessage.Kind.showPage.name, info: info(pid: 50, payload: "about"))
         link.receive(name: LinkMessage.Kind.rescan.name, info: info(pid: 50, payload: "everything"))
-        link.receive(name: Notification.Name("com.thaw.floe.link.format-disk"), info: info(pid: 50))
+        link.receive(name: Notification.Name("org.thaw.floe.link.format-disk"), info: info(pid: 50))
         #expect(received.isEmpty)
         link.receive(name: LinkMessage.Kind.rescan.name, info: info(pid: 50, payload: "scripts"))
         #expect(received == [.rescan(.scripts)])

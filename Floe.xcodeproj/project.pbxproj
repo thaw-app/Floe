@@ -130,6 +130,7 @@
 		6FF25C23C28176E7AE68D90C /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62548A2DF57C84EDBCBCC0A /* Model.swift */; };
 		7010C68F03A8AC111BA76ABA /* ReadingPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71DBBF84C644A103F04FB66 /* ReadingPage.swift */; };
 		701617CCCCBFFD799F2B4B1D /* FendCore in Frameworks */ = {isa = PBXBuildFile; productRef = 92E0A24A8713739E9D70A6B1 /* FendCore */; };
+		72920B28633C99DABB7050E0 /* EarlierIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D54FF1A21ED74AD3CB719E /* EarlierIdentifier.swift */; };
 		747084900218D005E77A5CA3 /* ExtensionAccessSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E70E737A40E9F3F1036BA0 /* ExtensionAccessSection.swift */; };
 		74E7324DD7F8BEFA0B1CFC5B /* MenuBarCommandsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0D0CD81D8D94FE9134AF130 /* MenuBarCommandsSettingsSection.swift */; };
 		77AE58D4D699268DB5078716 /* PanelBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BAF88C611B59A548F533 /* PanelBottomBar.swift */; };
@@ -372,6 +373,7 @@
 		3093D2F53465270315B2B310 /* ExtensionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionSettingsView.swift; sourceTree = "<group>"; };
 		30B7F201C3069FA974E88002 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
 		3100D60F947CCED23DE9323E /* SettingsSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSyncService.swift; sourceTree = "<group>"; };
+		31D54FF1A21ED74AD3CB719E /* EarlierIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarlierIdentifier.swift; sourceTree = "<group>"; };
 		3296675A1A96B585BA2E4F27 /* Model+Reminders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Reminders.swift"; sourceTree = "<group>"; };
 		3337622D122C40BD5C4725AD /* ClipboardHistoryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryModel.swift; sourceTree = "<group>"; };
 		3403F2FFC4C6AC53013ACA55 /* ChatCompletionStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionStream.swift; sourceTree = "<group>"; };
@@ -1039,6 +1041,7 @@
 				C8BC098F6B0847921A77F6BF /* Credits.swift */,
 				E4B5DBE779D080FFE5A6407C /* DebugOptions.swift */,
 				A5C2101DB96C414B73B7329F /* Diagnostics.swift */,
+				31D54FF1A21ED74AD3CB719E /* EarlierIdentifier.swift */,
 				C2E2C5C29CB5FB6EA6176046 /* IncomingURLRouter.swift */,
 				06C21CDFCE7404F918FB0818 /* LauncherSettingsLink.swift */,
 				5FEFD6D0D5FE1E1CB1726CA6 /* Localization.swift */,
@@ -1307,6 +1310,7 @@
 				B60670B502F8FFBB4FDCBF3F /* DiagnosticsSettingsSection.swift in Sources */,
 				78089551521EC8A3D75F61F6 /* DirectoryWatcher.swift in Sources */,
 				D29ADA0E7AFDBEC4476A1E36 /* DropdownMenu.swift in Sources */,
+				72920B28633C99DABB7050E0 /* EarlierIdentifier.swift in Sources */,
 				AD7D516AA066DF894A612E04 /* Emoji.swift in Sources */,
 				F7A2E028912AD04F9BA46052 /* ErrorView.swift in Sources */,
 				43F17B98BA614FECDEE76F41 /* ExchangeRates.swift in Sources */,
@@ -1549,7 +1553,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.thaw.floe;
+				PRODUCT_BUNDLE_IDENTIFIER = org.thaw.floe;
 				PRODUCT_NAME = Floe;
 				PROVISIONING_PROFILE_SPECIFIER = "$(FLOE_PROFILE)";
 				SDKROOT = macosx;
@@ -1704,7 +1708,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.thaw.floe;
+				PRODUCT_BUNDLE_IDENTIFIER = org.thaw.floe;
 				PRODUCT_NAME = Floe;
 				PROVISIONING_PROFILE_SPECIFIER = "$(FLOE_PROFILE)";
 				SDKROOT = macosx;

@@ -311,7 +311,7 @@ Pushing the appcast needs "Publish release" checked, because the appcast links t
 Sparkle tools version in `release.yml` (`sparkle-version` and its checksum) must match `Package.resolved`.
 
 To rehearse an update with a Debug build, serve an appcast locally and point the build at it:
-`defaults write com.thaw.floe FloeDebugFeedURL http://localhost:8000/appcast.xml`. Release builds
+`defaults write org.thaw.floe FloeDebugFeedURL http://localhost:8000/appcast.xml`. Release builds
 ignore that key, and without it a Debug build refuses to check.
 
 ## Settings sync
@@ -427,22 +427,22 @@ A build signed ad hoc has no entitlement for iCloud, says "Unavailable" and neve
   release needs to send Apple events and to ask for Calendar, Reminders and Contacts. Without them a release is
   refused with no prompt (tried: an app with the hardened runtime and no Apple events entitlement gets -1743).
 - `Resources/Floe-iCloud.entitlements` adds what needs the provisioning profile: iCloud's key-value store,
-  CloudKit with the container `iCloud.com.thaw.floe`, push notifications and time-sensitive notifications. An app
+  CloudKit with the container `iCloud.org.thaw.floe`, push notifications and time-sensitive notifications. An app
   signed with them and without a profile that lists them does not launch, and a release built with this file and
   a profile that lacks the container fails at signing.
 
 To ship sync, in this order. Each step says where it comes from: (code) read in this repository or run here,
 (Apple) Apple's documentation or SDK headers, (memory) remembered and not checked.
 
-1. developer.apple.com, Certificates, Identifiers & Profiles, Identifiers: open `com.thaw.floe`. iCloud is on with
+1. developer.apple.com, Certificates, Identifiers & Profiles, Identifiers: open `org.thaw.floe`. iCloud is on with
    "Include CloudKit support". Click Edit (or Configure) beside iCloud and tick the container
-   `iCloud.com.thaw.floe`; if it is not listed, make it first under Identifiers, the "+" button, iCloud
+   `iCloud.org.thaw.floe`; if it is not listed, make it first under Identifiers, the "+" button, iCloud
    Containers. Tick Push Notifications in the same list and save. (memory, for where to click; Apple, that
    CloudKit needs the container and the push capability: "Configuring iCloud services", the `CKSyncEngine` header)
 2. Profiles: the `Floe Developer ID` profile is a copy of the identifier's capabilities as they were, so it shows
    as invalid after step 1. Open it, click Edit, save, and download the new `.provisionprofile`. (memory)
 3. Check the profile before using it: `security cms -D -i Floe_Developer_ID.provisionprofile` prints it, and its
-   `Entitlements` must list `com.apple.developer.icloud-container-identifiers` with `iCloud.com.thaw.floe`,
+   `Entitlements` must list `com.apple.developer.icloud-container-identifiers` with `iCloud.org.thaw.floe`,
    `com.apple.developer.icloud-services`, `com.apple.developer.aps-environment` and
    `com.apple.developer.ubiquity-kvstore-identifier`. (memory, not run here: there is no profile on this Mac)
 4. Replace the secret in the `prod` environment:
@@ -461,7 +461,7 @@ To ship sync, in this order. Each step says where it comes from: (code) read in 
      repository builds none: it would need `FLOE_PROFILE` set to such a profile and a copy of the entitlements
      with `com.apple.developer.aps-environment` set to `development`. (Apple, for the value; not tried)
    - Since no development build exists to save the first record, make the type by hand. Sign in at
-     icloud.developer.apple.com, open CloudKit Database, choose `iCloud.com.thaw.floe` at the top and the
+     icloud.developer.apple.com, open CloudKit Database, choose `iCloud.org.thaw.floe` at the top and the
      Development environment. Under Schema, Record Types, click "+", name it `SyncRecord`, add a field named
      `json` of type String, and save. No index is needed: the sync engine fetches changes by zone and runs no
      query. (code, for the names, which are `CloudSyncRecordCoder`'s; memory, for where to click and the index)
@@ -481,7 +481,7 @@ To ship sync, in this order. Each step says where it comes from: (code) read in 
    they sign as before, with no iCloud at all. (code)
 8. Before publishing, check the exported app yourself: `codesign -d --entitlements - Floe.app` shows
    `com.apple.developer.ubiquity-kvstore-identifier` with the team id in front,
-   `com.apple.developer.icloud-container-identifiers` with `iCloud.com.thaw.floe`,
+   `com.apple.developer.icloud-container-identifiers` with `iCloud.org.thaw.floe`,
    `com.apple.developer.icloud-services` with `CloudKit`, `com.apple.developer.aps-environment` with
    `production` and `com.apple.developer.icloud-container-environment` with `Production`; and
    `Floe.app/Contents/embedded.provisionprofile` exists. (code: the output's form was checked here on a scratch

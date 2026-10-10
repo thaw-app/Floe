@@ -31,7 +31,7 @@ import os
 /// This costs a timer on a background thread and a block on the main queue every half
 /// second, nothing more, so it stays on in every build.
 nonisolated enum HangWatchdog {
-    private static let log = Logger(subsystem: "com.thaw.floe", category: "hang")
+    private static let log = Logger(subsystem: "org.thaw.floe", category: "hang")
 
     /// How long the main thread may go without answering before it counts as stuck. Long
     /// enough that a heavy but finite piece of work (a big catalog scan, a slow layout pass)

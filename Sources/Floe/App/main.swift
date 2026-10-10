@@ -319,7 +319,7 @@ func runSelfTest(extensionName: String, commandName: String) -> Never {
 }
 
 Paths.prepareSupportFolders()
-
+EarlierIdentifier.importSettings()
 AutoFillOptOut.install()
 
 let processStart = Date()

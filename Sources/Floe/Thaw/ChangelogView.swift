@@ -182,7 +182,7 @@ nonisolated struct ChangelogDocument {
             .urls(for: .cachesDirectory, in: .userDomainMask)
             .first?
             // Floe is not sandboxed, so Caches is shared: the file goes in Floe's own folder.
-            .appending(path: "com.thaw.floe", directoryHint: .isDirectory)
+            .appending(path: "org.thaw.floe", directoryHint: .isDirectory)
             .appending(path: "release-notes.md", directoryHint: .notDirectory)
     }
 

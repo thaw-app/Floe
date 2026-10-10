@@ -441,7 +441,7 @@ extension AppSettings {
 
     /// The settings a fresh install stores, read from a defaults domain nothing is ever written to.
     static func freshStoredJSON() -> Data {
-        guard let empty = UserDefaults(suiteName: "com.thaw.floe.fresh-settings") else { return Data("{}".utf8) }
+        guard let empty = UserDefaults(suiteName: "org.thaw.floe.fresh-settings") else { return Data("{}".utf8) }
         return AppSettings(defaults: empty, savesAfterEdits: false).base ?? Data("{}".utf8)
     }
 

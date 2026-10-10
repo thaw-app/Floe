@@ -18,7 +18,7 @@
 	</array>
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
-		<string>iCloud.com.thaw.floe</string>
+		<string>iCloud.org.thaw.floe</string>
 	</array>
 	<key>com.apple.developer.aps-environment</key>
 	<string>production</string>

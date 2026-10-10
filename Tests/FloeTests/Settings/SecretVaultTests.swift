@@ -30,6 +30,22 @@ struct SecretVaultTests {
         keychain.read(service: service, account: account, synchronizable: true)
     }
 
+    @Test func aSecretSavedUnderTheEarlierNameIsMovedWhenItIsRead() {
+        let earlier = EarlierIdentifier.secretService
+        keychain.write("old", service: earlier, account: "github/token", synchronizable: false)
+        #expect(vault.read(account: "github/token") == "old")
+        #expect(local("github/token") == "old")
+        #expect(keychain.read(service: earlier, account: "github/token", synchronizable: false) == nil)
+    }
+
+    @Test func aSecretSavedSinceTheRenameWinsOverAnEarlierOne() {
+        let earlier = EarlierIdentifier.secretService
+        keychain.write("old", service: earlier, account: "github/token", synchronizable: false)
+        vault.write("new", account: "github/token")
+        #expect(vault.read(account: "github/token") == "new")
+        #expect(keychain.read(service: earlier, account: "github/token", synchronizable: false) == "old")
+    }
+
     @Test func withTheSwitchOffNothingSynchronizableIsWrittenOrRead() {
         keychain.write("elsewhere", service: service, account: "github/token", synchronizable: true)
         let before = keychain.synchronizableCalls

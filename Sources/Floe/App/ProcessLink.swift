@@ -53,7 +53,7 @@ struct LinkMessage: Equatable {
         case quit
 
         var name: Notification.Name {
-            Notification.Name("com.thaw.floe.link.\(rawValue)")
+            Notification.Name("org.thaw.floe.link.\(rawValue)")
         }
 
         /// Whether a process in this role acts on the message: neither takes what only it would send.

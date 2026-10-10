@@ -554,7 +554,7 @@ struct IncomingURLRouterTests {
             .appendingPathComponent("Resources/Info.plist")
         let info = try #require(NSDictionary(contentsOf: plist) as? [String: Any])
         let types = try #require(info["CFBundleURLTypes"] as? [[String: Any]])
-        #expect(types.first?["CFBundleURLName"] as? String == "com.thaw.floe")
+        #expect(types.first?["CFBundleURLName"] as? String == "org.thaw.floe")
         #expect(types.first?["CFBundleURLSchemes"] as? [String] == ["floe"])
     }
 }

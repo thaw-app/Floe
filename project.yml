@@ -155,7 +155,7 @@ targets:
         LSUIElement: true
         # Thaw answers Floe's appearance request by opening floe://thaw-appearance. IncomingURLRouter takes every floe:// link.
         CFBundleURLTypes:
-          - CFBundleURLName: com.thaw.floe
+          - CFBundleURLName: org.thaw.floe
             CFBundleURLSchemes: [floe]
         # AI.ask can be pointed at a model server on this Mac or the local network (Ollama, LM Studio),
         # which answers over plain http.
@@ -176,7 +176,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: Floe
-        PRODUCT_BUNDLE_IDENTIFIER: com.thaw.floe
+        PRODUCT_BUNDLE_IDENTIFIER: org.thaw.floe
         # Ad hoc ("Sign to Run Locally"); set a team here once the app needs stable permissions.
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"
