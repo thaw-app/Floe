@@ -241,6 +241,7 @@
 		CE3E4DCBD44F4F83D07FDFD1 /* MemorySyncStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4791DC4C059AED96BCEC4BD /* MemorySyncStore.swift */; };
 		CE4980D0D2FB7C31D9D92402 /* LentSignIn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EAF1A1ABE57A2E066C84365 /* LentSignIn.swift */; };
 		D00E7B600C05D1A53076F0BB /* LauncherPanelAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 728DBFD5129A4F82B5C9DE49 /* LauncherPanelAppearance.swift */; };
+		D29ADA0E7AFDBEC4476A1E36 /* DropdownMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC0E28DFBAEC63960564EE39 /* DropdownMenu.swift */; };
 		D38CFDE6CB1A7B0702FC79E7 /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62CED5B91219A28FC90A5B73 /* MenuBarIcon.swift */; };
 		D44042456742E51268343BEA /* WebAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838202A59776C019564D4C7C /* WebAddress.swift */; };
 		D5D05D876E2D058B5A83B667 /* MenuBarSearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54BA866B297886E737D4037E /* MenuBarSearchModel.swift */; };
@@ -591,6 +592,7 @@
 		FB80B2B608F7396A0CCB29AF /* JSONFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONFile.swift; sourceTree = "<group>"; };
 		FB94266FDB7EACCCA3986AD1 /* Picker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Picker.swift; sourceTree = "<group>"; };
 		FBAE97F9F789080825D77939 /* AISources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISources.swift; sourceTree = "<group>"; };
+		FC0E28DFBAEC63960564EE39 /* DropdownMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropdownMenu.swift; sourceTree = "<group>"; };
 		FE645075079A42E9C95DFC8D /* Model+Checkpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Checkpoints.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -865,6 +867,7 @@
 			children = (
 				26FC03A029A34D38B9446379 /* BackgroundScheduler.swift */,
 				A70BF33F9908B530D3859110 /* CustomIcon.swift */,
+				FC0E28DFBAEC63960564EE39 /* DropdownMenu.swift */,
 				CC2033FDF332D4135EDF2DEF /* ErrorView.swift */,
 				49F344E4E1A683D2886D89AA /* ExtensionAccess.swift */,
 				A8AEDEB267607D5474C20D6F /* ExtensionListViews.swift */,
@@ -1278,6 +1281,7 @@
 				347892F3937807F6287BE452 /* Diagnostics.swift in Sources */,
 				B60670B502F8FFBB4FDCBF3F /* DiagnosticsSettingsSection.swift in Sources */,
 				78089551521EC8A3D75F61F6 /* DirectoryWatcher.swift in Sources */,
+				D29ADA0E7AFDBEC4476A1E36 /* DropdownMenu.swift in Sources */,
 				AD7D516AA066DF894A612E04 /* Emoji.swift in Sources */,
 				F7A2E028912AD04F9BA46052 /* ErrorView.swift in Sources */,
 				43F17B98BA614FECDEE76F41 /* ExchangeRates.swift in Sources */,

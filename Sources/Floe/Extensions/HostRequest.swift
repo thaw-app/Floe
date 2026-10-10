@@ -138,13 +138,13 @@ nonisolated enum HostRequest: Sendable, Equatable {
     @MainActor
     private static func frontmostApplication() -> [String: String]? {
         guard let app = NSWorkspace.shared.frontmostApplication, let url = app.bundleURL else { return nil }
-        var application: [String: String] = [
-            "name": app.localizedName ?? url.deletingPathExtension().lastPathComponent,
-            "path": url.path,
-        ]
-        if let bundleId = app.bundleIdentifier {
-            application["bundleId"] = bundleId
-        }
+        return application(at: url, name: app.localizedName)
+    }
+
+    /// An app as the API's Application. Extensions tell apps apart by `bundleId`, so it is there whenever the bundle has one.
+    static func application(at url: URL, name: String? = nil) -> [String: String] {
+        var application = ["name": name ?? url.deletingPathExtension().lastPathComponent, "path": url.path]
+        application["bundleId"] = Bundle(url: url)?.bundleIdentifier
         return application
     }
 
@@ -153,11 +153,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
     @MainActor
     private static func defaultApplication(forFileAt path: String) -> [String: String]? {
         let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
-        guard let app = NSWorkspace.shared.urlForApplication(toOpen: url) else { return nil }
-        return [
-            "name": app.deletingPathExtension().lastPathComponent,
-            "path": app.path,
-        ]
+        return NSWorkspace.shared.urlForApplication(toOpen: url).map { application(at: $0) }
     }
 }
 

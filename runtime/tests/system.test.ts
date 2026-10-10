@@ -97,6 +97,36 @@ describe("toasts and HUD", () => {
     await api.showHUD("Copied", { clearRootSearch: true });
     expect(sent()).toEqual([{ type: "hud", title: "Copied" }]);
   });
+
+  // What a command without a view does to report on itself, as the NetBird extension's connect does.
+  test("progress, then the window closed, then the result all reach the app in that order", async () => {
+    const progress = await api.showToast({ style: api.Toast.Style.Animated, title: "Connecting", message: "Please wait..." });
+    await progress.hide();
+    await api.closeMainWindow({ clearRootSearch: true });
+    await api.showToast({ style: api.Toast.Style.Success, title: "Connected", message: "" });
+    const id = sent("toast")[0].id;
+    expect(sent()).toEqual([
+      { type: "toast", id, style: "animated", title: "Connecting", message: "Please wait...", hidden: false },
+      expect.objectContaining({ type: "toast", id, hidden: true }),
+      { type: "close" },
+      expect.objectContaining({ type: "toast", style: "success", title: "Connected", message: "", hidden: false }),
+    ]);
+    expect(sent("toast").at(-1)?.id).not.toBe(id);
+  });
+
+  // The shape @raycast/utils' showFailureToast gives showToast: the error as the message, and an action to copy it.
+  test("a failure toast carries its reason and its action's title", async () => {
+    const error = new Error("daemon is not running");
+    await api.showToast({
+      style: api.Toast.Style.Failure,
+      title: "Failed to connect",
+      message: error.message,
+      primaryAction: { title: "Copy Logs", onAction: () => {} },
+    });
+    expect(sent()).toEqual([
+      expect.objectContaining({ type: "toast", style: "failure", title: "Failed to connect", message: "daemon is not running", primaryTitle: "Copy Logs", hidden: false }),
+    ]);
+  });
 });
 
 describe("confirmAlert", () => {

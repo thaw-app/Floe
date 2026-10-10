@@ -173,17 +173,18 @@ struct DropdownView: View {
     let session: ExtensionSession
 
     var body: some View {
-        let items = node.descendants(ofType: "Dropdown.Item")
-        let current = items.first { $0.props["value"] as? String == node.props["value"] as? String }
-        Menu {
-            ForEach(items) { item in
-                Button(item.string("title") ?? "") { session.event(node, "onChange", [item.props["value"] as? String ?? ""]) }
-            }
+        let entries = DropdownMenu.entries(for: node)
+        let current = node.props["value"] as? String
+        Button {
+            DropdownMenu.open(entries, current: current) { session.event(node, "onChange", [$0]) }
         } label: {
-            Text(current?.string("title") ?? node.string("placeholder") ?? String(localized: "Select", bundle: .floe, comment: "The label of a menu before anything is chosen in it."))
+            HStack(spacing: ThawSpacing.tight) {
+                Text(DropdownMenu.title(of: current, in: entries) ?? node.string("placeholder") ?? String(localized: "Select", bundle: .floe, comment: "The label of a menu before anything is chosen in it."))
+                Image(systemName: "chevron.up.chevron.down").font(ThawType.caption).foregroundStyle(.secondary)
+            }
         }
-        .menuStyle(.button)
         .fixedSize()
+        .help(node.string("tooltip") ?? "")
     }
 }
 

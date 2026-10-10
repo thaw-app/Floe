@@ -177,6 +177,9 @@ final class LauncherModel: ObservableObject {
     private var hasLoadedScripts = false
     private var didAutorun = false
     private var pendingReset: DispatchWorkItem?
+    private var isPanelShown = false
+    /// The last toast shown as a HUD, so the same one is not shown twice.
+    private var toastLine: (session: ObjectIdentifier, id: Int, line: String)?
     /// Watches the open command's extension while it is one being developed (see HotReload.swift).
     private var sourceWatcher: DirectoryWatcher?
     @Published private(set) var apps: [AppEntry] = []
@@ -760,7 +763,7 @@ final class LauncherModel: ObservableObject {
         }
     }
 
-    private func handle(_ message: [String: Any], from session: ExtensionSession) {
+    func handle(_ message: [String: Any], from session: ExtensionSession) {
         switch message["type"] as? String {
         case "exit", "popToRoot":
             let wasBackground = session.command.mode != "view"
@@ -786,8 +789,23 @@ final class LauncherModel: ObservableObject {
             hidePanel()
             openSettings(session.command.extensionName)
         default:
-            break
+            showToastWithoutFooter(message, of: session)
         }
+    }
+
+    /// A toast is drawn in the footer of its command's view. A command without a view has no footer, and a
+    /// hidden panel shows none, so there the toast becomes a HUD, as it does in Raycast.
+    private func showToastWithoutFooter(_ message: [String: Any], of session: ExtensionSession) {
+        guard message["type"] as? String == "toast", let toast = session.toast, !toast.line.isEmpty else { return }
+        if session.command.mode == "view" {
+            // A view that is only hidden keeps its progress to itself; what it finished or failed at is said.
+            guard !isPanelShown, toast.style != "animated" else { return }
+        }
+        // Setting a toast's title and then its message sends it twice.
+        let shown = (ObjectIdentifier(session), toast.id, toast.line)
+        guard toastLine.map({ $0 == shown }) != true else { return }
+        toastLine = shown
+        showHUD(toast.line)
     }
 
     func end(_ session: ExtensionSession) {
@@ -802,6 +820,7 @@ final class LauncherModel: ObservableObject {
 
     /// The panel closed. The open command survives for the configured delay, so reopening resumes it.
     func panelDidHide() {
+        isPanelShown = false
         pendingReset?.cancel()
         let delay = settings.popToRootDelay
         guard delay > 0, session != nil || setup != nil else {
@@ -814,6 +833,7 @@ final class LauncherModel: ObservableObject {
     }
 
     func panelWillShow() {
+        isPanelShown = true
         pendingReset?.cancel()
         pendingReset = nil
         reloadScripts()

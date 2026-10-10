@@ -174,6 +174,19 @@ struct ExtensionSessionTests {
         #expect(session.toast == nil)
     }
 
+    @Test func aToastThatIsShownIsHandedToTheModelAndOneThatIsHiddenIsNot() {
+        apply(["type": "toast", "id": 4, "style": "failure", "title": "Failed to connect", "message": "no daemon"])
+        #expect(recorder.forwarded.count == 1, "a command without a view has no footer: the model says it")
+        #expect(recorder.forwarded.first?["type"] as? String == "toast")
+        #expect(session.toast?.line == "Failed to connect: no daemon")
+        apply(["type": "toast", "id": 4, "hidden": true])
+        #expect(recorder.forwarded.count == 1)
+        apply(["type": "error", "message": "Request failed", "fatal": false])
+        #expect(recorder.forwarded.count == 2, "an error nobody handled is a toast as well")
+        #expect(ToastState(id: 1, style: "success", title: "Connected", message: "").line == "Connected")
+        #expect(ToastState(id: 1, style: "success", title: "", message: nil).line.isEmpty)
+    }
+
     @Test func aToastWithoutDetailsGetsDefaults() {
         apply(["type": "toast"])
         #expect(session.toast == ToastState(id: 0, style: "success", title: "", message: nil))

@@ -22,6 +22,11 @@ struct ToastState: Equatable {
     let message: String?
     var primaryTitle: String?
     var secondaryTitle: String?
+
+    /// The toast on one line, for where there is no footer to draw it in.
+    var line: String {
+        [title, message ?? ""].filter { !$0.isEmpty }.joined(separator: ": ")
+    }
 }
 
 /// An in-panel confirmation dialog from `confirmAlert`. The id is the host request it answers.
@@ -184,6 +189,8 @@ final class ExtensionSession: ObservableObject {
                     secondaryTitle: fields["secondaryTitle"] as? String
                 )
                 toast = state
+                // The model shows it where this session has no footer on screen.
+                onMessage(fields)
                 // A toast with an action stays until it is dismissed or acted on.
                 guard state.style != "animated", state.primaryTitle == nil, state.secondaryTitle == nil else { return }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
@@ -199,6 +206,7 @@ final class ExtensionSession: ObservableObject {
                 failure = SessionFailure(kind: .error, message: text, details: details)
             } else {
                 toast = ToastState(id: -1, style: "failure", title: String(localized: "Extension error", bundle: .floe), message: text)
+                onMessage(["type": "toast"])
             }
         case "pong":
             pingSentAt = nil
@@ -326,9 +334,11 @@ final class ExtensionSession: ObservableObject {
             event(action, "onAction")
         }
     }
+}
 
-    // MARK: Forms
+// MARK: Forms and selection
 
+extension ExtensionSession {
     func formValue(_ field: Node) -> Any? {
         ViewState.formValue(field, typed: formValues)
     }

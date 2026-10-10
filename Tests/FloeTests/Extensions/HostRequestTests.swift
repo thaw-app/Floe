@@ -10,6 +10,19 @@ import Foundation
 import Testing
 
 struct HostRequestTests {
+    @Test func anApplicationCarriesItsNameItsPathAndItsBundleIdentifier() throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-host-request-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let app = folder.appendingPathComponent("Helium.app")
+        try FileManager.default.createDirectory(at: app.appendingPathComponent("Contents"), withIntermediateDirectories: true)
+        let plist = try PropertyListSerialization.data(fromPropertyList: ["CFBundleIdentifier": "net.imput.helium"], format: .xml, options: 0)
+        try plist.write(to: app.appendingPathComponent("Contents/Info.plist"))
+        #expect(HostRequest.application(at: app) == ["name": "Helium", "path": app.path, "bundleId": "net.imput.helium"], "what getDefaultApplication answers with")
+        #expect(HostRequest.application(at: app, name: "Helium Browser")["name"] == "Helium Browser", "the frontmost app goes by the name it shows")
+        let bare = folder.appendingPathComponent("Script.app")
+        #expect(HostRequest.application(at: bare) == ["name": "Script", "path": bare.path], "no bundle, no identifier")
+    }
+
     private let claude = URL(fileURLWithPath: "/tools/claude")
     private let codex = URL(fileURLWithPath: "/tools/codex")
 
