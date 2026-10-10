@@ -72,6 +72,7 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
         settings.onSaved = { link.send(.settingsChanged) }
         SnippetStore.shared.onSaved = { link.send(.storeChanged(.snippets)) }
         QuicklinkStore.shared.onSaved = { link.send(.storeChanged(.quicklinks)) }
+        PreferenceStore.onSaved = { link.send(.storeChanged(.preferences)) }
         settings.$isRecordingHotkey.removeDuplicates().dropFirst()
             .sink { link.send(.recording($0)) }
             .store(in: &cancellables)
@@ -139,7 +140,7 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
         switch store {
         case .snippets: SnippetStore.shared.reload()
         case .quicklinks: QuicklinkStore.shared.reload()
-        case nil: break
+        case .preferences, nil: break
         }
     }
 

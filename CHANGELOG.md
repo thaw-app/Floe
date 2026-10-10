@@ -136,8 +136,8 @@ After you install:
 
 ### New: sync
 
-- **Settings sync with iCloud**, off until you switch it on in Settings > General. Aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks are the same on your Macs, and the newest change wins.
-- **Some things stay on each Mac:** folders, permissions, AI settings and keys, extension preferences, clipboard history and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
+- **Settings sync with iCloud**, off until you switch it on in Settings > General. Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are the same on your Macs, and the newest change wins.
+- **Some things stay on each Mac:** folders, permissions, AI settings and keys, an extension's passwords, files, folders and chosen apps, clipboard history and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
 
 ### Known issues
 

@@ -24,6 +24,11 @@ struct SyncSettingsSection: View {
                 Text("Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out.")
             }
             .disabled(isUnavailable)
+            Toggle(isOn: $settings.syncsExtensionSettings) {
+                Text("Include extension settings")
+                Text("Preferences of your extensions sync too. Passwords, files, folders and chosen apps stay on this Mac.")
+            }
+            .disabled(isUnavailable || !settings.syncsWithICloud)
             LabeledContent("Status") {
                 Text(SettingsSyncText.line(for: sync.status)).foregroundStyle(.secondary)
             }

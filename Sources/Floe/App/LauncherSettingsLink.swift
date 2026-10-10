@@ -17,7 +17,11 @@ final class LauncherSettingsLink {
     private let process = SettingsProcess()
     private let link: ProcessLink
     private var recording = RemoteRecording()
-    private lazy var sync = SettingsSyncService(settings: settings)
+    private lazy var sync = SettingsSyncService(settings: settings, extensions: extensionSync)
+    private lazy var extensionSync = ExtensionSettingsSync(
+        access: .stored(includes: { [settings] in settings.syncsExtensionSettings }, commands: { [model] in model.allCommands }),
+        storage: .file(Paths.support.appendingPathComponent("ExtensionSync.json"))
+    )
     private var cancellables = Set<AnyCancellable>()
 
     init(model: LauncherModel, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
@@ -37,6 +41,12 @@ final class LauncherSettingsLink {
         settings.onSaved = { link.send(.settingsChanged) }
         SnippetStore.shared.onSaved = { link.send(.storeChanged(.snippets)) }
         QuicklinkStore.shared.onSaved = { link.send(.storeChanged(.quicklinks)) }
+        let sync = sync
+        PreferenceStore.onSaved = { sync.extensionSettingsChanged() }
+        // An extension installed after its record arrived takes the record once the scan lists it.
+        model.$allCommands.dropFirst()
+            .sink { _ in sync.extensionSettingsChanged() }
+            .store(in: &cancellables)
         ThawAppearanceFollower.shared.$status
             // After the publisher's willSet, and after the answer it stands for is in the defaults.
             .receive(on: DispatchQueue.main)
@@ -112,6 +122,7 @@ final class LauncherSettingsLink {
         switch store {
         case .snippets: SnippetStore.shared.reload()
         case .quicklinks: QuicklinkStore.shared.reload()
+        case .preferences: sync.extensionSettingsChanged()
         case nil: break
         }
     }

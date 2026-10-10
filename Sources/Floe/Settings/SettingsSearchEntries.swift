@@ -679,6 +679,17 @@ extension SearchIndex {
             ).searchTerms
         ),
         .general(
+            "syncsExtensionSettings",
+            String(localized: "Include extension settings", bundle: .floe),
+            description: String(localized: "Preferences of your extensions sync too. Passwords, files, folders and chosen apps stay on this Mac.", bundle: .floe),
+            section: String(localized: "iCloud", bundle: .floe),
+            keywords: String(
+                localized: "sync, icloud, extensions, extension preferences, extension settings, macs",
+                bundle: .floe,
+                comment: "Words that find the Include extension settings setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
             "transferSettings",
             String(localized: "Export or import settings", bundle: .floe),
             description: String(localized: "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac.", bundle: .floe),

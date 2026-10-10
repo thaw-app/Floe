@@ -562,6 +562,7 @@
     "Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out." : {},
     "Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out." : {},
     "Aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks are kept in your iCloud account." : {},
+    "Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are kept in your iCloud account." : {},
     "All day · %@" : {
       "comment" : "The placeholder is the name of a calendar."
     },
@@ -1442,6 +1443,7 @@
     },
     "Import…" : {},
     "In the menu bar" : {},
+    "Include extension settings" : {},
     "Include extensions installed in Raycast" : {},
     "Incompatible unit conversion." : {
       "comment" : "A calculator error."
@@ -1955,6 +1957,7 @@
     "Preferences" : {
       "comment" : "The heading over an extension's own settings."
     },
+    "Preferences of your extensions sync too. Passwords, files, folders and chosen apps stay on this Mac." : {},
     "Preferred Apps" : {},
     "Prefix" : {},
     "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
@@ -3369,6 +3372,9 @@
     },
     "sync, icloud, cloud, macs, devices, backup, share, remove" : {
       "comment" : "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
+    },
+    "sync, icloud, extensions, extension preferences, extension settings, macs" : {
+      "comment" : "Words that find the Include extension settings setting in the settings search, separated by commas."
     },
     "tabs, browser, safari, open tabs, automation, applescript, source" : {
       "comment" : "Words that find the Browser Tabs setting in the settings search, separated by commas."

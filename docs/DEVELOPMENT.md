@@ -340,6 +340,17 @@ Floe's part is `Settings/SettingsSync.swift`, the table of what syncs and what s
   says so in the status; a longer key is stored under a digest. The number of keys is what runs out first: a
   test's heavy user (150 aliases, 60 hotkeys, 60 hidden results, 40 favorites, 200 snippets, 57 quicklinks) is 587
   records and 220 KB.
+- Extension preferences are one record per extension (`ext/<name>`, `Settings/ExtensionSettingsSync.swift`), because
+  the keys run out first: GitHub's 47 preferences are one record of 1.8 KB. The heavy user with 40 extensions of ten
+  preferences each is 627 records and 239 KB. A record holds text fields, checkboxes and dropdowns; passwords, files,
+  folders and chosen apps are never in one, and a kind added later stays out until it is put on the list.
+- An extension's record is merged whole: two Macs that change different preferences of one extension before seeing
+  each other both end with the newer record. Merging inside the record would need a time for each preference and an
+  engine that sends back what it merged, which it does not do.
+- Applying a record writes the values it names to the extension's `preferences.json`, as an edit in Settings does; a
+  command reads them when it next starts. A record of an extension that is not installed here, or one that arrives
+  while "Include extension settings" is off, is kept (`ExtensionSync.json`) and applied once it can be. Removing an
+  extension removes no record. Settings tells the launcher of an edit with `storeChanged(.preferences)`.
 - No test touches iCloud. Nothing here has run against the real store, on a signed build or between two Macs.
 
 A build signed ad hoc has no entitlement for iCloud, says "Unavailable" and never opens the store

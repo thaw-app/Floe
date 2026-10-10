@@ -117,9 +117,10 @@ struct LinkMessage: Equatable {
     }
 }
 
-/// The stores kept in memory by both processes, apart from `AppSettings`.
+/// The stores both processes write, apart from `AppSettings`. Extension preferences are read from disk when needed,
+/// so hearing of them only tells the launcher's sync to look.
 enum LinkStore: String {
-    case snippets, quicklinks
+    case snippets, quicklinks, preferences
 }
 
 /// What the launcher scans again when Settings changed it on disk.

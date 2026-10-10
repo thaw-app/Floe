@@ -9,13 +9,21 @@
 import Foundation
 import Testing
 
+/// The extensions one pretend Mac has, and the preferences it stores for them, in place of a scan and of files.
+final class PretendExtensions {
+    var commands: [ExtensionCommand] = []
+    var stored: [String: [String: Any]] = [:]
+}
+
 /// One Mac's Floe: scratch settings and stores, and the sync service over a store in memory.
-private final class SyncedFloe {
+final class SyncedFloe {
     let scratch: ScratchDefaults
     let settings: AppSettings
     let snippets: SnippetStore
     let quicklinks: QuicklinkStore
     let store: MemorySyncStore
+    let installed = PretendExtensions()
+    let extensions: ExtensionSettingsSync
     let service: SettingsSyncService
     var time: TimeInterval = 1000
     private var journal: SyncJournal?
@@ -28,11 +36,20 @@ private final class SyncedFloe {
         let store = MemorySyncStore(cloud: cloud)
         self.store = store
         var journal: SyncJournal?
+        var held: ExtensionSettingsSync.Held?
+        let access = ExtensionSettingsSync.Access(
+            includes: { [settings] in settings.syncsExtensionSettings },
+            commands: { [installed] in installed.commands },
+            stored: { [installed] in installed.stored[$0] ?? [:] },
+            merge: { [installed] values, name in installed.stored[name, default: [:]].merge(values) { _, theirs in theirs } }
+        )
+        extensions = ExtensionSettingsSync(access: access, storage: .init(load: { held }, save: { held = $0 }))
         var clock: () -> TimeInterval = { 1000 }
         service = SettingsSyncService(
             settings: settings,
             snippets: snippets,
             quicklinks: quicklinks,
+            extensions: extensions,
             storage: SyncJournalStorage(load: { journal }, save: { journal = $0 }),
             availability: SyncAvailability(isEntitled: { true }, hasAccount: { true }),
             makeStore: { store },
@@ -287,9 +304,21 @@ struct SettingsSyncTests {
             mac.quicklinks.add(Quicklink(name: "Quicklink \(index)", keyword: "ql\(index)", url: "https://example.com/some/long/path/search?query={query}&index=\(index)"))
         }
         mac.settings.save()
+        let fields = (0 ..< 6).map { Fixture.field("some-preference-\($0)") } + (0 ..< 4).map { Fixture.field("some-checkbox-\($0)", type: "checkbox") }
+        for index in 0 ..< 40 {
+            let name = "extension-name-\(index)"
+            mac.installed.commands.append(Fixture.command("command-name", extension: name, extensionPreferences: fields))
+            let texts = (0 ..< 6).map { ("some-preference-\($0)", "a value someone typed in" as Any) }
+            mac.installed.stored[name] = Dictionary(uniqueKeysWithValues: texts + (0 ..< 4).map { ("some-checkbox-\($0)", true as Any) })
+        }
+        let extensionRecords = mac.extensions.records().mapValues { SyncRecord(value: $0, time: 1_760_000_000, device: UUID().uuidString) }
         let records = SettingsSyncService.snapshot(settings: mac.settings, snippets: mac.snippets, quicklinks: mac.quicklinks)
             .mapValues { SyncRecord(value: $0, time: 1_760_000_000, device: UUID().uuidString) }
+            .merging(extensionRecords) { first, _ in first }
         let size = SyncWire.size(of: records)
+        #expect(extensionRecords.count == 40, "one record for each extension, whatever it has of preferences")
+        #expect(records.count == 627)
+        #expect(SyncWire.size(of: extensionRecords) < 40 * 600)
         #expect(records.count < SyncWire.keyBudget)
         #expect(size < SyncWire.byteBudget / 3)
         #expect(SyncWire.fits(records))
@@ -302,8 +331,10 @@ struct SettingsSyncTests {
         #expect(SettingsSyncText.line(for: SyncStatus(state: .full)).contains("full"))
         #expect(SettingsSyncText.line(for: SyncStatus(state: .synced(Date(timeIntervalSince1970: 0)))).hasPrefix("Last synced "))
         #expect(SettingsSyncText.line(for: SyncStatus(state: .off, skipped: 2)).hasSuffix("2 entries in iCloud could not be read and were skipped."))
-        #expect(SettingsSyncText.privacyLine(isOn: false).hasPrefix("Settings sync is off"))
-        #expect(SettingsSyncText.privacyLine(isOn: true).contains("never sent"))
+        #expect(SettingsSyncText.privacyLine(isOn: false, includesExtensions: true).hasPrefix("Settings sync is off"))
+        #expect(SettingsSyncText.privacyLine(isOn: true, includesExtensions: false).contains("never sent"))
+        #expect(!SettingsSyncText.privacyLine(isOn: true, includesExtensions: false).contains("extension"))
+        #expect(SettingsSyncText.privacyLine(isOn: true, includesExtensions: true).contains("quicklinks and extension settings are kept"))
     }
 
     @Test func anOrderNeverAddsOrRemovesAMember() {

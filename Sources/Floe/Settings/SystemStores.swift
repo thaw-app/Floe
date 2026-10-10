@@ -27,6 +27,9 @@ extension AppSettings {
 /// Extension and command preference values. Plain values live in the extension's support folder
 /// as preferences.json; password preferences live in the Keychain.
 enum PreferenceStore {
+    /// Called after stored values changed. The process link sets it, so the launcher's sync hears of edits made in Settings.
+    static var onSaved: () -> Void = { /* nothing listens outside the app */ }
+
     static func directory(for extensionName: String) -> URL {
         Paths.data.appendingPathComponent(extensionName)
     }
@@ -39,7 +42,8 @@ enum PreferenceStore {
         directory(for: extensionName).appendingPathComponent("preferences.json")
     }
 
-    private static func storedValues(_ extensionName: String) -> [String: Any] {
+    /// An extension's plain stored values by storage key. Passwords are not among them.
+    static func storedValues(_ extensionName: String) -> [String: Any] {
         guard let data = try? Data(contentsOf: file(for: extensionName)) else { return [:] }
         return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
     }
@@ -73,6 +77,7 @@ enum PreferenceStore {
         if let data = try? JSONSerialization.data(withJSONObject: stored) {
             try? data.write(to: file(for: extensionName))
         }
+        onSaved()
     }
 
     /// Every extension's plain stored values, for a settings export.
@@ -93,6 +98,7 @@ enum PreferenceStore {
         if let data = try? JSONSerialization.data(withJSONObject: merged) {
             try? data.write(to: file(for: extensionName))
         }
+        onSaved()
     }
 
     /// Password preference keys by extension, never their values.

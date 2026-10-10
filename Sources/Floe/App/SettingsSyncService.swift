@@ -15,12 +15,14 @@ final class SettingsSyncService {
     private let settings: AppSettings
     private let snippets: SnippetStore
     private let quicklinks: QuicklinkStore
+    private let preferenceEdits = PassthroughSubject<Void, Never>()
     private var cancellables = Set<AnyCancellable>()
 
     init(
         settings: AppSettings = .shared,
         snippets: SnippetStore = .shared,
         quicklinks: QuicklinkStore = .shared,
+        extensions: ExtensionSettingsSync? = nil,
         storage: SyncJournalStorage = .file(Paths.support.appendingPathComponent("Sync.json")),
         availability: SyncAvailability = .system,
         makeStore: @escaping () -> any SyncStore = { UbiquitousSyncStore() },
@@ -30,10 +32,14 @@ final class SettingsSyncService {
         self.snippets = snippets
         self.quicklinks = quicklinks
         let client = SyncClient(
-            snapshot: { Self.snapshot(settings: settings, snippets: snippets, quicklinks: quicklinks) },
+            snapshot: {
+                Self.snapshot(settings: settings, snippets: snippets, quicklinks: quicklinks)
+                    .merging(extensions?.records() ?? [:]) { first, _ in first }
+            },
             defaults: Self.freshRecords(),
             apply: { changed, removed in
                 Self.apply(changed, removed: removed, settings: settings, snippets: snippets, quicklinks: quicklinks)
+                    .union(extensions?.apply(changed, removed: removed) ?? [])
             },
             turnOff: { settings.syncsWithICloud = false }
         )
@@ -50,10 +56,15 @@ final class SettingsSyncService {
             .sink { engine.setOn($0) }
             .store(in: &cancellables)
         // A second is long enough to gather a burst of edits and short enough that quitting rarely loses one.
-        settings.objectWillChange.merge(with: snippets.objectWillChange, quicklinks.objectWillChange)
+        settings.objectWillChange.merge(with: snippets.objectWillChange, quicklinks.objectWillChange, preferenceEdits)
             .debounce(for: .seconds(1), scheduler: RunLoop.main)
             .sink { engine.localChanged() }
             .store(in: &cancellables)
+    }
+
+    /// Call when an extension's preferences were saved, or the installed extensions changed. The engine looks soon after.
+    func extensionSettingsChanged() {
+        preferenceEdits.send()
     }
 
     private static func object(_ data: Data?) -> [String: Any] {
@@ -116,10 +127,17 @@ nonisolated enum SettingsSyncText {
     }
 
     /// The Privacy pane's row: what goes to iCloud, and what never does.
-    static func privacyLine(isOn: Bool) -> String {
-        let what = isOn
-            ? String(localized: "Aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks are kept in your iCloud account.", bundle: .floe)
-            : String(localized: "Settings sync is off, so nothing is kept in iCloud.", bundle: .floe)
-        return what + " " + String(localized: "Passwords, keys, clipboard history, receipts and what you search are never sent.", bundle: .floe)
+    static func privacyLine(isOn: Bool, includesExtensions: Bool) -> String {
+        guard isOn else {
+            return String(localized: "Settings sync is off, so nothing is kept in iCloud.", bundle: .floe) + " " + neverSent
+        }
+        let what = includesExtensions
+            ? String(localized: "Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are kept in your iCloud account.", bundle: .floe)
+            : String(localized: "Aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks are kept in your iCloud account.", bundle: .floe)
+        return what + " " + neverSent
+    }
+
+    private static var neverSent: String {
+        String(localized: "Passwords, keys, clipboard history, receipts and what you search are never sent.", bundle: .floe)
     }
 }

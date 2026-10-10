@@ -113,6 +113,8 @@ final class AppSettings: ObservableObject {
     @Published var aiSourceByExtension: [String: AISource] = [:]
     /// Whether the settings in `SettingsSync.synced` are kept in step with iCloud. Off until the user says so.
     @Published var syncsWithICloud = false
+    /// Whether extension preferences are among what syncs. Only matters while `syncsWithICloud` is on.
+    @Published var syncsExtensionSettings = true
 
     /// Whether a command may be found and run: its extension is on, and so is the command.
     func isEnabled(_ command: ExtensionCommand) -> Bool {
@@ -189,6 +191,7 @@ final class AppSettings: ObservableObject {
         var focusShortcut: String?
         var aiSourceByExtension: [String: AISource]?
         var syncsWithICloud: Bool?
+        var syncsExtensionSettings: Bool?
     }
 
     private static let defaultsKey = "settings"
@@ -318,6 +321,7 @@ final class AppSettings: ObservableObject {
         focusShortcut = stored.focusShortcut ?? ""
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
         syncsWithICloud = stored.syncsWithICloud ?? false
+        syncsExtensionSettings = stored.syncsExtensionSettings ?? true
     }
 
     /// How the launcher looks, taken in apart from the rest so neither list grows past reading.
@@ -392,7 +396,8 @@ final class AppSettings: ObservableObject {
             fetchesExchangeRates: fetchesExchangeRates,
             focusShortcut: focusShortcut,
             aiSourceByExtension: aiSourceByExtension,
-            syncsWithICloud: syncsWithICloud
+            syncsWithICloud: syncsWithICloud,
+            syncsExtensionSettings: syncsExtensionSettings
         )
         if let data = try? JSONEncoder().encode(stored) {
             write(data)
