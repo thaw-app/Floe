@@ -44,7 +44,6 @@ struct SnippetsSettingsPage: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Snippets")
         .sheet(item: $editing) { snippet in
             SnippetEditor(snippet: snippet, isNew: !store.snippets.contains { $0.id == snippet.id }) { result in
                 if let result {

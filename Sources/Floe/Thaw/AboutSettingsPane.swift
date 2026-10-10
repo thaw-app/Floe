@@ -101,7 +101,6 @@ struct AboutSettingsPane: View {
         .onDisappear {
             copyFeedbackTask?.cancel()
         }
-        .navigationTitle("About")
     }
 
     // MARK: Identity

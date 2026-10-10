@@ -24,7 +24,6 @@ struct ExtensionStoreSettingsPage: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
         }
-        .navigationTitle("Extension Store")
         .task {
             await store.loadCatalog()
         }

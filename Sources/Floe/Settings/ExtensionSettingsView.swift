@@ -95,7 +95,6 @@ struct ExtensionSettingsView: View {
             }
             .formStyle(.grouped)
             .settingsSearchAnchorScroll()
-            .navigationTitle(first.extensionTitle)
             // The importer and what it does with a picture follow Thaw's picker for its menu bar icon.
             .fileImporter(isPresented: $choosingIcon, allowedContentTypes: [.image]) { result in
                 do {

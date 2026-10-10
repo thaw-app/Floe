@@ -32,6 +32,8 @@ struct SettingsView: View {
             detail
                 // The system toolbar is the pane header: it names the pane and
                 // stays put while the form scrolls under it.
+                // Named here from the selection, not by each pane: a pane's own title only arrived once the pane was built.
+                .navigationTitle(title)
                 .navigationSubtitle(subtitle)
                 // Fill the detail column so the Form's scrollbar sits on the
                 // window's trailing edge.
@@ -80,6 +82,22 @@ struct SettingsView: View {
                 onRemoved: { selection.page = .extensionStore }
             )
             .id(name)
+        }
+    }
+
+    /// The pane's name in the toolbar, the one its sidebar row has. Search results name themselves.
+    private var title: String {
+        guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
+        return switch selection.page {
+        case .general: SearchPaneLabel.general.title
+        case .applications: SearchPaneLabel.applications.title
+        case .quicklinks: SearchPaneLabel.quicklinks.title
+        case .snippets: SearchPaneLabel.snippets.title
+        case .extensionStore: SearchPaneLabel.extensionStore.title
+        case .appearance: SearchPaneLabel.appearance.title
+        case .privacy: SearchPaneLabel.privacy.title
+        case .about: SearchPaneLabel.about.title
+        case let .extensionPage(name): catalog.allCommands.first { $0.extensionName == name }?.extensionTitle ?? name
         }
     }
 
@@ -422,7 +440,6 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("General")
     }
 }
 
@@ -469,7 +486,6 @@ struct ApplicationSettingsView: View {
                 }
             }
         }
-        .navigationTitle("Applications")
     }
 
     private static func key(_ app: AppEntry) -> String {

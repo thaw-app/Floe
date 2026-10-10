@@ -66,7 +66,6 @@ struct QuicklinksSettingsPage: View {
             )
         }
         .formStyle(.grouped)
-        .navigationTitle("Quicklinks")
         .sheet(isPresented: $showingEditor) {
             editor
         }
