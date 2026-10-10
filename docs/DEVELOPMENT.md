@@ -74,8 +74,8 @@ pair as its sender. The welcome window at first launch is still the launcher's.
   - `Settings`: the settings model (`Settings.swift`), its window, pages and sections, settings search entries,
     import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process, and
     `SettingsCatalog.swift` the commands, scripts and apps it lists.
-  - `Sync`: settings sync through iCloud's key-value store, written to be moved to Thaw as it is. It knows records,
-    not Floe's settings (see "Settings sync").
+  - `Sync`: settings sync through iCloud, by CloudKit or the key-value store, written to be moved to Thaw as it is.
+    It knows records, not Floe's settings (see "Settings sync").
   - `Picker`: `Floe --pick`.
   - `PreferredApps`, `Thaw` and `DroppyCode` are described below. `Tests/FloeTests` has the same folders.
 - `runtime/host.ts`: bundles a command, renders it with a custom React reconciler, speaks NDJSON on stdio.
@@ -317,9 +317,10 @@ ignore that key, and without it a Debug build refuses to check.
 ## Settings sync
 
 Off by default; the switch is in Settings › General. `Sources/Floe/Sync` is the engine and names no type of Floe's:
-`SyncRecord.swift` (a record and the merge, with no store or clock in it), `SyncStore.swift` (the store's protocol
-and how a record is written into it), `UbiquitousSyncStore.swift` (iCloud's store, and the two checks that say
-whether it may be used), `MemorySyncStore.swift` (a store and a pretend cloud for tests) and `SyncEngine.swift`.
+`SyncRecord.swift` (a record and the merge, with no store or clock in it), `SyncStore.swift` (the store's protocol,
+its limits and how a record is written into it), `SyncAvailability.swift` (which store the build is signed for),
+`UbiquitousSyncStore.swift` (iCloud's key-value store), the CloudKit store described below, `MemorySyncStore.swift`
+(a store and a pretend cloud for tests) and `SyncEngine.swift`.
 Floe's part is `Settings/SettingsSync.swift`, the table of what syncs and what stays on one Mac, and
 `App/SettingsSyncService.swift`, which runs in the launcher. A stored setting in neither list of the table fails
 `SettingsSyncTests` and is not synced.
@@ -336,10 +337,12 @@ Floe's part is `Settings/SettingsSync.swift`, the table of what syncs and what s
 - Removing the cloud copy leaves a clear marker. Each Mac remembers markers it has actually seen, not its local
   clock when it enabled sync. A deliberate join accepts an existing marker from the cache or first download;
   a restart with sync already on still obeys an unseen removal.
-- iCloud's store takes 1 MB, 1024 keys and keys of 64 bytes. The engine stops writing at 90% of the first two and
-  says so in the status; a longer key is stored under a digest. The number of keys is what runs out first: a
-  test's heavy user (150 aliases, 60 hotkeys, 60 hidden results, 40 favorites, 200 snippets, 57 quicklinks) is 587
-  records and 220 KB.
+- The limits are the store's (`SyncLimits`, asked through `SyncStore.limits`). The key-value store takes 1 MB,
+  1024 keys and keys of 64 bytes. The engine stops writing at 90% of the first two and says so in the status; a
+  longer key is stored under a digest. The number of keys is what runs out first: a test's heavy user (150
+  aliases, 60 hotkeys, 60 hidden results, 40 favorites, 200 snippets, 57 quicklinks) is 587 records and 220 KB.
+  CloudKit counts no records and limits one to about 1 MB; its record names are ASCII of at most 255 characters,
+  so any other key goes under the same digest.
 - Extension preferences are one record per extension (`ext/<name>`, `Settings/ExtensionSettingsSync.swift`), because
   the keys run out first: GitHub's 47 preferences are one record of 1.8 KB. The heavy user with 40 extensions of ten
   preferences each is 627 records and 239 KB. A record holds text fields, checkboxes and dropdowns; passwords, files,
@@ -351,7 +354,49 @@ Floe's part is `Settings/SettingsSync.swift`, the table of what syncs and what s
   command reads them when it next starts. A record of an extension that is not installed here, or one that arrives
   while "Include extension settings" is off, is kept (`ExtensionSync.json`) and applied once it can be. Removing an
   extension removes no record. Settings tells the launcher of an edit with `storeChanged(.preferences)`.
-- No test touches iCloud. Nothing here has run against the real store, on a signed build or between two Macs.
+- No test touches iCloud. Nothing here has run against either real store, on a signed build or between two Macs.
+
+Which store a build uses is read from its own entitlements (`SyncAvailability.systemBackend`): CloudKit when it has
+`com.apple.developer.icloud-container-identifiers` and the `CloudKit` service, the key-value store when it has only
+`com.apple.developer.ubiquity-kvstore-identifier`, none otherwise. The container's name comes from the entitlement,
+so the folder names none. Nobody has synced with either store, so nothing moves from one to the other.
+
+The CloudKit store is `CKSyncEngine` over the private database: one zone, `Sync`, and one record type, `SyncRecord`,
+with one string field, `json`, holding the value as the engine wrote it. The record name is the store key.
+
+- `CloudSyncMirror.swift` is the store without CloudKit. `SyncStore` is asked without waiting, so the store answers
+  from a mirror, `SyncMirror.json` in the support folder: what the server is known to hold, each record with the
+  server's own fields for its next save, and over them the changes not yet sent. `CKSyncEngine`'s serialized state
+  is `SyncState.json` beside it. `CloudSyncCore` takes made-up events (`CloudSyncEvents.swift`) and answers with
+  commands for the sync engine and the change to report, which is what the tests drive.
+- `CloudSyncRecords.swift` turns an entry into a `CKRecord` and back, and a `CKError` into a failure the core knows.
+  `CloudKitSyncStore.swift` owns the `CKSyncEngine` and is its delegate: it translates events, runs the commands
+  and writes the two files. It is the only file that needs a signed build and an account, and no test runs it.
+- Either file may be lost. Without the state the next fetch starts from nothing and reports no deletions, so what
+  the server held is forgotten and read again; without the mirror the state is dropped for the same fetch. Changes
+  that waited are kept in the mirror and queued again at every launch and exchange.
+- Nothing is sent before a fetch has ended, and the engine is told of fetched changes once per fetch, so it never
+  merges with half of what the server holds.
+- A save the server rejects because its record changed puts the server's record in the mirror and reports a change.
+  The engine then decides by age as for any record and sets its own again if that is the newer; the second save
+  carries the server's fields and is taken. A fetched record replaces a waiting change the same way.
+- Signing out or switching accounts empties the mirror, deletes the saved state and starts a new `CKSyncEngine`.
+  The settings stay, and the engine uploads them to the new account as a first sync does.
+- "Remove Settings from iCloud" deletes the zone. The note that switches the other Macs off is saved after the
+  server confirms, into a zone made anew, so it is the one record left. A Mac that sees the zone deleted sends
+  nothing until its fetch has ended and the note is read. If the removing Mac goes offline between the deletion
+  and the note, another Mac can upload its copy again before the note arrives; it still switches off then.
+- Data the user deletes in System Settings (iCloud, Manage) arrives as a purged zone: sync switches off on that Mac
+  and nothing is uploaded again (`SyncStoreChange.removed`).
+- An account without room makes the status say so; the change waits and is sent again at the next exchange. A
+  change the server will never take (invalid, not permitted) waits for a new value and is not sent again.
+- Push: `CKSyncEngine` makes its own database subscription and registers for remote notifications itself, so the
+  app neither calls `registerForRemoteNotifications` nor forwards anything; the build needs the push entitlement.
+  Without push, changes arrive at launch and when the panel or Settings opens (`SettingsSyncService.look`, at most
+  once a minute for the panel).
+- From Apple's documentation and not tried: everything `CloudKitSyncStore.swift` does, the order in which the sync
+  engine sends zone and record changes, that it reports the end of every fetch, and whether it reports this Mac's
+  own zone deletion back to it. The tests' pretend server behaves as the documentation says the real one does.
 
 Passwords never go through the key-value store. `Settings/Keychain.swift` holds every Keychain call behind
 `KeychainAccess` (`SystemKeychain` over the Security framework, `MemoryKeychain` for tests), and `SecretVault` decides
@@ -375,43 +420,88 @@ own (`syncsPasswordsWithKeychain`), outside `AppSettings`, so an import or a syn
   profile. Read from the SDK header: a synchronizable item cannot use a "ThisDeviceOnly" accessibility, and updating
   or deleting one affects every device. Not tried: any call to the data protection keychain, on any build.
 
-A build signed ad hoc has no entitlement for iCloud, says "Unavailable" and never opens the store
-(`SyncAvailability.system` asks the running process). Two files hold the entitlements:
+A build signed ad hoc has no entitlement for iCloud, says "Unavailable" and never opens a store
+(`SyncAvailability.systemBackend` asks the running process). Two files hold the entitlements:
 
 - `Resources/Floe.entitlements` is what every build is signed with. It holds what the hardened runtime of a
   release needs to send Apple events and to ask for Calendar, Reminders and Contacts. Without them a release is
   refused with no prompt (tried: an app with the hardened runtime and no Apple events entitlement gets -1743).
-- `Resources/Floe-iCloud.entitlements` adds iCloud's key-value store and time-sensitive notifications. Those two
-  need the provisioning profile, and an app signed with them and without it does not launch.
+- `Resources/Floe-iCloud.entitlements` adds what needs the provisioning profile: iCloud's key-value store,
+  CloudKit with the container `iCloud.com.thaw.floe`, push notifications and time-sensitive notifications. An app
+  signed with them and without a profile that lists them does not launch, and a release built with this file and
+  a profile that lacks the container fails at signing.
 
-To ship sync, in this order:
+To ship sync, in this order. Each step says where it comes from: (code) read in this repository or run here,
+(Apple) Apple's documentation or SDK headers, (memory) remembered and not checked.
 
-1. developer.apple.com, Identifiers: open `com.thaw.floe`, or register it as an explicit App ID if it is not there,
-   and switch on iCloud. The key-value store needs no container.
-2. Profiles: add a Developer ID profile for that App ID with the Developer ID Application certificate the release
-   uses, name it `Floe Developer ID`, and download the `.provisionprofile`.
-3. Add it to the `prod` environment as a secret, for example `APPLE_PROVISIONING_PROFILE`:
+1. developer.apple.com, Certificates, Identifiers & Profiles, Identifiers: open `com.thaw.floe`. iCloud is on with
+   "Include CloudKit support". Click Edit (or Configure) beside iCloud and tick the container
+   `iCloud.com.thaw.floe`; if it is not listed, make it first under Identifiers, the "+" button, iCloud
+   Containers. Tick Push Notifications in the same list and save. (memory, for where to click; Apple, that
+   CloudKit needs the container and the push capability: "Configuring iCloud services", the `CKSyncEngine` header)
+2. Profiles: the `Floe Developer ID` profile is a copy of the identifier's capabilities as they were, so it shows
+   as invalid after step 1. Open it, click Edit, save, and download the new `.provisionprofile`. (memory)
+3. Check the profile before using it: `security cms -D -i Floe_Developer_ID.provisionprofile` prints it, and its
+   `Entitlements` must list `com.apple.developer.icloud-container-identifiers` with `iCloud.com.thaw.floe`,
+   `com.apple.developer.icloud-services`, `com.apple.developer.aps-environment` and
+   `com.apple.developer.ubiquity-kvstore-identifier`. (memory, not run here: there is no profile on this Mac)
+4. Replace the secret in the `prod` environment:
    `base64 -i Floe_Developer_ID.provisionprofile | gh secret set APPLE_PROVISIONING_PROFILE --env prod`.
-4. `project.yml` already sets `CODE_SIGN_ENTITLEMENTS: $(FLOE_ENTITLEMENTS)` and
-   `PROVISIONING_PROFILE_SPECIFIER: $(FLOE_PROFILE)` on the Floe target, with the first file and no profile
-   as the defaults. On the target and not on the command line, where they would reach the package targets too.
-5. org-ci has what this needs from the commit that adds provisioning profiles: `configure-signing` installs
-   the profile and outputs its name, `build` takes extra build settings, and `export-and-package` names the
-   profile for a bundle identifier.
-6. `release.yml` and `build-dmg.yml` pass the secret to `configure-signing`, pass
+   Do this before a release is built from a commit whose `Floe-iCloud.entitlements` names the container. (code,
+   for the secret's name and where the workflows read it)
+5. Put the record type in the production schema. CloudKit has two environments for every container. In
+   Development a record type and its fields are made the first time a record is saved; Production refuses a save
+   of a type or field it does not have. (Apple: `CKContainer`, "Deploying an iCloud container's schema") Which one
+   a build uses is its `com.apple.developer.icloud-container-environment` entitlement (Apple: `CKContainer`):
+   - A Developer ID release uses Production. The entitlements file does not set the key; the export does:
+     `xcodebuild -help` says of `iCloudContainerEnvironment` that it "defaults to Development when development
+     signing or Production when distribution signing", and the export action asks for `developer-id`. (code:
+     read from this Xcode's help and org-ci's `write-export-options.py`; not tried)
+   - A build signed with an Apple Development certificate and a development profile uses Development. This
+     repository builds none: it would need `FLOE_PROFILE` set to such a profile and a copy of the entitlements
+     with `com.apple.developer.aps-environment` set to `development`. (Apple, for the value; not tried)
+   - Since no development build exists to save the first record, make the type by hand. Sign in at
+     icloud.developer.apple.com, open CloudKit Database, choose `iCloud.com.thaw.floe` at the top and the
+     Development environment. Under Schema, Record Types, click "+", name it `SyncRecord`, add a field named
+     `json` of type String, and save. No index is needed: the sync engine fetches changes by zone and runs no
+     query. (code, for the names, which are `CloudSyncRecordCoder`'s; memory, for where to click and the index)
+   - Then, in the same container, select Deploy Schema Changes on the left, review the pending changes, and
+     click Deploy. (Apple: "Deploying an iCloud container's schema") A type or field in production cannot be
+     deleted afterwards. (Apple, same page) The zone is the user's data, made by the app, and is not deployed.
+     (memory)
+6. `project.yml` sets `CODE_SIGN_ENTITLEMENTS: $(FLOE_ENTITLEMENTS)` and
+   `PROVISIONING_PROFILE_SPECIFIER: $(FLOE_PROFILE)` on the Floe target, with `Resources/Floe.entitlements` and no
+   profile as the defaults. On the target and not on the command line, where they would reach the package
+   targets too. org-ci's `configure-signing` installs the profile and outputs its name, `build` takes extra build
+   settings, and `export-and-package` names the profile for a bundle identifier. (code)
+7. `release.yml` and `build-dmg.yml` pass the secret to `configure-signing`, pass
    `FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements` and `FLOE_PROFILE` to the build when a profile was
-   installed, and check the exported app before it is notarized. Without the secret they sign as before.
-7. Before publishing, check the exported app: `codesign -d --entitlements - Floe.app` shows
-   `com.apple.developer.ubiquity-kvstore-identifier` with the team id in front, and
-   `Floe.app/Contents/embedded.provisionprofile` exists. Then install it on two Macs and try the switch.
+   installed, and check the exported app before it is notarized ("Verify iCloud signing"): the profile is inside,
+   and the app carries the key-value store, the container and the Production environment. Without the secret
+   they sign as before, with no iCloud at all. (code)
+8. Before publishing, check the exported app yourself: `codesign -d --entitlements - Floe.app` shows
+   `com.apple.developer.ubiquity-kvstore-identifier` with the team id in front,
+   `com.apple.developer.icloud-container-identifiers` with `iCloud.com.thaw.floe`,
+   `com.apple.developer.icloud-services` with `CloudKit`, `com.apple.developer.aps-environment` with
+   `production` and `com.apple.developer.icloud-container-environment` with `Production`; and
+   `Floe.app/Contents/embedded.provisionprofile` exists. (code: the output's form was checked here on a scratch
+   binary signed ad hoc with these keys) Then install it on two Macs signed in to one iCloud account, switch sync
+   on on both, and change an alias on one.
+
+The entitlement keys, and where each comes from: `com.apple.developer.icloud-services` with `CloudKit` and
+`com.apple.developer.icloud-container-identifiers` (Apple's entitlement reference, and the entitlements of Apple's
+`sample-cloudkit-sync-engine`); `com.apple.developer.aps-environment` (Apple, "Registering your app with APNs": the
+Push Notifications capability adds `aps-environment` in iOS and this key in macOS; `production` for a Developer ID
+profile is from memory, and step 3 shows what the profile allows).
 
 Read from the code: the build action passes a fixed list of settings (`DEVELOPMENT_TEAM`, `CODE_SIGN_STYLE=Manual`,
-the Developer ID identity, the hardened runtime) and has no input for more, and the export action writes
-`signingStyle manual` with no `provisioningProfiles`. So both need the change in step 5. From Apple's documentation
-or from memory, and not tried here: that this entitlement needs a provisioning profile outside the App Store,
-that an app signed with it and without the profile is refused at launch, that the key-value store needs no
-container, where Xcode looks for profiles, that an empty `CODE_SIGN_ENTITLEMENTS` means none, that settings given
-on the command line reach package targets, and that an export with manual signing must be told the profile.
+the Developer ID identity, the hardened runtime) plus the extra ones a workflow gives it, and the export action
+writes `signingStyle manual` with the profile for the bundle identifier. From Apple's documentation or from memory,
+and not tried here: that these entitlements need a provisioning profile outside the App Store, that an app signed
+with them and without the profile is refused at launch, that the key-value store needs no container, where Xcode
+looks for profiles, that an empty `CODE_SIGN_ENTITLEMENTS` means none, that settings given on the command line
+reach package targets, that an export with manual signing must be told the profile, and that a Developer ID
+profile carries `production` for push and allows the Production environment.
 
 ## Checks
 

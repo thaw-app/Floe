@@ -18,6 +18,11 @@ final class SettingsSyncService {
     private let quicklinks: QuicklinkStore
     private let preferenceEdits = PassthroughSubject<Void, Never>()
     private var cancellables = Set<AnyCancellable>()
+    private let now: () -> Date
+    private var lastLook = Date.distantPast
+
+    /// How long a look at iCloud is good for when only the panel opened. It opens often, and push brings news anyway.
+    static let lookInterval: TimeInterval = 60
 
     init(
         settings: AppSettings = .shared,
@@ -25,8 +30,7 @@ final class SettingsSyncService {
         quicklinks: QuicklinkStore = .shared,
         extensions: ExtensionSettingsSync? = nil,
         storage: SyncJournalStorage = .file(Paths.support.appendingPathComponent("Sync.json")),
-        availability: SyncAvailability = .system,
-        makeStore: @escaping () -> any SyncStore = { UbiquitousSyncStore() },
+        setup: SyncSetup = .system(folder: Paths.support),
         now: @escaping () -> Date = Date.init
     ) {
         self.settings = settings
@@ -44,7 +48,8 @@ final class SettingsSyncService {
             },
             turnOff: { settings.syncsWithICloud = false }
         )
-        engine = SyncEngine(client: client, storage: storage, availability: availability, makeStore: makeStore, now: now)
+        engine = SyncEngine(client: client, storage: storage, availability: setup.availability, makeStore: setup.makeStore, now: now)
+        self.now = now
     }
 
     /// Follows the switch and every change from here on. `report` hears the status now and whenever it changes.
@@ -61,6 +66,13 @@ final class SettingsSyncService {
             .debounce(for: .seconds(1), scheduler: RunLoop.main)
             .sink { engine.localChanged() }
             .store(in: &cancellables)
+    }
+
+    /// Asks iCloud for news, when the panel or Settings opens. `always` is for Settings, where the user reads the status.
+    func look(always: Bool = false) {
+        guard always || now().timeIntervalSince(lastLook) >= Self.lookInterval else { return }
+        lastLook = now()
+        engine.exchange()
     }
 
     /// Call when an extension's preferences were saved, or the installed extensions changed. The engine looks soon after.
@@ -113,7 +125,8 @@ final class SettingsSyncStatus: ObservableObject {
 
 /// What Settings says about sync, kept out of the views so it can be checked.
 nonisolated enum SettingsSyncText {
-    static func line(for status: SyncStatus) -> String {
+    /// `backend` is the store this build uses, which decides what "full" means.
+    static func line(for status: SyncStatus, backend: SyncBackend = .keyValueStore) -> String {
         let state = switch status.state {
         case .off: String(localized: "Sync is off.", bundle: .floe)
         case .notSigned: String(localized: "Unavailable: this build of Floe is not signed for iCloud.", bundle: .floe)
@@ -121,10 +134,18 @@ nonisolated enum SettingsSyncText {
         case .syncing: String(localized: "Syncing…", bundle: .floe)
         case let .synced(date):
             String(localized: "Last synced \(date.formatted(date: .abbreviated, time: .shortened))", bundle: .floe, comment: "The placeholder is a date and a time.")
-        case .full: String(localized: "Floe's space in iCloud is full. Changes made on this Mac are not uploaded.", bundle: .floe)
+        case .full: full(backend)
         }
         guard status.skipped > 0 else { return state }
         return state + " " + String(localized: "\(status.skipped) entries in iCloud could not be read and were skipped.", bundle: .floe, comment: "The placeholder is a count.")
+    }
+
+    /// The key-value store gives each app a small space of its own; the other store fills with the account.
+    private static func full(_ backend: SyncBackend) -> String {
+        if case .cloudKit = backend {
+            return String(localized: "Your iCloud storage is full. Changes made on this Mac are not uploaded.", bundle: .floe)
+        }
+        return String(localized: "Floe's space in iCloud is full. Changes made on this Mac are not uploaded.", bundle: .floe)
     }
 
     /// The Privacy pane's row: what goes to iCloud, and what never does.

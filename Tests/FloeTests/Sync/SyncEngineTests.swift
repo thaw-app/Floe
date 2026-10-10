@@ -302,7 +302,7 @@ struct SyncEngineTests {
         let a = mac("a")
         a.engine.setOn(true)
         a.edit("small", "1", at: 2000)
-        a.edit("huge", "\"" + String(repeating: "x", count: SyncWire.byteBudget) + "\"", at: 3000)
+        a.edit("huge", "\"" + String(repeating: "x", count: a.store.limits.bytes ?? 0) + "\"", at: 3000)
         #expect(a.engine.status.state == .full)
         #expect(a.store.all().keys.sorted() == ["small"])
         a.edit("huge", nil, at: 4000)
@@ -311,12 +311,89 @@ struct SyncEngineTests {
 
     @Test func tooManyKeysCountAsFullToo() {
         let a = mac("a")
-        for index in 0 ... SyncWire.keyBudget {
+        for index in 0 ... (a.store.limits.keys ?? 0) {
             a.values["k\(index)"] = "1"
         }
         a.engine.setOn(true)
         #expect(a.engine.status.state == .full)
         #expect(a.store.all().isEmpty)
+    }
+
+    @Test func theLimitsAreTheStoresOwn() {
+        let a = mac("a")
+        a.store.limits = .cloudKit
+        for index in 0 ... (SyncLimits.keyValueStore.keys ?? 0) {
+            a.values["k\(index)"] = "1"
+        }
+        a.engine.setOn(true)
+        #expect(a.engine.status.state == .synced(Date(timeIntervalSince1970: 1000)), "this store counts no keys")
+        #expect(a.store.all().count == a.values.count)
+        a.edit("huge", "\"" + String(repeating: "x", count: SyncLimits.cloudKit.recordBytes ?? 0) + "\"", at: 2000)
+        #expect(a.engine.status.state == .full, "but it limits one record")
+        #expect(a.store.all()["huge"] == nil)
+    }
+
+    @Test func aStoreThatRefusesEverythingIsFullUntilItTakesWritesAgain() {
+        let a = mac("a")
+        a.engine.setOn(true)
+        a.store.limits.isExhausted = true
+        a.store.onExternalChange?(.overQuota)
+        #expect(a.engine.status.state == .full)
+        a.edit("alias", "\"saf\"", at: 2000)
+        #expect(a.store.all().isEmpty)
+        a.store.limits.isExhausted = false
+        a.store.onExternalChange?(.values)
+        #expect(a.engine.status.state == .synced(Date(timeIntervalSince1970: 2000)))
+        #expect(a.store.all().count == 1, "what was held back went up")
+    }
+
+    @Test func aKeyTheStoreCannotNameTravelsUnderADigest() {
+        let key = "s.aliases/app:/Applications/Café.app"
+        let cloud = MemorySyncCloud()
+        let a = TestMac("a", cloud: cloud)
+        let b = TestMac("b", cloud: cloud)
+        a.store.limits = .cloudKit
+        b.store.limits = .cloudKit
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit(key, "\"cafe\"", at: 2000)
+        a.edit("_plain", "1", at: 2100)
+        cloud.deliver()
+        #expect(a.store.refusedKeys.isEmpty)
+        #expect(a.store.all().keys.filter { $0.hasPrefix("#") }.count == 2)
+        #expect(b.values == [key: "\"cafe\"", "_plain": "1"])
+        #expect(SyncLimits.cloudKit.takes(key: "s.aliases/app:/Applications/Safari.app"))
+        #expect(!SyncLimits.cloudKit.takes(key: String(repeating: "k", count: 256)))
+        #expect(!SyncLimits.cloudKit.takes(key: ""))
+        #expect(SyncWire.storeKey(for: "", in: .cloudKit).hasPrefix("#"))
+        #expect(SyncLimits.keyValueStore.takes(key: "Café"))
+    }
+
+    @Test func dataDeletedOutsideTheAppSwitchesSyncOffAndIsNotPutBack() {
+        let a = mac("a", values: ["alias": "\"a\""])
+        a.engine.setOn(true)
+        cloud.deliver()
+        let cleared = a.engine.journal.clearedAt
+        a.store.removeAll()
+        a.store.onExternalChange?(.removed)
+        #expect(!a.engine.isOn)
+        #expect(a.timesTurnedOff == 1)
+        #expect(a.store.all().isEmpty)
+        #expect(a.engine.journal.clearedAt > cleared)
+        #expect(a.values == ["alias": "\"a\""])
+    }
+
+    @Test func aLookAsksTheStoreOnlyWhileSyncRuns() {
+        let a = mac("a")
+        a.engine.exchange()
+        #expect(a.storesMade == 0)
+        a.engine.setOn(true)
+        let before = a.store.exchanges
+        a.engine.exchange()
+        #expect(a.store.exchanges == before + 1)
+        a.hasAccount = false
+        a.engine.exchange()
+        #expect(a.store.exchanges == before + 1)
     }
 
     @Test func aBuildWithoutTheEntitlementNeverTouchesTheStore() {
@@ -455,6 +532,25 @@ struct SyncEngineTests {
         for text in ["", "off", "synced@soon;0", "on;0", "off;-1", "off;0;0"] {
             #expect(SyncStatus(text: text) == nil)
         }
+    }
+
+    @Test func theBuildsEntitlementsChooseTheStore() {
+        let container = ["iCloud.example"]
+        #expect(SyncAvailability.backend(containers: container, services: ["CloudKit"], keyValueStore: "TEAM.example") == .cloudKit(container: "iCloud.example"))
+        #expect(SyncAvailability.backend(containers: container, services: ["CloudKit"], keyValueStore: nil) == .cloudKit(container: "iCloud.example"))
+        #expect(SyncAvailability.backend(containers: nil, services: nil, keyValueStore: "TEAM.example") == .keyValueStore)
+        #expect(SyncAvailability.backend(containers: container, services: ["CloudDocuments"], keyValueStore: "TEAM.example") == .keyValueStore)
+        #expect(SyncAvailability.backend(containers: [String](), services: ["CloudKit"], keyValueStore: "") == SyncBackend.none)
+        #expect(SyncAvailability.backend(containers: "iCloud.example", services: "CloudKit", keyValueStore: 7) == SyncBackend.none)
+        #expect(SyncAvailability.backend(containers: nil, services: nil, keyValueStore: nil) == SyncBackend.none)
+    }
+
+    @Test func aBuildSignedForNothingIsUnavailableAndMakesNoFiles() {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-sync-\(UUID().uuidString)")
+        let setup = SyncSetup.system(folder: folder, backend: .none)
+        #expect(!setup.availability.isEntitled())
+        #expect(!setup.availability.hasAccount())
+        #expect(!FileManager.default.fileExists(atPath: folder.path))
     }
 
     @Test func theSystemReasonsBecomeStoreChanges() {

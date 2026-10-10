@@ -341,6 +341,9 @@ jobs:
           app="build/Export/$APP_NAME"
           test -f "$app/Contents/embedded.provisionprofile"
           codesign -d --entitlements - "$app" 2>/dev/null | grep -q "com.apple.developer.ubiquity-kvstore-identifier"
+          codesign -d --entitlements - "$app" 2>/dev/null | grep -q "iCloud.com.thaw.floe"
+          # The export sets this. A release left on Development could not save a record for any user.
+          codesign -d --entitlements - "$app" 2>/dev/null | grep -A2 "com.apple.developer.icloud-container-environment" | grep -q "Production"
           codesign -d --entitlements - "$app" 2>/dev/null | grep -q "com.apple.security.automation.apple-events"
 
       - name: Notarize

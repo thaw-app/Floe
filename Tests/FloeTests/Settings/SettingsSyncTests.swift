@@ -51,8 +51,7 @@ final class SyncedFloe {
             quicklinks: quicklinks,
             extensions: extensions,
             storage: SyncJournalStorage(load: { journal }, save: { journal = $0 }),
-            availability: SyncAvailability(isEntitled: { true }, hasAccount: { true }),
-            makeStore: { store },
+            setup: SyncSetup(availability: SyncAvailability(isEntitled: { true }, hasAccount: { true }), makeStore: { store }),
             now: { Date(timeIntervalSince1970: clock()) }
         )
         clock = { [unowned self] in self.time }
@@ -289,6 +288,24 @@ struct SettingsSyncTests {
         #expect(!b.settings.syncsWithICloud)
     }
 
+    @Test func openingThePanelLooksAtICloudAtMostOnceAMinute() throws {
+        let mac = try floe("looks")
+        mac.service.look()
+        #expect(mac.store.exchanges == 0, "nothing is asked while sync is off")
+        mac.settings.syncsWithICloud = true
+        mac.service.engine.setOn(true)
+        mac.time = 2000
+        let before = mac.store.exchanges
+        mac.service.look()
+        mac.service.look()
+        #expect(mac.store.exchanges == before + 1)
+        mac.time = 2000 + SettingsSyncService.lookInterval
+        mac.service.look()
+        #expect(mac.store.exchanges == before + 2)
+        mac.service.look(always: true)
+        #expect(mac.store.exchanges == before + 3, "opening Settings always looks")
+    }
+
     @Test func aHeavyUsersSettingsFitTheStoreWithRoomToSpare() throws {
         let mac = try floe("heavy")
         for index in 0 ..< 150 {
@@ -315,20 +332,27 @@ struct SettingsSyncTests {
         let records = SettingsSyncService.snapshot(settings: mac.settings, snippets: mac.snippets, quicklinks: mac.quicklinks)
             .mapValues { SyncRecord(value: $0, time: 1_760_000_000, device: UUID().uuidString) }
             .merging(extensionRecords) { first, _ in first }
-        let size = SyncWire.size(of: records)
+        let limits = SyncLimits.keyValueStore
+        let size = limits.size(of: records)
         #expect(extensionRecords.count == 40, "one record for each extension, whatever it has of preferences")
         #expect(records.count == 627)
-        #expect(SyncWire.size(of: extensionRecords) < 40 * 600)
-        #expect(records.count < SyncWire.keyBudget)
-        #expect(size < SyncWire.byteBudget / 3)
-        #expect(SyncWire.fits(records))
+        #expect(limits.size(of: extensionRecords) < 40 * 600)
+        #expect(records.count < limits.keys ?? 0)
+        #expect(size < (limits.bytes ?? 0) / 3)
+        #expect(limits.fits(records))
+        let largest = records.map { SyncLimits.cloudKit.size(of: $0.value, key: $0.key) }.max() ?? 0
+        #expect(largest < (SyncLimits.cloudKit.recordBytes ?? 0) / 100, "the other store limits one record, and none comes near")
+        #expect(SyncLimits.cloudKit.fits(records))
     }
 
     @Test func theStatusLineSaysWhatIsGoingOn() {
         #expect(SettingsSyncText.line(for: SyncStatus(state: .off)) == "Sync is off.")
         #expect(SettingsSyncText.line(for: SyncStatus(state: .notSigned)) == "Unavailable: this build of Floe is not signed for iCloud.")
         #expect(SettingsSyncText.line(for: SyncStatus(state: .noAccount)) == "Unavailable: this Mac is not signed in to iCloud.")
-        #expect(SettingsSyncText.line(for: SyncStatus(state: .full)).contains("full"))
+        #expect(SettingsSyncText.line(for: SyncStatus(state: .full)) == "Floe's space in iCloud is full. Changes made on this Mac are not uploaded.")
+        let viaDatabase = SettingsSyncText.line(for: SyncStatus(state: .full), backend: .cloudKit(container: "iCloud.example"))
+        #expect(viaDatabase == "Your iCloud storage is full. Changes made on this Mac are not uploaded.")
+        #expect(SettingsSyncText.line(for: SyncStatus(state: .off), backend: .cloudKit(container: "iCloud.example")) == "Sync is off.")
         #expect(SettingsSyncText.line(for: SyncStatus(state: .synced(Date(timeIntervalSince1970: 0)))).hasPrefix("Last synced "))
         #expect(SettingsSyncText.line(for: SyncStatus(state: .off, skipped: 2)).hasSuffix("2 entries in iCloud could not be read and were skipped."))
         #expect(SettingsSyncText.privacyLine(isOn: false, includesExtensions: true).hasPrefix("Settings sync is off"))

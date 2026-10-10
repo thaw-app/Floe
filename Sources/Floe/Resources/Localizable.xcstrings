@@ -2938,6 +2938,7 @@
     "You will lose any changes you haven't saved." : {},
     "Your Mac can sleep again" : {},
     "Your Settings" : {},
+    "Your iCloud storage is full. Changes made on this Mac are not uploaded." : {},
     "a note" : {
       "comment" : "What a checkpoint holds when it has no files and no tabs."
     },

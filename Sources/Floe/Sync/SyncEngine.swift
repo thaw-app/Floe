@@ -102,7 +102,7 @@ struct SyncClient {
     var turnOff: () -> Void = { /* an app without a switch has nothing to turn */ }
 }
 
-/// Keeps the app's values and a key-value store in step, one record per key, newest change winning.
+/// Keeps the app's values and a store in step, one record per key, newest change winning.
 /// It notes when each value changed even while sync is off, so switching it on later can merge by age.
 final class SyncEngine {
     /// The key of the note that everything was removed from the store. No record uses a key that starts like this.
@@ -133,8 +133,8 @@ final class SyncEngine {
     init(
         client: SyncClient,
         storage: SyncJournalStorage,
-        availability: SyncAvailability = .system,
-        makeStore: @escaping () -> any SyncStore = { UbiquitousSyncStore() },
+        availability: SyncAvailability,
+        makeStore: @escaping () -> any SyncStore,
         now: @escaping () -> Date = Date.init,
         device: () -> String = { UUID().uuidString }
     ) {
@@ -191,7 +191,7 @@ final class SyncEngine {
             stop()
             return
         }
-        var (remote, skipped) = SyncWire.decode(contents.filter { $0.key != Self.clearedKey })
+        var (remote, skipped) = SyncWire.decode(contents.filter { $0.key != Self.clearedKey }, in: store.limits)
         var outcome = SyncMerge.merge(local: journal.records, remote: remote)
         skipped += take(&outcome, from: remote)
         send(outcome.push, to: store, holding: &remote)
@@ -202,16 +202,21 @@ final class SyncEngine {
         status = SyncStatus(state: isFull ? .full : .synced(now()), skipped: skipped)
     }
 
+    /// Asks the store to exchange with its server now, when the app has reason to look: its window just opened.
+    func exchange() {
+        guard isActive, let store = openStore() else { return }
+        store.synchronize()
+    }
+
     /// Deletes every record from the store and leaves a note there, so each Mac that syncs switches itself off.
     func removeFromCloud() {
         guard availability.isEntitled(), availability.hasAccount(), let store = openStore() else { return }
-        for key in store.all().keys {
-            store.remove(key)
-        }
+        store.removeAll()
         let note = SyncRecord(value: nil, time: stamp(after: journal.clearedAt), device: journal.device)
+        // Noted before the store is asked to exchange, so a change it reports meanwhile does not read as another Mac's removal.
+        journal.clearedAt = note.time
         store.set(SyncWire.encode(note, key: Self.clearedKey), for: Self.clearedKey)
         store.synchronize()
-        journal.clearedAt = note.time
         isFull = false
         stop()
     }
@@ -252,6 +257,12 @@ final class SyncEngine {
             journal.clearedAt = max(journal.clearedAt, Self.clearedTime(in: store.all()))
             acceptsInitialClear = false
             storage.save(journal)
+        }
+        if change == .removed {
+            // No note came with it, so the removal is dated here, later than any note this Mac has seen.
+            journal.clearedAt = stamp(after: journal.clearedAt)
+            stop()
+            return
         }
         if change == .overQuota {
             isFull = true
@@ -315,14 +326,15 @@ final class SyncEngine {
         // An empty local cache is not proof that iCloud is empty. Untouched defaults never need uploading.
         let records = journal.records.filter { keys.contains($0.key) && $0.value.time != 0 }
         guard !records.isEmpty else {
-            isFull = isFull && !SyncWire.fits(remote)
+            isFull = isFull && !store.limits.fits(remote)
             return
         }
         let next = remote.merging(records) { _, mine in mine }
-        isFull = !SyncWire.fits(next)
+        let limits = store.limits
+        isFull = !limits.fits(next)
         guard !isFull else { return }
         for (key, record) in records {
-            store.set(SyncWire.encode(record, key: key), for: SyncWire.storeKey(for: key))
+            store.set(SyncWire.encode(record, key: key, in: limits), for: SyncWire.storeKey(for: key, in: limits))
         }
         store.synchronize()
         remote = next
@@ -334,7 +346,7 @@ final class SyncEngine {
         for key in expired {
             journal.records[key] = nil
             if remote[key]?.isRemoval == true {
-                store.remove(SyncWire.storeKey(for: key))
+                store.remove(SyncWire.storeKey(for: key, in: store.limits))
             }
         }
         store.synchronize()

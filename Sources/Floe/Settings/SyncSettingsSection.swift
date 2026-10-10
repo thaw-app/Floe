@@ -14,6 +14,8 @@ struct SyncSettingsSection: View {
     @ObservedObject var sync: SettingsSyncStatus = .shared
     var vault: SecretVault = Keychain.vault
     @State private var passwords = SecretSyncStatus()
+    /// The launcher is the same build, so it uses the store this process would.
+    private static let backend = SyncAvailability.systemBackend()
 
     private var isUnavailable: Bool {
         sync.status.state == .notSigned
@@ -51,7 +53,7 @@ struct SyncSettingsSection: View {
             }
             .disabled(isUnavailable || !settings.syncsWithICloud)
             LabeledContent("Status") {
-                Text(SettingsSyncText.line(for: sync.status)).foregroundStyle(.secondary)
+                Text(SettingsSyncText.line(for: sync.status, backend: Self.backend)).foregroundStyle(.secondary)
             }
             LabeledContent {
                 Button("Remove Settings from iCloud…") { removeFromCloud() }

@@ -62,6 +62,11 @@ final class LauncherSettingsLink {
             .store(in: &cancellables)
         FileIndexService.shared.observe { link.send(LinkMessage(.fileIndexState, $0.text)) }
         sync.start { link.send(LinkMessage(.syncState, $0.text)) }
+        // Without push, another Mac's changes arrive when the panel opens.
+        NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)
+            .filter { $0.object is LauncherPanel }
+            .sink { _ in sync.look() }
+            .store(in: &cancellables)
         if UpdatesManager.shared.isAvailable {
             UpdatesManager.shared.observeState { link.send(LinkMessage(.updatesState, UpdatesManager.shared.state.text)) }
         }
@@ -75,6 +80,7 @@ final class LauncherSettingsLink {
 
     /// Opens Settings, on a page if one is named by its `SettingsPage.id`.
     func show(page: String? = nil) {
+        sync.look(always: true)
         process.show(page: page)
     }
 

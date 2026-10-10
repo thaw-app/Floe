@@ -6,33 +6,13 @@
 //  Licensed under the GNU AGPLv3
 
 import Foundation
-import Security
-
-/// Whether sync can work in this process at all. Both answers are closures so a test decides them.
-struct SyncAvailability {
-    /// Whether this build is signed with the entitlement for iCloud's key-value store.
-    var isEntitled: () -> Bool
-    /// Whether an iCloud account is signed in on this Mac.
-    var hasAccount: () -> Bool
-
-    static let entitlement = "com.apple.developer.ubiquity-kvstore-identifier"
-
-    static let system = SyncAvailability(
-        isEntitled: {
-            // Asked of the running process, so the store is never touched by a build that may not use it.
-            guard let task = SecTaskCreateFromSelf(nil) else { return false }
-            let value = SecTaskCopyValueForEntitlement(task, entitlement as CFString, nil)
-            return (value as? String)?.isEmpty == false
-        },
-        hasAccount: { FileManager.default.ubiquityIdentityToken != nil }
-    )
-}
 
 /// iCloud's key-value store as a `SyncStore`. Made only once the entitlement is known to be there.
 final class UbiquitousSyncStore: SyncStore {
     private let store: NSUbiquitousKeyValueStore
     private var observers: [NSObjectProtocol] = []
     var onExternalChange: ((SyncStoreChange) -> Void)?
+    let limits = SyncLimits.keyValueStore
 
     init(store: NSUbiquitousKeyValueStore = .default) {
         self.store = store

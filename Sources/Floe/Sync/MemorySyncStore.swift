@@ -40,6 +40,10 @@ final class MemorySyncStore: SyncStore {
     fileprivate var needsDelivery = false
     private var hasReceived = false
     var onExternalChange: ((SyncStoreChange) -> Void)?
+    /// The key-value store's unless a test plays another store.
+    var limits = SyncLimits.keyValueStore
+    /// How often the store was asked to exchange with its cloud.
+    private(set) var exchanges = 0
     /// Writes with a key longer than the real store takes. The real one drops them; here they are counted.
     private(set) var refusedKeys: [String] = []
     var isOnline = true {
@@ -62,7 +66,7 @@ final class MemorySyncStore: SyncStore {
     }
 
     func set(_ value: [String: Any], for key: String) {
-        guard key.utf8.count <= SyncWire.keyByteLimit else {
+        guard limits.takes(key: key) else {
             refusedKeys.append(key)
             return
         }
@@ -82,6 +86,7 @@ final class MemorySyncStore: SyncStore {
 
     @discardableResult
     func synchronize() -> Bool {
+        exchanges += 1
         guard isOnline, let cloud else { return false }
         if !unsent.isEmpty {
             cloud.upload(unsent, from: self)
