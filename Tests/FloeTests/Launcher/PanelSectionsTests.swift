@@ -93,6 +93,19 @@ struct PanelSectionsTests {
         #expect(SearchFieldShape.rounded.pieceCornerStyle == .continuous)
     }
 
+    @Test func aRowsHighlightIsConcentricWithTheResultsPiece() {
+        let look = LauncherLook(glass: LauncherGlass(style: .dynamic), tint: LauncherTint(), border: LauncherBorder(), hasShadow: true)
+        let heights = LauncherPanelState().pieceHeights(in: .extended)
+        func rowRadius(_ shape: SearchFieldShape) -> CGFloat {
+            PanelPieces(look: look, fieldShape: shape, heights: heights).rowRadius
+        }
+        #expect(PanelPieces.listInset == 8, "what the lists keep clear of the piece's edges")
+        #expect(rowRadius(.rounded) == 16, "the piece's 24 less the 8 the list is inset by: one centre for both curves")
+        #expect(rowRadius(.capsule) == 16, "the results keep the panel's corners under a capsule")
+        #expect(rowRadius(.square) == ThawRadius.control, "a square piece has no curve to follow")
+        #expect(EnvironmentValues().searchRowCornerRadius == ThawRadius.control, "the panel in one piece keeps a control's corners")
+    }
+
     @Test(arguments: SearchFieldShape.allCases)
     func thePiecesTakeTheLookTheirCornersAndTheSideTheyFace(shape: SearchFieldShape) {
         let look = LauncherLook(glass: LauncherGlass(style: .dynamic), tint: LauncherTint(), border: LauncherBorder(), hasShadow: true)

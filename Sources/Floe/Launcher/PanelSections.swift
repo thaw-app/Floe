@@ -28,6 +28,15 @@ struct PanelPieces: Equatable {
         return appearance
     }
 
+    /// How far a list sits from the edges of the piece it is in (see the lists' content margins).
+    static let listInset = ThawSpacing.base
+
+    /// The corner of a row's highlight in the results piece: the piece's radius less the list's inset, so the
+    /// first row's corners share a centre with the piece's. Never less than a control's, which a square piece keeps.
+    var rowRadius: CGFloat {
+        max(ThawRadius.control, fieldShape.panelPieceRadius - Self.listInset)
+    }
+
     func resultsAppearance() -> LauncherPanelAppearance {
         var appearance = LauncherPanelAppearance(look)
         appearance.cornerRadius = fieldShape.panelPieceRadius
@@ -74,6 +83,7 @@ struct PanelSections<Header: View, Content: View>: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: pieces.heights.results)
+                    .environment(\.searchRowCornerRadius, pieces.rowRadius)
                     .modifier(pieces.resultsAppearance())
                 }
             }

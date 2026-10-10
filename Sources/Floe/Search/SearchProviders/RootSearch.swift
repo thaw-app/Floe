@@ -67,10 +67,11 @@ enum RootSearch {
         )
     }
 
-    /// A quicklink answers to its keyword; anything else to the alias the user gave it, if any.
+    /// A quicklink that opens one page answers to its keyword; anything else to the alias the user gave it, if any.
+    /// A quicklink that searches has no alias: its keyword alone must not lead the app of the same name (see `keywords`).
     static func alias(for item: RootItem, aliases: [String: String]) -> String? {
         if case let .quicklink(link, _, _, _) = item {
-            return link.keyword
+            return link.takesQuery ? nil : link.keyword
         }
         return item.settingsKey.flatMap { aliases[$0] }.flatMap { $0.isEmpty ? nil : $0 }
     }

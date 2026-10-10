@@ -39,6 +39,8 @@ extension RootItem {
         case let .finderSelection(role, _): role.keywords
         case .clipboardApp: AppRole.clipboard.keywords
         case let .snippet(snippet): [snippet.keyword]
+        // A search's keyword is the start of a query. Alone it is a word the row answers to, under a name that starts with it.
+        case let .quicklink(link, _, _, _): link.takesQuery ? [link.keyword] : []
         case let .sshHost(host, _): host.keywords
         case let .checkpoint(checkpoint): [checkpoint.name, Checkpoint.keyword, "checkpoint"]
         case .focus: FocusRequest.keywords.keywordList

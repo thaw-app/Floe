@@ -26,6 +26,11 @@ struct Quicklink: Codable, Identifiable, Equatable {
         self.isFallback = isFallback
         self.symbol = symbol
     }
+
+    /// Whether the link is a search, with text to type after its keyword, and not one page to open.
+    var takesQuery: Bool {
+        url.contains("{query}")
+    }
 }
 
 final class QuicklinkStore: ObservableObject {

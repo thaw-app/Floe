@@ -200,11 +200,44 @@ struct SearchProviderTests {
     }
 
     @Test func aQuicklinkAnswersToItsKeywordAndOtherRowsToTheirAlias() {
-        let link = RootItem.quicklink(github, queryText: "", fallback: false, keywordSearch: false)
-        #expect(RootSearch.alias(for: link, aliases: [:]) == "gh")
+        let page = Quicklink(name: "Mail", keyword: "mail", url: "mailto:someone@example.com")
+        #expect(RootSearch.alias(for: .quicklink(page, queryText: "", fallback: false, keywordSearch: false), aliases: [:]) == "mail")
+        let search = RootItem.quicklink(github, queryText: "", fallback: false, keywordSearch: false)
+        #expect(RootSearch.alias(for: search, aliases: [:]) == nil, "a search's keyword starts a query; alone it is a keyword like any other")
+        #expect(search.keywords == ["gh"])
         #expect(RootSearch.alias(for: .settings, aliases: ["settings": "s"]) == nil, "a row without a settings key has no alias")
         #expect(RootSearch.alias(for: .fileSearch, aliases: [RootItem.fileSearchKey: "f"]) == "f")
         #expect(RootSearch.alias(for: .fileSearch, aliases: [RootItem.fileSearchKey: ""]) == nil)
+    }
+
+    @Test func aSearchesKeywordAloneDoesNotLeadTheAppOfThatName() {
+        let maps = Quicklink(name: "Apple Maps", keyword: "maps", url: "maps://?q={query}")
+        let row = "quicklink:\(maps.id.uuidString)"
+        let apps = [AppEntry(name: "Maps", url: URL(fileURLWithPath: "/System/Applications/Maps.app")), AppEntry(name: "Mapsicle", url: URL(fileURLWithPath: "/Applications/Mapsicle.app"))]
+        let providers: [any SearchProvider] = [CatalogSearchProvider(), QuicklinkSearchProvider()]
+        let alone = RootSearch.results(for: context("maps") { $0.quicklinks = [maps]; $0.apps = apps }, providers: providers).map(\.id)
+        #expect(Array(alone.prefix(3)) == ["app:/System/Applications/Maps.app", "app:/Applications/Mapsicle.app", row], "names that start with what was typed come first")
+        let partly = RootSearch.results(for: context("map") { $0.quicklinks = [maps]; $0.apps = apps }, providers: providers).map(\.id)
+        #expect(partly.first == "app:/System/Applications/Maps.app")
+        #expect(partly.contains(row), "the quicklink is still found by the start of its keyword")
+        let withText = RootSearch.results(for: context("maps coffee") { $0.quicklinks = [maps]; $0.apps = apps }, providers: providers)
+        #expect(withText.first?.id == row, "with text after the keyword the search leads, as before")
+        #expect(withText.first?.item.title.contains("coffee") == true)
+    }
+
+    @Test func aSearchesKeywordStillFindsItWhenNoNameStartsWithIt() {
+        let providers: [any SearchProvider] = [CatalogSearchProvider(), QuicklinkSearchProvider()]
+        let lightroom = AppEntry(name: "Lightroom", url: URL(fileURLWithPath: "/Applications/Lightroom.app"))
+        let found = RootSearch.results(for: context("gh") { $0.quicklinks = [github]; $0.apps = [lightroom] }, providers: providers).map(\.id)
+        #expect(Array(found.prefix(2)) == ["quicklink:\(github.id.uuidString)", "app:/Applications/Lightroom.app"], "a keyword counts for more than letters inside another name")
+    }
+
+    @Test func aQuicklinkThatOpensOnePageStillLeadsOnItsKeyword() {
+        let mail = Quicklink(name: "Webmail", keyword: "mail", url: "https://mail.example.com")
+        let app = AppEntry(name: "Mail", url: URL(fileURLWithPath: "/System/Applications/Mail.app"))
+        let providers: [any SearchProvider] = [CatalogSearchProvider(), QuicklinkSearchProvider()]
+        let found = RootSearch.results(for: context("mail") { $0.quicklinks = [mail]; $0.apps = [app] }, providers: providers)
+        #expect(found.first?.id == "quicklink:\(mail.id.uuidString)", "nothing is typed after it, so its keyword is its alias")
     }
 
     // MARK: The whole search

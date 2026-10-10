@@ -115,9 +115,10 @@ struct PaletteRow<Icon: View, Trailing: View>: View {
 struct SearchRowBackground: ViewModifier {
     let selected: Bool
     @State private var isHovering = false
+    @Environment(\.searchRowCornerRadius) private var cornerRadius
 
     private var shape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: ThawRadius.control, style: .continuous)
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
     }
 
     func body(content: Content) -> some View {
@@ -138,6 +139,11 @@ struct SearchRowBackground: ViewModifier {
             .thawSelectionCue(isSelected: selected)
             .onHover { isHovering = $0 }
     }
+}
+
+extension EnvironmentValues {
+    /// A control's radius, unless the container says what keeps a row's corners concentric with its own.
+    @Entry var searchRowCornerRadius: CGFloat = ThawRadius.control
 }
 
 /// A heading row between groups of results.
