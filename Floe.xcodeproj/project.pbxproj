@@ -266,6 +266,7 @@
 		E740D0C6E19CC54CE1FDBC1B /* Snippets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62EF04609C8CF763BA977245 /* Snippets.swift */; };
 		E8F562A6C0BF3A1DCBFEDB33 /* SettingsMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = F083CEE0A4DB35A8DBC44B67 /* SettingsMode.swift */; };
 		E90B7E506C03D9DD853A1C04 /* ChatCompletionStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3403F2FFC4C6AC53013ACA55 /* ChatCompletionStream.swift */; };
+		E910E6D401DDDD0BF53881F9 /* FieldEditorViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93CC1FFD5ABAD049CD92E1D3 /* FieldEditorViews.swift */; };
 		EAB74146473AD34DAC1E7DC3 /* RecentFileUse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 843B3C472EC58D16CB047C34 /* RecentFileUse.swift */; };
 		EAC0EDDF7C87EF1A2DB07471 /* KnownNoteFolders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 466049995778825C234A7609 /* KnownNoteFolders.swift */; };
 		EB15AA1608905694F76A9AF2 /* Model+Shell.swift in Sources */ = {isa = PBXBuildFile; fileRef = F008D9038CE639EA7F6504A1 /* Model+Shell.swift */; };
@@ -475,6 +476,7 @@
 		92EFACED3FB57AE107F4B30B /* UpdateConsentSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateConsentSheet.swift; sourceTree = "<group>"; };
 		938E4F22F92672AE90884DFF /* BuiltInHotkeysSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuiltInHotkeysSection.swift; sourceTree = "<group>"; };
 		93C9A4E8B1189CAE2502F5A5 /* SearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchModel.swift; sourceTree = "<group>"; };
+		93CC1FFD5ABAD049CD92E1D3 /* FieldEditorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldEditorViews.swift; sourceTree = "<group>"; };
 		9456693ED86BFF04EA2861CF /* SyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStore.swift; sourceTree = "<group>"; };
 		955281ED200D7C89B75825BD /* Model+Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Keys.swift"; sourceTree = "<group>"; };
 		95D5E9CBA2030703F9BE0381 /* FormViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViews.swift; sourceTree = "<group>"; };
@@ -870,6 +872,7 @@
 				2205CECBFD6D8B785BB4E59D /* ExtensionStore+Details.swift */,
 				CAD93F2D2BBAD30A23622CA2 /* ExtensionStore+Install.swift */,
 				615C6D1FFFC788BD983EA13C /* ExtensionViews.swift */,
+				93CC1FFD5ABAD049CD92E1D3 /* FieldEditorViews.swift */,
 				95D5E9CBA2030703F9BE0381 /* FormViews.swift */,
 				A603A283A239D502A519FFAE /* HostMessageDecoder.swift */,
 				4FA646DF9F19D7ED1E8C4DD0 /* HostRequest.swift */,
@@ -1288,6 +1291,7 @@
 				3B0BCE44678EDAD58574A1D5 /* ExtensionStore.swift in Sources */,
 				CCA71CDC9331E4A014C96384 /* ExtensionStoreSettingsPage.swift in Sources */,
 				922FAD71CBC0B27CA0F5291E /* ExtensionViews.swift in Sources */,
+				E910E6D401DDDD0BF53881F9 /* FieldEditorViews.swift in Sources */,
 				6FB5A85461A29E383BD139B9 /* FileIndexEvents.swift in Sources */,
 				3B7FD273F492D447BCDCD253 /* FileIndexService.swift in Sources */,
 				FDC9DFBE52D2FAF5FC3FE248 /* FileSearch.swift in Sources */,

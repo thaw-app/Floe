@@ -37,6 +37,29 @@ enum FieldValues {
     }
 }
 
+/// A checkbox has two texts in Raycast: a `label` beside the box, and a `title` at the side that often heads
+/// several checkboxes, of which only the first carries it.
+nonisolated enum CheckboxText {
+    /// The text beside the box, and the heading over it when the title is not already that text.
+    /// `name` is the manifest's internal key, used only when it gave neither a label nor a title.
+    static func parts(title: String?, label: String?, name: String = "") -> (heading: String?, text: String) {
+        let title = title.flatMap { $0.isEmpty ? nil : $0 }
+        guard let label, !label.isEmpty else { return (nil, title ?? name) }
+        return (title, label)
+    }
+}
+
+extension FieldSpec {
+    var checkbox: (heading: String?, text: String) {
+        CheckboxText.parts(title: title, label: label, name: name)
+    }
+
+    /// What the field is called wherever it is named: a checkbox by the text beside it, the rest by their title.
+    var displayTitle: String {
+        type == "checkbox" ? checkbox.text : title
+    }
+}
+
 /// Works out the values `getPreferenceValues()` returns, given where each value is kept.
 enum PreferenceResolver {
     /// Command preferences are stored under "command/name" so two commands can reuse a name.

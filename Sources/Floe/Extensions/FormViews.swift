@@ -74,102 +74,6 @@ enum ModalGuard {
     }
 }
 
-// MARK: Manifest fields (preferences and arguments)
-
-/// One preference or argument from a manifest, edited as text ("true"/"false" for checkboxes).
-struct FieldEditor: View {
-    let field: FieldSpec
-    @Binding var value: String
-
-    var body: some View {
-        Group {
-            switch field.type {
-            case "checkbox":
-                Toggle(isOn: Binding(get: { value == "true" }, set: { value = $0 ? "true" : "false" })) {
-                    label
-                    if let checkboxLabel = field.label {
-                        Text(checkboxLabel)
-                    }
-                }
-            case "dropdown":
-                Picker(selection: $value) {
-                    ForEach(field.options, id: \.value) { Text($0.title).tag($0.value) }
-                } label: { label }
-            case "password":
-                SecureField(text: $value, prompt: field.placeholder.map { Text($0) }) { label }
-            case "appPicker":
-                AppPickerField(value: $value, required: field.required) { label }
-            case "file", "directory":
-                LabeledContent {
-                    HStack {
-                        Text(value.isEmpty ? String(localized: "None", bundle: .floe, comment: "Shown where a file or folder would be, when none is chosen.") : (value as NSString).abbreviatingWithTildeInPath)
-                            .foregroundStyle(value.isEmpty ? .secondary : .primary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Button("Choose…") {
-                            if let path = ModalGuard.choosePaths(directories: field.type == "directory", multiple: false).first {
-                                value = path
-                            }
-                        }
-                    }
-                } label: { label }
-            default:
-                TextField(text: $value, prompt: field.placeholder.map { Text($0) }) { label }
-            }
-        }
-        .help(field.detail ?? "")
-    }
-
-    private var label: some View {
-        Text(field.required ? "\(field.title) *" : field.title)
-    }
-}
-
-/// Asks for a command's required preferences or its arguments before it runs.
-struct SetupView: View {
-    @ObservedObject var form: SetupFormModel
-    let request: SetupRequest
-    @FocusState private var focusedField: String?
-
-    var body: some View {
-        let command = request.command
-        VStack(spacing: 0) {
-            PanelHeader(
-                title: request.kind == .preferences ? String(localized: "Set Up \(command.extensionTitle)", bundle: .floe, comment: "A heading. The placeholder is an extension's name.") : command.title,
-                icon: command.icon,
-                assetsPath: command.assetsPath
-            )
-            Form {
-                Section {
-                    ForEach(request.fields) { field in
-                        FieldEditor(field: field, value: Binding(
-                            get: { form.values[field.name] ?? "" },
-                            set: { form.values[field.name] = $0 }
-                        ))
-                        .focused($focusedField, equals: field.name)
-                    }
-                } footer: {
-                    Text(request.kind == .preferences
-                        ? "\(command.extensionTitle) needs these before it can run. Change them later in Floe Settings."
-                        : "Arguments for \(command.title).")
-                        .font(ThawType.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            Footer(primary: request.kind == .preferences ? String(localized: "Save and Continue", bundle: .floe) : String(localized: "Run Command", bundle: .floe)) {
-                if let error = form.error {
-                    Text(error).foregroundStyle(.red).lineLimit(1)
-                } else {
-                    Text("Esc to cancel").foregroundStyle(.secondary)
-                }
-            }
-        }
-        .onAppear { focusedField = request.fields.first { $0.type != "checkbox" }?.name }
-    }
-}
-
 // MARK: Extension forms
 
 /// Renders a Raycast `<Form>`; values live in the session and go out with onChange and onSubmit.
@@ -211,31 +115,35 @@ struct FormBody: View {
     private func field(_ node: Node) -> some View {
         switch node.type {
         case "Form.TextField":
-            TextField(title(node), text: text(node), prompt: node.string("placeholder").map { Text($0) })
-                .help(node.string("info") ?? "")
+            FormTypedRow(title: title(node)) {
+                TextField(title(node), text: text(node), prompt: node.string("placeholder").map { Text($0) })
+            }
+            .help(node.string("info") ?? "")
         case "Form.PasswordField":
-            SecureField(title(node), text: text(node), prompt: node.string("placeholder").map { Text($0) })
+            FormTypedRow(title: title(node)) {
+                SecureField(title(node), text: text(node), prompt: node.string("placeholder").map { Text($0) })
+            }
         case "Form.TextArea":
-            LabeledContent(title(node)) {
-                TextEditor(text: text(node))
-                    .font(ThawType.body)
-                    .frame(minHeight: 80, maxHeight: 140)
-                    .scrollContentBackground(.hidden)
-                    .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 6))
-            }
+            FormTextArea(title: title(node), text: text(node))
         case "Form.Checkbox":
-            Toggle(isOn: Binding(get: { session.formValue(node) as? Bool ?? false }, set: { session.setFormValue(node, $0) })) {
-                Text(title(node))
-                if let label = node.string("label") {
-                    Text(label)
-                }
-            }
+            let checkbox = CheckboxText.parts(title: node.string("title"), label: node.string("label"))
+            CheckboxHeading(text: checkbox.heading)
+            Toggle(checkbox.text, isOn: Binding(get: { session.formValue(node) as? Bool ?? false }, set: { session.setFormValue(node, $0) }))
         case "Form.DatePicker":
             DatePicker(
                 title(node),
                 selection: date(node),
                 displayedComponents: node.props["type"] as? String == "date" ? [.date] : [.date, .hourAndMinute]
             )
+        default:
+            pickerField(node)
+        }
+    }
+
+    /// The fields that choose or only show something, apart from the ones that are typed into.
+    @ViewBuilder
+    private func pickerField(_ node: Node) -> some View {
+        switch node.type {
         case "Form.Dropdown":
             let items = node.descendants(ofType: "Dropdown.Item")
             Picker(title(node), selection: text(node)) {
@@ -302,59 +210,39 @@ struct FormBody: View {
     }
 }
 
-/// An app picker: installed apps with icons, Other… for anything else, and None when it isn't required.
-/// The value is the app's path; a default given by bundle id or name shows as the app it names.
-struct AppPickerField<Title: View>: View {
-    @Binding var value: String
-    let required: Bool
-    @ViewBuilder let label: Title
-    @State private var apps: [AppPickerValue.App] = []
-
-    private var chosen: AppPickerValue.App? {
-        AppPickerValue.match(value, in: apps) ?? (value.hasSuffix(".app") ? AppPickerValue.App(
-            name: ((value as NSString).lastPathComponent as NSString).deletingPathExtension, path: value, bundleId: nil
-        ) : nil)
-    }
+/// A row of an extension's form that is typed into: the title at the side, and the field over the rest of the row.
+/// As a row of its own, a grouped form sets a field's text against the trailing edge and gives a text area half the row.
+struct FormTypedRow<Field: View>: View {
+    let title: String
+    var alignment: VerticalAlignment = .firstTextBaseline
+    @ViewBuilder let field: Field
 
     var body: some View {
-        LabeledContent {
-            Menu {
-                if !required {
-                    Button("None") { value = "" }
-                    Divider()
-                }
-                ForEach(apps, id: \.path) { app in
-                    Button {
-                        value = app.path
-                    } label: {
-                        Label { Text(app.name) } icon: { Image(nsImage: NSWorkspace.shared.icon(forFile: app.path)) }
-                    }
-                }
-                Divider()
-                Button("Other…") {
-                    if let path = ModalGuard.chooseApp() {
-                        value = path
-                    }
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    if let chosen {
-                        AppIconView(path: chosen.path, size: 16)
-                        Text(chosen.name)
-                    } else {
-                        Text("Choose an App").foregroundStyle(.secondary)
-                    }
-                }
+        HStack(alignment: alignment, spacing: ThawSpacing.row) {
+            if !title.isEmpty {
+                Text(title)
             }
-            .fixedSize()
-            .accessibilityLabel(chosen?.name ?? String(localized: "not set", bundle: .floe, comment: "Read aloud for an app picker with no app chosen."))
-        } label: { label }
-            .task {
-                apps = InstalledApps.list()
-                // Show a default given by bundle id or name as the app's path, so it saves the same way.
-                if let match = AppPickerValue.match(value, in: apps), match.path != value {
-                    value = match.path
-                }
-            }
+            field
+                .labelsHidden()
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+/// A form's text area: a box typed into from its top left.
+struct FormTextArea: View {
+    let title: String
+    @Binding var text: String
+
+    var body: some View {
+        FormTypedRow(title: title, alignment: .top) {
+            TextEditor(text: $text)
+                .font(ThawType.body)
+                .frame(minHeight: 80, maxHeight: 140)
+                .scrollContentBackground(.hidden)
+                .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 6))
+                .accessibilityLabel(title)
+        }
     }
 }

@@ -913,7 +913,7 @@ extension SearchIndex {
         entries += first.extensionPreferences.map { field in
             SearchEntry(
                 id: "extension.\(name).preference.\(field.name)",
-                title: field.title,
+                title: field.displayTitle,
                 descriptionText: field.detail,
                 pane: pane,
                 section: String(localized: "Preferences", bundle: .floe, comment: "The heading over an extension's own settings."),
@@ -932,7 +932,7 @@ extension SearchIndex {
             entries += command.commandPreferences.map { field in
                 SearchEntry(
                     id: "command.\(command.id).preference.\(field.name)",
-                    title: field.title,
+                    title: field.displayTitle,
                     descriptionText: field.detail,
                     pane: pane,
                     section: command.title,

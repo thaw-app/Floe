@@ -8,6 +8,48 @@
 @testable import Floe
 import Testing
 
+struct CheckboxTextTests {
+    /// The preferences of a browser extension as Raycast's manifest has them: one title for the group, a label for each.
+    private let browsers = [
+        Fixture.field(["name": "enableChrome", "type": "checkbox", "title": "Browsers", "label": "Google Chrome"]),
+        Fixture.field(["name": "enableFirefox", "type": "checkbox", "label": "Mozilla Firefox"]),
+        Fixture.field(["name": "enableSafari", "type": "checkbox", "title": "", "label": "Safari"]),
+    ].compactMap(\.self)
+
+    @Test func theTitleHeadsTheGroupOnceAndEachLabelIsItsCheckboxsText() {
+        #expect(browsers.map(\.checkbox.text) == ["Google Chrome", "Mozilla Firefox", "Safari"])
+        #expect(browsers.map(\.checkbox.heading) == ["Browsers", nil, nil], "the ones after the titled one sit under its heading")
+        #expect(browsers.map(\.displayTitle) == ["Google Chrome", "Mozilla Firefox", "Safari"], "the internal name is never what a checkbox is called")
+    }
+
+    @Test func aCheckboxWithOnlyATitleShowsItBesideTheBoxWithNoHeading() throws {
+        let field = try #require(Fixture.field(["name": "favicon", "type": "checkbox", "title": "Show Favicons"]))
+        #expect(field.checkbox.text == "Show Favicons")
+        #expect(field.checkbox.heading == nil)
+        #expect(CheckboxText.parts(title: "Show Favicons", label: "").text == "Show Favicons", "an empty label is no label")
+    }
+
+    @Test func onlyACheckboxWithNeitherFallsBackToItsName() throws {
+        let bare = try #require(Fixture.field(["name": "verbose", "type": "checkbox"]))
+        #expect(bare.checkbox.text == "verbose")
+        #expect(bare.checkbox.heading == nil)
+        #expect(CheckboxText.parts(title: nil, label: nil).text.isEmpty, "a form's checkbox has no name to fall back to")
+    }
+
+    @Test func anExtensionsFormCheckboxSplitsTheSameWay() {
+        let both = CheckboxText.parts(title: "User Interface", label: "Favicon")
+        #expect(both.heading == "User Interface")
+        #expect(both.text == "Favicon")
+    }
+
+    @Test func otherFieldsKeepTheirTitleAndFallBackAsBefore() throws {
+        let titled = try #require(Fixture.field(["name": "apiToken", "type": "password", "title": "API Token"]))
+        #expect(titled.displayTitle == "API Token")
+        #expect(Fixture.field("region").displayTitle == "region")
+        #expect(Fixture.field(["name": "query", "placeholder": "Search"])?.displayTitle == "Search")
+    }
+}
+
 struct FieldValuesTests {
     @Test func checkboxesEditAsTrueOrFalseAndEverythingElseAsText() {
         #expect(FieldValues.text(from: true) == "true")

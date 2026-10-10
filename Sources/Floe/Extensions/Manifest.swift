@@ -67,9 +67,9 @@ nonisolated struct FieldSpec: Identifiable, Decodable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.name = try container.decode(String.self, forKey: .name)
         self.placeholder = try container.decodeIfPresent(String.self, forKey: .placeholder)
-        self.title = try container.decodeIfPresent(String.self, forKey: .title) ?? placeholder ?? name
-        self.detail = try container.decodeIfPresent(String.self, forKey: .detail)
         self.type = try container.decodeIfPresent(String.self, forKey: .type) ?? "textfield"
+        self.title = try container.decodeIfPresent(String.self, forKey: .title) ?? (type == "checkbox" ? "" : placeholder ?? name)
+        self.detail = try container.decodeIfPresent(String.self, forKey: .detail)
         self.required = try container.decodeIfPresent(Bool.self, forKey: .required) ?? false
         self.label = try container.decodeIfPresent(String.self, forKey: .label)
         self.options = try (container.decodeIfPresent(Lossy<Option>.self, forKey: .options)?.elements ?? [])

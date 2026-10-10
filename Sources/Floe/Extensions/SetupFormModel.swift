@@ -39,7 +39,7 @@ final class SetupFormModel: ObservableObject {
     func validated(for request: SetupRequest) -> [String: Any]? {
         let missing = FieldValues.missing(request.fields, texts: values)
         guard missing.isEmpty else {
-            error = String(localized: "Fill in \(missing.map(\.title).joined(separator: ", ")).", bundle: .floe, comment: "The placeholder is a list of the names of the fields left empty.")
+            error = String(localized: "Fill in \(missing.map(\.displayTitle).joined(separator: ", ")).", bundle: .floe, comment: "The placeholder is a list of the names of the fields left empty.")
             return nil
         }
         return FieldValues.typed(values, fields: request.fields)
