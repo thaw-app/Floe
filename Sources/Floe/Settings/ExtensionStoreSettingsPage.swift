@@ -14,18 +14,6 @@ struct ExtensionStoreSettingsPage: View {
 
     init() {}
 
-    private var filtered: [StoreListing] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return store.catalog }
-        return store.catalog.filter { listing in
-            if listing.name.localizedCaseInsensitiveContains(trimmed) {
-                return true
-            }
-            guard let details = store.cachedDetails(for: listing.name) else { return false }
-            return details.title.localizedCaseInsensitiveContains(trimmed)
-        }
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             content
@@ -65,6 +53,8 @@ struct ExtensionStoreSettingsPage: View {
         } else {
             // A plain list beside the details: a split view inside Settings' own split view collapses
             // its list and pushes the window wider.
+            // Matched once for each pass: the list and its empty state read the same rows.
+            let filtered = StoreSearch.results(store.catalog, query: query)
             HStack(spacing: 0) {
                 VStack(spacing: 0) {
                     TextField("Search extensions", text: $query)
@@ -102,10 +92,12 @@ struct ExtensionStoreSettingsPage: View {
 private struct StoreRow: View {
     @ObservedObject private var store: ExtensionStore = .shared
     let name: String
-    @State private var details: StoreDetails?
+    @State private var loaded: StoreDetails?
     @State private var updateAvailable = false
 
     var body: some View {
+        // What an earlier row already learned shows at once, so typing does not blank the rows it keeps.
+        let details = store.cachedDetails(for: name) ?? loaded
         HStack(spacing: 8) {
             StoreIcon(url: details?.iconURL, size: 28)
             VStack(alignment: .leading, spacing: 1) {
@@ -121,8 +113,11 @@ private struct StoreRow: View {
             Spacer()
             StoreActionButton(name: name, details: details, updateAvailable: updateAvailable)
         }
+        // One height with or without the description, so details that arrive do not move the rows under them.
+        .frame(height: 34)
         .task(id: name) {
-            details = await store.details(for: name)
+            loaded = await store.details(for: name, after: ExtensionStore.settleDelay)
+            guard !Task.isCancelled else { return }
             if store.isInstalled(name) {
                 updateAvailable = await store.hasUpdate(name)
             }
@@ -248,6 +243,7 @@ private struct StoreDetail: View {
 private struct StoreIcon: View {
     let url: URL?
     let size: CGFloat
+    @State private var file: String?
 
     private var placeholder: some View {
         RoundedRectangle(cornerRadius: size / 5, style: .continuous)
@@ -257,20 +253,19 @@ private struct StoreIcon: View {
 
     var body: some View {
         Group {
-            if let url {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case let .success(image):
-                        image.resizable().scaledToFit()
-                    default:
-                        placeholder
-                    }
-                }
+            if let file = url.flatMap(ExtensionStore.shared.knownIconFile(for:)) ?? file {
+                IconThumbnailView(source: .file(path: file), size: size) { $0.resizable().scaledToFit() }
             } else {
                 placeholder
             }
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: size / 5, style: .continuous))
+        .task(id: url) {
+            file = nil
+            if let url {
+                file = await ExtensionStore.shared.iconFile(for: url)
+            }
+        }
     }
 }

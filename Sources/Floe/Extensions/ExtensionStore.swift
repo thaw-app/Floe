@@ -6,13 +6,37 @@
 //  Licensed under the GNU AGPLv3
 
 import Foundation
-import Subprocess
-import System
 
-struct StoreListing: Identifiable, Hashable {
+nonisolated struct StoreListing: Identifiable, Hashable {
     let name: String
     var id: String {
         name
+    }
+}
+
+/// Finds extensions by name with the launcher's matcher, best match first. The name is the folder's, the one
+/// thing known of every extension before any of them is asked for.
+nonisolated enum StoreSearch {
+    /// A name's words apart and run together, so "proton pass" and "protonpass" both find proton-pass.
+    static func forms(_ text: String) -> (spaced: String, joined: String) {
+        let words = text.split { !$0.isLetter && !$0.isNumber }
+        return (words.joined(separator: " "), words.joined())
+    }
+
+    static func score(_ query: String, name: String) -> Int? {
+        let wanted = forms(query)
+        let candidate = forms(name)
+        return [Fuzzy.score(wanted.spaced, candidate.spaced), Fuzzy.score(wanted.joined, candidate.joined)].compactMap(\.self).max()
+    }
+
+    /// Everything, in the catalog's order, for a query with nothing to match on.
+    static func results(_ catalog: [StoreListing], query: String) -> [StoreListing] {
+        guard !forms(query).joined.isEmpty else { return catalog }
+        return catalog.enumerated()
+            .compactMap { index, listing in score(query, name: listing.name).map { (listing, $0, index) } }
+            // Equal scores keep the catalog's order, which a plain sort does not promise.
+            .sorted { $0.1 != $1.1 ? $0.1 > $1.1 : $0.2 < $1.2 }
+            .map(\.0)
     }
 }
 
@@ -45,15 +69,35 @@ final class ExtensionStore: ObservableObject {
     @Published private(set) var busy: Set<String> = []
     var onInstalled: () -> Void = { /* set by the settings process */ }
 
-    private var detailsCache: [String: StoreDetails] = [:]
+    var detailsCache: [String: StoreDetails] = [:]
+    var detailsTasks: [String: Task<StoreDetails?, Never>] = [:]
+    var iconTasks: [URL: Task<String?, Never>] = [:]
+    var iconFiles: [URL: String] = [:]
     private var latestShaCache: [String: String] = [:]
+    /// Reads one file of the repository. Tests answer for themselves.
+    let fetch: @Sendable (URL) async throws -> Data
+    let iconFolder: URL
+
+    /// How long a row stays on screen before its details are asked for: rows that typing or scrolling passes over ask for nothing.
+    static let settleDelay: Duration = .milliseconds(350)
+
+    init(
+        catalog: [String] = [],
+        iconFolder: URL = FileManager.default.temporaryDirectory.appendingPathComponent("floe-store-icons", isDirectory: true),
+        fetch: @escaping @Sendable (URL) async throws -> Data = { try await URLSession.shared.data(from: $0).0 }
+    ) {
+        self.catalog = catalog.map(StoreListing.init(name:))
+        self.iconFolder = iconFolder
+        self.fetch = fetch
+    }
+
     private var catalogTask: Task<Void, Never>?
 
     private static let catalogFileName = "store-catalog.json"
-    private static let recordFileName = ".floe-store.json"
+    static let recordFileName = ".floe-store.json"
     private static let cacheLifetime: TimeInterval = 24 * 3600
     private static let repoAPI = "https://api.github.com/repos/raycast/extensions"
-    private static nonisolated let rawBase = "https://raw.githubusercontent.com/raycast/extensions/main/extensions"
+    static nonisolated let rawBase = "https://raw.githubusercontent.com/raycast/extensions/main/extensions"
 
     private var catalogURL: URL {
         Paths.support.appendingPathComponent(Self.catalogFileName)
@@ -87,22 +131,6 @@ final class ExtensionStore: ObservableObject {
         await task.value
         isLoading = false
         catalogTask = nil
-    }
-
-    func details(for name: String) async -> StoreDetails? {
-        if let cached = detailsCache[name] {
-            return cached
-        }
-        guard let url = URL(string: "\(Self.rawBase)/\(name)/package.json") else { return nil }
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            guard let manifest = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
-            let parsed = Self.parseDetails(name: name, manifest: manifest)
-            detailsCache[name] = parsed
-            return parsed
-        } catch {
-            return nil
-        }
     }
 
     func install(_ name: String) async {
@@ -270,186 +298,5 @@ final class ExtensionStore: ObservableObject {
         let json: [String: Any] = ["fetchedAt": Date().timeIntervalSince1970, "names": names]
         let data = try JSONSerialization.data(withJSONObject: json)
         try data.write(to: ExtensionStore.shared.catalogURL, options: .atomic)
-    }
-
-    // MARK: - Details parsing
-
-    static nonisolated func parseDetails(name: String, manifest: [String: Any]) -> StoreDetails {
-        let title = manifest["title"] as? String ?? name
-        let description = manifest["description"] as? String
-        let author: String? = {
-            if let value = manifest["author"] as? String {
-                return value
-            }
-            if let dict = manifest["author"] as? [String: Any] {
-                return dict["name"] as? String
-            }
-            if let owner = manifest["owner"] as? String {
-                return owner
-            }
-            return nil
-        }()
-        let iconURL = iconURL(for: name, icon: manifest["icon"])
-        let commands = (manifest["commands"] as? [[String: Any]] ?? []).compactMap { command -> StoreCommand? in
-            guard let commandName = command["name"] as? String else { return nil }
-            return StoreCommand(
-                name: commandName,
-                title: command["title"] as? String ?? commandName,
-                description: command["description"] as? String,
-                mode: command["mode"] as? String ?? "view"
-            )
-        }
-        return StoreDetails(name: name, title: title, description: description, author: author, iconURL: iconURL, commands: commands)
-    }
-
-    static nonisolated func iconURL(for name: String, icon: Any?) -> URL? {
-        guard let file = icon as? String, !file.isEmpty,
-              !file.hasPrefix("icon:"), !file.hasPrefix("http"), !file.hasPrefix("data:") else { return nil }
-        let fileName = file.split(separator: "/").last.map(String.init) ?? file
-        // An installed copy has the file locally; otherwise fetch it, encoded (icon names may contain spaces).
-        let local = Paths.extensions.appendingPathComponent(name).appendingPathComponent("assets").appendingPathComponent(fileName)
-        if FileManager.default.fileExists(atPath: local.path) {
-            return local
-        }
-        let encoded = fileName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? fileName
-        return URL(string: "\(rawBase)/\(name)/assets/\(encoded)")
-    }
-
-    // MARK: - Install machinery
-
-    private struct FetchedExtension {
-        let workDir: URL
-        let extensionDir: URL
-        let commit: String
-    }
-
-    private struct Record: Codable {
-        let name: String
-        let commit: String
-        let installedAt: Date
-    }
-
-    private static func recordedCommit(for name: String) -> String? {
-        let url = Paths.extensions
-            .appendingPathComponent(name, isDirectory: true)
-            .appendingPathComponent(recordFileName)
-        guard let data = try? Data(contentsOf: url),
-              let record = try? JSONDecoder().decode(Record.self, from: data) else { return nil }
-        return record.commit
-    }
-
-    private static func fetchExtensionCopy(name: String) async throws -> FetchedExtension {
-        let workDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("floe-store-\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: workDir, withIntermediateDirectories: true)
-        let git = gitExecutable()
-        let clone = ["clone", "--depth", "1", "--filter=blob:none", "--sparse", "https://github.com/raycast/extensions", workDir.path]
-        try await runTool(executable: git, arguments: clone, context: String(localized: "Clone failed", bundle: .floe, comment: "What went wrong while installing an extension. Clone is the git operation."))
-        let checkout = ["-C", workDir.path, "sparse-checkout", "set", "extensions/\(name)"]
-        try await runTool(executable: git, arguments: checkout, context: String(localized: "Checkout failed", bundle: .floe, comment: "What went wrong while installing an extension. Checkout is the git operation."))
-        let extensionDir = workDir.appendingPathComponent("extensions/\(name)", isDirectory: true)
-        guard FileManager.default.fileExists(atPath: extensionDir.appendingPathComponent("package.json").path) else {
-            throw StoreFailure(message: String(localized: "Extension \"\(name)\" was not found in the Raycast repository.", bundle: .floe, comment: "The placeholder is an extension's name."))
-        }
-        let revision = ["-C", workDir.path, "rev-parse", "HEAD"]
-        let output = try await runTool(executable: git, arguments: revision, context: String(localized: "Could not read the repository commit", bundle: .floe))
-        let commit = output.stdout.trimmingCharacters(in: .whitespacesAndNewlines)
-        return FetchedExtension(workDir: workDir, extensionDir: extensionDir, commit: commit)
-    }
-
-    private static func runBunInstall(in directory: URL) async throws {
-        guard let bun = Paths.bun else {
-            throw StoreFailure(message: String(localized: "Bun was not found. Install it with brew install bun.", bundle: .floe, comment: "Bun is the name of a tool. brew install bun is a command and stays as written."))
-        }
-        try await runTool(executable: bun, arguments: ["install", "--ignore-scripts"], workingDirectory: directory, context: String(localized: "Bun install failed", bundle: .floe, comment: "What went wrong while installing an extension. Bun is the name of a tool."))
-    }
-
-    /// Moves the staged copy into the extensions folder only after its
-    /// install succeeded. The previous copy is kept aside until the swap lands.
-    private static func swapIn(name: String, staged: URL, commit: String) throws {
-        Paths.prepareSupportFolders()
-        let fileManager = FileManager.default
-        let destination = Paths.extensions.appendingPathComponent(name, isDirectory: true)
-        let backup = Paths.extensions.appendingPathComponent("\(name).floe-backup-\(UUID().uuidString)", isDirectory: true)
-        var movedAside = false
-        do {
-            if fileManager.fileExists(atPath: destination.path) {
-                try fileManager.moveItem(at: destination, to: backup)
-                movedAside = true
-            }
-            try fileManager.moveItem(at: staged, to: destination)
-        } catch {
-            if movedAside, !fileManager.fileExists(atPath: destination.path) {
-                try? fileManager.moveItem(at: backup, to: destination)
-            }
-            throw StoreFailure(message: String(localized: "Could not install \"\(name)\": \(lastLine(error.localizedDescription))", bundle: .floe, comment: "The first placeholder is an extension's name, the second is the reason."))
-        }
-        if movedAside {
-            try? fileManager.removeItem(at: backup)
-        }
-        let record = Record(name: name, commit: commit, installedAt: Date())
-        if let data = try? JSONEncoder().encode(record) {
-            try? data.write(to: destination.appendingPathComponent(recordFileName), options: .atomic)
-        }
-    }
-
-    private static func gitExecutable() -> String {
-        if FileManager.default.isExecutableFile(atPath: "/usr/bin/git") {
-            return "/usr/bin/git"
-        }
-        let path = ProcessInfo.processInfo.environment["PATH"] ?? "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin"
-        for folder in path.split(separator: ":") {
-            let candidate = URL(fileURLWithPath: String(folder)).appendingPathComponent("git").path
-            if FileManager.default.isExecutableFile(atPath: candidate) {
-                return candidate
-            }
-        }
-        return "/usr/bin/git"
-    }
-
-    struct ToolOutput {
-        let stdout: String
-        let stderr: String
-    }
-
-    struct StoreFailure: Error {
-        let message: String
-    }
-
-    private static nonisolated func lastLine(_ text: String) -> String {
-        text.split(separator: "\n").map(String.init).last(where: { !$0.trimmingCharacters(in: .whitespaces).isEmpty })
-            ?? String(localized: "Unknown error", bundle: .floe)
-    }
-
-    /// How much of a tool's output is kept; git and bun say far less than this.
-    private static let outputLimit = 4 * 1024 * 1024
-
-    /// Runs a tool off the main thread. Failures carry the last stderr line.
-    @concurrent @discardableResult
-    static nonisolated func runTool(
-        executable: String,
-        arguments: [String],
-        workingDirectory: URL? = nil,
-        context: String
-    ) async throws -> ToolOutput {
-        do {
-            let result = try await Subprocess.run(
-                .path(FilePath(executable)),
-                arguments: Arguments(arguments),
-                workingDirectory: workingDirectory.map { FilePath($0.path) },
-                output: .string(limit: outputLimit),
-                error: .string(limit: outputLimit)
-            )
-            let stdout = result.standardOutput
-            let stderr = result.standardError
-            guard result.terminationStatus.isSuccess else {
-                throw StoreFailure(message: String(localized: "\(context): \(lastLine(stderr.isEmpty ? stdout : stderr))", bundle: .floe, comment: "The first placeholder says what failed, the second is the reason."))
-            }
-            return ToolOutput(stdout: stdout, stderr: stderr)
-        } catch let failure as StoreFailure {
-            throw failure
-        } catch {
-            throw StoreFailure(message: String(localized: "\(context): \(error.localizedDescription)", bundle: .floe, comment: "The first placeholder says what failed, the second is the reason."))
-        }
     }
 }

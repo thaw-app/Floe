@@ -190,4 +190,83 @@ struct ExtensionStoreTests {
         #expect(store.busy.isEmpty)
         #expect(store.error == nil)
     }
+
+    /// Stands in for GitHub: counts what is asked for and answers a manifest or an icon's bytes.
+    private actor Repository {
+        private(set) var asked: [URL] = []
+
+        func read(_ url: URL) -> Data {
+            asked.append(url)
+            return url.lastPathComponent == "package.json" ? Data(#"{"title":"Proton Pass","icon":"icon.png"}"#.utf8) : Data("icon".utf8)
+        }
+    }
+
+    @MainActor @Test func detailsAreAskedForOnceHoweverManyViewsWantThem() async {
+        let repository = Repository()
+        let store = ExtensionStore { await repository.read($0) }
+        async let row = store.details(for: "proton-pass")
+        async let pane = store.details(for: "proton-pass")
+        let titles = await [row?.title, pane?.title]
+        #expect(titles == ["Proton Pass", "Proton Pass"])
+        #expect(await store.details(for: "proton-pass", after: .seconds(60))?.title == "Proton Pass", "what is known is not waited for")
+        #expect(await repository.asked.count == 1)
+        #expect(store.cachedDetails(for: "proton-pass")?.title == "Proton Pass")
+    }
+
+    @MainActor @Test func aRowThatLeavesBeforeItSettlesAsksForNothing() async {
+        let repository = Repository()
+        let store = ExtensionStore { await repository.read($0) }
+        let row = Task { await store.details(for: "proton-pass", after: .seconds(60)) }
+        await Task.yield()
+        row.cancel()
+        #expect(await row.value == nil)
+        let asked = await repository.asked
+        #expect(asked == [], "typing past a row costs no request")
+        #expect(await store.details(for: "proton-pass", after: .zero)?.title == "Proton Pass", "a row that stays is answered")
+    }
+
+    @MainActor @Test func anIconIsFetchedOnceAndKeptAsAFile() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-store-icons-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = Repository()
+        let store = ExtensionStore(iconFolder: folder) { await repository.read($0) }
+        let url = try #require(URL(string: "https://raw.githubusercontent.com/raycast/extensions/main/extensions/proton-pass/assets/my%20icon.png"))
+        #expect(store.knownIconFile(for: url) == nil)
+        async let first = store.iconFile(for: url)
+        async let second = store.iconFile(for: url)
+        let files = await [first, second]
+        let expected = folder.appendingPathComponent("proton-pass-my icon.png").path
+        #expect(files == [expected, expected])
+        #expect(try Data(contentsOf: URL(fileURLWithPath: expected)) == Data("icon".utf8))
+        #expect(store.knownIconFile(for: url) == expected, "a row that comes back draws it without waiting")
+        #expect(await repository.asked.count == 1)
+        let again = ExtensionStore(iconFolder: folder) { await repository.read($0) }
+        #expect(await again.iconFile(for: url) == expected)
+        #expect(await repository.asked.count == 1, "the file is found, not fetched again")
+        let installed = URL(fileURLWithPath: "/tmp/floe-installed/assets/icon.png")
+        #expect(store.knownIconFile(for: installed) == installed.path, "an installed copy's icon is its own file")
+    }
+
+    private func found(_ query: String, in names: [String] = ["1password", "pass", "proton-mail", "proton-pass", "spotify-player"]) -> [String] {
+        StoreSearch.results(names.map(StoreListing.init(name:)), query: query).map(\.name)
+    }
+
+    @Test(arguments: ["proton pass", "Proton Pass", "protonpass"])
+    func aTitleFindsItsExtensionWithSpacesHyphensAndCaseAlike(query: String) {
+        #expect(found(query) == ["proton-pass"], "the folder's name answers, with no details fetched")
+    }
+
+    @Test func theStoreMatchesAsTheLauncherDoesBestFirst() {
+        #expect(found("pass") == ["pass", "proton-pass", "1password"], "a whole name, then a word's start, then letters inside a word")
+        #expect(found("proton") == ["proton-mail", "proton-pass"], "equal matches keep the catalog's order")
+        #expect(found("spp") == ["spotify-player"], "scattered letters match, as they do in the launcher")
+        #expect(found("ppl") == ["spotify-player"])
+        #expect(found("zzz").isEmpty)
+        #expect(StoreSearch.score("pass", name: "proton-pass") == Fuzzy.score("pass", "proton pass"), "the launcher's own scores")
+    }
+
+    @Test(arguments: ["", "   ", "-", " - "])
+    func aSearchWithNothingToMatchOnListsEverything(query: String) {
+        #expect(found(query) == ["1password", "pass", "proton-mail", "proton-pass", "spotify-player"])
+    }
 }
