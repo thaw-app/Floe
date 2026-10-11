@@ -97,8 +97,10 @@ jobs:
 
       - name: Checkout source
         id: source
-        uses: ./.github/actions/checkout-source
+        uses: thaw-app/org-ci/actions/checkout-source@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
+          project-name: Floe.xcodeproj
+          target-name: Floe
           ref: refs/tags/${{ inputs.tag }}
 
       - name: Resolve tag and channel
@@ -168,7 +170,7 @@ jobs:
 
       - name: Resolve release notes
         id: notes
-        uses: thaw-app/org-ci/actions/release-notes@d6dce882eeefd199062c21ef6eb646428a255568
+        uses: thaw-app/org-ci/actions/release-notes@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           tag: ${{ steps.meta.outputs.tag }}
           release-notes: ${{ inputs.release_notes }}
@@ -291,7 +293,7 @@ jobs:
       # the build is signed as before and sync says it is unavailable.
       - name: Configure signing
         id: signing
-        uses: thaw-app/org-ci/actions/configure-signing@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
+        uses: thaw-app/org-ci/actions/configure-signing@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           provisioning-profile: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
           apple-application-cert: ${{ secrets.APPLE_APPLICATION_CERT }}
@@ -303,7 +305,7 @@ jobs:
       # Overrides project.yml's ad hoc signing on the command line: Developer ID
       # identity, team, manual style and the hardened runtime.
       - name: Build
-        uses: thaw-app/org-ci/actions/build@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
+        uses: thaw-app/org-ci/actions/build@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
           project-name: ${{ steps.source.outputs.project-name }}
@@ -325,7 +327,7 @@ jobs:
       # Exports with a secure timestamp, notarizes and staples the app, then
       # packages and signs the DMG.
       - name: Export Archive
-        uses: thaw-app/org-ci/actions/export-and-package@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
+        uses: thaw-app/org-ci/actions/export-and-package@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
           app-name: ${{ env.APP_NAME }}
@@ -347,7 +349,7 @@ jobs:
           codesign -d --entitlements - "$app" 2>/dev/null | grep -q "com.apple.security.automation.apple-events"
 
       - name: Notarize
-        uses: thaw-app/org-ci/actions/notarize-and-validate@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
+        uses: thaw-app/org-ci/actions/notarize-and-validate@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           dmg-name: ${{ env.DMG_NAME }}
           app-name: ${{ env.APP_NAME }}
@@ -430,7 +432,7 @@ jobs:
       - name: Sparkle ZIP and appcast
         id: sparkle
         if: steps.meta.outputs.updates == 'true'
-        uses: thaw-app/org-ci/actions/sparkle-release@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
+        uses: thaw-app/org-ci/actions/sparkle-release@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           tag: ${{ steps.meta.outputs.tag }}
           channel: ${{ steps.meta.outputs.channel }}
@@ -748,7 +750,7 @@ jobs:
 
       - name: Publish appcast to gh-pages
         if: ${{ inputs.publish_release && inputs.publish_appcast && needs.release.outputs.updates == 'true' }}
-        uses: thaw-app/org-ci/actions/publish-file-to-branch@a67b912626ea4ed41dcc5dd9c534c864f8aa39e8
+        uses: thaw-app/org-ci/actions/publish-file-to-branch@61f345397193bf3f9356c4f6179fb6ed4c84dd45
         with:
           repository: ${{ github.repository }}
           branch: gh-pages
