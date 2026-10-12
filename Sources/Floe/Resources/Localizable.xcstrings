@@ -832,6 +832,7 @@
       "comment" : "A button that clicks the selected menu bar item."
     },
     "Click a menu bar item" : {},
+    "Click an app to give it an alias or a hotkey. A hotkey opens the app, or hides it if it's already in front." : {},
     "Clipboard" : {
       "comment" : "The kind of a result, shown beside its title.\nThe kind of app that keeps a clipboard history, as the label of the picker that chooses one."
     },
@@ -1949,7 +1950,6 @@
     "Opens a folder from the Actions menu or from Finder, and the SSH hosts you pick in the search." : {},
     "Opens from Clipboard History in the search." : {},
     "Opens from Clipboard History in the search. With another app chosen, Floe saves no copies and keeps the history it has." : {},
-    "Opens the app, or hides it if it's already in front." : {},
     "Opens web addresses, quicklinks and the other web links you open from Floe." : {},
     "Optional" : {
       "comment" : "A badge on a permission Floe works without."
@@ -2361,7 +2361,6 @@
     },
     "Select All" : {},
     "Select a copy to preview it" : {},
-    "Select an app to give it an alias or a hotkey." : {},
     "Select an extension to see its details." : {},
     "Separate light and dark tints" : {},
     "Separate the search field from the results" : {},
