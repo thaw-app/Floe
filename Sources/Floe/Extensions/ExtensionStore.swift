@@ -68,6 +68,8 @@ final class ExtensionStore: ObservableObject {
     @Published private(set) var error: String?
     @Published private(set) var busy: Set<String> = []
     var onInstalled: () -> Void = { /* set by the settings process */ }
+    /// Asked on the store's page once an install brings menu-bar commands. Nil again when it is answered.
+    @Published var menuBarOffer: MenuBarOffer?
 
     var detailsCache: [String: StoreDetails] = [:]
     var detailsTasks: [String: Task<StoreDetails?, Never>] = [:]
@@ -145,11 +147,20 @@ final class ExtensionStore: ObservableObject {
             let folderCommit = await latestCommit(touching: name, askingAgain: true)
             try Self.swapIn(name: name, staged: fetched.extensionDir, commit: Self.revisionToRecord(folderCommit: folderCommit, repositoryCommit: fetched.commit))
             onInstalled()
+            menuBarOffer = Self.menuBarOffer(for: name)
         } catch let failure as StoreFailure {
             self.error = failure.message
         } catch {
             self.error = error.localizedDescription
         }
+    }
+
+    /// The question for an extension just installed, read from its manifest. Nil when it has nothing to add.
+    static func menuBarOffer(for name: String, in root: URL = Paths.extensions, settings: AppSettings = .shared) -> MenuBarOffer? {
+        let folder = root.appendingPathComponent(name, isDirectory: true)
+        guard let manifest = try? Data(contentsOf: folder.appendingPathComponent("package.json")) else { return nil }
+        let commands = ExtensionCommand.commands(inManifest: manifest, folder: folder, source: .local)
+        return MenuBarOffer(commands: commands, inMenuBar: settings.menuBarCommands) { !PreferenceStore.missingRequired(for: $0).isEmpty }
     }
 
     func update(_ name: String) async {

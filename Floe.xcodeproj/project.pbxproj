@@ -247,6 +247,7 @@
 		C6498EE31AE4D16010D5A257 /* HotkeyRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C88D79A84B3FAC5F8E4332D /* HotkeyRegistry.swift */; };
 		C74B57F3DEB3EBF2FFE145AF /* ShellCommandSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F9E4F50999F37A0B4D3C13 /* ShellCommandSearchProvider.swift */; };
 		C7736ACC6DCFDB827967C091 /* SSHSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1799F047450A092C64765090 /* SSHSearch.swift */; };
+		C9355782C74610B86425EBFC /* MenuBarOffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC2CA2E30AF5B70539D91FF7 /* MenuBarOffer.swift */; };
 		C970B52A7B428A83D32F4329 /* SystemSettingsPanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70CF65BDA95BF501847A21BE /* SystemSettingsPanes.swift */; };
 		C9BAEA1DB299E5B8BD25CDDC /* ShellCommandsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E988DE65E609D0E3B8F836 /* ShellCommandsSettingsSection.swift */; };
 		CABB2AAE0CB58A33DCC1A8A0 /* LauncherLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AB9468971A521D2FC58DD1 /* LauncherLayout.swift */; };
@@ -648,6 +649,7 @@
 		FB94266FDB7EACCCA3986AD1 /* Picker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Picker.swift; sourceTree = "<group>"; };
 		FBAE97F9F789080825D77939 /* AISources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISources.swift; sourceTree = "<group>"; };
 		FC0E28DFBAEC63960564EE39 /* DropdownMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropdownMenu.swift; sourceTree = "<group>"; };
+		FC2CA2E30AF5B70539D91FF7 /* MenuBarOffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarOffer.swift; sourceTree = "<group>"; };
 		FE645075079A42E9C95DFC8D /* Model+Checkpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Checkpoints.swift"; sourceTree = "<group>"; };
 		FFCE42B5277736D7F8DD7E0D /* SearchCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCommand.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -965,6 +967,7 @@
 				080FBD40C0E194E41EB45B48 /* MenuBarCommands.swift */,
 				A545F0B8FCA3D5CE64B8F58D /* MenuBarContent.swift */,
 				62CED5B91219A28FC90A5B73 /* MenuBarIcon.swift */,
+				FC2CA2E30AF5B70539D91FF7 /* MenuBarOffer.swift */,
 				15CFC538C631DB3824BC675A /* MenuBarPresenter.swift */,
 				6CEDDD34C97C26441F16E451 /* Node.swift */,
 				611669F5DA712196411BB8AD /* OAuthBroker.swift */,
@@ -1448,6 +1451,7 @@
 				D38CFDE6CB1A7B0702FC79E7 /* MenuBarIcon.swift in Sources */,
 				2340ECE085B416ACAD78EEF3 /* MenuBarItems.swift in Sources */,
 				19FAEC92E306B4BC2C96CD92 /* MenuBarLogic.swift in Sources */,
+				C9355782C74610B86425EBFC /* MenuBarOffer.swift in Sources */,
 				66D62EF86F9750EBD438D121 /* MenuBarPresenter.swift in Sources */,
 				D5D05D876E2D058B5A83B667 /* MenuBarSearchModel.swift in Sources */,
 				6FF03D4881BED9650B80EF51 /* MenuBarSearchScope.swift in Sources */,
