@@ -72,8 +72,8 @@ struct ExtensionSettingsView: View {
                     }
                 }
                 ExtensionAccessSection(extensionName: first.extensionName, records: settings.recordsExtensionAccess)
-                // Only what Floe installed is Floe's to remove: Raycast's own extensions and a checkout's samples stay.
-                if first.extensionDir.deletingLastPathComponent().standardizedFileURL == Paths.extensions.standardizedFileURL {
+                // A checkout's samples stay: they are files of the repository.
+                if ExtensionStore.canRemove(first.extensionDir) {
                     ThawSection {
                         Button("Remove Extension…", role: .destructive) { confirmingRemoval = true }
                     }
@@ -122,12 +122,16 @@ struct ExtensionSettingsView: View {
             }
             .alert("Remove \u{201C}\(first.extensionTitle)\u{201D}?", isPresented: $confirmingRemoval) {
                 Button("Remove", role: .destructive) {
-                    ExtensionStore.shared.remove(first.extensionDir.lastPathComponent)
+                    ExtensionStore.shared.remove(folder: first.extensionDir, named: first.extensionName)
                     onRemoved()
                 }
                 Button("Cancel", role: .cancel) { /* the alert closes itself */ }
             } message: {
-                Text("Its folder goes to the Trash. Its preferences and what it stored are kept, for when it is installed again.")
+                if first.source == .raycast {
+                    Text("Raycast installed this extension, so Raycast loses it too. Its folder goes to the Trash. Its preferences and what it stored in Floe are kept, for when it is installed again.")
+                } else {
+                    Text("Its folder goes to the Trash. Its preferences and what it stored are kept, for when it is installed again.")
+                }
             }
         }
     }

@@ -99,7 +99,7 @@ After you install:
 
 #### Extension settings and sign-in
 - **Turn off an extension, or one of its commands**, on its page in Settings. Floe leaves what is off out of the search, and a hotkey, the menu bar or Shortcuts will not run it.
-- **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension Floe installed.
+- **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension, whether Floe or Raycast installed it.
 - **Each extension's page shows what it has reached:** the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It records what the extension did and stops none of it. Settings > Privacy switches the record off and forgets it.
 - **GitHub and GitLab extensions sign in with the GitHub CLI and the GitLab CLI.** If `gh` or `glab` is signed in on your Mac, Floe asks once per extension whether it may use that sign-in. For GitHub it lists what the sign-in may do. The extension's page in Settings takes it back.
 - **Other extensions sign in in the browser.** Where the browser's answer cannot reach Floe, Floe asks for the token the extension takes and runs the command again. Known issues says whose service the sign-in uses for now.

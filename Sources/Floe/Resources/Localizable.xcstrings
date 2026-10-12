@@ -2110,6 +2110,7 @@
     "Raycast" : {},
     "Raycast Extension Store" : {},
     "Raycast Extensions Folder" : {},
+    "Raycast installed this extension, so Raycast loses it too. Its folder goes to the Trash. Its preferences and what it stored in Floe are kept, for when it is installed again." : {},
     "Read from" : {},
     "Reading the names of your files…" : {},
     "Reading your menu bar…" : {},

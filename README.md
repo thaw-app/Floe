@@ -148,7 +148,7 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 - Use their lists, details, forms, preferences, arguments, and background and interval commands.
 - Add extension menu bar commands by hand.
 - Switch off an extension or a single command, and set an alias, hotkey or custom icon per command.
-- Remove an extension Floe installed.
+- Remove an extension, whether Floe or Raycast installed it.
 - See what each extension has reached: hosts contacted, folders touched, programs started.
 - Sign GitHub and GitLab extensions in through `gh` and `glab`.
 - Sign other extensions in through the browser, by way of Raycast's sign-in service for now, or enter a token where that cannot be received.

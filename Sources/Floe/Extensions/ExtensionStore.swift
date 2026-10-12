@@ -184,16 +184,30 @@ final class ExtensionStore: ObservableObject {
     }
 
     func remove(_ name: String) {
-        let folder = Paths.extensions.appendingPathComponent(name, isDirectory: true)
+        remove(folder: Paths.extensions.appendingPathComponent(name, isDirectory: true), named: name)
+    }
+
+    /// Whether an extension's folder is one Floe moves to the Trash: its own or Raycast's, never a checkout's samples.
+    static nonisolated func canRemove(_ folder: URL, roots: [URL] = [Paths.extensions, Paths.raycastExtensions]) -> Bool {
+        let parent = folder.standardizedFileURL.deletingLastPathComponent().path
+        return roots.contains { $0.standardizedFileURL.path == parent }
+    }
+
+    /// Moves an extension's folder to the Trash under the name its receipt shows. Raycast names its folders by an
+    /// identifier, so the name is given.
+    func remove(folder: URL, named name: String, keep: @MainActor (Receipt) -> Void = ExtensionStore.keep) {
         guard FileManager.default.fileExists(atPath: folder.path) else { return }
         do {
-            let receipt = try ReceiptStore.trash(folder, as: .extensionRemoved, subject: name)
-            if AppSettings.shared.keepsReceipts {
-                ReceiptStore.shared.add(receipt)
-            }
+            try keep(ReceiptStore.trash(folder, as: .extensionRemoved, subject: name))
             onInstalled()
         } catch {
             self.error = (error as NSError).localizedDescription
+        }
+    }
+
+    private static func keep(_ receipt: Receipt) {
+        if AppSettings.shared.keepsReceipts {
+            ReceiptStore.shared.add(receipt)
         }
     }
 
