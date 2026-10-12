@@ -21,6 +21,7 @@ final class IncomingURLRouter: NSObject {
     private let appearance: (URL) -> Void
     private let oauth: (URL) -> Void
 
+    /// Injects URL consumers without registering a system handler or beginning appearance tracking.
     init(
         oauthIsParked: Bool = OAuthBroker.isParked,
         appearance: @escaping (URL) -> Void,
@@ -31,6 +32,7 @@ final class IncomingURLRouter: NSObject {
         self.oauth = oauth
     }
 
+    /// Registers URL delivery; only the resident subscribes to Thaw appearance updates.
     func install(followsAppearance: Bool = true) {
         NSAppleEventManager.shared().setEventHandler(
             self,
@@ -44,6 +46,7 @@ final class IncomingURLRouter: NSObject {
         }
     }
 
+    /// Ignores malformed Apple events before applying the scheme and host routing checks.
     @objc private func handleGetURLEvent(_ event: NSAppleEventDescriptor?, _: NSAppleEventDescriptor?) {
         guard let urlString = event?.paramDescriptor(forKeyword: keyDirectObject)?.stringValue,
               let url = URL(string: urlString)

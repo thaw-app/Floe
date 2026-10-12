@@ -12,6 +12,10 @@ extension NSWorkspace {
     /// which held the main thread for 300 ms while an app started.
     nonisolated func openWithoutWaiting(_ url: URL) {
         let lease = PanelWork.begin()
-        open(url, configuration: OpenConfiguration()) { _, _ in withExtendedLifetime(lease) {} }
+        open(url, configuration: OpenConfiguration()) { _, _ in
+            withExtendedLifetime(lease) {
+                // Only completion matters here: retain the lease until NSWorkspace finishes opening.
+            }
+        }
     }
 }

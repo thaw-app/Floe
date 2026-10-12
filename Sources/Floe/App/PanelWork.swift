@@ -17,6 +17,7 @@ nonisolated enum PanelWork {
     }
 
     final class Lease: Sendable {
+        /// Counts work before it can be scheduled; deinit balances this increment on any thread.
         fileprivate init() {
             count.withLock { $0 += 1 }
         }
@@ -24,16 +25,22 @@ nonisolated enum PanelWork {
         deinit { count.withLock { $0 -= 1 } }
     }
 
+    /// Blocks idle exit until the returned lease's last owner releases it.
     static func begin() -> Lease {
         Lease()
     }
 
+    /// Acquires a lease synchronously, before scheduling work that may outlive dismissal.
     @MainActor
     @discardableResult
     static func perform<T: Sendable>(_ work: @escaping @MainActor () async -> T) -> Task<T, Never> {
         let lease = begin()
         return Task {
-            defer { withExtendedLifetime(lease) {} }
+            defer {
+                withExtendedLifetime(lease) {
+                    // Deinit releases the work count only after the async operation returns.
+                }
+            }
             return await work()
         }
     }

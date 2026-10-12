@@ -36,12 +36,6 @@ struct RootIcon: View {
             IconView(value: "icon:Document", assetsPath: "", size: 24)
         case .settings:
             IconView(value: "icon:Gear", assetsPath: "", size: 24)
-        case .extensionStore:
-            SymbolTile(symbol: "bag")
-        case let .system(command):
-            SymbolTile(symbol: command.symbol)
-        case let .note(action, _):
-            SymbolTile(symbol: action.symbol)
         case .thaw:
             // Thaw's own icon, so its rows read as that app's and not as one more system command.
             AppIconView(path: Thaw.applicationURL?.path ?? "", size: 24)
@@ -54,10 +48,6 @@ struct RootIcon: View {
             } else {
                 SymbolTile(symbol: pane.symbol)
             }
-        case .snippet:
-            SymbolTile(symbol: "text.quote", tint: .teal)
-        case .event:
-            SymbolTile(symbol: "calendar", tint: .red)
         case .calculator:
             IconView(value: "icon:Calculator", assetsPath: "", size: 24)
         case let .emoji(entry):
@@ -78,14 +68,50 @@ struct RootIcon: View {
             } else {
                 SymbolTile(symbol: "hand.raised")
             }
-        case let .clipboardEntry(entry):
-            SymbolTile(symbol: entry.kind.symbol)
         case let .menuBarItem(extra, _):
             if let owner = extra.ownerURL {
                 AppIconView(path: owner.path, size: 24)
             } else {
                 SymbolTile(symbol: "menubar.rectangle")
             }
+        case let .process(process):
+            if let bundle = process.bundlePath {
+                AppIconView(path: bundle, size: 24)
+            } else {
+                SymbolTile(symbol: "gearshape.2")
+            }
+        case let .sshHost(_, terminal):
+            // The terminal's icon says where the connection opens.
+            if let terminal {
+                AppIconView(path: terminal.url.path, size: 24)
+            } else {
+                SymbolTile(symbol: "terminal")
+            }
+        case .shortcut:
+            AppleShortcutIcon()
+        case .extensionStore, .system, .note, .snippet, .event, .clipboardEntry,
+             .menuBarAccess, .askAI, .webAddress, .checkpoint, .checkpointDraft,
+             .reminderDraft, .eventDraft, .contact, .outgoing, .focus, .keyword,
+             .definition, .timer, .receipt, .shell:
+            symbolIcon
+        }
+    }
+
+    /// The exhaustive outer switch sends only symbol-backed rows here.
+    @ViewBuilder private var symbolIcon: some View {
+        switch item {
+        case .extensionStore:
+            SymbolTile(symbol: "bag")
+        case let .system(command):
+            SymbolTile(symbol: command.symbol)
+        case let .note(action, _):
+            SymbolTile(symbol: action.symbol)
+        case .snippet:
+            SymbolTile(symbol: "text.quote", tint: .teal)
+        case .event:
+            SymbolTile(symbol: "calendar", tint: .red)
+        case let .clipboardEntry(entry):
+            SymbolTile(symbol: entry.kind.symbol)
         case .menuBarAccess:
             SymbolTile(symbol: "hand.raised")
         case .askAI:
@@ -116,21 +142,8 @@ struct RootIcon: View {
             SymbolTile(symbol: receipt.canUndo ? "arrow.uturn.backward" : "list.bullet.clipboard")
         case let .shell(row, _):
             SymbolTile(symbol: row.origin.symbol)
-        case let .process(process):
-            if let bundle = process.bundlePath {
-                AppIconView(path: bundle, size: 24)
-            } else {
-                SymbolTile(symbol: "gearshape.2")
-            }
-        case let .sshHost(_, terminal):
-            // The terminal's icon says where the connection opens.
-            if let terminal {
-                AppIconView(path: terminal.url.path, size: 24)
-            } else {
-                SymbolTile(symbol: "terminal")
-            }
-        case .shortcut:
-            AppleShortcutIcon()
+        default:
+            EmptyView()
         }
     }
 }

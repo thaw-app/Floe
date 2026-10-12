@@ -262,7 +262,11 @@ nonisolated enum BrowserTabs {
         let source = BrowserTabScripts.activate(tab)
         let lease = PanelWork.begin()
         Task(priority: .userInitiated) {
-            defer { withExtendedLifetime(lease) {} }
+            defer {
+                withExtendedLifetime(lease) {
+                    // Activation and its result callback must finish before the panel process can exit.
+                }
+            }
             await completion(run(source))
         }
     }

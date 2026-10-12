@@ -10,6 +10,7 @@ import AppKit
 /// Exercises the actual resident and its disposable process, rather than the offscreen search
 /// benchmark (which deliberately does not start the app's background services).
 enum ResidentBench {
+    /// Returns this process's physical footprint in MiB, or nil if the kernel query fails.
     static func footprint() -> Double? {
         var info = task_vm_info_data_t()
         var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
@@ -21,6 +22,7 @@ enum ResidentBench {
         return status == KERN_SUCCESS ? Double(info.phys_footprint) / 1_048_576 : nil
     }
 
+    /// Runs the opt-in lifecycle benchmark and exits nonzero for missing children or excess memory.
     static func start(panel: PanelProcess) {
         guard let raw = ProcessInfo.processInfo.environment["FLOE_RESIDENT_BENCH"], let limit = Double(raw), limit.isFinite, limit > 0 else { return }
         Task {
@@ -77,11 +79,13 @@ enum ResidentBench {
         return peak
     }
 
+    /// Stops resident-owned services before returning the benchmark verdict to its harness.
     private static func finish(passed: Bool) -> Never {
         (NSApp.delegate as? AppDelegate)?.shutDown()
         exit(passed ? 0 : 1)
     }
 
+    /// Prints a parser-readable sample but compares the unrounded value against the budget.
     private static func report(_ stage: String, memory: Double?, limit: Double) -> Bool {
         guard let memory else { print("RESIDENT FAIL: task_info"); return false }
         print("RESIDENT \(stage) \(String(format: "%.2f", memory)) MiB limit=\(limit)")

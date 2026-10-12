@@ -16,11 +16,13 @@ final class LauncherPanelLink {
     private let settingsLink: LauncherSettingsLink
     private var appearance: AnyCancellable?
 
+    /// Binds foreground requests to the resident model and its existing Settings owner.
     init(model: LauncherModel, settingsLink: LauncherSettingsLink) {
         self.model = model
         self.settingsLink = settingsLink
     }
 
+    /// Installs forwarding and snapshot publishers without eagerly launching a foreground child.
     func start() {
         let process = process
         model.presentInPanelProcess = { process.request($0) }
@@ -43,6 +45,7 @@ final class LauncherPanelLink {
             .sink { process.send(.appearance($0.rawValue)) }
     }
 
+    /// Seeds a ready child and routes application-level requests back to their resident owners.
     private func receive(_ packet: PanelPacket) {
         switch packet {
         case .ready:
@@ -62,6 +65,7 @@ final class LauncherPanelLink {
         }
     }
 
+    /// Applies timer, receipt and clipboard mutations once, using resident state rather than mirrors.
     private func receiveStoreRequest(_ packet: PanelPacket) {
         switch packet {
         case let .startTimer(draft): model.startTimer(draft)

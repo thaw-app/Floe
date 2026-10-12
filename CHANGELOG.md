@@ -92,7 +92,7 @@ After you install:
 - **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
 - **An Extension Store page** browses, installs and updates extensions. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **Lists, details, forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
-- **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch. Installing an extension that has one asks whether to add it.
+- **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch. A fresh install offers to add ready menu bar commands that are not already enabled. Commands needing preferences show setup guidance instead.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
 - **An extension that holds more than 1 GB of memory is stopped.** Floe says so, and how much it held.
 - **An extension you are writing runs again when you save it.** While one of its commands is open, a save under `src` or `assets`, or of `package.json`, runs the command again with the same arguments.

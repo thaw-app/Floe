@@ -152,7 +152,7 @@ jobs:
         if: needs.changes.outputs.code == 'true'
         run: |
           ./scripts/check-budget.sh Build/Build/Products/Debug/Floe.app/Contents/MacOS/Floe 100
-          python3 scripts/check-resident-budget.py Build/Build/Products/Debug/Floe.app/Contents/MacOS/Floe 30
+          python3 scripts/check-resident-budget.py ci 30
 
       - name: Signing script tests
         if: needs.changes.outputs.code == 'true'

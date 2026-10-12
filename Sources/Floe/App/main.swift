@@ -55,6 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarCommands: MenuBarCommands?
     private var backgroundScheduler: BackgroundScheduler?
 
+    /// Starts resident-owned services and routing without constructing foreground windows.
     func applicationDidFinishLaunching(_: Notification) {
         Log.follow(settings).store(in: &cancellables)
         settings.$fetchesExchangeRates.removeDuplicates()
@@ -189,6 +190,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         shutDown()
     }
 
+    /// Flushes resident state and stops owned processes before quitting or ending a benchmark.
     func shutDown() {
         model.session?.forceStop()
         menuBarCommands?.stopAll()
@@ -199,14 +201,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UsageStore.shared.flush()
     }
 
+    /// Routes the global toggle through the foreground lifecycle, including startup and exit races.
     private func toggle() {
         panelLink.process.request(.toggle)
     }
 
+    /// Requests foreground presentation without making the resident create a launcher window.
     @objc private func show() {
         panelLink.process.request(.show)
     }
 
+    /// Dismisses an existing foreground surface without launching a child solely to hide it.
     private func hide() {
         panelLink.process.request(.hide)
     }

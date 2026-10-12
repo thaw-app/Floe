@@ -72,14 +72,16 @@ The **30 MiB budget is for the resident**, including after foreground use, not t
 processes. An unusually large file index or clipboard history can still exceed it. Verify cold start, menu queries,
 three open/dismiss cycles and a minute of settled samples with the real app services:
 
-    python3 scripts/check-resident-budget.py .build/xcode/Build/Products/Release/Floe.app/Contents/MacOS/Floe
+    python3 scripts/check-resident-budget.py release
 
 This sets `FLOE_RESIDENT_BENCH=30`, traverses the resident menu's AppKit accessibility children, renders the foreground
 panels offscreen without taking focus, verifies each child exits, and checks `TASK_VM_INFO.phys_footprint` without
 truncating fractions. The in-process menu traversal reproduces the allocation path of external AX queries without
 requiring a CI Accessibility grant. The `settled` value is the highest of twelve samples taken five seconds apart,
 so an interval refresh cannot hide behind a passing cold sample. All six reported values must pass. The harness has
-a 120-second timeout and cleans up its own process group. The existing `--bench-search` / `check-budget.sh` check remains a separate rendered-search budget;
+a 120-second timeout and cleans up its own process group. It accepts only named repository build products:
+`release` for the Xcode Release build, `ci` for CI's Debug build, `swiftpm` for the SwiftPM Debug build,
+and `signed` for a locally signed copy at `.build/resident-signed/Floe.app`. Arbitrary executable paths are rejected. The existing `--bench-search` / `check-budget.sh` check remains a separate rendered-search budget;
 it does not exercise normal resident startup. For release comparisons use a Release build with the same signing,
 permissions, settings, indexes and background commands as the installed app.
 
@@ -563,7 +565,7 @@ profile carries `production` for push and allows the Production environment.
     FLOE_BENCH_DUMP=/tmp/s .build/debug/Floe --bench-settings  # settings page timings and snapshots
     .build/debug/Floe --bench-search                    # the catalog scan, each keystroke, and the memory held
     ./scripts/check-budget.sh .build/debug/Floe         # rendered-search budget: 100 MiB
-    python3 scripts/check-resident-budget.py .build/debug/Floe 30 # real startup and post-dismissal resident budget
+    python3 scripts/check-resident-budget.py swiftpm 30 # real startup and post-dismissal resident budget
     bun runtime/survey.ts ~/.config/raycast/extensions      # compatibility across many extensions
     FLOE_SETTINGS_CLOSE_AFTER=3 .build/debug/Floe --settings --page about  # the settings process alone; exits 0 when its window closes
     FLOE_OPEN_SETTINGS=5,20 swift run                   # the launcher opens Settings by itself after 5 and 20 seconds

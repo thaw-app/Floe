@@ -9,18 +9,41 @@ import AppKit
 
 /// Owns one disposable foreground process. The resident never constructs a SwiftUI hosting view.
 final class PanelProcess {
+    struct Environment {
+        var makeChild: () -> Process = {
+            let child = Process()
+            child.executableURL = Bundle.main.executableURL
+            child.arguments = ["--panel"]
+            return child
+        }
+
+        var prepare: () -> Void = {
+            UsageStore.shared.flush()
+            CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+        }
+
+        var readinessTimeout: TimeInterval = 10
+        var terminationGrace: TimeInterval = 1
+    }
+
+    private let environment: Environment
     private var lifetime = PanelLifetime()
     private var process: Process?
     private var channel: PanelChannel?
     private var stopping = false
-    private var ready = false
-    var onMessage: (PanelPacket) -> Void = { _ in }
-    var onExit: () -> Void = {}
+    var onMessage: ((PanelPacket) -> Void)?
+    var onExit: (() -> Void)?
+
+    /// Allows lifecycle tests to use owned fixture children without touching persistent app state.
+    init(environment: Environment = Environment()) {
+        self.environment = environment
+    }
 
     var pid: Int32? {
         process?.isRunning == true ? process?.processIdentifier : nil
     }
 
+    /// Starts the foreground lazily, or queues work behind its current startup or shutdown.
     func request(_ request: PanelRequest) {
         guard !stopping else { return }
         apply(lifetime.request(request))
@@ -31,24 +54,23 @@ final class PanelProcess {
         channel?.send(packet)
     }
 
+    /// Executes the lifecycle decisions without duplicating its retry and readiness state.
     private func apply(_ effects: [PanelLifetime.Effect]) {
         for effect in effects {
             switch effect {
             case .start: start()
+            case .terminate: terminateUnreadyChild()
             case let .send(message): channel?.send(message.packet)
             }
         }
     }
 
+    /// Launches the same executable with private pipes after flushing resident-owned settings.
     private func start() {
-        guard let executable = Bundle.main.executableURL else { return }
-        UsageStore.shared.flush()
-        CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
-        let child = Process()
+        environment.prepare()
+        let child = environment.makeChild()
         let input = Pipe()
         let output = Pipe()
-        child.executableURL = executable
-        child.arguments = ["--panel"]
         child.standardInput = input
         child.standardOutput = output
         child.terminationHandler = { [weak self] ended in
@@ -57,7 +79,7 @@ final class PanelProcess {
                 self.channel?.close()
                 self.channel = nil
                 self.process = nil
-                self.onExit()
+                self.onExit?()
                 if !self.stopping {
                     self.apply(self.lifetime.exited())
                 }
@@ -66,11 +88,9 @@ final class PanelProcess {
         do {
             try child.run()
             process = child
-            ready = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak self, weak child] in
-                guard let self, let child, self.process === child, !self.ready, child.isRunning else { return }
-                self.lifetime = PanelLifetime()
-                child.terminate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + environment.readinessTimeout) { [weak self, weak child] in
+                guard let self, let child, self.process === child, child.isRunning else { return }
+                self.apply(self.lifetime.readinessTimedOut())
             }
             try? input.fileHandleForReading.close()
             try? output.fileHandleForWriting.close()
@@ -89,19 +109,31 @@ final class PanelProcess {
         }
     }
 
+    /// A hung child may not service SIGTERM; only that still-owned child is killed after grace.
+    private func terminateUnreadyChild() {
+        guard let child = process, child.isRunning else { return }
+        child.terminate()
+        DispatchQueue.main.asyncAfter(deadline: .now() + environment.terminationGrace) { [weak self, weak child] in
+            guard let self, let child, self.process === child, child.isRunning else { return }
+            kill(child.processIdentifier, SIGKILL)
+        }
+    }
+
+    /// Handles lifecycle packets here and forwards state mutations to their resident owners.
     private func receive(_ packet: PanelPacket) {
         switch packet {
         case .ready:
-            ready = true
-            onMessage(packet)
+            guard lifetime.isAwaitingReadiness else { return }
+            onMessage?(packet)
             apply(lifetime.ready())
         case let .idle(sequence):
             apply(lifetime.idle(sequence: sequence))
         default:
-            onMessage(packet)
+            onMessage?(packet)
         }
     }
 
+    /// Stops the owned child and refuses further launch requests during resident shutdown.
     func terminate() {
         stopping = true
         channel?.send(.shutdown)

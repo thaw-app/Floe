@@ -79,7 +79,7 @@ final class ClipboardHistoryStore: ObservableObject {
     }
 
     @Published private(set) var entries: [ClipboardEntry] = []
-    var onSnapshotSaved: () -> Void = {}
+    var onSnapshotSaved: (() -> Void)?
 
     /// What the folder holds once the worker has caught up: counted from disk at load, then kept.
     var storedBytes: Int {
@@ -187,7 +187,7 @@ final class ClipboardHistoryStore: ObservableObject {
                     clearsWhenLoaded = false
                     removeUnpinned()
                 }
-                onSnapshotSaved()
+                onSnapshotSaved?()
             case let .prepared(entry, bytes, epoch):
                 if epoch == self.epoch {
                     insert(entry, bytes: bytes)
@@ -196,7 +196,7 @@ final class ClipboardHistoryStore: ObservableObject {
                 }
             case let .saved(bytes):
                 ledger.set(ClipboardFiles.historyName, bytes: bytes)
-                onSnapshotSaved()
+                onSnapshotSaved?()
             }
         }
     }
@@ -246,6 +246,7 @@ final class ClipboardHistoryStore: ObservableObject {
         worker.load()
     }
 
+    /// Toggles a pin in the resident, or forwards its ID without mutating a foreground snapshot.
     func togglePin(_ entry: ClipboardEntry) {
         if let remote {
             remote(.pinClipboard(entry.id)); return
@@ -255,6 +256,7 @@ final class ClipboardHistoryStore: ObservableObject {
         save()
     }
 
+    /// Removes an entry and its image through the resident; stale entry IDs are harmless.
     func delete(_ entry: ClipboardEntry) {
         if let remote {
             remote(.deleteClipboard(entry.id)); return

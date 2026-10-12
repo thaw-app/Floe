@@ -84,6 +84,30 @@ struct TimersTests {
         #expect(foregroundClock.notified.isEmpty)
     }
 
+    @Test func stoppingATimerBeforeItsMirrorArrivesStillStopsTheResident() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let clock = Stand()
+        let resident = model(in: folder, stand: clock)
+        let foreground = model(in: folder, stand: Stand())
+        await resident.startTimer(TimerDraft(duration: 60, label: "tea")).value
+        let timer = try #require(resident.runningTimers.all.first)
+        var stopped: [UUID] = []
+        foreground.residentRequests = { packet in
+            if case let .stopTimer(id) = packet {
+                stopped.append(id)
+                _ = resident.runningTimers.remove(id)
+            }
+        }
+        #expect(foreground.runningTimers.all.isEmpty)
+        #expect(!foreground.stopTimer("not an identifier"))
+        #expect(stopped.isEmpty)
+        #expect(!foreground.stopTimer(timer.id.uuidString), "the Bool reports removal from the local snapshot")
+        #expect(stopped == [timer.id])
+        #expect(resident.runningTimers.all.isEmpty)
+        #expect(clock.calledOff == 1)
+    }
+
     // MARK: The length
 
     @Test(arguments: [

@@ -146,6 +146,7 @@ extension LauncherModel {
         }
     }
 
+    /// Marks completion through the resident when this model is only a foreground reader.
     private func markReceiptUndone(_ id: UUID) {
         if let residentRequests {
             residentRequests(.receiptUndone(id, Date()))

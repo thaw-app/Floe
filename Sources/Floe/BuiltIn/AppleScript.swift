@@ -81,7 +81,11 @@ nonisolated enum AppleScript {
     static func execute(_ source: String, priority: TaskPriority, completion: @escaping @MainActor (Execution) -> Void) {
         let lease = PanelWork.begin()
         Task(priority: priority) {
-            defer { withExtendedLifetime(lease) {} }
+            defer {
+                withExtendedLifetime(lease) {
+                    // Keep idle exit blocked through both script execution and its completion callback.
+                }
+            }
             await completion(execute(source))
         }
     }

@@ -12,6 +12,7 @@ import SwiftUI
 /// Same signed executable, but no hotkeys, clipboard recorder, background extensions or updater.
 /// EOF on its private input pipe ends it even when the resident crashed.
 enum PanelMode {
+    /// Installs forwarding before creating the model, then runs until shutdown or parent EOF.
     static func run() -> Never {
         let channel = PanelChannel(input: .standardInput, output: .standardOutput)
         ClipboardHistoryStore.remoteMutation = { channel.send($0) }
@@ -41,10 +42,12 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
     private var reportedIdle = false
     private var ending = false
 
+    /// Uses the inherited pipe channel; no public IPC endpoint is opened by the foreground.
     init(channel: PanelChannel) {
         self.channel = channel
     }
 
+    /// Wires foreground-only services and state mirrors before announcing readiness.
     func applicationDidFinishLaunching(_: Notification) {
         NSApp.setActivationPolicy(.accessory)
         NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings))
@@ -92,6 +95,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         channel.send(.ready)
     }
 
+    /// Keeps search-only recency and exchange-rate work out of the long-lived resident.
     private func followSearchSettings() {
         model.followClipboardRole().store(in: &cancellables)
         settings.$indexesFileNames.removeDuplicates()
@@ -106,6 +110,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             .store(in: &cancellables)
     }
 
+    /// Applies resident snapshots and records request sequences before performing user work.
     func receive(_ packet: PanelPacket) {
         switch packet {
         case let .request(request, sequence):
@@ -136,6 +141,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         }
     }
 
+    /// Presents or dismisses the requested surface without bypassing the resident's lifecycle gate.
     private func perform(_ request: PanelRequest) {
         switch request {
         case .show: show()
@@ -156,6 +162,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         }
     }
 
+    /// Holds finite work alive while catalogs load, then resolves the requested command by ID.
     private func runCommand(_ request: PanelRequest) {
         switch request {
         case let .builtIn(key):
@@ -180,6 +187,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         }
     }
 
+    /// Constructs the window only on first presentation; benchmarks render it offscreen.
     private func show() {
         if panel == nil {
             let created = LauncherPanel(size: model.panelState.windowSize(in: settings.launcherLayout))
@@ -208,6 +216,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         model.focusToken += 1
     }
 
+    /// Dismisses the window and starts the idle grace period without canceling leased work.
     private func hide() {
         guard let panel, panel.isVisible else { return }
         if ProcessInfo.processInfo.environment["FLOE_DEBUG"] != nil {
@@ -218,6 +227,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         lastActivity = Date()
     }
 
+    /// Reports idle once per request only when no surface, modal interaction or finite work remains.
     private func reportIdleIfDue() {
         guard sequence > 0, !reportedIdle,
               Date().timeIntervalSince(lastActivity) >= 0.75,
@@ -230,6 +240,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         channel.send(.idle(sequence: sequence))
     }
 
+    /// Defers dismissal so AppKit can finish transferring focus to any modal surface.
     func windowDidResignKey(_: Notification) {
         DispatchQueue.main.async { [weak self] in
             guard let self, !ModalGuard.isActive, self.panel?.isKeyWindow == false else { return }
@@ -240,14 +251,16 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         }
     }
 
+    /// Handles SIGTERM on the main queue so settings and outgoing messages can finish first.
     private func watchTermination() {
-        signal(SIGTERM) { _ in }
+        signal(SIGTERM, SIG_IGN)
         let watch = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
         watch.setEventHandler { [weak self] in self?.end() }
         watch.resume()
         terminationWatch = watch
     }
 
+    /// Saves pending settings and drains outgoing mutations before ending the disposable process.
     private func end() {
         guard !ending else { return }
         ending = true
@@ -260,19 +273,23 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         channel.drain { exit(0) }
     }
 
+    /// Asks the resident to open Settings on its remembered page after hiding the launcher.
     @objc private func openSettings() {
         hide(); channel.send(.openSettings(nil))
     }
 
+    /// Routes About through the resident's separately owned Settings process.
     @objc private func openAbout() {
         hide(); channel.send(.openSettings(SettingsPage.about.id))
     }
 
+    /// Quitting from a foreground menu quits the whole application, not just this child.
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
         channel.send(.quit)
         return .terminateCancel
     }
 
+    /// Sends Dock reopen requests through the resident so an exiting child cannot consume them.
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
         channel.send(.present(.show))
         return false

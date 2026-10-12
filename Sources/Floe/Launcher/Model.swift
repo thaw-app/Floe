@@ -387,6 +387,7 @@ final class LauncherModel: ObservableObject {
         }
     }
 
+    /// Recomputes foreground search results; the resident never constructs search-only sources.
     func refresh() {
         guard !isResident else { return }
         let started = Date()
@@ -509,6 +510,7 @@ final class LauncherModel: ObservableObject {
         }
     }
 
+    /// Executes the selected root result, including routing Settings rows to their requested page.
     func activate(_ item: RootItem) {
         if case let .emoji(entry) = item {
             pasteEmojiResult(entry)
@@ -816,6 +818,7 @@ final class LauncherModel: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delay), execute: work)
     }
 
+    /// Cancels deferred reset and refreshes foreground catalogs, permissions and stale search data.
     func panelWillShow() {
         isPanelShown = true
         pendingReset?.cancel()

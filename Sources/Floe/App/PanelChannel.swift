@@ -15,9 +15,10 @@ final class PanelChannel {
     private let writer = DispatchQueue(label: "org.thaw.floe.panel-writer")
     private var buffer = Data()
     private var closed = false
-    var receive: (PanelPacket) -> Void = { _ in }
-    var onClose: () -> Void = {}
+    var receive: ((PanelPacket) -> Void)?
+    var onClose: (() -> Void)?
 
+    /// Takes ownership of the two pipe ends and makes a disconnected write nonfatal.
     init(input: FileHandle, output: FileHandle) {
         self.input = input
         self.output = output
@@ -25,6 +26,7 @@ final class PanelChannel {
         _ = fcntl(output.fileDescriptor, F_SETNOSIGPIPE, 1)
     }
 
+    /// Begins reading; packet and close callbacks are delivered on the main actor.
     func start() {
         input.readabilityHandler = { [weak self] handle in
             let data = handle.availableData
@@ -32,26 +34,28 @@ final class PanelChannel {
         }
     }
 
+    /// Decodes complete newline-delimited packets, closing on EOF, malformed data or an oversized fragment.
     private func accept(_ data: Data) {
         guard !closed else { return }
-        guard !data.isEmpty else { close(); onClose(); return }
+        guard !data.isEmpty else { close(); onClose?(); return }
         buffer.append(data)
         while let newline = buffer.firstIndex(of: 10) {
             let line = Data(buffer[..<newline])
             buffer.removeSubrange(...newline)
             guard let message = try? JSONDecoder().decode(PanelPacket.self, from: line) else {
                 close()
-                onClose()
+                onClose?()
                 return
             }
-            receive(message)
+            receive?(message)
         }
         if buffer.count > 4 * 1_048_576 {
             close()
-            onClose()
+            onClose?()
         }
     }
 
+    /// Enqueues an ordered write without blocking the UI on the peer's pipe capacity.
     func send(_ packet: PanelPacket) {
         guard !closed, var data = try? JSONEncoder().encode(packet) else { return }
         data.append(10)
@@ -59,10 +63,12 @@ final class PanelChannel {
         writer.async { [data] in try? output.write(contentsOf: data) }
     }
 
+    /// Calls back on the main actor after all previously queued writes have finished.
     func drain(then completion: @escaping @MainActor @Sendable () -> Void) {
         writer.async { DispatchQueue.main.async(execute: completion) }
     }
 
+    /// Stops input immediately and closes output after its already queued writes.
     func close() {
         guard !closed else { return }
         closed = true
