@@ -46,6 +46,7 @@
 		22BDA1B7F111A307F7D250EB /* ReadingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C58F7C4EE16D5BE5631A37 /* ReadingWindow.swift */; };
 		2340ECE085B416ACAD78EEF3 /* MenuBarItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = D22A979AA3C1F5FED5F43B69 /* MenuBarItems.swift */; };
 		239434FEEABB3ED3A3139E1C /* TypingSettle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA12F659351BFD56E7C8AAD /* TypingSettle.swift */; };
+		25A049D41E02F7598E0F6274 /* RootIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50746E1270F4F6E9EC534ECE /* RootIcon.swift */; };
 		262D8DD7401E445EF144217D /* ProcessLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0AE17795FC335EFF92ADDD /* ProcessLink.swift */; };
 		26CEA7744F41F11AC6042A31 /* BackgroundScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26FC03A029A34D38B9446379 /* BackgroundScheduler.swift */; };
 		274767D215F2E177AF2E97D5 /* Credits.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8BC098F6B0847921A77F6BF /* Credits.swift */; };
@@ -440,6 +441,7 @@
 		4F80A75E8196D747DD4B2179 /* CommandLookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandLookup.swift; sourceTree = "<group>"; };
 		4F9E804FCFAE9C367F19FF6F /* WelcomeSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeSettingsSection.swift; sourceTree = "<group>"; };
 		4FA646DF9F19D7ED1E8C4DD0 /* HostRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostRequest.swift; sourceTree = "<group>"; };
+		50746E1270F4F6E9EC534ECE /* RootIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootIcon.swift; sourceTree = "<group>"; };
 		51CAA5D12A91D04BD800DEFE /* MomentPattern.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentPattern.swift; sourceTree = "<group>"; };
 		51D72E96AACE0D8FF8122F69 /* ClaudeTextStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeTextStream.swift; sourceTree = "<group>"; };
 		5254060A4A42F0A46B71A696 /* Keychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keychain.swift; sourceTree = "<group>"; };
@@ -1034,6 +1036,7 @@
 				0B3B446234EAFBF1F5F00CCB /* Model+Timers.swift */,
 				6340BAF88C611B59A548F533 /* PanelBottomBar.swift */,
 				8C1DA7F52B1E57FBB729318A /* PanelSections.swift */,
+				50746E1270F4F6E9EC534ECE /* RootIcon.swift */,
 				7094C172B1424B0A25778204 /* RootItem.swift */,
 				39773705D994ADCB324EFDCB /* RowSelection.swift */,
 				73B1ED3FE0FCC105F40CCBC2 /* SearchFieldShape.swift */,
@@ -1522,6 +1525,7 @@
 				EAB74146473AD34DAC1E7DC3 /* RecentFileUse.swift in Sources */,
 				2DB3E601CF97F2DDF0C51F46 /* Reminders.swift in Sources */,
 				680FA3F8DCF482E6FAA0A3FB /* ResidentBench.swift in Sources */,
+				25A049D41E02F7598E0F6274 /* RootIcon.swift in Sources */,
 				DB5155E4669C36EB19D3C709 /* RootItem.swift in Sources */,
 				586B027C00406193718A4457 /* RootSearch.swift in Sources */,
 				D6845996FECC2C810739800E /* RowSelection.swift in Sources */,

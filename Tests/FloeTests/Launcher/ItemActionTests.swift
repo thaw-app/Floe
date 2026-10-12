@@ -122,10 +122,35 @@ struct ItemActionTests {
         #expect(model.results.contains { $0.id == item.id }, "shown again once it is taken off the list")
     }
 
+    @Test func theExtensionStoreIsFoundInTheSearchAndOpensItsSettingsPage() {
+        let model = makeModel()
+        var hidden = 0
+        var opened: [SettingsPage?] = []
+        model.hidePanel = { hidden += 1 }
+        model.openSettings = { opened.append($0) }
+
+        for query in ["store", "extension store", "install", "raycast"] {
+            model.query = query
+            #expect(model.results.contains { $0.id == "extension-store" }, "\(query)")
+        }
+        let row = RootItem.extensionStore
+        #expect(row.title == "Extension Store")
+        #expect(row.kind == "Floe")
+
+        model.activate(row)
+        #expect(opened == [.extensionStore])
+        #expect(hidden == 1)
+        #expect(SettingsPage.extensionStore.id == "store", "the page the settings process is asked for")
+
+        model.activate(.settings)
+        #expect(opened == [.extensionStore, nil], "Floe Settings still opens where it was left")
+    }
+
     @Test func theWayIntoSettingsAndWhatIsGoneNextTimeCannotBeHidden() {
         let model = makeModel()
         #expect(!LauncherModel.canBeHidden(.settings))
         #expect(!LauncherModel.canBeHidden(.calculator(expression: "2+2", result: "4")))
+        #expect(!LauncherModel.canBeHidden(.definition(WordDefinition(word: "tide", entry: "the sea rises"))), "an answer is gone with its query")
         #expect(LauncherModel.canBeHidden(.system(.toggleMute)))
         #expect(!titles(model.rootActions(for: .settings)).contains("Hide from Search"))
         model.hideFromSearch(.settings)
@@ -150,7 +175,6 @@ struct ItemActionTests {
             usage.recordQuery("search \(number)")
         }
         #expect(usage.queries.count == UsageStore.queryLimit)
-        #expect(!LauncherModel.canBeHidden(.definition(WordDefinition(word: "tide", entry: "the sea rises"))), "an answer is gone with its query")
         #expect(usage.queries.first == "search 0")
 
         usage.forgetQueries()

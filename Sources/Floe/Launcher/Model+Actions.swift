@@ -82,7 +82,7 @@ extension LauncherModel {
         case let .command(command):
             actions.append(ItemAction(title: String(localized: "Configure Extension…", bundle: .floe), symbol: "gearshape") { [weak self] in
                 self?.hidePanel()
-                self?.openSettings(command.extensionName)
+                self?.openSettings(.extensionPage(command.extensionName))
             })
         case let .file(file):
             actions += FileActions.actions(for: file.url, host: actionHost)

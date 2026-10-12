@@ -52,9 +52,9 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         model.hidePanel = { [weak self] in self?.hide() }
         model.showPanel = { [weak self] in self?.show() }
         model.showHUD = { ThawHUD.show(text: $0) }
-        model.openSettings = { [weak self] extensionName in
+        model.openSettings = { [weak self] page in
             self?.hide()
-            self?.channel.send(.openSettings(extensionName.map { SettingsPage.extensionPage($0).id }))
+            self?.channel.send(.openSettings(page?.id))
         }
         model.residentRequests = { [channel] in channel.send($0) }
         model.canAskAI = AskAI.availabilityCheck { AIAnswer.isAvailable }

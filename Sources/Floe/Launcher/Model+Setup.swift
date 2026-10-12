@@ -36,7 +36,7 @@ extension LauncherModel {
         let command = session.command
         guard message["type"] as? String == "signIn" else {
             hidePanel()
-            openSettings(command.extensionName)
+            openSettings(.extensionPage(command.extensionName))
             return
         }
         guard let field = command.preferences.first(where: { $0.name == message["preference"] as? String }) else { return }

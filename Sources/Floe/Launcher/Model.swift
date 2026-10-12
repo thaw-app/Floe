@@ -92,8 +92,8 @@ final class LauncherModel: ObservableObject {
         // No HUD.
     }
 
-    /// Opens the settings window, optionally on one extension's page.
-    var openSettings: (String?) -> Void = { _ in
+    /// Opens the settings window, on a page when one is named.
+    var openSettings: (SettingsPage?) -> Void = { _ in
         // No settings window.
     }
 
@@ -551,9 +551,9 @@ final class LauncherModel: ObservableObject {
             openFileSearch(with: query)
         case let .searchFiles(searchQuery):
             openFileSearch(with: searchQuery)
-        case .settings:
+        case .settings, .extensionStore:
             hidePanel()
-            openSettings(nil)
+            openSettings(item.settingsPage)
         case let .quicklink(link, queryText, _, _):
             if let destination = url(for: link, query: queryText) {
                 openLink(destination)

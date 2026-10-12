@@ -44,6 +44,7 @@ extension RootItem {
         case let .sshHost(host, _): host.keywords
         case let .checkpoint(checkpoint): [checkpoint.name, Checkpoint.keyword, "checkpoint"]
         case .focus: FocusRequest.keywords.keywordList
+        case .extensionStore: String(localized: "extensions, install, raycast", bundle: .floe, comment: "Words that find the Extension Store row in the launcher's search, separated by commas. Lowercase.").keywordList
         default: []
         }
     }
