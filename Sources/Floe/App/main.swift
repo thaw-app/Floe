@@ -40,46 +40,30 @@ extension NSView {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Read by the App Intents (see Thaw/FloeIntents.swift), which reach the running model through the delegate.
-    let model = LauncherModel()
-    // swiftlint:disable:next implicitly_unwrapped_optional
-    private var panel: LauncherPanel!
+    let model = LauncherModel(isResident: true)
     private let hotkeys = HotkeyRegistry()
     private let settings = AppSettings.shared
     /// Settings is a process of its own; this starts it and keeps the two in step.
     private lazy var settingsLink = LauncherSettingsLink(model: model, hotkeys: hotkeys)
+    private lazy var panelLink = LauncherPanelLink(model: model, settingsLink: settingsLink)
     private var cancellables = Set<AnyCancellable>()
     private var statusItem: NSStatusItem?
     private var showItem: NSMenuItem?
     private var appWatcher: AppFolderWatcher?
-    /// Kept for the app's lifetime: dropping the token leaves the monitor running but unreachable,
-    /// which `leaks` reports.
-    private var keyMonitor: Any?
     private var menuBarCommands: MenuBarCommands?
     private var backgroundScheduler: BackgroundScheduler?
 
     func applicationDidFinishLaunching(_: Notification) {
         Log.follow(settings).store(in: &cancellables)
         settings.$fetchesExchangeRates.removeDuplicates()
-            .sink { ExchangeRateUpdater.shared.set(on: $0) }
+            .filter { !$0 }
+            .sink { _ in ExchangeRateStore.remove() }
             .store(in: &cancellables)
         NSApp.setActivationPolicy(settings.showInDock ? .regular : .accessory)
 
-        panel = LauncherPanel(size: model.panelState.windowSize(in: settings.launcherLayout))
-        panel.delegate = self
-        panel.contentView = NSHostingView(rootView: LauncherView(model: model).openingLinksInTheChosenBrowser())
-
-        model.hidePanel = { [weak self] in self?.hide() }
-        model.showPanel = { [weak self] in self?.show() }
-        model.showHUD = { ThawHUD.show(text: $0) }
-        model.openSettings = { [weak self] in self?.settingsLink.show(page: $0.map { SettingsPage.extensionPage($0).id }) }
-        model.canAskAI = AskAI.availabilityCheck { AIAnswer.isAvailable }
-
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, self.panel.isKeyWindow else { return event }
-            return self.model.handlePanelKey(event, layout: self.settings.launcherLayout) ? nil : event
-        }
+        panelLink.start()
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = MenuBarGlyph.image()
@@ -96,7 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         menu.addItem(withTitle: String(localized: "Quit", bundle: .floe, comment: "The menu item that quits Floe."), action: #selector(NSApplication.terminate), keyEquivalent: "q")
         item.menu = menu
         statusItem = item
-        NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings))
+        NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings), includesWindowMenu: false)
 
         appWatcher = AppFolderWatcher { [weak self] in self?.model.reloadApps() }
         // Without duplicates: a reload of the settings saved by the settings process sends every value again.
@@ -106,10 +90,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         model.$allScripts
             .sink { [weak self] _ in DispatchQueue.main.async { self?.registerHotkeys() } }
             .store(in: &cancellables)
-        model.panelWindowSizes(settings: settings)
-            .sink { [weak self] size in self?.panel.resizeKeepingTop(to: size) }
-            .store(in: &cancellables)
-        model.followClipboardRole().store(in: &cancellables)
         // The switch is in the settings process, which stays in front: the launcher only changes its own policy.
         settings.$showInDock.removeDuplicates().dropFirst()
             .sink { NSApp.setActivationPolicy($0 ? .regular : .accessory) }
@@ -136,17 +116,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                 }
             }
             .store(in: &cancellables)
-        // Everything the panel needs is wired up: the catalog can fill in behind it now.
         model.startCatalogLoading()
-        model.typing.window = 0.03
-        model.menuBarSearch.warm()
-        // Thaw's permission object keeps checking after a request; the menu bar is read the moment the grant lands.
-        AppPermissions.shared.onPermissionTransition = { [weak self] permission, granted in
-            guard granted, permission === AppPermissions.shared.accessibility else { return }
-            self?.model.menuBarSearch.accessWasGranted()
-            // A "menu" search in the main panel was showing the row that asks for access.
-            self?.model.refresh()
-        }
         Log.app.notice("Launched in \(Log.milliseconds(since: processStart)) ms")
 
         UpdatesManager.shared.performSetup()
@@ -157,11 +127,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         _ = ClipboardHistoryStore.shared
         settingsLink.start()
 
-        // The first launch opens the welcome window; the launcher follows when it is finished.
-        OnboardingWindowController.shared.openLauncher = { [weak self] in self?.show() }
-        if !OnboardingWindowController.shared.showIfNeeded() {
-            show()
+        // Welcome and permissions are foreground UI too; none is constructed in the resident.
+        if ProcessInfo.processInfo.environment["FLOE_RESIDENT_BENCH"] == nil {
+            panelLink.process.request(.onboarding)
         }
+        ResidentBench.start(panel: panelLink.process)
         model.autorun()
         // FLOE_OPEN_SETTINGS=<seconds>[,<seconds>] opens Settings that long after launch, to check the settings process.
         for delay in (ProcessInfo.processInfo.environment["FLOE_OPEN_SETTINGS"] ?? "").split(separator: ",").compactMap({ Double($0) }) {
@@ -187,8 +157,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         for script in model.allScripts {
             guard let keyCombination = settings.commandHotkeys[script.id] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in
-                UsageStore.shared.recordUse(of: RootItem.script(script).id)
-                self?.model.run(script)
+                self?.panelLink.process.request(.script(script.id))
             }
         }
         for (item, keyCombination) in LauncherModel.assigned(settings.commandHotkeys) {
@@ -217,50 +186,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationWillTerminate(_: Notification) {
+        shutDown()
+    }
+
+    func shutDown() {
         model.session?.forceStop()
         menuBarCommands?.stopAll()
         backgroundScheduler?.stopAll()
+        panelLink.process.terminate()
         settingsLink.terminate()
         ClipboardHistoryStore.flushShared()
         UsageStore.shared.flush()
     }
 
     private func toggle() {
-        if panel.isVisible {
-            hide()
-        } else {
-            show()
-        }
+        panelLink.process.request(.toggle)
     }
 
     @objc private func show() {
-        guard !panel.isVisible || !panel.isKeyWindow else { return }
-        let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
-        if let frame = screen?.visibleFrame {
-            panel.setFrameOrigin(model.panelState.origin(in: frame, panelSize: panel.frame.size))
-        }
-        model.panelWillShow()
-        panel.makeKeyAndOrderFront(nil)
-        model.focusToken += 1
+        panelLink.process.request(.show)
     }
 
     private func hide() {
-        guard panel.isVisible else { return }
-        panel.orderOut(nil)
-        model.panelDidHide()
-    }
-
-    func windowDidResignKey(_: Notification) {
-        // Checked a turn later, once focus has settled; an open file panel keeps the launcher up.
-        DispatchQueue.main.async { [self] in
-            if ProcessInfo.processInfo.environment["FLOE_DEBUG"] != nil {
-                let front = NSWorkspace.shared.frontmostApplication?.localizedName ?? "?"
-                FileHandle.standardError.write(Data("resignKey: key=\(String(describing: NSApp.keyWindow)) frontmost=\(front)\n".utf8))
-            }
-            if !ModalGuard.isActive, !panel.isKeyWindow {
-                hide()
-            }
-        }
+        panelLink.process.request(.hide)
     }
 }
 
@@ -331,6 +279,10 @@ if options.pick {
 
 if options.settings {
     SettingsMode.run(options)
+}
+
+if options.panel {
+    PanelMode.run()
 }
 
 if let query = options.search {

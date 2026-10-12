@@ -11,6 +11,10 @@ import AppKit
 extension LauncherModel {
     /// Switches the panel to the menu bar item search and rescans the menu bar.
     func openMenuBarSearch() {
+        if let presentInPanelProcess, let key = RootItem.menuBarSearch.settingsKey {
+            presentInPanelProcess(.builtIn(key))
+            return
+        }
         if let session {
             end(session)
         }

@@ -23,7 +23,20 @@ import AppKit
 /// finished launching; the conditional cast only covers launch ordering.
 @MainActor
 func floeModel() -> LauncherModel? {
-    (NSApp?.delegate as? AppDelegate)?.model
+    (NSApp?.delegate as? AppDelegate)?.model ?? (NSApp?.delegate as? PanelAppDelegate)?.model
+}
+
+/// Even an intent delivered to the foreground goes through the resident's lifecycle gate,
+/// so a request racing with dismissal starts a fresh process instead of being lost.
+@MainActor
+private func presentFloe(_ request: PanelRequest) throws {
+    if let resident = NSApp?.delegate as? AppDelegate {
+        resident.model.presentInPanelProcess?(request)
+    } else if let foreground = NSApp?.delegate as? PanelAppDelegate {
+        foreground.channel.send(.present(request))
+    } else {
+        throw FloeIntentError.appNotReady
+    }
 }
 
 /// Failure modes worth naming to the user.
@@ -54,8 +67,7 @@ struct OpenFloeIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard let model = floeModel() else { throw FloeIntentError.appNotReady }
-        model.showPanel()
+        try presentFloe(.show)
         return .result()
     }
 }
@@ -69,8 +81,7 @@ struct SearchMenuBarItemsIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard let model = floeModel() else { throw FloeIntentError.appNotReady }
-        model.openMenuBarSearch()
+        try presentFloe(.builtIn(RootItem.menuBarSearchKey))
         return .result()
     }
 }
@@ -143,13 +154,13 @@ struct RunCommandIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard let model = floeModel() else { throw FloeIntentError.appNotReady }
+        guard floeModel() != nil else { throw FloeIntentError.appNotReady }
         let available = await CommandEntityQuery.runnableCommands()
         guard let match = CommandLookup.command(withID: command.id, in: available) else {
             throw FloeIntentError.commandNotFound
         }
         UsageStore.shared.recordUse(of: RootItem.command(match).id)
-        model.run(match)
+        try presentFloe(.command(match.id, arguments: nil))
         return .result()
     }
 }

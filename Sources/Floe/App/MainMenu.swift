@@ -10,8 +10,9 @@ import AppKit
 enum MainMenu {
     /// Floe has no menu bar of its own unless it is in the Dock, but the main menu is still where
     /// AppKit looks up key equivalents: without it ⌘Q, ⌘W and the editing keys do nothing.
-    /// The launcher and the settings process each make one, with their own About and Settings actions.
-    static func make(target: AnyObject, about: Selector, settings: Selector) -> NSMenu {
+    /// Window-owning processes keep the full menu. The resident omits the entire Window submenu:
+    /// AX queries would otherwise populate AppKit's window commands and retain several MiB.
+    static func make(target: AnyObject, about: Selector, settings: Selector, includesWindowMenu: Bool = true) -> NSMenu {
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: String(localized: "About Floe", bundle: .floe), action: about, keyEquivalent: "").target = target
         appMenu.addItem(.separator())
@@ -30,13 +31,17 @@ enum MainMenu {
         editMenu.addItem(withTitle: String(localized: "Paste", bundle: .floe, comment: "A verb: insert what is on the clipboard."), action: #selector(NSText.paste(_:)), keyEquivalent: "v")
         editMenu.addItem(withTitle: String(localized: "Select All", bundle: .floe), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
 
-        let windowMenu = NSMenu(title: String(localized: "Window", bundle: .floe, comment: "The title of the Window menu in the menu bar."))
-        windowMenu.addItem(withTitle: String(localized: "Close Window", bundle: .floe), action: #selector(NSWindow.performClose), keyEquivalent: "w")
-        windowMenu.addItem(withTitle: String(localized: "Minimize", bundle: .floe), action: #selector(NSWindow.performMiniaturize), keyEquivalent: "m")
-        NSApp.windowsMenu = windowMenu
+        var submenus = [appMenu, editMenu]
+        if includesWindowMenu {
+            let windowMenu = NSMenu(title: String(localized: "Window", bundle: .floe, comment: "The title of the Window menu in the menu bar."))
+            windowMenu.addItem(withTitle: String(localized: "Close Window", bundle: .floe), action: #selector(NSWindow.performClose), keyEquivalent: "w")
+            windowMenu.addItem(withTitle: String(localized: "Minimize", bundle: .floe), action: #selector(NSWindow.performMiniaturize), keyEquivalent: "m")
+            NSApp.windowsMenu = windowMenu
+            submenus.append(windowMenu)
+        }
 
         let mainMenu = NSMenu()
-        for submenu in [appMenu, editMenu, windowMenu] {
+        for submenu in submenus {
             let item = NSMenuItem()
             item.submenu = submenu
             mainMenu.addItem(item)

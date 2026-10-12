@@ -23,6 +23,7 @@ final class LauncherSettingsLink {
         storage: .file(Paths.support.appendingPathComponent("ExtensionSync.json"))
     )
     private var cancellables = Set<AnyCancellable>()
+    var onChange: () -> Void = {}
 
     init(model: LauncherModel, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
         self.model = model
@@ -54,11 +55,7 @@ final class LauncherSettingsLink {
             .store(in: &cancellables)
         // The index of file names follows its switch from here on, and Settings is told how it is doing.
         settings.$indexesFileNames.removeDuplicates()
-            .sink { isOn in
-                FileIndexService.shared.set(on: isOn)
-                // The order of the matches uses when files were last opened, which Spotlight knows.
-                RecentFileUse.shared.follow(isOn)
-            }
+            .sink { FileIndexService.shared.set(on: $0) }
             .store(in: &cancellables)
         FileIndexService.shared.observe { link.send(LinkMessage(.fileIndexState, $0.text)) }
         sync.start { link.send(LinkMessage(.syncState, $0.text)) }
@@ -101,7 +98,24 @@ final class LauncherSettingsLink {
         QuicklinkStore.shared.reload()
     }
 
+    func refreshFromPanel() {
+        settings.reload()
+        SnippetStore.shared.reload()
+        QuicklinkStore.shared.reload()
+    }
+
+    func receiveFromPanel(_ message: LinkMessage) {
+        guard message.isWellFormed else { return }
+        switch message.kind {
+        case .settingsChanged, .storeChanged, .rescan, .forwardURL:
+            handle(message)
+            link.send(message)
+        default: break
+        }
+    }
+
     private func handle(_ message: LinkMessage) {
+        defer { onChange() }
         switch message.kind {
         case .settingsChanged:
             settings.reload()

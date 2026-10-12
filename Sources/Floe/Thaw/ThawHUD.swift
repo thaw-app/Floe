@@ -33,6 +33,9 @@ import ThawUI
 /// and restarts the timer, so repeated actions never stack capsules.
 @MainActor
 enum ThawHUD {
+    /// The resident forwards even HUDs raised directly by a background action.
+    static var forward: ((String) -> Void)?
+
     /// How long a confirmation stays up. Thaw uses 1.2 seconds for two-word labels;
     /// extension messages are sentences, so Floe keeps the 1.6 seconds its HUD always had.
     static let duration: Duration = .milliseconds(1600)
@@ -60,6 +63,9 @@ enum ThawHUD {
         on screen: NSScreen? = nil,
         placement: ThawHUDPlacement = .center
     ) {
+        if let forward {
+            forward(text); return
+        }
         dismissal?.cancel()
 
         guard let screen = screen ?? screenWithMouse ?? NSScreen.main else {

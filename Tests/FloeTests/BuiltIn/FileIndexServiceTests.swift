@@ -110,6 +110,27 @@ struct FileIndexServiceTests {
         #expect(entry.pane == .privacy)
     }
 
+    @Test func foregroundIndexNeverWritesOrDeletesTheResidentCache() async throws {
+        let fixture = try IndexFixture(files: ["invoice.pdf"])
+        let resident = FileIndexService(environment: fixture.savingEnvironment)
+        resident.set(on: true)
+        await resident.settled()
+        let saved = try Data(contentsOf: fixture.saved)
+        let stamp = try Data(contentsOf: FileIndexService.stampFile(for: fixture.saved))
+        var environment = fixture.savingEnvironment
+        environment.writesCache = false
+        let foreground = FileIndexService(environment: environment)
+        foreground.set(on: true)
+        await foreground.settled()
+        #expect(foreground.files(matching: "invoice")?.count == 1)
+        try fixture.add("new.txt")
+        fixture.send([.folder(fixture.root.path)], event: 200)
+        await foreground.settled()
+        foreground.set(on: false)
+        #expect(try Data(contentsOf: fixture.saved) == saved)
+        #expect(try Data(contentsOf: FileIndexService.stampFile(for: fixture.saved)) == stamp)
+    }
+
     @Test func offThereIsNoIndexAndNothingIsWatched() throws {
         let fixture = try IndexFixture(files: ["invoice.pdf"])
         let service = FileIndexService(environment: fixture.environment)

@@ -9,7 +9,7 @@ import Foundation
 import UserNotifications
 
 /// What `timer` and a length of time asks for: a countdown that long, with the words after it as its label.
-nonisolated struct TimerDraft: Hashable, Sendable {
+nonisolated struct TimerDraft: Hashable, Codable, Sendable {
     var duration: TimeInterval
     var label = ""
 
@@ -73,7 +73,7 @@ nonisolated enum TimeLength {
 }
 
 /// A countdown Floe is holding. It lives in the launcher's memory and ends with it.
-nonisolated struct RunningTimer: Hashable, Identifiable, Sendable {
+nonisolated struct RunningTimer: Hashable, Identifiable, Codable, Sendable {
     var id = UUID()
     var label = ""
     var duration: TimeInterval

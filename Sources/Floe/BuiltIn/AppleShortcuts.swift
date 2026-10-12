@@ -200,7 +200,7 @@ final class AppleShortcutLibrary {
     /// and none ends because the panel closed. `showHUD` hears only of a failure.
     @discardableResult
     func run(_ shortcut: AppleShortcut, showHUD: @escaping (String) -> Void) -> Task<Void, Never> {
-        Task { [tool] in
+        PanelWork.perform { [tool] in
             if let failure = await tool.run(shortcut) {
                 showHUD(failure)
             }
@@ -210,7 +210,7 @@ final class AppleShortcutLibrary {
     /// Starts a run of the shortcut by that name, with a text as its input. `showHUD` hears only of a failure.
     @discardableResult
     func run(named name: String, input: String, showHUD: @escaping (String) -> Void) -> Task<Void, Never> {
-        Task { [tool] in
+        PanelWork.perform { [tool] in
             if let failure = await tool.run(named: name, input: input) {
                 showHUD(failure)
             }
@@ -219,7 +219,7 @@ final class AppleShortcutLibrary {
 
     @discardableResult
     func openInShortcuts(_ shortcut: AppleShortcut, showHUD: @escaping (String) -> Void) -> Task<Void, Never> {
-        Task { [tool] in
+        PanelWork.perform { [tool] in
             if let failure = await tool.view(shortcut) {
                 showHUD(failure)
             }

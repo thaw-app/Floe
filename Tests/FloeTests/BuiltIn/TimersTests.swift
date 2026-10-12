@@ -50,6 +50,40 @@ struct TimersTests {
         return model
     }
 
+    @Test func theForegroundForwardsTimersAndTheResidentKeepsCounting() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let clock = Stand()
+        let resident = model(in: folder, stand: clock)
+        let foregroundClock = Stand()
+        let foreground = model(in: folder, stand: foregroundClock)
+        foreground.residentRequests = { packet in
+            switch packet {
+            case let .startTimer(draft): resident.startTimer(draft)
+            case let .stopTimer(id): _ = resident.runningTimers.remove(id)
+            default: Issue.record("Unexpected timer request")
+            }
+        }
+        resident.runningTimers.onChange = { [weak foreground, weak resident] in
+            foreground?.runningTimers.mirror(resident?.runningTimers.all ?? [])
+        }
+        await foreground.startTimer(TimerDraft(duration: 60, label: "tea")).value
+        #expect(foregroundClock.waits.isEmpty)
+        #expect(clock.waits.count == 1)
+        #expect(foreground.runningTimers.all == resident.runningTimers.all)
+        let timer = try #require(foreground.runningTimers.all.first)
+        foreground.stop(timer)
+        #expect(resident.runningTimers.all.isEmpty)
+        #expect(clock.calledOff == 1)
+
+        await foreground.startTimer(TimerDraft(duration: 10, label: "eggs")).value
+        resident.runningTimers.onChange = {}
+        clock.waits.last?.fire()
+        await resident.runningTimers.announcement?.value
+        #expect(clock.notified.map(\.label) == ["eggs"])
+        #expect(foregroundClock.notified.isEmpty)
+    }
+
     // MARK: The length
 
     @Test(arguments: [

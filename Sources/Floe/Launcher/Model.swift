@@ -56,7 +56,7 @@ final class LauncherModel: ObservableObject {
     /// How a host's connection is opened. Tests replace it, so they open nothing.
     var sshConnector = SSHConnector.system
     /// The shortcuts of Apple's Shortcuts app and their runs. Nothing is read while the switch in Privacy is off.
-    let shortcutLibrary = AppleShortcutLibrary()
+    lazy var shortcutLibrary = AppleShortcutLibrary()
     /// Files in the Scripts folder that failed to parse, for the settings pane.
     @Published private(set) var scriptFailures: [ScriptFailure] = []
     /// True until the first apps and commands scans have both published, or a snapshot was injected.
@@ -65,14 +65,14 @@ final class LauncherModel: ObservableObject {
     /// True while the panel shows the file search instead of the root search.
     @Published var isSearchingFiles = false
     /// The file search's own state. Not published: its changes redraw its view only.
-    let fileSearch = FileSearchModel()
+    lazy var fileSearch = FileSearchModel()
 
     /// True while the panel shows the menu bar item search instead of the root search.
     @Published var isSearchingMenuBar = false
     /// True while the panel shows the clipboard history instead of the root search.
     @Published var isShowingClipboardHistory = false
     /// The clipboard history view's own state. Not published: its changes redraw its view only.
-    let clipboardHistory: ClipboardHistoryModel
+    lazy var clipboardHistory = ClipboardHistoryModel(usage: usage)
     /// The question on screen and its answer, while the panel shows them instead of the root search.
     @Published var askAI: AskAIModel?
     /// Answers the question. A test replaces it: the real thing reaches the chosen AI source.
@@ -80,11 +80,14 @@ final class LauncherModel: ObservableObject {
     /// Whether an AI source can answer. The app delegate sets it; without one no Ask AI row is offered.
     var canAskAI: () -> Bool = { false }
     /// The menu bar item search's own state. Not published: its changes redraw its view only.
-    let menuBarSearch: MenuBarSearchModel
+    lazy var menuBarSearch = MenuBarSearchModel(settings: settings)
 
     // The app delegate replaces these; the defaults keep the model usable without a window.
     var hidePanel: () -> Void = { /* no panel */ }
     var showPanel: () -> Void = { /* no panel */ }
+    /// Set only in the resident; the foreground model executes these requests locally.
+    var presentInPanelProcess: ((PanelRequest) -> Void)?
+    var residentRequests: ((PanelPacket) -> Void)?
     var showHUD: (String) -> Void = { _ in
         // No HUD.
     }
@@ -108,9 +111,10 @@ final class LauncherModel: ObservableObject {
     /// The optional sources, and the rows they found for the ordinary search on screen.
     private let sources: [any SearchSource]
     private let sourceSearch = SourceSearch()
-    let definitionSearch = DefinitionSearch()
+    lazy var definitionSearch = DefinitionSearch()
 
     let settings: AppSettings
+    private let isResident: Bool
     /// How the terminal and the editor are looked up. Tests replace it, so they do not read this Mac's apps;
     /// replacing it also drops what the roles resolved to, the way a changed choice does.
     var appLookup = AppLookup.system {
@@ -215,23 +219,23 @@ final class LauncherModel: ObservableObject {
             && command.arguments.allSatisfy { !$0.required }
     }
 
-    /// Construction never scans: without a snapshot the model starts with the built-in entries only,
-    /// and `startCatalogLoading()` fills in the rest once the UI is wired up.
+    /// Construction never scans: `startCatalogLoading()` fills the catalog after subscribers are wired.
+    /// The resident loads commands for hotkeys/background work, but never builds search state.
     init(
         scanner: any CatalogScanning = CatalogLoader(),
         settings: AppSettings = .shared,
         usage: UsageStore = .shared,
         snapshot: CatalogSnapshot? = nil,
-        scopes: [any SearchScope] = RootSearch.standardScopes(),
-        sources: [any SearchSource] = RootSearch.standardSources()
+        scopes: [any SearchScope]? = nil,
+        sources: [any SearchSource]? = nil,
+        isResident: Bool = false
     ) {
-        self.scopes = scopes
-        self.sources = sources
+        self.isResident = isResident
+        self.scopes = scopes ?? (isResident ? [] : RootSearch.standardScopes())
+        self.sources = sources ?? (isResident ? [] : RootSearch.standardSources())
         self.scanner = scanner
         self.settings = settings
         self.usage = usage
-        menuBarSearch = MenuBarSearchModel(settings: settings)
-        clipboardHistory = ClipboardHistoryModel(usage: usage)
         if let snapshot {
             apps = snapshot.apps
             allCommands = snapshot.commands
@@ -244,6 +248,7 @@ final class LauncherModel: ObservableObject {
             hasLoadedScripts = true
             isLoadingCatalog = false
         }
+        guard !isResident else { return }
         connectModes()
         EmojiCatalog.preload()
         CalendarAgenda.shared.onChange = { [weak self] in self?.refresh() }
@@ -265,6 +270,7 @@ final class LauncherModel: ObservableObject {
         reloadApps()
         reloadCommands()
         reloadScripts()
+        guard !isResident else { return }
         Task { @concurrent [weak self, scanner] in
             let panes = await scanner.scanSettingsPanes()
             await self?.finishSettingsPanes(panes)
@@ -382,6 +388,7 @@ final class LauncherModel: ObservableObject {
     }
 
     func refresh() {
+        guard !isResident else { return }
         let started = Date()
         searchedQuery = query
         defer {
@@ -652,7 +659,7 @@ final class LauncherModel: ObservableObject {
         usage.recordUse(of: RootItem.script(script).id)
         hidePanel()
         reset()
-        Task { [weak self] in
+        PanelWork.perform { [weak self] in
             let result: ShellResult
             do {
                 result = try await ScriptRunner.run(script, arguments: argumentStrings)
@@ -685,6 +692,11 @@ final class LauncherModel: ObservableObject {
 
     /// Runs a command, first asking for missing required preferences and then for its arguments.
     func run(_ command: ExtensionCommand, arguments: [String: Any]? = nil) {
+        if let presentInPanelProcess {
+            let data = arguments.flatMap { try? JSONSerialization.data(withJSONObject: $0) }
+            presentInPanelProcess(.command(command.id, arguments: data))
+            return
+        }
         let missing = PreferenceStore.missingRequired(for: command)
         // Running a menu-bar command is choosing whether it has a status item.
         if command.mode == "menu-bar", missing.isEmpty {
@@ -837,6 +849,7 @@ final class LauncherModel: ObservableObject {
 
     /// Back to the root search, ending any open command.
     func reset() {
+        guard !isResident else { return }
         pendingReset?.cancel()
         pendingReset = nil
         if let session {

@@ -1,7 +1,7 @@
 # Developing Floe
 
 
-Prototype macOS launcher that runs unmodified Raycast extensions: a SwiftUI panel plus a Bun process per running command.
+Prototype macOS launcher that runs unmodified Raycast extensions: a resident coordinator, a disposable SwiftUI foreground process, and a Bun process per running extension command.
 
 Contribution requirements, review expectations, and security reporting are in the shared [Thaw/Floe policies](https://github.com/thaw-app/.github).
 
@@ -42,7 +42,46 @@ has the app's defaults, Keychain items and permissions. The two keep in step wit
 all listed in `ProcessLink.swift`: whichever saves the settings, the snippets or the quicklinks says so and the
 other reads them again, and the launcher does for Settings what only it can: the updater, the clipboard history,
 rescans of scripts and extensions, and quitting. A message is acted on only when it names the other process of the
-pair as its sender. The welcome window at first launch is still the launcher's.
+pair as its sender. The welcome window runs in the disposable foreground process.
+
+## Resident and foreground processes
+
+The default process owns the global hotkeys, status item, Settings process, updater, sync, background extensions,
+clipboard recorder, usage writes and countdowns. It never builds the launcher or welcome SwiftUI hierarchy, and even
+HUDs from background actions are forwarded. Search providers, calculator/exchange-rate loading, emoji loading,
+Spotlight recency queries and menu-bar-search warming are foreground-only. The resident still maintains the filename index. `PanelProcess` starts this same executable with `--panel` on demand.
+`PanelMode` owns the foreground model and windows. The two communicate over private inherited pipes (`PanelChannel`),
+not distributed notifications. `PanelLifetime` queues requests until readiness and prevents an old idle report from
+closing a newly reopened panel. Requests arriving during shutdown start a fresh process after the old one exits.
+
+The resident keeps application and editing shortcuts but omits the whole Window submenu. Merely leaving an unused
+Window menu attached lets Accessibility queries populate AppKit's window commands and retain several MiB. Foreground
+and Settings processes still build the full menu, including Close Window and Minimize.
+
+When the panel closes, its process exits after a short idle grace period. It waits for the configured extension
+resume delay, open output/permission windows and finite work started by the user. `PanelWork` leases keep scripts,
+shell commands and automation alive after dismissal; add a lease when adding another asynchronous action that must
+outlive its panel. Timers belong to the resident, not a foreground lease. EOF ends the child if the resident dies.
+
+Clipboard pin/delete/clear operations and timer/usage/receipt writes go to the resident. The foreground reloads the
+clipboard's saved snapshot after a save notification, so opening history does not make the resident encode a second
+large copy. The foreground's file index may read and watch the cache but never writes or removes the resident's cache.
+Settings changes and extension preferences are relayed through the resident to Settings and sync.
+
+The **30 MiB budget is for the resident**, including after foreground use, not the sum of active UI and extension
+processes. An unusually large file index or clipboard history can still exceed it. Verify cold start, menu queries,
+three open/dismiss cycles and a minute of settled samples with the real app services:
+
+    python3 scripts/check-resident-budget.py .build/xcode/Build/Products/Release/Floe.app/Contents/MacOS/Floe
+
+This sets `FLOE_RESIDENT_BENCH=30`, traverses the resident menu's AppKit accessibility children, renders the foreground
+panels offscreen without taking focus, verifies each child exits, and checks `TASK_VM_INFO.phys_footprint` without
+truncating fractions. The in-process menu traversal reproduces the allocation path of external AX queries without
+requiring a CI Accessibility grant. The `settled` value is the highest of twelve samples taken five seconds apart,
+so an interval refresh cannot hide behind a passing cold sample. All six reported values must pass. The harness has
+a 120-second timeout and cleans up its own process group. The existing `--bench-search` / `check-budget.sh` check remains a separate rendered-search budget;
+it does not exercise normal resident startup. For release comparisons use a Release build with the same signing,
+permissions, settings, indexes and background commands as the installed app.
 
 ## Layout
 
@@ -523,7 +562,8 @@ profile carries `production` for push and allows the Production environment.
     .build/debug/Floe --panel-snapshot /tmp/p           # root, menu bar and answer views, drawn off screen
     FLOE_BENCH_DUMP=/tmp/s .build/debug/Floe --bench-settings  # settings page timings and snapshots
     .build/debug/Floe --bench-search                    # the catalog scan, each keystroke, and the memory held
-    ./scripts/check-budget.sh .build/debug/Floe         # fails over 100 MB of that memory; CI runs it
+    ./scripts/check-budget.sh .build/debug/Floe         # rendered-search budget: 100 MiB
+    python3 scripts/check-resident-budget.py .build/debug/Floe 30 # real startup and post-dismissal resident budget
     bun runtime/survey.ts ~/.config/raycast/extensions      # compatibility across many extensions
     FLOE_SETTINGS_CLOSE_AFTER=3 .build/debug/Floe --settings --page about  # the settings process alone; exits 0 when its window closes
     FLOE_OPEN_SETTINGS=5,20 swift run                   # the launcher opens Settings by itself after 5 and 20 seconds

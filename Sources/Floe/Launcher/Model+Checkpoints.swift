@@ -40,7 +40,7 @@ extension LauncherModel {
     func saveCheckpoint(named name: String, note: String) -> Task<Void, Never> {
         hidePanel()
         reset()
-        return Task { [weak self, finderItems = checkpointing.finderItems, tabs = checkpointing.tabs] in
+        return PanelWork.perform { [weak self, finderItems = checkpointing.finderItems, tabs = checkpointing.tabs] in
             let files = await Task { @concurrent in await finderItems() }.value
             let items = await Checkpoint.items(files: files, tabs: tabs())
             guard let self else { return }

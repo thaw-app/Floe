@@ -23,6 +23,10 @@ extension LauncherModel {
 
     /// A view opens the panel on itself, whatever the panel was showing. A system command runs with the panel closed.
     func runFromHotkey(_ item: RootItem) {
+        if let presentInPanelProcess, let key = item.settingsKey {
+            presentInPanelProcess(.builtIn(key))
+            return
+        }
         switch item {
         case .menuBarSearch:
             openMenuBarSearch()

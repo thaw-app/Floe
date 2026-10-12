@@ -29,7 +29,7 @@ extension LauncherModel {
         }
         hidePanel()
         reset()
-        return Task { [weak self, scheduling] in
+        return PanelWork.perform { [weak self, scheduling] in
             let isAllowed = await scheduling.requestAccess()
             guard let self else { return }
             guard isAllowed else {

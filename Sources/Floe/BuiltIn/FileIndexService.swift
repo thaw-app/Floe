@@ -29,6 +29,8 @@ final nonisolated class FileIndexService: Sendable {
         var watch: @Sendable (String, UInt64?, @escaping @Sendable ([FileIndexChange], UInt64) -> Void) -> (@Sendable () -> Void) = FileIndexEvents.watch
         /// Where the index is kept between launches. Nil keeps it in memory only, and every launch walks the folder.
         var saved: URL?
+        /// The foreground copy may read the cache, but only the resident writes or removes it.
+        var writesCache = true
         /// What numbers the folder's events: a saved index is only picked up on the same one.
         var volume: @Sendable (String) -> String? = FileIndexEvents.volume(of:)
         /// The newest event there is, which is where a walk that starts now is safe to be picked up from.
@@ -39,7 +41,7 @@ final nonisolated class FileIndexService: Sendable {
         var lastUsed: @Sendable (String) -> Date? = RecentFileUse.date(for:)
     }
 
-    static let shared = FileIndexService(environment: Environment(saved: savedFile))
+    static let shared = FileIndexService(environment: Environment(saved: savedFile, writesCache: !ProcessInfo.processInfo.arguments.contains("--panel")))
 
     /// A cache: macOS may clear it, and the next launch then walks the folder again.
     static let savedFile = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("Floe/FileNames.index")
@@ -208,7 +210,7 @@ final nonisolated class FileIndexService: Sendable {
 
     /// The index first and its stamp after: a launch that finds a newer index than its stamp reads a few events twice.
     private func save(_ index: FileIndex) {
-        guard let saved = environment.saved,
+        guard environment.writesCache, let saved = environment.saved,
               let now = running.withLock({ $0?.index === index ? $0 : nil }),
               let volume = environment.volume(now.root)
         else { return }
@@ -219,7 +221,7 @@ final nonisolated class FileIndexService: Sendable {
 
     /// The names of the user's files do not outlive the switch.
     private func removeSaved() {
-        guard let saved = environment.saved else { return }
+        guard environment.writesCache, let saved = environment.saved else { return }
         try? FileManager.default.removeItem(at: saved)
         try? FileManager.default.removeItem(at: Self.stampFile(for: saved))
     }

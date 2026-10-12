@@ -59,9 +59,10 @@ nonisolated struct ClipboardEntry: Identifiable, Codable, Sendable {
 final class ClipboardHistoryStore: ObservableObject {
     /// Whether the user's own store exists yet: it starts with the first thing that reads it.
     private static var hasShared = false
+    static var remoteMutation: ((PanelPacket) -> Void)?
     static let shared: ClipboardHistoryStore = {
         hasShared = true
-        return ClipboardHistoryStore()
+        return ClipboardHistoryStore(monitorsPasteboard: remoteMutation == nil, remote: remoteMutation)
     }()
 
     static let maxEntries = 300
@@ -78,6 +79,7 @@ final class ClipboardHistoryStore: ObservableObject {
     }
 
     @Published private(set) var entries: [ClipboardEntry] = []
+    var onSnapshotSaved: () -> Void = {}
 
     /// What the folder holds once the worker has caught up: counted from disk at load, then kept.
     var storedBytes: Int {
@@ -90,6 +92,7 @@ final class ClipboardHistoryStore: ObservableObject {
     }
 
     private let files: ClipboardFiles
+    private let remote: ((PanelPacket) -> Void)?
     private let limits: Limits
     private let worker: ClipboardHistoryWorker
     private var ledger = ClipboardByteLedger()
@@ -111,9 +114,11 @@ final class ClipboardHistoryStore: ObservableObject {
         files: ClipboardFiles = .onDisk(ClipboardHistoryStore.directory),
         limits: Limits = Limits(),
         monitorsPasteboard: Bool = true,
+        remote: ((PanelPacket) -> Void)? = nil,
         storedPNG: @escaping @Sendable (Data) -> Data? = ClipboardHistoryStore.storedPNG
     ) {
         self.files = files
+        self.remote = remote
         self.limits = limits
         worker = ClipboardHistoryWorker(files: files, maxQueuedBytes: limits.maxQueuedBytes, storedPNG: storedPNG)
         worker.start()
@@ -122,7 +127,9 @@ final class ClipboardHistoryStore: ObservableObject {
                 self?.applyEvents()
             }
         }
-        worker.load()
+        if remote == nil {
+            worker.load()
+        }
         if monitorsPasteboard, !ClipboardApps.ownHistoryIsParked {
             startMonitoring()
         }
@@ -180,6 +187,7 @@ final class ClipboardHistoryStore: ObservableObject {
                     clearsWhenLoaded = false
                     removeUnpinned()
                 }
+                onSnapshotSaved()
             case let .prepared(entry, bytes, epoch):
                 if epoch == self.epoch {
                     insert(entry, bytes: bytes)
@@ -188,6 +196,7 @@ final class ClipboardHistoryStore: ObservableObject {
                 }
             case let .saved(bytes):
                 ledger.set(ClipboardFiles.historyName, bytes: bytes)
+                onSnapshotSaved()
             }
         }
     }
@@ -230,13 +239,26 @@ final class ClipboardHistoryStore: ObservableObject {
         save()
     }
 
+    /// Only the resident writes history. The mirror reloads after its atomic save, without
+    /// asking the resident to encode a second, potentially large clipboard snapshot.
+    func reloadMirror() {
+        guard remote != nil else { return }
+        worker.load()
+    }
+
     func togglePin(_ entry: ClipboardEntry) {
+        if let remote {
+            remote(.pinClipboard(entry.id)); return
+        }
         guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
         entries[index].pinned.toggle()
         save()
     }
 
     func delete(_ entry: ClipboardEntry) {
+        if let remote {
+            remote(.deleteClipboard(entry.id)); return
+        }
         guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
         removeImageFile(entries[index].imageFile)
         entries.remove(at: index)
@@ -245,6 +267,9 @@ final class ClipboardHistoryStore: ObservableObject {
 
     /// Removes everything not pinned; pins survive Clear. Copies still being processed are dropped too.
     func clear() {
+        if let remote {
+            remote(.clearClipboard); return
+        }
         dropPendingCopies()
         // Nothing is written before the load, or an empty list would replace the saved one.
         clearsWhenLoaded = !isLoaded
@@ -301,7 +326,9 @@ final class ClipboardHistoryStore: ObservableObject {
         ledger.remove(name)
         unusedFiles.append(name)
     }
+}
 
+extension ClipboardHistoryStore {
     /// The PNG stored for a copied image, or nil when the data is not an image.
     @Sendable static nonisolated func storedPNG(_ data: Data) -> Data? {
         downsampledPNG(data) ?? NSImage(data: data).flatMap(downscaledPNG)
@@ -351,49 +378,5 @@ final class ClipboardHistoryStore: ObservableObject {
     func image(for entry: ClipboardEntry) -> NSImage? {
         guard entry.kind == .image, let name = entry.imageFile else { return nil }
         return NSImage(contentsOf: files.directory.appendingPathComponent(name))
-    }
-}
-
-extension ClipboardHistoryStore {
-    // MARK: Pasteboard
-
-    /// Writes an entry back to the general pasteboard.
-    @discardableResult
-    static func writeToPasteboard(_ entry: ClipboardEntry) -> Bool {
-        let board = NSPasteboard.general
-        board.clearContents()
-        switch entry.kind {
-        case .text, .link:
-            guard let text = entry.text else { return false }
-            return board.setString(text, forType: .string)
-        case .file:
-            let urls = (entry.filePaths ?? []).map { URL(fileURLWithPath: $0) as NSURL }
-            guard !urls.isEmpty else { return false }
-            board.writeObjects(urls)
-            return true
-        case .image:
-            guard let name = entry.imageFile,
-                  let data = try? Data(contentsOf: directory.appendingPathComponent(name)),
-                  let image = NSImage(data: data)
-            else { return false }
-            board.writeObjects([image])
-            return true
-        }
-    }
-
-    /// Whether Return pastes straight into the frontmost app: needs Accessibility.
-    static var canPasteDirectly: Bool {
-        AXIsProcessTrusted()
-    }
-
-    /// Presses Command-V, so the just-copied entry lands in the frontmost app.
-    static func simulatePaste() {
-        let source = CGEventSource(stateID: .hidSystemState)
-        let down = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
-        down?.flags = .maskCommand
-        let up = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
-        up?.flags = .maskCommand
-        down?.post(tap: .cghidEventTap)
-        up?.post(tap: .cghidEventTap)
     }
 }

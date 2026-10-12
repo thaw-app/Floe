@@ -50,7 +50,7 @@ extension LauncherModel {
         guard inTerminal || ShellCommand.needsATerminal(command) else {
             // A manual is for reading: it goes to the window whichever key ran it.
             let reading = ShellCommand.asReading(command)
-            Task { [weak self, run = shell.run] in
+            PanelWork.perform { [weak self, run = shell.run] in
                 let finished = await run(reading ?? command, folder)
                 // A manual that was read changed nothing: no receipt.
                 if reading == nil {
@@ -84,7 +84,7 @@ extension LauncherModel {
 
     /// Runs a command in the folder of the Finder window in front, and shows what it printed.
     func runInFinderFolder(_ command: String, terminal: ResolvedApp?) {
-        Task {
+        PanelWork.perform { [self] in
             do {
                 let folder = try await shell.finderFolder()
                 runShellCommand(command, terminal: terminal, showingOutput: true, in: folder)
@@ -101,7 +101,7 @@ extension LauncherModel {
         rememberQuery()
         hidePanel()
         reset()
-        Task { [weak self, run = shell.run] in
+        PanelWork.perform { [weak self, run = shell.run] in
             let finished = await run(command, nil)
             self?.record(Receipt(date: Date(), kind: .command, subject: command, detail: finished.line))
             NSPasteboard.general.copy(finished.output)

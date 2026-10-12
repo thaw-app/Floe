@@ -22,19 +22,28 @@ struct TimerEnvironment {
 final class RunningTimers {
     private(set) var all: [RunningTimer] = []
     private var waits: [UUID: () -> Void] = [:]
+    var onChange: () -> Void = {}
+
+    func mirror(_ timers: [RunningTimer]) {
+        all = timers
+    }
+
     /// The telling of the last timer that ended, for a test to wait on.
     var announcement: Task<Void, Never>?
 
     func add(_ timer: RunningTimer, stop: @escaping () -> Void) {
         all.append(timer)
         waits[timer.id] = stop
+        onChange()
     }
 
     /// Takes a timer off the list. Nil when it is not on it: it ended, or was stopped.
     func remove(_ id: UUID) -> RunningTimer? {
         guard let index = all.firstIndex(where: { $0.id == id }) else { return nil }
         waits.removeValue(forKey: id)?()
-        return all.remove(at: index)
+        let removed = all.remove(at: index)
+        onChange()
+        return removed
     }
 }
 
@@ -45,6 +54,10 @@ extension LauncherModel {
     func startTimer(_ draft: TimerDraft) -> Task<Void, Never> {
         hidePanel()
         reset()
+        if let residentRequests {
+            residentRequests(.startTimer(draft))
+            return Task {}
+        }
         let timer = RunningTimer(label: draft.label, duration: draft.duration, ends: timing.now().addingTimeInterval(draft.duration))
         let stop = timing.wait(draft.duration) { [weak self] in self?.timerEnded(timer.id) }
         runningTimers.add(timer, stop: stop)
@@ -70,12 +83,14 @@ extension LauncherModel {
     func stop(_ timer: RunningTimer) {
         hidePanel()
         reset()
-        let outcome: ReceiptUndo.Outcome = runningTimers.remove(timer.id) == nil ? .alreadyDeleted : .deleted
+        let outcome: ReceiptUndo.Outcome = stopTimer(timer.id.uuidString) ? .deleted : .alreadyDeleted
         showHUD(ReceiptUndo.message(for: outcome, subject: timer.name, kind: .timer))
     }
 
     /// Stops the timer a receipt names. False when it is no longer running.
     func stopTimer(_ identifier: String) -> Bool {
-        UUID(uuidString: identifier).flatMap(runningTimers.remove) != nil
+        guard let id = UUID(uuidString: identifier), runningTimers.remove(id) != nil else { return false }
+        residentRequests?(.stopTimer(id))
+        return true
     }
 }

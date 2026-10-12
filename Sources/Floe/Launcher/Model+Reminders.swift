@@ -26,7 +26,7 @@ extension LauncherModel {
     func addReminder(_ draft: ReminderDraft) -> Task<Void, Never> {
         hidePanel()
         reset()
-        return Task { [weak self, reminding] in
+        return PanelWork.perform { [weak self, reminding] in
             let isAllowed = await reminding.requestAccess()
             guard let self else { return }
             guard isAllowed else {

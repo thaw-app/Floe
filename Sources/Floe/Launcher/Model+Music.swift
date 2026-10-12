@@ -27,7 +27,7 @@ extension LauncherModel {
             showHUD(line)
             return Task { /* nothing to run */ }
         case let .run(source, player):
-            return Task { [weak self, music] in
+            return PanelWork.perform { [weak self, music] in
                 let outcome = await MusicControls.run(source, with: music.run)
                 if outcome == .refused {
                     music.askForAutomation(player.name)

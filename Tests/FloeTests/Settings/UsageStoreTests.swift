@@ -68,6 +68,22 @@ struct UsageStoreSaveTests {
         #expect(savedRecords()["emoji:🔥"]?.count == 1)
     }
 
+    @Test func foregroundFlushCannotOverwriteTheResidentWithAStaleSnapshot() {
+        let timer = Timer()
+        let resident = UsageStore(defaults: scratch.defaults, later: timer.schedule)
+        let foreground = UsageStore(defaults: scratch.defaults, later: timer.schedule)
+        foreground.forwardUse = { resident.recordUse(of: $0) }
+        foreground.forwardQuery = { resident.recordQuery($0) }
+        resident.recordUse(of: "app:one")
+        foreground.recordUse(of: "app:two")
+        foreground.recordQuery("two")
+        resident.flush()
+        foreground.flush()
+        #expect(savedRecords()["app:one"]?.count == 1)
+        #expect(savedRecords()["app:two"]?.count == 1)
+        #expect(resident.queries == ["two"])
+    }
+
     @Test func whatWasWrittenIsReadBackByTheNextStore() {
         let timer = Timer()
         let first = UsageStore(defaults: scratch.defaults, now: { Date(timeIntervalSince1970: 100) }, later: timer.schedule)
