@@ -37,6 +37,62 @@ struct PanelProcessTests {
         #expect(panel.pid == nil)
     }
 
+    /// A launch error has no termination callback, but still consumes the same bounded retry budget.
+    @Test func launchErrorsStopAfterThreeAttemptsAndAllowANewRequest() {
+        var attempts = 0
+        let missing = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let panel = PanelProcess(environment: .init(
+            makeChild: {
+                let child = Process()
+                child.executableURL = missing
+                return child
+            },
+            prepare: { attempts += 1 }
+        ))
+        defer { panel.terminate() }
+        panel.request(.show)
+        #expect(attempts == 3)
+        #expect(panel.pid == nil)
+        panel.request(.builtIn("emoji"))
+        #expect(attempts == 6, "a later request receives a fresh three-attempt budget")
+        #expect(panel.pid == nil)
+    }
+
+    /// Retrying Process.run must deliver the pending request rather than replace the lifecycle.
+    @Test func aRequestSurvivesALaunchError() async throws {
+        var attempts = 0
+        let missing = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let ready = try String(decoding: JSONEncoder().encode(PanelPacket.ready), as: UTF8.self)
+        let panel = PanelProcess(environment: .init(
+            makeChild: {
+                if attempts == 1 {
+                    let child = Process()
+                    child.executableURL = missing
+                    return child
+                }
+                return child(
+                    script: "printf '%s\\n' \"$1\"; while IFS= read -r line; do printf '%s\\n' \"$line\"; done",
+                    arguments: [ready]
+                )
+            },
+            prepare: { attempts += 1 }
+        ))
+        var received: [PanelRequest] = []
+        panel.onMessage = { packet in
+            if case let .request(request, sequence) = packet {
+                #expect(sequence == 1)
+                received.append(request)
+            }
+        }
+        defer { panel.terminate() }
+        panel.request(.show)
+        try #require(attempts == 2)
+        try await wait { !received.isEmpty }
+        #expect(received == [.show])
+        panel.terminate()
+        try await wait { panel.pid == nil }
+    }
+
     /// SIGTERM-ignoring children must be reaped before a bounded replacement is launched.
     @Test func repeatedReadinessTimeoutsStopSpawningEvenWhenSigtermIsIgnored() async throws {
         var starts = 0

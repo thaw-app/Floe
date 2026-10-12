@@ -104,8 +104,8 @@ final class PanelProcess {
             }
             channel.start()
         } catch {
-            lifetime = PanelLifetime()
             NSLog("Floe could not start its panel: \(error.localizedDescription)")
+            apply(lifetime.exited())
         }
     }
 
