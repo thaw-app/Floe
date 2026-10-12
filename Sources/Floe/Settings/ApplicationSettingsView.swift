@@ -34,9 +34,7 @@ struct ApplicationSettingsView: View {
             }
             ThawSection {
                 ForEach(apps, id: \.url) { app in
-                    ApplicationSettingsRow(settings: settings, app: app, isEdited: selection == app.url)
-                        .contentShape(Rectangle())
-                        .onTapGesture { selection = app.url }
+                    ApplicationSettingsRow(settings: settings, app: app, isEdited: selection == app.url) { selection = app.url }
                 }
                 if apps.isEmpty {
                     ContentUnavailableView.search(text: filter)
@@ -47,52 +45,75 @@ struct ApplicationSettingsView: View {
     }
 }
 
-/// One app on one line: its alias and hotkey as text, or as the controls that change them.
+/// One app on one line: its alias and hotkey as text, or the controls that change them.
 private struct ApplicationSettingsRow: View {
     @ObservedObject var settings: AppSettings
     let app: AppEntry
     let isEdited: Bool
+    let edit: () -> Void
 
     var body: some View {
         let key = RootItem.app(app).settingsKey ?? app.url.path
-        HStack(spacing: ThawSpacing.compact) {
-            AppIconView(path: app.url.path, size: 20)
-            Text(app.name)
-                .lineLimit(1)
-            Spacer()
+        Group {
             if isEdited {
-                TextField(
-                    "Alias",
-                    text: Binding(
-                        get: { settings.aliases[key] ?? "" },
-                        set: { settings.aliases[key] = $0.isEmpty ? nil : $0 }
-                    ),
-                    prompt: Text("Alias")
-                )
-                .labelsHidden()
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 90)
-                HotkeyRecorder(
-                    keyCombination: Binding(get: { settings.commandHotkeys[key] }, set: { settings.commandHotkeys[key] = $0 }),
-                    onRecordingChange: { settings.isRecordingHotkey = $0 },
-                    label: {
-                        Text("Hotkey")
-                    }
-                )
-                .labelsHidden()
-                .fixedSize()
+                HStack(spacing: ThawSpacing.compact) {
+                    name
+                    TextField(
+                        "Alias",
+                        text: Binding(
+                            get: { settings.aliases[key] ?? "" },
+                            set: { settings.aliases[key] = $0.isEmpty ? nil : $0 }
+                        ),
+                        prompt: Text("Alias")
+                    )
+                    .labelsHidden()
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 90)
+                    HotkeyRecorder(
+                        keyCombination: Binding(get: { settings.commandHotkeys[key] }, set: { settings.commandHotkeys[key] = $0 }),
+                        onRecordingChange: { settings.isRecordingHotkey = $0 },
+                        label: {
+                            Text("Hotkey")
+                        }
+                    )
+                    .labelsHidden()
+                    .fixedSize()
+                }
             } else {
-                if let alias = settings.aliases[key] {
-                    KeyCap(alias)
+                // Not a Button: one for each of hundreds of apps doubled the time the page takes to lay out.
+                HStack(spacing: ThawSpacing.compact) {
+                    name
+                    if let alias = settings.aliases[key] {
+                        KeyCap(alias)
+                    }
+                    if let hotkey = settings.commandHotkeys[key] {
+                        Text(hotkey.displayValue)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
                 }
-                if let hotkey = settings.commandHotkeys[key] {
-                    Text(hotkey.displayValue)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+                .contentShape(Rectangle())
+                .onTapGesture(perform: edit)
+                // What a click does, for the keyboard and VoiceOver.
+                .focusable()
+                .onKeyPress(keys: [.return, .space]) { _ in
+                    edit()
+                    return .handled
                 }
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction(.default, edit)
             }
         }
         // The controls are taller than the text: every row keeps their height, so a click moves nothing.
         .frame(minHeight: 24)
+    }
+
+    @ViewBuilder
+    private var name: some View {
+        AppIconView(path: app.url.path, size: 20)
+        Text(app.name)
+            .lineLimit(1)
+        Spacer()
     }
 }
