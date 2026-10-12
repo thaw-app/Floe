@@ -42,7 +42,11 @@ struct ExtensionStoreSettingsPage: View {
     }
 
     private var offerIsShown: Binding<Bool> {
-        Binding(get: { store.menuBarOffer != nil }, set: { if !$0 { store.menuBarOffer = nil } })
+        Binding(get: { store.menuBarOffer != nil }, set: {
+            if !$0 {
+                store.menuBarOffer = nil
+            }
+        })
     }
 
     @ViewBuilder
