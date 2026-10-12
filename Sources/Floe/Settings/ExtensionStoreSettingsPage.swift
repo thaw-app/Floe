@@ -11,6 +11,7 @@ struct ExtensionStoreSettingsPage: View {
     @ObservedObject private var store: ExtensionStore = .shared
     @State private var query = ""
     @State private var selection: String?
+    private let columns = [GridItem(.adaptive(minimum: 160, maximum: 220), spacing: 12, alignment: .top)]
 
     init() {}
 
@@ -79,30 +80,47 @@ struct ExtensionStoreSettingsPage: View {
                     TextField("Search extensions", text: $query)
                         .textFieldStyle(.roundedBorder)
                         .padding(10)
-                    List(filtered, selection: $selection) { listing in
-                        StoreRow(name: listing.name)
-                            .tag(listing.name)
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            ForEach(filtered, id: \.name) { listing in
+                                StoreRow(name: listing.name)
+                                    .padding(.horizontal, 8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                            .fill(selection == listing.name ? Color.accentColor.opacity(0.2) : .clear)
+                                    )
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        if selection == listing.name {
+                                            selection = nil
+                                        } else {
+                                            selection = listing.name
+                                        }
+                                    }
+                            }
+                        }
+                        .padding(.horizontal, 8)
                     }
-                    .listStyle(.inset)
                     .overlay {
                         if filtered.isEmpty, !query.isEmpty {
                             ContentUnavailableView.search(text: query)
                         }
                     }
                 }
-                .frame(width: 300)
-                Divider()
-                Group {
-                    if let name = selection {
-                        StoreDetail(name: name)
-                            .id(name)
-                    } else {
-                        Text("Select an extension to see its details.")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                if !(selection?.isEmpty ?? true) {
+                    Divider()
+                    Group {
+                        if let name = selection {
+                            StoreDetail(name: name)
+                                .id(name)
+                        } else {
+                            Text("Select an extension to see its details.")
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
     }
@@ -117,23 +135,21 @@ private struct StoreRow: View {
     var body: some View {
         // What an earlier row already learned shows at once, so typing does not blank the rows it keeps.
         let details = store.cachedDetails(for: name) ?? loaded
-        HStack(spacing: 8) {
-            StoreIcon(url: details?.iconURL, size: 28)
-            VStack(alignment: .leading, spacing: 1) {
+        VStack(spacing: 8) {
+            StoreIcon(url: details?.iconURL, size: 40)
+            VStack(spacing: 2) {
                 Text(details?.title ?? name)
                     .lineLimit(1)
-                if let description = details?.description, !description.isEmpty {
-                    Text(description)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                Text(details?.description ?? " ")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2, reservesSpace: true)
             }
-            Spacer()
+            .multilineTextAlignment(.center)
             StoreActionButton(name: name, details: details, updateAvailable: updateAvailable)
         }
-        // One height with or without the description, so details that arrive do not move the rows under them.
-        .frame(height: 34)
+        .padding(10)
+        .frame(maxWidth: .infinity)
         .task(id: name) {
             loaded = await store.details(for: name, after: ExtensionStore.settleDelay)
             guard !Task.isCancelled else { return }
