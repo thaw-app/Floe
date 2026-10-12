@@ -29,6 +29,8 @@ enum RootItem: Identifiable {
     case fileSearch
     case searchFiles(String)
     case settings
+    /// The Extension Store page of Settings, where extensions are found and installed.
+    case extensionStore
     case calculator(expression: String, result: String, error: String? = nil, attributedResult: AttributedString? = nil)
     case system(SystemCommand)
     case settingsPane(SystemSettingsPane)
@@ -103,6 +105,7 @@ enum RootItem: Identifiable {
         case .fileSearch: Self.fileSearchKey
         case let .searchFiles(query): "files-for:\(query)"
         case .settings: "settings"
+        case .extensionStore: "extension-store"
         case .calculator: "calculator"
         case let .system(command): "system:\(command.rawValue)"
         case let .settingsPane(pane): "settings-pane:\(pane.identifier)"
@@ -150,6 +153,7 @@ enum RootItem: Identifiable {
         case .fileSearch: String(localized: "Search Files", bundle: .floe)
         case let .searchFiles(query): String(localized: "Search Files for \"\(query)\"", bundle: .floe, comment: "The placeholder is what the user typed.")
         case .settings: String(localized: "Floe Settings", bundle: .floe)
+        case .extensionStore: SearchPaneLabel.extensionStore.title
         case let .calculator(_, result, error, _):
             error ?? (result.isEmpty ? String(localized: "Calculator", bundle: .floe) : result)
         case let .system(command): command.title
@@ -227,7 +231,7 @@ enum RootItem: Identifiable {
         case let .system(command): "system:\(command.rawValue)"
         case .snippet: id
         case let .focus(request, _): request == .toggle ? id : nil
-        case .settings, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
+        case .settings, .extensionStore, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
         case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .definition: nil
         }
     }
@@ -238,7 +242,7 @@ enum RootItem: Identifiable {
         case let .command(command) where command.mode == "menu-bar": String(localized: "Menu Bar", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .command: String(localized: "Command", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .script: String(localized: "Script", bundle: .floe, comment: "The kind of a result, shown beside its title.")
-        case .menuBarSearch, .emojiSearch, .clipboardHistory, .settings: "Floe"
+        case .menuBarSearch, .emojiSearch, .clipboardHistory, .settings, .extensionStore: "Floe"
         case let .clipboardApp(destination): destination.label
         case .fileSearch, .searchFiles: String(localized: "Files", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .calculator: String(localized: "Calculator", bundle: .floe)
@@ -272,6 +276,14 @@ enum RootItem: Identifiable {
         case let .shell(row, _): row.origin.label
         case .shortcut: String(localized: "Shortcut", bundle: .floe, comment: "The kind of a result, shown beside its title. Here one made in Apple's Shortcuts app.")
         }
+    }
+
+    /// The page of Settings a row opens. Nil for Floe Settings itself, which opens where it was left.
+    var settingsPage: SettingsPage? {
+        if case .extensionStore = self {
+            return .extensionStore
+        }
+        return nil
     }
 
     var isCalculator: Bool {

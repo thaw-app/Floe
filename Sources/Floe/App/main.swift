@@ -73,7 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         model.hidePanel = { [weak self] in self?.hide() }
         model.showPanel = { [weak self] in self?.show() }
         model.showHUD = { ThawHUD.show(text: $0) }
-        model.openSettings = { [weak self] in self?.settingsLink.show(page: $0.map { SettingsPage.extensionPage($0).id }) }
+        model.openSettings = { [weak self] in self?.settingsLink.show(page: $0?.id) }
         model.canAskAI = AskAI.availabilityCheck { AIAnswer.isAvailable }
 
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in

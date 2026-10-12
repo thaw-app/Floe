@@ -3167,6 +3167,9 @@
     "extension, enabled, enable, disable" : {
       "comment" : "Words that find an extension in the settings search, separated by commas."
     },
+    "extensions, install, raycast" : {
+      "comment" : "Words that find the Extension Store row in the launcher's search, separated by commas. Lowercase."
+    },
     "extensions, record, access, hosts, folders, programs, network, reached, forget" : {
       "comment" : "Words that find the Record what extensions reach setting in the settings search, separated by commas."
     },
