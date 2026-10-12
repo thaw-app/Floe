@@ -38,6 +38,9 @@
     "%@ can check for updates automatically. You can also check manually from the menu bar or Settings › About." : {
       "comment" : "The placeholder is the name of this app."
     },
+    "%@ can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under General." : {
+      "comment" : "The placeholder is the names of one or more commands. General is the name of a settings page."
+    },
     "%@ couldn’t load the release notes." : {
       "comment" : "The placeholder is the name of this app."
     },
@@ -507,6 +510,9 @@
       "comment" : "The label beside the shortcut that opens the menu of things to do with the selected result."
     },
     "Actions…" : {},
+    "Add %@ to the menu bar?" : {
+      "comment" : "The title of a question asked after installing an extension. The placeholder is the extension's name."
+    },
     "Add Event" : {},
     "Add Reminder" : {},
     "Add Task “%@” to Today’s Note" : {
@@ -1824,6 +1830,7 @@
     "None yet" : {
       "comment" : "Shown in place of a log file's name when no log has been written."
     },
+    "Not Now" : {},
     "Not Set Up" : {
       "comment" : "Shown where the name of the clipboard app would be when none can be opened."
     },
@@ -2359,6 +2366,17 @@
     "Separate the search field from the results" : {},
     "Service" : {
       "comment" : "The label of the picker that chooses which AI service answers."
+    },
+    "Set %@'s preferences on its page before adding %@." : {
+      "comment" : "The first placeholder is an extension's name, the second the names of one or more of its commands.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Set %1$@'s preferences on its page before adding %2$@."
+          }
+        }
+      }
     },
     "Set %@'s preferences on its page first." : {
       "comment" : "The placeholder is the name of an extension."
