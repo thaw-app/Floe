@@ -150,6 +150,7 @@ struct ItemActionTests {
             usage.recordQuery("search \(number)")
         }
         #expect(usage.queries.count == UsageStore.queryLimit)
+        #expect(!LauncherModel.canBeHidden(.definition(WordDefinition(word: "tide", entry: "the sea rises"))), "an answer is gone with its query")
         #expect(usage.queries.first == "search 0")
 
         usage.forgetQueries()
