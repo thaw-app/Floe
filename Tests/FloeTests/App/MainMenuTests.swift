@@ -16,6 +16,7 @@ struct MainMenuTests {
         @objc func settings() {}
     }
 
+    /// The resident must omit the subtree itself, not merely clear AppKit's windowsMenu registration.
     @Test func residentOmitsTheWindowSubmenuAndItsRegistration() {
         let app = NSApplication.shared
         let previous = app.windowsMenu
@@ -29,6 +30,7 @@ struct MainMenuTests {
         #expect(!commands.contains { $0.action == #selector(NSWindow.performMiniaturize) })
     }
 
+    /// The memory optimization is resident-only; processes owning windows keep Close and Minimize.
     @Test func foregroundAndSettingsKeepWindowCommandsByDefault() throws {
         let app = NSApplication.shared
         let previous = app.windowsMenu
@@ -42,6 +44,7 @@ struct MainMenuTests {
         #expect(windows.items.contains { $0.action == #selector(NSWindow.performMiniaturize) && $0.keyEquivalent == "m" })
     }
 
+    /// Omitting window commands must not break responder-chain editing or application shortcuts.
     @Test(arguments: [false, true])
     func applicationAndEditingShortcutsRemainAvailable(includesWindowMenu: Bool) throws {
         let app = NSApplication.shared

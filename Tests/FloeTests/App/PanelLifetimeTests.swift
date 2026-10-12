@@ -2,6 +2,7 @@
 import Testing
 
 struct PanelLifetimeTests {
+    /// Initial requests keep their order and receive sequences only after the child can accept them.
     @Test func queuesRequestsUntilReady() {
         var lifetime = PanelLifetime()
         #expect(lifetime.request(.show) == [.start])
@@ -9,6 +10,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.ready() == [.send(.request(.show, sequence: 1)), .send(.request(.builtIn("emoji"), sequence: 2))])
     }
 
+    /// An idle report for the previous request must not dismiss newer user work.
     @Test func staleIdleCannotCloseAReopenedPanel() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.show)
@@ -18,6 +20,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.idle(sequence: 2) == [.send(.shutdown)])
     }
 
+    /// Reopening during graceful shutdown waits for exit instead of targeting the dying child.
     @Test func openingDuringExitStartsANewProcessOnlyAfterExit() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.show)
@@ -28,6 +31,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.ready() == [.send(.request(.show, sequence: 2))])
     }
 
+    /// A delivered command may already have side effects, so a crash must not cause replay.
     @Test func crashDoesNotReplayAnAlreadyDeliveredCommand() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.command("sample/run", arguments: nil))
@@ -36,6 +40,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.request(.show) == [.start])
     }
 
+    /// Exhaustion drops the undelivered batch, while a later explicit request starts a fresh batch.
     @Test func repeatedCrashesBeforeReadinessStopAfterThreeAttempts() {
         var lifetime = PanelLifetime()
         #expect(lifetime.request(.show) == [.start])
@@ -47,6 +52,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.ready() == [.send(.request(.builtIn("emoji"), sequence: 1))])
     }
 
+    /// Failures from an earlier successful session do not reduce a new session's retry allowance.
     @Test func reachingReadinessResetsTheStartupFailureBudget() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.show)
@@ -61,6 +67,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.exited() == [])
     }
 
+    /// Late readiness and repeated timeout callbacks cannot consume or duplicate queued requests.
     @Test func aTimeoutKeepsQueuedWorkUntilTheReplacementIsReady() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.show)
@@ -75,6 +82,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.readinessTimedOut() == [], "a ready child is not a startup timeout")
     }
 
+    /// Alternating crashes with hangs cannot bypass the consecutive-start failure limit.
     @Test func timeoutsAndCrashesShareABoundedStartupBudget() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.show)
@@ -90,6 +98,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.ready() == [.send(.request(.toggle, sequence: 1))])
     }
 
+    /// Repeated watchdog exits use the same finite allowance as immediate startup crashes.
     @Test func threeHangingChildrenDoNotStartAFourth() {
         var lifetime = PanelLifetime()
         _ = lifetime.request(.show)
@@ -100,6 +109,7 @@ struct PanelLifetimeTests {
         #expect(lifetime.ready() == [])
     }
 
+    /// A hide request alone must never allocate a new foreground process.
     @Test func hidingAnAbsentPanelDoesNotLaunchIt() {
         var lifetime = PanelLifetime()
         #expect(lifetime.request(.hide) == [])

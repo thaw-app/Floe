@@ -50,6 +50,7 @@ struct TimersTests {
         return model
     }
 
+    /// Timer clocks and notifications remain resident-owned after the foreground stops observing.
     @Test func theForegroundForwardsTimersAndTheResidentKeepsCounting() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -84,6 +85,7 @@ struct TimersTests {
         #expect(foregroundClock.notified.isEmpty)
     }
 
+    /// An absent foreground snapshot cannot veto a valid stop request to the authoritative owner.
     @Test func stoppingATimerBeforeItsMirrorArrivesStillStopsTheResident() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }

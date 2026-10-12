@@ -10,6 +10,7 @@ import Foundation
 import Testing
 
 struct PanelOwnershipTests {
+    /// A work lease follows reference lifetime rather than retaining itself after completion.
     @Test func workLeaseEndsWhenItsOwnerFinishes() {
         weak var released: PanelWork.Lease?
         do {
@@ -20,6 +21,7 @@ struct PanelOwnershipTests {
         #expect(released == nil)
     }
 
+    /// Idle detection must see pending work even before its asynchronous task gets scheduled.
     @Test func asyncWorkHoldsALeaseBeforeTheTaskStarts() async {
         let task = PanelWork.perform {
             #expect(PanelWork.isBusy)
@@ -29,6 +31,7 @@ struct PanelOwnershipTests {
         #expect(await task.value == 42)
     }
 
+    /// Foreground mutations send IDs; only a subsequently saved resident snapshot changes local history.
     @Test func foregroundClipboardMutationsDoNotWriteASecondHistory() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -61,6 +64,7 @@ struct PanelOwnershipTests {
         #expect(store.entries.isEmpty)
     }
 
+    /// Hotkey routing must leave the resident's search state and results uninitialized.
     @Test func residentHotkeysForwardInsteadOfBuildingForegroundState() throws {
         let scratch = try ScratchDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: scratch.defaults, savesAfterEdits: false), usage: UsageStore(defaults: scratch.defaults), snapshot: CatalogSnapshot(apps: [], commands: []), isResident: true)
@@ -78,6 +82,7 @@ struct PanelOwnershipTests {
         #expect(model.results.isEmpty, "the resident never builds search results")
     }
 
+    /// Real pipe round trips preserve the sequence order used to reject stale idle reports.
     @Test(.timeLimit(.minutes(1))) func privatePipePreservesRequestOrdering() async {
         let up = Pipe()
         let down = Pipe()
