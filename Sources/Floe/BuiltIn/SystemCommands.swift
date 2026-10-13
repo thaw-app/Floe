@@ -27,6 +27,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     case toggleKeepAwake
     case hideOtherApps
     case quitAllApps
+    case quitFloe
     case playPause
     case nextTrack
     case previousTrack
@@ -55,6 +56,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .toggleKeepAwake: return String(localized: "Toggle Keep Awake", bundle: .floe, comment: "A command that stops the Mac from sleeping, or lets it sleep again.")
         case .hideOtherApps: return String(localized: "Hide Other Apps", bundle: .floe, comment: "A command that hides every app but the one in front.")
         case .quitAllApps: return String(localized: "Quit All Apps", bundle: .floe, comment: "A command that quits every open app.")
+        case .quitFloe: return String(localized: "Quit Floe", bundle: .floe, comment: "A command that quits Floe")
         case .playPause: return String(localized: "Play/Pause", bundle: .floe, comment: "A command that pauses the music, or plays it again.")
         case .nextTrack: return String(localized: "Next Track", bundle: .floe, comment: "A command that skips to the next song.")
         case .previousTrack: return String(localized: "Previous Track", bundle: .floe, comment: "A command that goes back to the song before.")
@@ -81,6 +83,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .toggleKeepAwake: return "cup.and.saucer"
         case .hideOtherApps: return "eye.slash"
         case .quitAllApps: return "xmark.square"
+        case .quitFloe: return "xmark.circle"
         case .playPause: return "playpause"
         case .nextTrack: return "forward.end"
         case .previousTrack: return "backward.end"
@@ -107,6 +110,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .toggleKeepAwake: String(localized: "caffeinate, awake, prevent sleep, no sleep", bundle: .floe, comment: "Words that find the Toggle Keep Awake command, separated by commas.")
         case .hideOtherApps: String(localized: "hide, hide other apps, hide others", bundle: .floe, comment: "Words that find the Hide Other Apps command, separated by commas.")
         case .quitAllApps: String(localized: "quit all apps, quit all, close all apps", bundle: .floe, comment: "Words that find the Quit All Apps command, separated by commas.")
+        case .quitFloe: String(localized: "quit floe, close floe, quit, close", bundle: .floe,comment: "Words that find the Quit Floe command, separated by commas")
         case .playPause: String(localized: "play, pause, resume, stop music, music, spotify", bundle: .floe, comment: "Words that find the Play/Pause command, separated by commas.")
         case .nextTrack: String(localized: "next song, skip, skip song, music, spotify", bundle: .floe, comment: "Words that find the Next Track command, separated by commas.")
         case .previousTrack: String(localized: "previous, previous song, last song, go back, music, spotify", bundle: .floe, comment: "Words that find the Previous Track command, separated by commas.")
@@ -122,6 +126,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .logOut: return String(localized: "Log out now?", bundle: .floe)
         case .emptyTrash: return String(localized: "Empty the Trash? This can't be undone.", bundle: .floe)
         case .quitAllApps: return String(localized: "Quit all apps now?", bundle: .floe)
+        case .quitFloe: return String(localized: "Quit Floe now? You will have to use finder or spotlight to launch it again.", bundle: .floe)
         default: return nil
         }
     }
@@ -168,6 +173,8 @@ enum SystemCommand: String, CaseIterable, Identifiable {
             hideOtherApps()
         case .quitAllApps:
             quitAllApps()
+        case .quitFloe:
+            quitFloe()
         default:
             _ = flip?()
         }
@@ -239,6 +246,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
             }
             app.terminate()
         }
+    }
+
+    private func quitFloe() {
+        NSApplication.shared.terminate(nil)
     }
 }
 
