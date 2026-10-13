@@ -18,7 +18,7 @@ struct SystemCommandTests {
 
     @Test func onlyTheCommandsThatLoseWorkAskFirst() {
         let asking = Set(SystemCommand.allCases.filter { $0.confirmation != nil })
-        #expect(asking == [.restart, .shutDown, .logOut, .emptyTrash, .quitAllApps])
+        #expect(asking == [.restart, .shutDown, .logOut, .emptyTrash, .quitAllApps, .quitFloe])
     }
 
     @Test func onlyTheTogglesAnswerWithALineForTheHUD() {
