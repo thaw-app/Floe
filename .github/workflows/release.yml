@@ -516,7 +516,7 @@ jobs:
       # attach-provenance pushes it after it publishes the release.
       - name: Hand the appcast to attach-provenance
         if: ${{ steps.meta.outputs.updates == 'true' && !inputs.dry_run }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: appcast-${{ steps.meta.outputs.tag }}
           path: ${{ steps.sparkle.outputs.appcast-path }}
@@ -641,7 +641,7 @@ jobs:
 
       - name: Upload dry run artifacts
         if: ${{ inputs.dry_run }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dry-run-${{ steps.meta.outputs.tag }}
           if-no-files-found: warn
@@ -698,13 +698,13 @@ jobs:
       contents: write
     steps:
       - name: Download DMG provenance
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ needs.attest-dmg.outputs.artifact-name }}
           path: provenance
 
       - name: Download SBOM provenance
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ needs.attest-sbom.outputs.artifact-name }}
           path: provenance
@@ -743,7 +743,7 @@ jobs:
       # job's own token: gh-pages is in this repository.
       - name: Download appcast
         if: ${{ inputs.publish_release && inputs.publish_appcast && needs.release.outputs.updates == 'true' }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: appcast-${{ needs.release.outputs.tag }}
           path: appcast
