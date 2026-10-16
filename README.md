@@ -229,13 +229,15 @@ gh pr list --json number,title --jq '.[] | "\(.number)\t\(.title)"' | Floe --pic
 
 ## Install
 
-Download Floe from the [releases page](https://github.com/thaw-app/Floe/releases/latest), open the disk image and move Floe to Applications.
+<!--Download Floe from the [releases page](https://github.com/thaw-app/Floe/releases/latest), open the disk image and move Floe to Applications.-->
+
+Floe is in active early development. Prebuilt signed disk images will be available on the [releases page](https://github.com/thaw-app/Floe/releases) with the first public release.
+
+In the meantime, you can build and run Floe directly from source: see [Development](docs/DEVELOPMENT.md).
 
 - Needs macOS 26 or later.
-- Signed and notarized, and it updates itself.
-- Floe is early. Install only extensions you trust, since they are not sandboxed.
-
-To build it from source, see [Development](docs/DEVELOPMENT.md).
+- Signed and notarized once packaged, with automatic updates.
+- Floe is early. Install only extensions you trust, since extensions are not sandboxed yet.
 
 ## Roadmap
 
