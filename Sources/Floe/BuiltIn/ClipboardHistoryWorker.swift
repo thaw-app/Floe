@@ -74,7 +74,8 @@ final nonisolated class ClipboardHistoryWorker: Sendable {
     enum Event: Sendable {
         case loaded([ClipboardEntry], sizes: [String: Int])
         case prepared(ClipboardEntry, sizes: [String: Int], epoch: Int)
-        case saved(bytes: Int)
+        /// The list as written.
+        case saved(bytes: Int, [ClipboardEntry])
         /// Formatted copies that could not be written, which the list must stop naming.
         case unstored([String])
     }
@@ -299,7 +300,7 @@ final nonisolated class ClipboardHistoryWorker: Sendable {
                 // The history is a cache; a failed write is picked up on the next change.
                 return []
             }
-            return [.saved(bytes: data.count)]
+            return [.saved(bytes: data.count, entries)]
         case let .signal(done):
             done.signal()
             return []

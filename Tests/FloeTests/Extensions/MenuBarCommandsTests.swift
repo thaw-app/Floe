@@ -58,7 +58,7 @@ struct MenuBarCommandsTests {
     private let commands: MenuBarCommands
 
     init() throws {
-        settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-menu-bar-commands-\(UUID().uuidString)")))
+        settings = AppSettings(defaults: MemoryDefaults())
         model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [Fixture.command("planets"), status]))
         commands = MenuBarCommands(model: model, host: bar.host)
     }

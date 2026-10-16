@@ -14,7 +14,7 @@ import Testing
 final class ClipboardHistoryModelTests {
     private let directory = FileManager.default.temporaryDirectory
         .appendingPathComponent("floe-clipboard-model-tests-\(UUID().uuidString)", isDirectory: true)
-    private let scratch = UserDefaults(suiteName: "floe-clipboard-model-tests-\(UUID().uuidString)")!
+    private let scratch = MemoryDefaults()
     private lazy var store = ClipboardHistoryStore(files: .onDisk(directory), monitorsPasteboard: false)
 
     deinit {

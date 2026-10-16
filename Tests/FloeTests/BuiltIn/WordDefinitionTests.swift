@@ -111,10 +111,8 @@ struct WordDefinitionTests {
         #expect(changes == 1)
     }
 
-    @Test func theLauncherPinsTheAsyncAnswerAndRemovesItForANewQuery() async throws {
-        let suite = "floe-definition-tests-\(UUID())"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+    @Test func theLauncherPinsTheAsyncAnswerAndRemovesItForANewQuery() async {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
         let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
         model.definitionSearch.lookup = { word in

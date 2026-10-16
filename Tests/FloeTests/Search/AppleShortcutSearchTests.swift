@@ -28,7 +28,7 @@ struct AppleShortcutSearchTests {
     private let resize = ShortcutSample.resize
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     private func context(_ query: String, shortcuts: [AppleShortcut] = ShortcutSample.all, _ configure: (inout SearchContext) -> Void = { _ in }) -> SearchContext {
@@ -48,14 +48,14 @@ struct AppleShortcutSearchTests {
         settings.searchSources = isOn ? [SearchSourceInfo.shortcuts.id] : []
         let snapshot = CatalogSnapshot(apps: apps, commands: [])
         let model = LauncherModel(scanner: EmptyScanner(), settings: settings, usage: UsageStore(defaults: scratch.defaults), snapshot: snapshot, sources: [])
-        model.shortcutLibrary.tool = fake.tool
+        model.features.shortcuts.library.tool = fake.tool
         return model
     }
 
     /// A model that is switched on and has read the sample list.
     private func loadedModel(_ fake: FakeShortcutsTool = FakeShortcutsTool(list: ShortcutSample.listing), apps: [AppEntry] = []) async -> LauncherModel {
         let model = makeModel(fake, apps: apps)
-        await model.reloadShortcuts()?.value
+        await model.features.shortcuts.reload()?.value
         return model
     }
 
@@ -126,8 +126,8 @@ struct AppleShortcutSearchTests {
         let contribution = AppleShortcutSearchProvider().contribution(for: context("mail", shortcuts: []))
         #expect(contribution.ranked.isEmpty && contribution.searchOnly.isEmpty && contribution.pinned.isEmpty)
         #expect(contribution.sectioned.isEmpty && contribution.appended.isEmpty)
-        #expect(RootSearch.scope(in: context("shortcuts mail", shortcuts: []), scopes: RootSearch.standardScopes()) == nil, "the word is not a scope then")
-        #expect(RootSearch.scope(in: context("shortcuts ", shortcuts: []), scopes: RootSearch.standardScopes()) == nil)
+        #expect(RootSearch.scope(in: context("shortcuts mail", shortcuts: []), scopes: RootSearch.standardScopes { [] }) == nil, "the word is not a scope then")
+        #expect(RootSearch.scope(in: context("shortcuts ", shortcuts: []), scopes: RootSearch.standardScopes { [] }) == nil)
     }
 
     // MARK: The scope
@@ -135,7 +135,7 @@ struct AppleShortcutSearchTests {
     @Test func theKeywordAndSomeTextShowOnlyTheShortcutsThatMatch() throws {
         let app = AppEntry(name: "Mail", url: URL(fileURLWithPath: "/Fake/Applications/Mail.app"))
         let context = context("shortcuts mail") { $0.apps = [app] }
-        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()))
+        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }))
         #expect(match.scope.keyword == "shortcuts")
         #expect(match.scope.title == "Shortcuts")
         #expect(match.scope.emptyTitle == "No shortcuts match")
@@ -148,7 +148,7 @@ struct AppleShortcutSearchTests {
 
     @Test func theKeywordAndASpaceListEveryShortcutInTheToolsOrder() throws {
         let context = context("Shortcuts ")
-        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()))
+        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }))
         #expect(match.text.isEmpty)
         #expect(match.scope.results(for: match.text, context: context).map(\.id) == ShortcutSample.all.map(\.id))
     }
@@ -160,8 +160,8 @@ struct AppleShortcutSearchTests {
             $0.settingsPanes = [pane]
             $0.apps = [app]
         }
-        #expect(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()) == nil)
-        #expect(RootSearch.scope(in: self.context("shortcutsfoo bar"), scopes: RootSearch.standardScopes()) == nil)
+        #expect(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }) == nil)
+        #expect(RootSearch.scope(in: self.context("shortcutsfoo bar"), scopes: RootSearch.standardScopes { [] }) == nil)
         let found = ids(RootSearch.results(for: context))
         #expect(found.first == RootItem.app(app).id, "the Shortcuts app is still what the word finds first")
         #expect(found.contains(RootItem.settingsPane(pane).id), "and the pane that has the word among its keywords")
@@ -170,7 +170,7 @@ struct AppleShortcutSearchTests {
     @Test func aQuicklinkThatAnswersToTheWordKeepsIt() {
         let link = Quicklink(name: "Shortcuts Gallery", keyword: "shortcuts", url: "https://example.com/?q={query}")
         let context = context("shortcuts mail") { $0.quicklinks = [link] }
-        #expect(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()) == nil)
+        #expect(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }) == nil)
     }
 
     // MARK: In the launcher
@@ -178,10 +178,10 @@ struct AppleShortcutSearchTests {
     @Test func offMeansNoRowsNoScopeAndNoToolEvenWhenThePanelOpens() {
         let fake = FakeShortcutsTool(list: ShortcutSample.listing)
         let model = makeModel(fake, isOn: false)
-        #expect(!model.findsShortcuts)
+        #expect(!model.features.shortcuts.isOn())
         model.panelWillShow()
         model.panelDidShow()
-        #expect(model.reloadShortcuts() == nil)
+        #expect(model.features.shortcuts.reload() == nil)
         model.query = "mail"
         #expect(!model.results.contains { $0.id.hasPrefix("shortcut:") })
         model.query = "shortcuts "
@@ -194,7 +194,7 @@ struct AppleShortcutSearchTests {
         let model = makeModel(fake)
         model.panelWillShow()
         model.panelDidShow()
-        await model.reloadShortcuts()?.value
+        await model.features.shortcuts.reload()?.value
         #expect(fake.calls == [FakeShortcutsTool.listing], "asking again while the list is on its way starts nothing")
         #expect(!model.results.contains { $0.id.hasPrefix("shortcut:") })
         model.query = "resiz"
@@ -206,10 +206,10 @@ struct AppleShortcutSearchTests {
         let fake = FakeShortcutsTool(list: ShortcutSample.listing, isGated: true)
         let model = makeModel(fake)
         fake.open()
-        await model.reloadShortcuts()?.value
+        await model.features.shortcuts.reload()?.value
         fake.list("Brand New (\(ShortcutSample.mailID))\n")
 
-        let loading = model.reloadShortcuts()
+        let loading = model.features.shortcuts.reload()
         model.query = "mail"
         #expect(ids(model.results).contains(mail.id), "the search did not wait for the tool")
         model.query = "brand"
@@ -229,7 +229,7 @@ struct AppleShortcutSearchTests {
         #expect(!model.results.contains { $0.id.hasPrefix("shortcut:") })
         model.panelWillShow()
         model.panelDidShow()
-        #expect(model.shortcutLibrary.shortcuts.isEmpty)
+        #expect(model.features.shortcuts.library.shortcuts.isEmpty)
         #expect(fake.calls.count == 1)
     }
 
@@ -268,8 +268,8 @@ struct AppleShortcutSearchTests {
         let model = await loadedModel(fake)
         var hides = 0
         var lines: [String] = []
-        model.hidePanel = { hides += 1 }
-        model.showHUD = { lines.append($0) }
+        model.panelHost.hidePanel = { hides += 1 }
+        model.panelHost.showHUD = { lines.append($0) }
         model.query = "resize"
         let row = model.results.first { $0.id == resize.id }?.item
         if let row {
@@ -288,7 +288,7 @@ struct AppleShortcutSearchTests {
         fake.answer("run", with: ShortcutsToolResult(succeeded: false, errorOutput: "Running\nError: The action could not run.\n"))
         let model = await loadedModel(fake)
         let (lines, continuation) = AsyncStream.makeStream(of: String.self)
-        model.showHUD = { continuation.yield($0) }
+        model.panelHost.showHUD = { continuation.yield($0) }
         model.activate(.shortcut(mail))
         #expect(await lines.first { @Sendable _ in true } == "Mail Me the Notes failed: Error: The action could not run.")
     }
@@ -297,7 +297,7 @@ struct AppleShortcutSearchTests {
         let fake = FakeShortcutsTool(list: ShortcutSample.listing)
         let model = await loadedModel(fake)
         var hides = 0
-        model.hidePanel = { hides += 1 }
+        model.panelHost.hidePanel = { hides += 1 }
         let action = try #require(model.rootActions(for: .shortcut(resize)).compactMap(\.self).first { $0.title == "Open in Shortcuts" })
         action.run()
         #expect(hides == 1)
@@ -324,9 +324,9 @@ struct AppleShortcutSearchTests {
         #expect(settings.favorites == ["settings"])
         let fake = FakeShortcutsTool(list: ShortcutSample.listing)
         let model = LauncherModel(scanner: EmptyScanner(), settings: settings, usage: UsageStore(defaults: scratch.defaults), snapshot: CatalogSnapshot(apps: [], commands: []), sources: [])
-        model.shortcutLibrary.tool = fake.tool
-        #expect(!model.findsShortcuts)
-        #expect(model.reloadShortcuts() == nil)
+        model.features.shortcuts.library.tool = fake.tool
+        #expect(!model.features.shortcuts.isOn())
+        #expect(model.features.shortcuts.reload() == nil)
         #expect(fake.calls.isEmpty)
     }
 

@@ -11,7 +11,8 @@ import SwiftUI
 /// The settings window. Only the settings process makes one (see SettingsMode.swift).
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
-    private let catalog: SettingsCatalog
+    private let catalog: CatalogStore
+    private let stores: SettingsStores
     let selection = SettingsSelection()
     /// Called once the window has closed.
     var onClose: () -> Void = { /* set by the settings process */ }
@@ -19,8 +20,9 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// Room for the sidebar, a readable pane and the toolbar's search field.
     private static let minimumSize = NSSize(width: 720, height: 460)
 
-    init(catalog: SettingsCatalog) {
+    init(catalog: CatalogStore, stores: SettingsStores) {
         self.catalog = catalog
+        self.stores = stores
     }
 
     var isOpen: Bool {
@@ -43,7 +45,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             // As Thaw's windows: not a workspace, so the green button zooms, and nothing worth restoring.
             window.collectionBehavior.formUnion([.moveToActiveSpace, .fullScreenNone])
             window.isRestorable = false
-            let content = NSHostingView(rootView: SettingsView(catalog: catalog, settings: .shared, selection: selection).openingLinksInTheChosenBrowser())
+            let content = NSHostingView(rootView: SettingsView(catalog: catalog, stores: stores, selection: selection).openingLinksInTheChosenBrowser())
             // The panes name the window and fill its toolbar: title, subtitle and the search field.
             content.sceneBridgingOptions = [.title, .toolbars]
             window.contentView = content
@@ -72,6 +74,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
 nonisolated enum SettingsPage: Hashable {
     case general
+    case commands
     case applications
     case quicklinks
     case snippets
@@ -84,6 +87,7 @@ nonisolated enum SettingsPage: Hashable {
     private static let extensionPrefix = "extension:"
     private static let fixed: [String: SettingsPage] = [
         "general": .general,
+        "commands": .commands,
         "applications": .applications,
         "quicklinks": .quicklinks,
         "snippets": .snippets,

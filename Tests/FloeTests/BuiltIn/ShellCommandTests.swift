@@ -52,7 +52,7 @@ struct ShellCommandTests {
         let written = try JSONEncoder().encode(ShellSettings.off)
         #expect(try JSONDecoder().decode(ShellSettings.self, from: written) == .off)
 
-        let defaults = try #require(UserDefaults(suiteName: "floe-shell-settings-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         settings.shell.prefix = .exclamation
         settings.shell.suggests = false
@@ -293,29 +293,29 @@ struct ShellCommandTests {
         #expect(ShellCommandSearchProvider().contribution(for: context("uptime", prefix: .greaterThan)).pinned.isEmpty)
     }
 
-    @Test func returnRunsItSaysWhatItPrintedAndRemembersTheSearch() async throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-shell-tests-\(UUID().uuidString)"))
+    @Test func returnRunsItSaysWhatItPrintedAndRemembersTheSearch() async {
+        let defaults = MemoryDefaults()
         let usage = UsageStore(defaults: defaults)
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: usage, snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.receipts = ReceiptStore(file: FileManager.default.temporaryDirectory.appendingPathComponent("floe-receipts-\(UUID().uuidString).json"))
+        model.features.receipts.store = ReceiptStore(file: FileManager.default.temporaryDirectory.appendingPathComponent("floe-receipts-\(UUID().uuidString).json"))
         let ran = Commands()
-        model.shell.hasProgram = { _ in false }
-        model.shell.run = { command, folder in
+        model.features.shell.environment.hasProgram = { _ in false }
+        model.features.shell.environment.run = { command, folder in
             ran.add(folder.map { "\(command) in \($0.path)" } ?? command)
             return ("ok", "ok\nand the rest")
         }
         var shown: [String] = []
-        model.shell.showOutput = { title, output in shown.append("\(title): \(output)") }
+        model.features.shell.environment.showOutput = { title, output in shown.append("\(title): \(output)") }
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
 
         model.query = "> uptime"
         let row = try? #require(model.results.first?.item)
         #expect(row?.title == "Run uptime")
         #expect(model.rootActions(for: row ?? .settings).map { $0?.title ?? "-" } == ["Run", "Show Manual for uptime", "Run and Show Output", "Run and Copy Output", "Run in Finder\u{2019}s Folder", "Run in Terminal", "Save as Script Command…", "-", "Copy Command"])
-        model.shell.hasProgram = { $0 == "tldr" }
+        model.features.shell.environment.hasProgram = { $0 == "tldr" }
         #expect(model.rootActions(for: row ?? .settings).map { $0?.title ?? "-" }.prefix(3) == ["Run", "Show Manual for uptime", "Show Examples for uptime"], "offered on a Mac that has tldr")
-        model.shell.hasProgram = { _ in false }
+        model.features.shell.environment.hasProgram = { _ in false }
         model.activate(row ?? .settings)
         for _ in 0 ..< 100 where said.isEmpty {
             try? await Task.sleep(for: .milliseconds(10))
@@ -326,30 +326,30 @@ struct ShellCommandTests {
         #expect(usage.queries == ["> uptime"], "Up brings the command back")
         #expect(usage.records.isEmpty, "a command has no place in the usage counts")
 
-        model.runShellCommand("uptime", terminal: nil, showingOutput: true)
+        model.features.shell.runShellCommand("uptime", terminal: nil, showingOutput: true)
         for _ in 0 ..< 100 where shown.isEmpty {
             try? await Task.sleep(for: .milliseconds(10))
         }
         #expect(shown == ["uptime: ok\nand the rest"], "the whole output goes to the window, and the HUD stays quiet")
         #expect(said == ["ok"])
 
-        model.runShellCommand("man rsync", terminal: nil)
+        model.features.shell.runShellCommand("man rsync", terminal: nil)
         for _ in 0 ..< 100 where shown.count < 2 {
             try? await Task.sleep(for: .milliseconds(10))
         }
         #expect(ran.all.last == "MANWIDTH=90 man -P cat rsync 2>&1 | col -bx", "a manual is asked for as plain text")
         #expect(shown.count == 2, "and is read in the window, whichever key ran it")
 
-        model.shell.finderFolder = { URL(fileURLWithPath: "/tmp/project") }
-        model.runInFinderFolder("git status", terminal: nil)
+        model.features.shell.environment.finderFolder = { URL(fileURLWithPath: "/tmp/project") }
+        model.features.shell.runInFinderFolder("git status", terminal: nil)
         for _ in 0 ..< 100 where shown.count < 3 {
             try? await Task.sleep(for: .milliseconds(10))
         }
         #expect(ran.all.last == "git status in /tmp/project")
 
-        model.shell.finderFolder = { throw SelectionError.finderEmpty }
+        model.features.shell.environment.finderFolder = { throw SelectionError.finderEmpty }
         let before = ran.all.count
-        model.runInFinderFolder("git status", terminal: nil)
+        model.features.shell.runInFinderFolder("git status", terminal: nil)
         for _ in 0 ..< 100 where said.count < 2 {
             try? await Task.sleep(for: .milliseconds(10))
         }

@@ -12,7 +12,7 @@ extension LauncherModel {
     func beginSetup(_ request: SetupRequest) {
         setupForm.begin(request)
         setup = request
-        showPanel()
+        panelHost.showPanel()
         focusToken += 1
     }
 
@@ -24,9 +24,9 @@ extension LauncherModel {
             let command = request.command
             PreferenceStore.save(values, fields: request.asked(of: command.extensionPreferences), extensionName: command.extensionName, command: nil)
             PreferenceStore.save(values, fields: request.asked(of: command.commandPreferences), extensionName: command.extensionName, command: command)
-            run(command, arguments: request.arguments)
+            runner.run(command, arguments: request.arguments)
         case .arguments:
-            run(request.command, arguments: values)
+            runner.run(request.command, arguments: values)
         }
     }
 
@@ -35,13 +35,13 @@ extension LauncherModel {
     func showPreferences(_ message: [String: Any], of session: ExtensionSession) {
         let command = session.command
         guard message["type"] as? String == "signIn" else {
-            hidePanel()
-            openSettings(.extensionPage(command.extensionName))
+            panelHost.hidePanel()
+            panelHost.openSettings(.extensionPage(command.extensionName))
             return
         }
         guard let field = command.preferences.first(where: { $0.name == message["preference"] as? String }) else { return }
         let arguments = session.arguments
-        end(session)
+        runner.end(session)
         let provider = message["provider"] as? String ?? command.extensionTitle
         beginSetup(SetupRequest(command: command, kind: .preferences, fields: [field], provider: provider, arguments: arguments))
     }

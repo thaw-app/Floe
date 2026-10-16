@@ -82,7 +82,7 @@ struct FileSearchModelTests {
     }
 
     @Test func theLauncherShowsTheSearchAndTypingInItDoesNotRepublishTheLauncher() throws {
-        let settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-file-search-tests-\(UUID().uuidString)")))
+        let settings = AppSettings(defaults: MemoryDefaults())
         let launcher = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
         defer { launcher.fileSearch.cancel() }
         launcher.openFileSearch(with: "invoice")

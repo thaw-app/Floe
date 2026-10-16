@@ -11,32 +11,18 @@
 //  ActivateMenuBarItemIntent) with Floe's own intents: open the launcher, search the menu bar,
 //  and run an extension command picked as an entity.
 
-// Thin clients: perform() forwards to LauncherModel, the same calls the hotkeys make. An intent
-// needing more than a few lines of dispatch belongs in the model first, and anything that decides
-// which command is meant belongs in CommandLookup, which has tests.
+// Thin clients: perform() asks the process's IntentHandler, which makes the same calls the hotkeys do.
+// Anything that decides which command is meant belongs in CommandLookup, which has tests.
 
 import AppIntents
 import AppKit
-
-/// Shared lookup of the running model for every intent in this file. The system runs intents
-/// inside the app's process, launching it if needed, so the delegate is there once the app has
-/// finished launching; the conditional cast only covers launch ordering.
-@MainActor
-func floeModel() -> LauncherModel? {
-    (NSApp?.delegate as? AppDelegate)?.model ?? (NSApp?.delegate as? PanelAppDelegate)?.model
-}
 
 /// Even an intent delivered to the foreground goes through the resident's lifecycle gate,
 /// so a request racing with dismissal starts a fresh process instead of being lost.
 @MainActor
 private func presentFloe(_ request: PanelRequest) throws {
-    if let resident = NSApp?.delegate as? AppDelegate {
-        resident.model.presentInPanelProcess?(request)
-    } else if let foreground = NSApp?.delegate as? PanelAppDelegate {
-        foreground.channel.send(.present(request))
-    } else {
-        throw FloeIntentError.appNotReady
-    }
+    guard let handler = IntentHandler.current else { throw FloeIntentError.appNotReady }
+    handler.present(request)
 }
 
 /// Failure modes worth naming to the user.
@@ -118,10 +104,7 @@ struct CommandEntity: AppEntity {
 struct CommandEntityQuery: EntityStringQuery {
     @MainActor
     static func runnableCommands() async -> [ExtensionCommand] {
-        guard let model = floeModel() else { return [] }
-        await model.waitForCommands()
-        let settings = AppSettings.shared
-        return CommandLookup.enabled(model.allCommands, disabledExtensions: settings.disabledExtensions, disabledCommands: settings.disabledCommands, enabledCommands: settings.enabledCommands)
+        await IntentHandler.current?.runnableCommands() ?? []
     }
 
     func entities(for identifiers: [String]) async throws -> [CommandEntity] {
@@ -155,12 +138,12 @@ struct RunCommandIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        guard floeModel() != nil else { throw FloeIntentError.appNotReady }
+        guard let handler = IntentHandler.current else { throw FloeIntentError.appNotReady }
         let available = await CommandEntityQuery.runnableCommands()
         guard let match = CommandLookup.command(withID: command.id, in: available) else {
             throw FloeIntentError.commandNotFound
         }
-        UsageStore.shared.recordUse(of: RootItem.command(match).id)
+        handler.recordUse(RootItem.command(match).id)
         try presentFloe(.command(match.id, arguments: nil))
         return .result()
     }

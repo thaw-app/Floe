@@ -16,7 +16,7 @@ struct LauncherLayoutTests {
     private let collapsed = NSSize(width: 750, height: LauncherPanelState.collapsedHeight)
 
     private func makeSettings() -> AppSettings {
-        AppSettings(defaults: UserDefaults(suiteName: "floe-layout-tests-\(UUID().uuidString)")!)
+        AppSettings(defaults: MemoryDefaults())
     }
 
     @Test func theExtendedLayoutIsFullSizeWhateverIsOnScreen() {

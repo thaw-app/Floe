@@ -48,7 +48,7 @@ struct WhatLeavesTheMainActorTests {
     private let log = ThreadLog()
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     private func waitFor(_ label: String, _ condition: () -> Bool) async {
@@ -67,14 +67,14 @@ struct WhatLeavesTheMainActorTests {
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         let model = LauncherModel(scanner: ThreadScanner(log: log), settings: settings, usage: UsageStore(defaults: scratch.defaults), sources: [])
         model.startCatalogLoading()
-        await model.reloadSSHHosts().value
+        await model.catalog.reloadSSHHosts().value
         await waitFor("the five scans") { log.onMain.count == 5 }
         #expect(log.onMain == ["apps": false, "commands": false, "scripts": false, "panes": false, "hosts": false])
     }
 
     @Test func theSettingsWindowsScansRunOffTheMainThread() async {
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
-        let catalog = SettingsCatalog(scanner: ThreadScanner(log: log), settings: settings)
+        let catalog = CatalogStore(scanner: ThreadScanner(log: log), settings: settings)
         catalog.reloadAll()
         await waitFor("the three scans") { log.onMain.count == 3 }
         #expect(log.onMain == ["apps": false, "commands": false, "scripts": false])

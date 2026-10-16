@@ -118,7 +118,7 @@ extension LauncherModel {
     var panelState: LauncherPanelState {
         LauncherPanelState(
             showingSetup: setup != nil,
-            showingCommand: session?.command.mode == "view",
+            showingCommand: runner.session?.command.mode == "view",
             menuBarSearch: isSearchingMenuBar,
             clipboardHistory: isShowingClipboardHistory,
             fileSearch: isSearchingFiles || noteDesk != nil,
@@ -131,7 +131,7 @@ extension LauncherModel {
     func panelWindowSizes(settings: AppSettings) -> AnyPublisher<NSSize, Never> {
         // Published values arrive before they are stored, so the state is built from what is sent.
         let views = $setup.map { $0 != nil }
-            .combineLatest($session.map { $0?.command.mode == "view" }, $isSearchingMenuBar, $isShowingClipboardHistory)
+            .combineLatest(runner.$session.map { $0?.command.mode == "view" }, $isSearchingMenuBar, $isShowingClipboardHistory)
         let searches = $isSearchingFiles.combineLatest($noteDesk.map { $0 != nil }).map { $0 || $1 }.combineLatest($askAI.map { $0 != nil })
         return views.combineLatest(searches, $query.map(\.isEmpty), settings.$launcherLayout)
             .map { views, searches, queryIsEmpty, layout in

@@ -27,12 +27,12 @@ struct LauncherView: View {
         GlassEffectContainer {
             if let setup = model.setup {
                 SetupView(form: model.setupForm, request: setup).modifier(PanelOnePiece())
-            } else if let session = model.session, session.command.mode == "view" {
+            } else if let session = model.runner.session, session.command.mode == "view" {
                 SessionContainer(model: model, session: session)
             } else if model.isSearchingMenuBar {
                 MenuBarSearchView(search: model.menuBarSearch, launcher: model, focusToken: model.focusToken)
             } else if model.isShowingClipboardHistory {
-                ClipboardHistoryView(clipboard: model.clipboardHistory, launcher: model, focusToken: model.focusToken)
+                ClipboardHistoryView(clipboard: model.clipboardHistory, launcher: model, focusToken: model.focusToken, history: model.clipboard)
             } else if model.isSearchingFiles {
                 FileSearchView(search: model.fileSearch, spotlight: model.fileSearch.spotlight, launcher: model, focusToken: model.focusToken)
             } else if let desk = model.noteDesk {
@@ -40,12 +40,14 @@ struct LauncherView: View {
             } else if let asking = model.askAI {
                 AskAIView(launcher: model, asking: asking)
             } else {
-                RootView(model: model, isCollapsed: state.isCollapsed(in: settings.launcherLayout))
+                RootView(model: model, refusal: model.refusal, isCollapsed: state.isCollapsed(in: settings.launcherLayout))
             }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
         .environment(\.searchFieldShape, settings.searchFieldShape)
+        .environment(\.pointerRest, model.pointerRest)
         .modifier(PanelLook(look: look, pieces: settings.separatesSearchField ? PanelPieces(look: look, fieldShape: settings.searchFieldShape, heights: heights) : nil))
+        .modifier(RefusalShake(refusal: model.refusal))
         .padding(Self.margin)
         // The window is resized a moment before or after the content: the search bar stays at the top meanwhile.
         .frame(maxHeight: .infinity, alignment: .top)
@@ -59,10 +61,11 @@ struct SearchBar<Accessory: View>: View {
     @Binding var text: String
     let focusToken: Int
     var isLoading = false
+    var isRefused = false
     @ViewBuilder var accessory: Accessory
 
     var body: some View {
-        SearchQueryField(prompt: placeholder, text: $text, focusToken: focusToken, isLoading: isLoading) { accessory }
+        SearchQueryField(prompt: placeholder, text: $text, focusToken: focusToken, isLoading: isLoading, isRefused: isRefused) { accessory }
     }
 }
 
@@ -121,14 +124,15 @@ struct KeyCap: View {
 
 struct RootView: View {
     @ObservedObject var model: LauncherModel
+    @ObservedObject var refusal: ReturnRefusal
     var isCollapsed = false
 
     var body: some View {
         let results = model.results
         PanelSections(showsContent: !isCollapsed) {
-            SearchBar(placeholder: String(localized: "Search apps and commands…", bundle: .floe), text: $model.query, focusToken: model.focusToken, isLoading: model.isLoadingCatalog || model.isAwaitingResults) { EmptyView() }
+            SearchBar(placeholder: String(localized: "Search apps and commands…", bundle: .floe), text: $model.query, focusToken: model.focusToken, isLoading: model.catalog.isLoading || model.isAwaitingResults, isRefused: refusal.isShown) { EmptyView() }
         } content: {
-            if results.isEmpty, !model.isLoadingCatalog, !model.isAwaitingResults {
+            if results.isEmpty, !model.catalog.isLoading, !model.isAwaitingResults {
                 ThawEmptyState(
                     systemImage: "magnifyingglass",
                     title: .verbatim(model.activeScope?.scope.emptyTitle ?? String(localized: "Nothing matches", bundle: .floe)),
@@ -179,13 +183,13 @@ struct ShellHintButtons: View {
         switch action {
         case let .run(command, terminal):
             ShortcutHintButton(title: String(localized: "Output", bundle: .floe, comment: "A button that runs a command and shows what it printed.")) {
-                model.runShellCommand(command, terminal: terminal, showingOutput: true)
+                model.features.shell.runShellCommand(command, terminal: terminal, showingOutput: true)
             } hint: {
                 KeyCapView(text: "⌥")
                 KeyCapView(systemImage: "return")
             }
         case let .complete(row):
-            ShortcutHintButton(title: ShellAction.complete(row).title) { model.complete(with: row) } hint: {
+            ShortcutHintButton(title: ShellAction.complete(row).title) { model.features.shell.complete(with: row) } hint: {
                 KeyCapView(text: "⇥")
             }
         case .quit, nil:

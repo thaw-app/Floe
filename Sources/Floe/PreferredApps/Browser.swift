@@ -130,9 +130,9 @@ enum Browsers {
 
     /// For a link Floe opens with no launcher or view around it, like an extension's sign-in page.
     @MainActor
-    static func openFromFloe(_ url: URL) {
+    static func openFromFloe(_ url: URL, say: (String) -> Void) {
         if let message = open(url, choice: AppSettings.shared.browserApp, installed: .system, opener: .system) {
-            ThawHUD.show(text: message)
+            say(message)
         }
     }
 }

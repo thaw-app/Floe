@@ -8,10 +8,10 @@ struct BuiltInHotkeysTests {
     private func makeModel() -> (LauncherModel, URL) {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-hotkeys-\(UUID().uuidString)")
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-hotkeys-tests-\(UUID().uuidString)")!)
+        let settings = AppSettings(defaults: MemoryDefaults())
         let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
         return (model, folder)
     }
 
@@ -40,7 +40,7 @@ struct BuiltInHotkeysTests {
         let (model, folder) = makeModel()
         defer { try? FileManager.default.removeItem(at: folder) }
         var shown = 0
-        model.showPanel = { shown += 1 }
+        model.panelHost.showPanel = { shown += 1 }
 
         model.query = "half typed"
         model.runFromHotkey(.emojiSearch)

@@ -61,7 +61,7 @@ enum AppRole: String, CaseIterable, Identifiable {
         case .browser: String(localized: "Opens web addresses, quicklinks and the other web links you open from Floe.", bundle: .floe)
         case .notes: String(localized: "Type “note” and then your text in the search to send it there.", bundle: .floe, comment: "The word in quotation marks is typed as it is and stays in English.")
         case .clipboard where ClipboardApps.ownHistoryIsParked: String(localized: "Opens from Clipboard History in the search.", bundle: .floe)
-        case .clipboard: String(localized: "Opens from Clipboard History in the search. With another app chosen, Floe saves no copies and keeps the history it has.", bundle: .floe)
+        case .clipboard: String(localized: "Opens from Clipboard History in the search. With Off or another app, Floe saves no new copies and keeps the ones it has.", bundle: .floe)
         }
     }
 

@@ -59,7 +59,7 @@ struct AboutSettingsPane: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
 
-    @Bindable private var updatesManager = UpdatesManager.shared
+    @Bindable var updatesManager: UpdatesManager
 
     private static let iconSize: CGFloat = 96
 

@@ -13,19 +13,20 @@ extension LauncherModel {
     func handleKey(_ event: NSEvent) -> Bool {
         // A key that acts on the results acts on those of the text as typed, not of a moment ago.
         typing.flush()
+        pointerRest.rest()
         let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
         if setup != nil {
             return handleSetupKey(event)
         }
         if event.keyCode == 43, flags == .command {
-            hidePanel()
-            openSettings(nil)
+            panelHost.hidePanel()
+            panelHost.openSettings(nil)
             return true
         }
         if isSearchingMenuBar {
             return menuBarSearch.handleKey(event, flags)
         }
-        if let session, session.command.mode == "view", session.alert != nil {
+        if let session = runner.session, session.command.mode == "view", session.alert != nil {
             return handleAlertKey(event, session)
         }
         if isShowingClipboardHistory {
@@ -37,7 +38,7 @@ extension LauncherModel {
         if let noteDesk {
             return noteDesk.handleKey(event, flags)
         }
-        if let session, session.command.mode == "view" {
+        if let session = runner.session, session.command.mode == "view" {
             return session.failure == nil ? handleSessionKey(event, flags, session) : handleFailureKey(event, flags, session)
         }
         if let askAI {
@@ -68,9 +69,9 @@ extension LauncherModel {
     /// The error screen of a command that failed.
     private func handleFailureKey(_ event: NSEvent, _ flags: NSEvent.ModifierFlags, _ session: ExtensionSession) -> Bool {
         switch event.keyCode {
-        case 36: retry()
-        case 53: end(session)
-        case 8 where flags == [.command, .shift]: copyFailure()
+        case 36: runner.retry()
+        case 53: runner.end(session)
+        case 8 where flags == [.command, .shift]: runner.copyFailure()
         default: return false
         }
         return true
@@ -93,7 +94,7 @@ extension LauncherModel {
         switch event.keyCode {
         case 36: activateSelection(flags)
         case 53: if query.isEmpty {
-                hidePanel()
+                panelHost.hidePanel()
             } else {
                 query = ""
             }
@@ -102,7 +103,7 @@ extension LauncherModel {
                 toggleFavorite(results[selection].item)
             }
         case 40 where flags == .command:
-            showActions()
+            panelHost.showActions()
         default: return false
         }
         return true
@@ -110,12 +111,13 @@ extension LauncherModel {
 
     /// Return on the selected result. With Command an emoji is copied, not pasted, and a shell command opens in a terminal.
     private func activateSelection(_ flags: NSEvent.ModifierFlags) {
-        guard results.indices.contains(selection) else { return }
+        guard results.indices.contains(selection) else {
+            refusal.refuse()
+            return
+        }
         let item = results[selection].item
-        if case let .emoji(entry) = item, flags == .command {
-            copyEmojiResult(entry)
-        } else if case let .run(command, terminal) = item.shellAction, !flags.isEmpty {
-            runShellCommand(command, terminal: terminal, with: flags)
+        if !flags.isEmpty, openByOwner(item, flags: flags) {
+            // A row whose owner gives Return with a key held a meaning of its own.
         } else {
             activate(item)
         }

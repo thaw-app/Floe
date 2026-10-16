@@ -11,13 +11,11 @@ import AppKit
 extension LauncherModel {
     /// Switches the panel to the file search, starting with the given text.
     func openFileSearch(with text: String) {
-        if let session {
-            end(session)
-        }
+        runner.endOpenCommand()
         setup = nil
         isSearchingFiles = true
         fileSearch.query = text
-        showPanel()
+        panelHost.showPanel()
         focusToken += 1
     }
 

@@ -11,15 +11,17 @@ import SwiftUI
 import ThawUI
 
 struct SettingsView: View {
-    @ObservedObject var catalog: SettingsCatalog
+    @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     @ObservedObject var selection: SettingsSelection
     @State private var search: SearchModel
+    private let stores: SettingsStores
 
-    /// `search` is passed in only by the benchmark, which types into it.
-    init(catalog: SettingsCatalog, settings: AppSettings, selection: SettingsSelection, search: SearchModel? = nil) {
+    /// The search is passed in only by the benchmark, which types into it.
+    init(catalog: CatalogStore, stores: SettingsStores, selection: SettingsSelection, search: SearchModel? = nil) {
         self.catalog = catalog
-        self.settings = settings
+        self.stores = stores
+        settings = stores.settings
         self.selection = selection
         _search = State(initialValue: search ?? SearchModel())
     }
@@ -42,14 +44,14 @@ struct SettingsView: View {
                 .scrollEdgeEffectStyle(.soft, for: .top)
         }
         .settingsSearchField(search)
-        .updateConsentSheet()
+        .updateConsentSheet(stores.updates)
     }
 
     @ViewBuilder
     private var detail: some View {
         if search.isSearching {
             // Results take over the detail column until one is chosen or the query is cleared.
-            SettingsSearchResults(selection: selection, commands: catalog.allCommands)
+            SettingsSearchResults(selection: selection) { SearchIndex.entries(commands: catalog.allCommands) }
         } else {
             pane
         }
@@ -59,26 +61,30 @@ struct SettingsView: View {
     private var pane: some View {
         switch selection.page {
         case .general:
-            GeneralSettingsView(catalog: catalog, settings: settings)
+            GeneralSettingsView(catalog: catalog, settings: settings, updates: stores.updates, sync: stores.sync, showWelcome: stores.showWelcome)
+        case .commands:
+            CommandsSettingsView(catalog: catalog, settings: settings)
         case .applications:
             ApplicationSettingsView(catalog: catalog, settings: settings)
         case .quicklinks:
-            QuicklinksSettingsPage()
+            QuicklinksSettingsPage(store: stores.quicklinks)
         case .snippets:
-            SnippetsSettingsPage()
+            SnippetsSettingsPage(store: stores.snippets)
         case .extensionStore:
-            ExtensionStoreSettingsPage()
+            ExtensionStoreSettingsPage(store: stores.extensions, settings: settings)
         case .appearance:
-            AppearanceSettingsPane(settings: settings)
+            AppearanceSettingsPane(settings: settings, follower: stores.appearance)
         case .privacy:
-            PrivacySettingsPane(settings: settings)
+            PrivacySettingsPane(settings: settings, stores: stores)
         case .about:
-            AboutSettingsPane()
+            AboutSettingsPane(updatesManager: stores.updates)
         case let .extensionPage(name):
             ExtensionSettingsView(
                 catalog: catalog,
                 settings: settings,
                 commands: catalog.allCommands.filter { $0.extensionName == name },
+                extensions: stores.extensions,
+                access: stores.extensionAccess,
                 onRemoved: { selection.page = .extensionStore }
             )
             .id(name)
@@ -90,6 +96,7 @@ struct SettingsView: View {
         guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
         return switch selection.page {
         case .general: SearchPaneLabel.general.title
+        case .commands: SearchPaneLabel.commands.title
         case .applications: SearchPaneLabel.applications.title
         case .quicklinks: SearchPaneLabel.quicklinks.title
         case .snippets: SearchPaneLabel.snippets.title
@@ -105,7 +112,8 @@ struct SettingsView: View {
     private var subtitle: String {
         guard !search.isSearching else { return "" }
         switch selection.page {
-        case .general: return String(localized: "Startup, hotkeys and built-in commands", bundle: .floe)
+        case .general: return String(localized: "Startup, preferred apps, AI and sync", bundle: .floe)
+        case .commands: return String(localized: "Built-in, shell, script and menu bar commands", bundle: .floe)
         case .applications: return String(localized: "Aliases and hotkeys for apps", bundle: .floe)
         case .quicklinks: return String(localized: "Keywords and fallbacks for web search", bundle: .floe)
         case .snippets: return String(localized: "Text you paste or type by keyword", bundle: .floe)
@@ -125,25 +133,11 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsView: View {
-    @ObservedObject var catalog: SettingsCatalog
+    let catalog: CatalogStore
     @ObservedObject var settings: AppSettings
-
-    /// Writes a starter script into the Scripts folder and reveals it, so it can be edited.
-    static func makeScript(catalog: SettingsCatalog) {
-        Paths.prepareSupportFolders()
-        var index = catalog.allScripts.count + 1
-        var file = Paths.scripts.appendingPathComponent("script-\(index).sh")
-        while FileManager.default.fileExists(atPath: file.path) {
-            index += 1
-            file = Paths.scripts.appendingPathComponent("script-\(index).sh")
-        }
-        try? ScriptRunner.template().write(to: file, atomically: true, encoding: .utf8)
-        try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path)
-        catalog.reloadScripts()
-        // The launcher lists scripts too, and has its own copy of the list.
-        ProcessLink.current?.send(.rescan(.scripts))
-        NSWorkspace.shared.activateFileViewerSelecting([file])
-    }
+    let updates: UpdatesManager
+    let sync: SettingsSyncStatus
+    let showWelcome: () -> Void
 
     private func exportSettings() {
         let panel = NSSavePanel()
@@ -215,7 +209,7 @@ struct GeneralSettingsView: View {
                 )
                 LaunchAtLoginToggle(settings: settings)
                 Toggle("Show in Dock", isOn: $settings.showInDock)
-                AutomaticUpdateCheckToggle()
+                AutomaticUpdateCheckToggle(updatesManager: updates)
                 Picker(selection: $settings.popToRootDelay) {
                     Text("Immediately").tag(0)
                     Text("After 30 seconds").tag(30)
@@ -225,56 +219,10 @@ struct GeneralSettingsView: View {
                     Text("Return to root search")
                     Text("How long a closed launcher keeps the command you had open.")
                 }
-                Picker("Emoji skin tone", selection: $settings.emojiSkinTone) {
-                    ForEach(EmojiSkinTone.allCases) { tone in
-                        Text(verbatim: tone.applied(to: "\u{1F44B}") + " " + tone.label).tag(tone)
-                    }
-                }
-                TextField(text: $settings.focusShortcut, prompt: Text("None")) {
-                    Text("Shortcut for Focus")
-                    Text("A Shortcut of yours that sets Focus. It receives the number of minutes, or the word off or toggle.")
-                }
             }
-            ShellCommandsSettingsSection(settings: settings)
-            if !settings.hiddenResults.isEmpty {
-                ThawSection("Hidden from Search") {
-                    ForEach(settings.hiddenResults.sorted { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }, id: \.key) { hidden in
-                        LabeledContent(hidden.value) {
-                            Button("Show Again") { settings.hiddenResults[hidden.key] = nil }
-                        }
-                    }
-                }
-            }
-            BuiltInHotkeysSection(settings: settings)
-            ThawSection("Menu Bar Items") {
-                HotkeyRecorder(
-                    keyCombination: Binding(
-                        get: { settings.commandHotkeys[RootItem.menuBarSearchKey] },
-                        set: { settings.commandHotkeys[RootItem.menuBarSearchKey] = $0 }
-                    ),
-                    onRecordingChange: { settings.isRecordingHotkey = $0 },
-                    label: {
-                        Text("Search Menu Bar Items")
-                        Text("Find an item in the menu bar and open its menu.")
-                    }
-                )
-                TextField(
-                    "Alias",
-                    text: Binding(
-                        get: { settings.aliases[RootItem.menuBarSearchKey] ?? "" },
-                        set: { settings.aliases[RootItem.menuBarSearchKey] = $0.isEmpty ? nil : $0 }
-                    ),
-                    prompt: Text("None")
-                )
-                ThawSupportNotice()
-            }
-            MenuBarCommandsSettingsSection(catalog: catalog, settings: settings)
-            WelcomeSettingsSection()
-            DiagnosticsSettingsSection(settings: settings)
             PreferredAppsSettingsSection(settings: settings)
-            ClipboardSettingsSection(settings: settings)
             AISettingsSection(settings: settings)
-            SyncSettingsSection(settings: settings)
+            SyncSettingsSection(settings: settings, sync: sync)
             ThawSection("Your Settings") {
                 LabeledContent {
                     HStack {
@@ -286,45 +234,8 @@ struct GeneralSettingsView: View {
                     Text("Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out.")
                 }
             }
-            ThawSection("Extensions") {
-                Toggle(isOn: $settings.includeRaycastExtensions) {
-                    Text("Include extensions installed in Raycast")
-                    Text("Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over.")
-                }
-                LabeledContent("Extensions folder") {
-                    Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.extensions]) }
-                }
-                LabeledContent("Runtime") {
-                    if Paths.isBunBundled {
-                        Text("Bun, bundled with the app").foregroundStyle(.secondary)
-                    } else if let bun = Paths.bun {
-                        Text(bun).foregroundStyle(.secondary).textSelection(.enabled)
-                    } else {
-                        Text("Bun not found. Install it with brew install bun.").foregroundStyle(.red)
-                    }
-                }
-            }
-            ThawSection("Script Commands") {
-                LabeledContent("Scripts folder") {
-                    Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.scripts]) }
-                }
-                LabeledContent("New") {
-                    Button("New Script") { Self.makeScript(catalog: catalog) }
-                }
-                if catalog.allScripts.isEmpty, catalog.scriptFailures.isEmpty {
-                    Text("No script commands yet. Scripts are executable files with @raycast metadata.").foregroundStyle(.secondary)
-                }
-                ForEach(catalog.allScripts) { script in
-                    LabeledContent(script.title) {
-                        Text(script.mode.rawValue).foregroundStyle(.secondary)
-                    }
-                }
-                ForEach(catalog.scriptFailures) { failure in
-                    LabeledContent(failure.file) {
-                        Text(failure.error.localizedDescription).foregroundStyle(.red)
-                    }
-                }
-            }
+            WelcomeSettingsSection(showWelcome: showWelcome)
+            DiagnosticsSettingsSection(settings: settings)
         }
         .formStyle(.grouped)
     }

@@ -13,7 +13,7 @@ struct UsageStoreSaveTests {
     private let scratch: ScratchDefaults
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     /// Holds the work items the store hands its timer, so a test can run them by hand.

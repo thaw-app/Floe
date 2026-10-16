@@ -10,10 +10,9 @@ import Combine
 
 /// Where the Clipboard History command goes: Floe's own view, which is `ClipboardHistoryModel`, or the app chosen to keep it.
 extension LauncherModel {
-    /// Where the Clipboard History command goes now, resolved once per change
-    /// (see LauncherModel.resolvedClipboardDestination).
+    /// Where the Clipboard History command goes now, resolved once per change by ResolvedApps.
     var clipboardDestination: ClipboardDestination {
-        resolvedClipboardDestination
+        resolvedApps.clipboardDestination
     }
 
     /// Switches the panel to the clipboard history, or opens the app chosen to keep it.
@@ -23,27 +22,25 @@ extension LauncherModel {
             openClipboardApp(destination)
             return
         }
-        if let session {
-            end(session)
-        }
+        runner.endOpenCommand()
         setup = nil
         isSearchingMenuBar = false
         isShowingClipboardHistory = true
         clipboardHistory.query = ""
         clipboardHistory.selection = 0
-        showPanel()
+        panelHost.showPanel()
         focusToken += 1
     }
 
     /// Hands the command to the chosen app. One that cannot be opened is named in the HUD.
     private func openClipboardApp(_ destination: ClipboardDestination) {
-        hidePanel()
+        panelHost.hidePanel()
         reset()
         switch destination {
         case .floe: break
         case let .app(app): clipboardOpener.app(app.url)
         case let .link(url, app): clipboardOpener.link(url, app?.url)
-        case let .unavailable(_, message): showHUD(message)
+        case let .unavailable(_, message): panelHost.showHUD(message)
         }
     }
 

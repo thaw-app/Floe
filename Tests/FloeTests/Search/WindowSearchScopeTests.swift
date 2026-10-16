@@ -68,17 +68,17 @@ import Testing
     private let model: LauncherModel
 
     init() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-window-tests-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
     }
 
     @Test func aWindowOffersMinimizeOnlyWhileItIsNotMinimized() {
         let open = OpenWindow(id: "1:0", title: "Inbox", appName: "Mail")
         let minimized = OpenWindow(id: "1:1", title: "Draft", appName: "Mail", isMinimized: true)
-        #expect(model.windowActions(for: open).compactMap { $0?.title } == ["Minimize Window", "Close Window"])
-        #expect(model.windowActions(for: minimized).compactMap { $0?.title } == ["Close Window"])
-        #expect(LauncherModel.title(for: .window(open)) == "Switch to Window")
-        #expect(LauncherModel.title(for: .access) == "Open Privacy Settings")
+        #expect(model.features.windows.windowActions(for: open).compactMap { $0?.title } == ["Minimize Window", "Close Window"])
+        #expect(model.features.windows.windowActions(for: minimized).compactMap { $0?.title } == ["Close Window"])
+        #expect(WindowRows.title(for: .window(open)) == "Switch to Window")
+        #expect(WindowRows.title(for: .access) == "Open Privacy Settings")
     }
 
     @Test func aWindowThatWasNotReadFromAnAppIsLeftAlone() {
@@ -86,13 +86,13 @@ import Testing
         #expect(!OpenWindows.focus(window))
         #expect(!OpenWindows.minimize(window))
         #expect(!OpenWindows.close(window))
-        for action in model.windowActions(for: window) {
+        for action in model.features.windows.windowActions(for: window) {
             action?.run()
         }
     }
 
     @Test func anActionOnAWindowReadsTheWindowsAgain() async throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-window-tests-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let scans = Mutex(0)
         let window = OpenWindow(id: "1:0", title: "Inbox", appName: "Mail")
         let scope = WindowSearchScope(isTrusted: { true }, scan: {
@@ -105,7 +105,7 @@ import Testing
             try await Task.sleep(for: .milliseconds(1))
         }
         #expect(scans.withLock { $0 } == 1)
-        model.windowActions(for: window).last??.run()
+        model.features.windows.windowActions(for: window).last??.run()
         for _ in 0 ..< 1000 where scans.withLock({ $0 }) < 2 {
             try await Task.sleep(for: .milliseconds(1))
         }

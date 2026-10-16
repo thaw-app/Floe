@@ -23,10 +23,10 @@ struct CheckpointsTests {
     }
 
     private func model(in folder: URL) -> LauncherModel {
-        let defaults = UserDefaults(suiteName: "floe-checkpoints-\(UUID().uuidString)")!
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
         return model
     }
 
@@ -105,18 +105,18 @@ struct CheckpointsTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let model = model(in: folder)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         let front = [tab(.safari, window: "1", "Docs", "https://example.com/docs")]
-        model.checkpointing.finderItems = { [URL(fileURLWithPath: "/Users/me/site")] }
-        model.checkpointing.tabs = { front }
+        model.features.checkpoints.environment.finderItems = { [URL(fileURLWithPath: "/Users/me/site")] }
+        model.features.checkpoints.environment.tabs = { front }
 
         model.query = "pause website redesign: fix the nav"
         let draft = try #require(model.results.first?.item)
         #expect(draft.title == "Save Checkpoint “website redesign”")
         #expect(model.primaryActionTitle(for: draft) == "Save")
-        await model.saveCheckpoint(named: "website redesign", note: "fix the nav").value
+        await model.features.checkpoints.saveCheckpoint(named: "website redesign", note: "fix the nav").value
         #expect(said == ["Saved website redesign: 1 file and 1 tab"])
-        #expect(model.checkpointStore.all.map(\.name) == ["website redesign"])
+        #expect(model.features.checkpoints.store.all.map(\.name) == ["website redesign"])
 
         model.query = "website"
         let row = try #require(model.results.first { $0.item.kind == "Checkpoint" }?.item)
@@ -133,14 +133,14 @@ struct CheckpointsTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let model = model(in: folder)
         let log = ThreadLog()
-        model.checkpointing.finderItems = {
+        model.features.checkpoints.environment.finderItems = {
             log.note("finder")
             return []
         }
-        model.checkpointing.tabs = { [] }
-        await model.saveCheckpoint(named: "thought", note: "call the bank").value
+        model.features.checkpoints.environment.tabs = { [] }
+        await model.features.checkpoints.saveCheckpoint(named: "thought", note: "call the bank").value
         #expect(log.onMain == ["finder": false])
-        #expect(model.checkpointStore.all.map(\.name) == ["thought"])
+        #expect(model.features.checkpoints.store.all.map(\.name) == ["thought"])
     }
 
     @Test func nothingSelectedNoBrowserAndNoNoteSavesNothing() async throws {
@@ -148,14 +148,14 @@ struct CheckpointsTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let model = model(in: folder)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
-        model.checkpointing.finderItems = { [] }
-        model.checkpointing.tabs = { [] }
-        await model.saveCheckpoint(named: "empty", note: "").value
-        #expect(model.checkpointStore.all.isEmpty)
+        model.panelHost.showHUD = { said.append($0) }
+        model.features.checkpoints.environment.finderItems = { [] }
+        model.features.checkpoints.environment.tabs = { [] }
+        await model.features.checkpoints.saveCheckpoint(named: "empty", note: "").value
+        #expect(model.features.checkpoints.store.all.isEmpty)
         #expect(said.first?.hasPrefix("Nothing to save.") == true)
-        await model.saveCheckpoint(named: "thought", note: "call the bank").value
-        #expect(model.checkpointStore.all.map(\.summary) == ["a note"], "a note alone is worth keeping")
+        await model.features.checkpoints.saveCheckpoint(named: "thought", note: "call the bank").value
+        #expect(model.features.checkpoints.store.all.map(\.summary) == ["a note"], "a note alone is worth keeping")
     }
 
     @Test func resumeOpensWhatIsThereAndSaysWhatIsGone() throws {
@@ -163,16 +163,16 @@ struct CheckpointsTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let model = model(in: folder)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         var opened: [String] = []
-        model.checkpointing.openFile = { opened.append($0.path) }
+        model.features.checkpoints.environment.openFile = { opened.append($0.path) }
         var shown: [String] = []
-        model.shell.showOutput = { title, text in shown.append("\(title)|\(text.contains("Missing: "))") }
+        model.features.shell.environment.showOutput = { title, text in shown.append("\(title)|\(text.contains("Missing: "))") }
         let here = folder.appendingPathComponent("index.html")
         try Data().write(to: here)
 
         let whole = Checkpoint(name: "site", note: "fix the nav", items: [.init(kind: .file, value: here.path, title: "index.html")], saved: Date())
-        model.resume(whole)
+        model.features.checkpoints.resume(whole)
         #expect(opened == [here.path])
         #expect(said == ["fix the nav"], "the note of the next step is what is said")
         #expect(shown.isEmpty)
@@ -182,7 +182,7 @@ struct CheckpointsTests {
             items: [.init(kind: .file, value: here.path, title: "index.html"), .init(kind: .file, value: folder.appendingPathComponent("gone.css").path, title: "gone.css")],
             saved: Date()
         )
-        model.resume(broken)
+        model.features.checkpoints.resume(broken)
         #expect(opened == [here.path, here.path], "what is there still opens")
         #expect(said.last == "1 of 2 are missing")
         #expect(shown == ["old|true"], "and the list says which")
@@ -220,12 +220,12 @@ struct CheckpointsTests {
     private func resumed(in folder: URL, editor: AppChoice?, installed: String?) throws -> (editor: [String], own: [String], links: [String]) {
         let model = model(in: folder)
         model.settings.editorApp = editor
-        model.appLookup = lookup(installed: installed)
+        model.resolvedApps.lookup = lookup(installed: installed)
         var editor: [String] = []
         var own: [String] = []
         let links = Mutex<[String]>([])
-        model.checkpointing.openFile = { own.append($0.lastPathComponent) }
-        model.checkpointing.openIn = { handoff in editor += handoff.urls.map { "\($0.lastPathComponent) in \(handoff.application.lastPathComponent)" } }
+        model.features.checkpoints.environment.openFile = { own.append($0.lastPathComponent) }
+        model.features.checkpoints.environment.openIn = { handoff in editor += handoff.urls.map { "\($0.lastPathComponent) in \(handoff.application.lastPathComponent)" } }
         model.linkOpener = LinkOpener { url, _ in links.withLock { $0.append(url.absoluteString) } }
         let site = folder.appendingPathComponent("site")
         try FileManager.default.createDirectory(at: site, withIntermediateDirectories: true)
@@ -234,7 +234,7 @@ struct CheckpointsTests {
             try Data().write(to: folder.appendingPathComponent(name))
         }
         let files = ([site] + names.map(folder.appendingPathComponent)).map { Checkpoint.Item(kind: .file, value: $0.path, title: $0.lastPathComponent) }
-        model.resume(Checkpoint(name: "site", note: "", items: files + [.init(kind: .link, value: "https://example.com/docs", title: "Docs")], saved: Date()))
+        model.features.checkpoints.resume(Checkpoint(name: "site", note: "", items: files + [.init(kind: .link, value: "https://example.com/docs", title: "Docs")], saved: Date()))
         return (editor, own, links.withLock { $0 })
     }
 
@@ -263,15 +263,15 @@ struct CheckpointsTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         let model = model(in: folder)
         let checkpoint = Checkpoint(name: "site", note: "", items: [], saved: Date())
-        model.checkpointStore.save(checkpoint)
-        model.reloadCheckpoints()
-        let delete = try #require(model.checkpointActions(checkpoint).last ?? nil)
-        model.checkpointing.confirmsDelete = { _ in false }
+        model.features.checkpoints.store.save(checkpoint)
+        model.features.checkpoints.reload()
+        let delete = try #require(model.features.checkpoints.checkpointActions(checkpoint).last ?? nil)
+        model.features.checkpoints.environment.confirmsDelete = { _ in false }
         delete.run()
-        #expect(model.checkpointStore.all.count == 1)
-        model.checkpointing.confirmsDelete = { _ in true }
+        #expect(model.features.checkpoints.store.all.count == 1)
+        model.features.checkpoints.environment.confirmsDelete = { _ in true }
         delete.run()
-        #expect(model.checkpointStore.all.isEmpty)
-        #expect(model.checkpoints.isEmpty)
+        #expect(model.features.checkpoints.store.all.isEmpty)
+        #expect(model.features.checkpoints.checkpoints.isEmpty)
     }
 }

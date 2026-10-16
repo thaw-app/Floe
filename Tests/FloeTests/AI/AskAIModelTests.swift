@@ -190,7 +190,7 @@ struct AskAIModelTests {
     private let source = AskAI.Source(line: "Apple Intelligence, on this Mac", isOnThisMac: true)
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     private func waitFor(_ label: String, _ condition: () -> Bool) async {
@@ -522,7 +522,7 @@ struct AskAIModelTests {
         #expect(asking.answer.isEmpty)
         #expect(usage.records.isEmpty, "opening the row leaves no usage record")
         #expect(model.settings.favorites.isEmpty)
-        let stored = scratch.defaults.persistentDomain(forName: scratch.name) ?? [:]
+        let stored = scratch.defaults.dictionaryRepresentation()
         #expect(stored.keys.contains("settings"), "the settings were saved, so there is something to look through")
         let text = stored.values.map { value in
             (value as? Data).map { String(decoding: $0, as: UTF8.self) } ?? String(describing: value)

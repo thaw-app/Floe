@@ -24,6 +24,7 @@ struct AskAITranscript: View, Equatable {
     @State private var offset: CGFloat = 0
     /// The height the conversation scrolls in.
     @State private var viewport: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// One arrow press moves the answer by about three lines.
     private static let scrollStep: CGFloat = 60
@@ -95,7 +96,7 @@ struct AskAITranscript: View, Equatable {
             .onChange(of: scroll) { _, scroll in
                 // Home and End ask for more lines than there are; the scroll view stops at its ends.
                 let step = CGFloat(max(-10000, min(scroll.lines, 10000))) * Self.scrollStep
-                withAnimation(.easeOut(duration: 0.12)) { position.scrollTo(y: max(0, offset + step)) }
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.12)) { position.scrollTo(y: max(0, offset + step)) }
             }
             .onChange(of: Asked(turns: turns.count, question: question)) {
                 proxy.scrollTo(Self.currentTurn, anchor: .top)

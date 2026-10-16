@@ -27,7 +27,7 @@ extension FileActions {
 extension LauncherModel {
     /// Opens what is selected in Finder, or the front window's folder, in a role's app.
     func openFinderSelection(in role: AppRole, app: ResolvedApp) {
-        hidePanel()
+        panelHost.hidePanel()
         reset()
         PanelWork.perform { [self] in
             do {
@@ -38,7 +38,7 @@ extension LauncherModel {
             } catch SelectionError.automationRefused {
                 SystemCommand.askForAutomation(toControl: "Finder")
             } catch {
-                showHUD(String(localized: "Couldn't read the Finder selection", bundle: .floe))
+                panelHost.showHUD(String(localized: "Couldn't read the Finder selection", bundle: .floe))
             }
         }
     }

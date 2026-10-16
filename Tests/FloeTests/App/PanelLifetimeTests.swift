@@ -115,4 +115,10 @@ struct PanelLifetimeTests {
         #expect(lifetime.request(.hide) == [])
         #expect(lifetime.ready() == [])
     }
+
+    @Test func theClosedLauncherWaitsForTheNextOpenUnlessMemoryIsShort() {
+        #expect(PanelKeepAlive.wait(underPressure: false, environment: [:]) == PanelKeepAlive.closed)
+        #expect(PanelKeepAlive.wait(underPressure: true, environment: [:]) == PanelKeepAlive.brief)
+        #expect(PanelKeepAlive.wait(underPressure: false, environment: ["FLOE_RESIDENT_BENCH": "30"]) == PanelKeepAlive.brief)
+    }
 }

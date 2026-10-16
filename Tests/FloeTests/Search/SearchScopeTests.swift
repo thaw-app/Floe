@@ -86,7 +86,7 @@ struct SearchScopeTests {
     }
 
     private func makeModel(scopes: [any SearchScope], apps: [AppEntry] = [], usage: UsageStore = .shared) -> LauncherModel {
-        let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-scope-tests-\(UUID().uuidString)")!)
+        let settings = AppSettings(defaults: MemoryDefaults())
         return LauncherModel(settings: settings, usage: usage, snapshot: CatalogSnapshot(apps: apps, commands: []), scopes: scopes)
     }
 
@@ -344,8 +344,8 @@ struct SearchScopeTests {
     }
 
     @Test func theStandardScopesAreFilesClipboardMenuSSHProcessesPortsShortcutsTimersContactsWindowsBookmarksHomebrewSoundTranslationPlacesRecentFilesAndKeywords() {
-        #expect(RootSearch.standardScopes().map(\.keyword) == ["files", "clipboard", "menu", "ssh", "kill", "port", "receipts", "shortcuts", "timers", "contact", "windows", "bookmarks", "brew", "output", "input", "translate", "maps", "recent", "keywords", "?"])
-        #expect(RootSearch.standardScopes().map(\.title) == ["Files", "Clipboard History", "Menu Bar Items", "SSH Hosts", "Running Processes", "Listening on the Port", "Receipts", "Shortcuts", "Timers", "Contacts", "Open Windows", "Bookmarks", "Homebrew", "Sound Output", "Sound Input", "Translation", "Places", "Recently Used Files", "Keywords", "Keywords"])
+        #expect(RootSearch.standardScopes { [] }.map(\.keyword) == ["files", "clipboard", "menu", "ssh", "kill", "port", "receipts", "shortcuts", "timers", "contact", "windows", "bookmarks", "brew", "output", "input", "translate", "maps", "recent", "keywords", "?"])
+        #expect(RootSearch.standardScopes { [] }.map(\.title) == ["Files", "Clipboard History", "Menu Bar Items", "SSH Hosts", "Running Processes", "Listening on the Port", "Receipts", "Shortcuts", "Timers", "Contacts", "Open Windows", "Bookmarks", "Homebrew", "Sound Output", "Sound Input", "Translation", "Places", "Recently Used Files", "Keywords", "Keywords"])
     }
 
     // MARK: The new rows
@@ -354,8 +354,8 @@ struct SearchScopeTests {
         [.file(file("invoice.pdf")), .clipboardEntry(clip("meeting notes")), .menuBarItem(extra("Clock"), name: "Clock"), .menuBarAccess]
     }
 
-    @Test func aScopeRowOpensAsItsOwnViewWouldAndIsNotRecordedAsUsed() throws {
-        let usage = try UsageStore(defaults: #require(UserDefaults(suiteName: "floe-scope-usage-\(UUID().uuidString)")))
+    @Test func aScopeRowOpensAsItsOwnViewWouldAndIsNotRecordedAsUsed() {
+        let usage = UsageStore(defaults: MemoryDefaults())
         let model = makeModel(scopes: [], usage: usage)
         var opened: [String] = []
         model.scopeResultOpener = { opened.append($0.id) }
@@ -374,7 +374,7 @@ struct SearchScopeTests {
         let model = makeModel(scopes: [files])
         var hidden = 0
         var opened: [String] = []
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
         model.fileSearch.spotlight.opener = { opened.append($0.lastPathComponent) }
         files.immediate = [.file(file("invoice.pdf"))]
         model.query = "files invoice"

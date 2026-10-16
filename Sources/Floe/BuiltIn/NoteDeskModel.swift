@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
+import AsyncAlgorithms
 
 /// The notes view in the panel: the list, the note on screen and its text, read from and written to the folder.
 final class NoteDeskModel: ObservableObject {
@@ -36,7 +37,9 @@ final class NoteDeskModel: ObservableObject {
     private let list: @Sendable (URL) -> [DeskNote]
     /// The note that was read: where, what, and when its file was last changed.
     private var loaded: (url: URL, text: String, modified: Date?)?
-    private var pendingSave: DispatchWorkItem?
+    /// Each edit, so a pause in typing saves once.
+    private let edits = AsyncStream.makeStream(of: Void.self, bufferingPolicy: .bufferingNewest(1))
+    private var saving: Task<Void, Never>?
     private var watch: Timer?
     /// Counts the listings started, so one that finishes after a newer one is dropped.
     private var listings = 0
@@ -59,6 +62,12 @@ final class NoteDeskModel: ObservableObject {
             place = .folder(folder, owner: NoteDesk.owner(of: folder))
         } else {
             place = .elsewhere(app == .folder ? "" : app.title)
+        }
+        let edits = edits.stream
+        saving = Task { @MainActor [weak self] in
+            for await _ in edits.debounce(for: .milliseconds(800)) {
+                self?.flush()
+            }
         }
     }
 
@@ -143,16 +152,12 @@ final class NoteDeskModel: ObservableObject {
 
     private func scheduleSave() {
         guard let loaded, text != loaded.text else { return }
-        pendingSave?.cancel()
-        let work = DispatchWorkItem { [weak self] in self?.flush() }
-        pendingSave = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: work)
+        edits.continuation.yield()
     }
 
     /// Writes the editor's text now, if it differs from what was read.
+    /// A save the pause asks for after this one finds nothing new and writes nothing.
     func flush() {
-        pendingSave?.cancel()
-        pendingSave = nil
         guard let loaded, text != loaded.text else { return }
         do {
             switch try NoteDesk.save(text, to: loaded.url, readAt: loaded.modified) {
@@ -206,6 +211,8 @@ final class NoteDeskModel: ObservableObject {
     /// Leaving the view: nothing typed is lost, and the folder is no longer looked at.
     func close() {
         flush()
+        saving?.cancel()
+        saving = nil
         watch?.invalidate()
         watch = nil
     }

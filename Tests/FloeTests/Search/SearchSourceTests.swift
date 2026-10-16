@@ -58,7 +58,7 @@ private func app(_ name: String) -> AppEntry {
 @MainActor
 struct SearchSourceTests {
     private let slow = SlowSource()
-    private let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-source-tests-\(UUID().uuidString)")!)
+    private let settings = AppSettings(defaults: MemoryDefaults())
 
     private func waitFor(_ label: String, _ condition: () -> Bool) async {
         for _ in 0 ..< 1000 {

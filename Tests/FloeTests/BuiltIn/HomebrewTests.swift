@@ -61,8 +61,8 @@ import Testing
         #expect(Homebrew.command(.uninstall, cask) == "brew uninstall --cask ghostty")
         #expect(Homebrew.primaryVerb(for: formula) == .install)
         #expect(Homebrew.primaryVerb(for: cask) == .upgrade)
-        #expect(LauncherModel.title(for: .install) == "Install in Terminal")
-        #expect(LauncherModel.title(for: .upgrade) == "Upgrade in Terminal")
+        #expect(BrewRows.title(for: .install) == "Install in Terminal")
+        #expect(BrewRows.title(for: .upgrade) == "Upgrade in Terminal")
     }
 
     @Test func aQueryRanksByNameAndTheWordAloneListsWhatIsInstalled() throws {
@@ -90,6 +90,6 @@ import Testing
         #expect(row.rowLabel == "Formula, installed")
         #expect(row.isScopeResult)
         #expect(row.settingsKey == nil)
-        #expect(LauncherModel.laterTitle(for: row) == "Upgrade in Terminal")
+        #expect(BrewRows().returnTitle(for: row) == "Upgrade in Terminal")
     }
 }

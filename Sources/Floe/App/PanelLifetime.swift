@@ -34,7 +34,8 @@ nonisolated enum PanelPacket: Codable, Sendable {
     case timers([RunningTimer])
     case startTimer(TimerDraft)
     case stopTimer(UUID)
-    case clipboardChanged, clearClipboard
+    case clipboard(ClipboardChange)
+    case clearClipboard
     case deleteClipboard(UUID)
     case pinClipboard(UUID)
 }

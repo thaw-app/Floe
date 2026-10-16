@@ -12,7 +12,7 @@ import Testing
 
 @MainActor
 struct MenuBarSearchModelTests {
-    private let scratch = UserDefaults(suiteName: "floe-menu-bar-search-tests-\(UUID().uuidString)")!
+    private let scratch = MemoryDefaults()
     private let settings: AppSettings
 
     init() {
@@ -151,9 +151,7 @@ struct MenuBarSearchModelTests {
     }
 
     @Test func askingForAccessGoesToWhatKeepsCheckingForTheAnswer() {
-        let suite = "floe.tests.menubar.access.\(UUID().uuidString)"
-        let scratch = UserDefaults(suiteName: suite) ?? .standard
-        defer { scratch.removePersistentDomain(forName: suite) }
+        let scratch = MemoryDefaults()
         var asked = 0
         let model = MenuBarSearchModel(settings: AppSettings(defaults: scratch), askForAccess: { asked += 1 })
 

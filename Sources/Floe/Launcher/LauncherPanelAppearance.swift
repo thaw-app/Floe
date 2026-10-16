@@ -51,8 +51,10 @@ struct LauncherPanelAppearance: ViewModifier {
         let length = span.upperBound - span.lowerBound
         // The tint is the content's background, so the order is glass, tint,
         // content: a colour wash must never sit on top of the launcher's text.
+        // With transparency turned down there is no glass to wash, so the wash is drawn as a fill.
+        let wash = reduceTransparency ? glass.tintColor(for: style).map { AnyShapeStyle(Color(nsColor: $0)) } : nil
         let tinted = content.background {
-            if let style = tint.backgroundStyle {
+            if let style = tint.backgroundStyle ?? wash {
                 if span == 0 ... 1 {
                     shape.fill(style)
                 } else {

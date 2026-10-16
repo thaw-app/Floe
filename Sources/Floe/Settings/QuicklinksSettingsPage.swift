@@ -10,14 +10,12 @@ import SwiftUI
 import ThawUI
 
 struct QuicklinksSettingsPage: View {
-    @ObservedObject private var store: QuicklinkStore = .shared
+    @ObservedObject var store: QuicklinkStore
     @State private var draft = Quicklink(name: "", keyword: "", url: "https://")
     @State private var editingID: UUID?
     @State private var showingEditor = false
     @State private var pendingDelete: Quicklink?
     @State private var editorError = ""
-
-    init() {}
 
     var body: some View {
         Form {

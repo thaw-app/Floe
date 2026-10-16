@@ -11,7 +11,7 @@ import ThawUI
 /// General's section for settings sync: the switch, how it is doing, and the way to delete iCloud's copy.
 struct SyncSettingsSection: View {
     @ObservedObject var settings: AppSettings
-    @ObservedObject var sync: SettingsSyncStatus = .shared
+    @ObservedObject var sync: SettingsSyncStatus
     var vault: SecretVault = Keychain.vault
     @State private var passwords = SecretSyncStatus()
     /// The launcher is the same build, so it uses the store this process would.

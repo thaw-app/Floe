@@ -13,7 +13,7 @@ struct EarlierIdentifierTests {
     private let scratch: ScratchDefaults
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     @Test func theEarlierDefaultsAreCopiedOnce() {

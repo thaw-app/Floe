@@ -71,7 +71,7 @@ struct ActionsAnchor: NSViewRepresentable {
     }
 
     private func register(_ view: NSView) {
-        model.showActions = { [weak view, weak model, actions] in
+        model.panelHost.showActions = { [weak view, weak model, actions] in
             guard let view, let model else { return }
             let list = actions(model)
             guard !list.isEmpty else { return }

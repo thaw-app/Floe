@@ -16,8 +16,6 @@ import SwiftUI
 /// The window that hosts onboarding.
 @MainActor
 final class OnboardingWindowController: NSObject, NSWindowDelegate {
-    static let shared = OnboardingWindowController()
-
     /// Shows the launcher once a first-launch flow ends. Set by the app delegate.
     var openLauncher: (() -> Void)?
 
@@ -29,8 +27,13 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
     }
 
     private var window: NSWindow?
-    private let settings = AppSettings.shared
-    private let permissions = AppPermissions.shared
+    private let settings: AppSettings
+    private let permissions: AppPermissions
+
+    init(settings: AppSettings, permissions: AppPermissions) {
+        self.settings = settings
+        self.permissions = permissions
+    }
 
     /// Opens the window when the sequencer has something to show. Returns whether it did.
     @discardableResult
@@ -71,7 +74,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
-        let view = ThawOnboardingView(skipsAccessStep: skipsAccessStep, isReplay: isReplay, startsAtAccess: startsAtAccess) { [weak self] in
+        let view = ThawOnboardingView(settings: settings, permissions: permissions, skipsAccessStep: skipsAccessStep, isReplay: isReplay, startsAtAccess: startsAtAccess) { [weak self] in
             self?.finish(opensLauncher: !isReplay)
         }
         .frame(minWidth: size.width, idealWidth: size.width, minHeight: size.height, idealHeight: size.height)

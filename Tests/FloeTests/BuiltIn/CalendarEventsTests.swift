@@ -59,12 +59,12 @@ struct CalendarEventsTests {
 
     /// A model whose receipts are in the folder and whose events go to the stand-in, never to Apple Calendar.
     private func model(in folder: URL, stand: Stand) -> LauncherModel {
-        let defaults = UserDefaults(suiteName: "floe-events-\(UUID().uuidString)")!
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
-        model.reminding = ReminderEnvironment(requestAccess: { false }, create: { _ in throw Refused() }, delete: { _ in throw Refused() }, lists: { [] })
-        model.scheduling = EventEnvironment(
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.reminders.environment = ReminderEnvironment(requestAccess: { false }, create: { _ in throw Refused() }, delete: { _ in throw Refused() }, lists: { [] })
+        model.features.events.environment = EventEnvironment(
             requestAccess: {
                 stand.asked += 1
                 return stand.isAllowed
@@ -181,9 +181,9 @@ struct CalendarEventsTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
 
         model.query = "event lunch with Ana in 2 hours"
         let row = try #require(model.results.first?.item)
@@ -202,7 +202,7 @@ struct CalendarEventsTests {
         #expect(try abs(#require(created.start).timeIntervalSinceNow - 7200) < 60)
         #expect(said == ["Added the event lunch with Ana"])
 
-        let receipt = try #require(model.receipts.all.first)
+        let receipt = try #require(model.features.receipts.store.all.first)
         #expect(receipt.kind == .event)
         #expect(receipt.subject == "lunch with Ana")
         #expect(receipt.identifier == "event-1")
@@ -216,21 +216,21 @@ struct CalendarEventsTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
 
         model.query = "event lunch with Ana"
         let row = try #require(model.results.first?.item)
         #expect(row.rowLabel == "Add a day or time")
         model.activate(row)
-        await model.addEvent(EventDraft(title: "lunch with Ana", start: nil)).value
+        await model.features.events.addEvent(EventDraft(title: "lunch with Ana", start: nil)).value
         #expect(said == Array(repeating: "Add a day or time to the event, such as Thursday noon", count: 2))
         #expect(hidden == 0, "the panel stays so the day can be typed")
         #expect(model.query == "event lunch with Ana")
         #expect(stand.asked == 0, "macOS is not asked for the calendar over an event that cannot be added")
         #expect(stand.created.isEmpty)
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
     }
 
     @Test func refusedAccessSaysSoAndAddsNothing() async throws {
@@ -240,24 +240,24 @@ struct CalendarEventsTests {
         stand.isAllowed = false
         let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         let draft = EventDraft(title: "lunch", start: Self.time(9, 13))
-        await model.addEvent(draft).value
+        await model.features.events.addEvent(draft).value
         #expect(said == ["Floe may not use Calendar. Allow full access in System Settings > Privacy & Security > Calendars."])
         #expect(stand.created.isEmpty)
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
 
         stand.isAllowed = true
         stand.fails = true
-        await model.addEvent(draft).value
+        await model.features.events.addEvent(draft).value
         #expect(said.last == "Calendar said no", "what Calendar answered is what is said")
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
 
         stand.fails = false
         model.settings.keepsReceipts = false
-        await model.addEvent(draft).value
+        await model.features.events.addEvent(draft).value
         #expect(stand.created == [draft])
-        #expect(model.receipts.all.isEmpty, "receipts switched off: the event is added and no record kept")
+        #expect(model.features.receipts.store.all.isEmpty, "receipts switched off: the event is added and no record kept")
     }
 
     // MARK: The receipt
@@ -268,11 +268,11 @@ struct CalendarEventsTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         var shown: [String] = []
-        model.shell.showOutput = { title, _ in shown.append(title) }
-        await model.addEvent(EventDraft(title: "lunch", start: Self.time(9, 13))).value
-        let receipt = try #require(model.receipts.all.first)
+        model.features.shell.environment.showOutput = { title, _ in shown.append(title) }
+        await model.features.events.addEvent(EventDraft(title: "lunch", start: Self.time(9, 13))).value
+        let receipt = try #require(model.features.receipts.store.all.first)
         let row = RootItem.receipt(receipt)
         #expect(receipt.canUndo)
         #expect(receipt.label().hasSuffix(" · can be deleted"))
@@ -282,14 +282,14 @@ struct CalendarEventsTests {
         stand.fails = true
         model.activate(row)
         #expect(said.last == "Calendar said no")
-        #expect(model.receipts.all.first?.canUndo == true, "a delete that failed can be tried again")
+        #expect(model.features.receipts.store.all.first?.canUndo == true, "a delete that failed can be tried again")
 
         stand.fails = false
         model.activate(row)
         #expect(stand.deleted == ["event-1"])
         #expect(stand.held.isEmpty)
         #expect(said.last == "Deleted the event lunch")
-        let after = try #require(model.receipts.all.first)
+        let after = try #require(model.features.receipts.store.all.first)
         #expect(!after.canUndo, "once is enough")
         #expect(after.label().hasSuffix(" · deleted"))
         #expect(after.text.contains("\nDeleted "))
@@ -305,14 +305,14 @@ struct CalendarEventsTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
-        await model.addEvent(EventDraft(title: "lunch", start: Self.time(9, 13))).value
-        let receipt = try #require(model.receipts.all.first)
+        model.panelHost.showHUD = { said.append($0) }
+        await model.features.events.addEvent(EventDraft(title: "lunch", start: Self.time(9, 13))).value
+        let receipt = try #require(model.features.receipts.store.all.first)
         stand.held.removeAll()
 
-        model.undo(receipt)
+        model.features.receipts.undo(receipt)
         #expect(said.last == "The event lunch was already deleted")
-        #expect(model.receipts.all.first?.canUndo == false)
+        #expect(model.features.receipts.store.all.first?.canUndo == false)
     }
 
     @Test func aReceiptFileFromBeforeEventsStillReads() throws {

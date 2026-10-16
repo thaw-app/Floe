@@ -52,7 +52,7 @@ struct SettingsSalvageTests {
 
 struct SettingsToleranceTests {
     private func scratch() -> UserDefaults {
-        UserDefaults(suiteName: "floe-settings-tolerance-\(UUID().uuidString)")!
+        MemoryDefaults()
     }
 
     private func stored(in defaults: UserDefaults) throws -> [String: Any] {

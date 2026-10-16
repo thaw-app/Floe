@@ -37,7 +37,7 @@ struct KeywordsTests {
 
     @Test func everyKeywordTheSearchAnswersToHasARow() {
         let own = [KeywordSearchScope.word, KeywordSearchScope.mark]
-        let scoped = (RootSearch.standardScopes().map(\.keyword) + RootSearch.standardSources().map(\.keyword)).filter { !own.contains($0) }
+        let scoped = (RootSearch.standardScopes { [] }.map(\.keyword) + RootSearch.standardSources().map(\.keyword)).filter { !own.contains($0) }
         let typed = [
             CommandPrefix.greaterThan.rawValue, Checkpoint.keyword, Processes.keyword, Processes.portKeyword, ReminderDraft.keyword, EventDraft.keyword,
             TimerDraft.keyword, FocusRequest.keyword, WordDefinition.keyword, AskAI.keyword, EmojiSearchProvider.prefix,
@@ -112,7 +112,7 @@ struct KeywordsTests {
     @Test(arguments: ["keywords", "Keywords", "?", " ? "])
     func theWordOrAQuestionMarkAloneListsThemAll(query: String) throws {
         let context = everything(query)
-        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()))
+        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }))
         #expect(match.scope is KeywordSearchScope)
         #expect(match.scope.title == "Keywords")
         #expect(match.text.isEmpty)
@@ -122,7 +122,7 @@ struct KeywordsTests {
     @Test(arguments: [("keywords remind", ["remind"]), ("? calendar", ["event"]), ("? draft", ["mail", "message"]), ("keywords a line", ["append", "log"]), ("? nothing like this", [])])
     func typingMoreNarrowsTheListByThoseWords(query: String, found: [String]) throws {
         let context = everything(query)
-        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()))
+        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }))
         #expect(match.scope.results(for: match.text, context: context).map(\.id) == found.map { "keyword:\($0)" })
     }
 
@@ -150,15 +150,15 @@ struct KeywordsTests {
     @Test func returnPutsTheKeywordAndASpaceIntoTheSearch() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let defaults = try #require(UserDefaults(suiteName: "floe-keywords-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         let usage = UsageStore(defaults: defaults)
         let scopes: [any SearchScope] = [KeywordSearchScope(), KeywordSearchScope(keyword: KeywordSearchScope.mark)]
         let model = LauncherModel(settings: settings, usage: usage, snapshot: CatalogSnapshot(apps: [], commands: []), scopes: scopes, sources: [])
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
 
         model.query = "?"
         #expect(model.results.first?.section == "Keywords")
@@ -175,7 +175,7 @@ struct KeywordsTests {
         #expect(model.query == "remind ")
         #expect(model.focusToken == focus + 1, "the field takes the keys again")
         #expect(hidden == 0, "the panel stays for the rest to be typed")
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
         #expect(usage.frecency(of: row.id) == 0)
         model.toggleFavorite(row)
         #expect(settings.favorites.isEmpty)

@@ -18,7 +18,7 @@ struct MenuBarCommandTests {
     )
 
     private func makeModel() -> (LauncherModel, AppSettings) {
-        let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-menu-bar-tests-\(UUID().uuidString)")!)
+        let settings = AppSettings(defaults: MemoryDefaults())
         let planets = Fixture.command("planets", extension: "floe-menu-bar-tests")
         return (LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [planets, status])), settings)
     }
@@ -39,7 +39,7 @@ struct MenuBarCommandTests {
     @Test func runningItFromTheSearchIsWhatAddsAndRemovesIt() throws {
         let (model, _) = makeModel()
         var shown: [String] = []
-        model.showHUD = { shown.append($0) }
+        model.panelHost.showHUD = { shown.append($0) }
         model.query = "unread"
         let item = try #require(model.results.first?.item)
         #expect(item.id == "command:\(status.id)")
@@ -48,7 +48,7 @@ struct MenuBarCommandTests {
 
         model.activate(item)
         #expect(model.isInMenuBar(status))
-        #expect(model.session == nil, "it gets a status item, not a view in the panel")
+        #expect(model.runner.session == nil, "it gets a status item, not a view in the panel")
         #expect(model.primaryActionTitle(for: item) == "Remove from Menu Bar")
 
         model.activate(item)

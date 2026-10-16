@@ -39,20 +39,20 @@ After you install:
 #### Search
 
 - **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too. Two apps with the same name each get their own row. Scattered letters match, and the ones that matched show in a stronger weight.
-- **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search and the system commands take a hotkey too, in Settings > General. Favorites stay at the top.
+- **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search, Search Menu Bar Items and the system commands take an alias and a hotkey too, in Settings > Commands. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `menu wifi`, `tabs invoice`.
 - **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions.
 - **`keywords` or `?` lists every word the search answers to**, each with an example and what it does: `remind call mom tomorrow at 5pm`, `timer 10 minutes tea`. Type more to narrow the list. Return puts the keyword in the search for you to finish. What is switched off is left out.
 
 #### Results and actions
 - **An Actions menu (⌘K)** on applications and files: hide, quit, restart, force quit, show in Finder, open with, copy, move to Trash.
-- **Hide from Search** takes an application or a command out of the search. Settings > General lists what is hidden and brings it back.
+- **Hide from Search** takes an application or a command out of the search. Settings > Commands lists what is hidden and brings it back.
 - **The Up arrow brings back earlier searches:** the last 50 that opened something. Settings > Privacy turns this off and forgets them.
 - **Optional search sources.** Files and open browser tabs (Safari, Dia, Helium) add up to three rows to a search. Both are off until you turn them on in Privacy.
 - **`Floe --pick` lends the search panel to a script.** It reads lines on standard input and prints the one you choose. A tab splits a line into a title and what is shown beside it.
 
 #### Shell commands
-- **Type `>` and a command to run it.** Return runs it in the background and shows the first line of output. Your shell aliases work. Settings > General changes the prefix to `$` or `!`, or turns this off.
+- **Type `>` and a command to run it.** Return runs it in the background and shows the first line of output. Your shell aliases work. Settings > Commands changes the prefix to `$` or `!`, or turns this off.
 - **Other ways to run it.** ⌘Return opens it in your terminal, ⌥Return shows everything it printed, and ⇧Return runs it in the Finder folder in front.
 - **Suggestions while you type:** earlier commands from your shell history, programs, paths, application names after `open -a` and hosts after `ssh`. Tab finishes the selected one.
 - **A command works without the prefix** when it starts with a program on your Mac and has a flag, a path or a pipe in it. It is offered under the other results.
@@ -82,7 +82,7 @@ After you install:
 - **`contact ana` finds people in your Contacts** by name, with a phone number or an email address beside each. Return opens the card, and the Actions menu calls, starts FaceTime, writes a message or an email, or copies the number or the address. macOS asks once whether Floe may read Contacts.
 - **`mail` and `message` open a draft.** `mail toni@example.com the build is ready` opens a new email to Toni in your mail app, and `message +15551234567 running late` a new message in Messages. Without an address or a number first, the draft has no recipient. Nothing is sent until you send it.
 - **Play/Pause, Next Track, Previous Track and Now Playing** control Spotify or Music, whichever is open. Search for `pause`, `skip`, `previous` or `what's playing`. Now Playing shows the track and its artist. macOS asks once whether Floe may control the app.
-- **Toggle Focus, `focus 1 hour` and `focus off`** run a Shortcut you name in Settings > General. macOS gives apps no switch for Focus, so the Shortcut sets it: Floe hands it the minutes, or the word `off` or `toggle`. Until you name one, the row says so and Return opens Shortcuts.
+- **Toggle Focus, `focus 1 hour` and `focus off`** run a Shortcut you name in Settings > Commands. macOS gives apps no switch for Focus, so the Shortcut sets it: Floe hands it the minutes, or the word `off` or `toggle`. Until you name one, the row says so and Return opens Shortcuts.
 
 #### Processes and ports
 - **`kill` and a name lists the running processes that match**, with the memory each one holds. Return asks one to quit. Force Quit asks first.
@@ -124,13 +124,13 @@ After you install:
 - **`brew ripgrep` finds a Homebrew package.** Return installs it in your terminal, or upgrades one you have, and the actions uninstall it. `brew` alone lists what is installed. The names come from the lists Homebrew keeps on disk, so `brew` is not started until you choose.
 - **`base64 hello` changes a text**, and so do `unbase64`, `urlencode`, `urldecode`, `uppercase`, `lowercase`, `titlecase` and `sha256`. With nothing after the word, it works on the clipboard.
 - **Command-Y shows a file in Quick Look** from the search, and a file's Actions menu has Quick Look.
-- **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > General. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > Commands. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder, in memory and in a file on this Mac, and answers from those: scattered letters match, at each key, and files you opened lately come first. Later launches read the file and only what changed since; switching it off deletes the file. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 
 #### Your own apps
 - **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. The editor can be one that runs in your terminal: Helix, Neovim, Vim, Emacs and others on your Mac are offered by name. Open With sends one link to another browser.
-- **Clipboard history.** Floe keeps the text, links, images and files you copy, up to 300 of them, and text keeps its formatting. Return pastes one, and pinned copies survive Clear. A copy a password manager marks private is left out. Turn it off in Settings > General.
+- **Clipboard history.** Floe keeps the text, links, images and files you copy, up to 300 of them, and text keeps its formatting. Return pastes one, and pinned copies survive Clear. A copy a password manager marks private is left out. Choose Off for Clipboard in Settings > General to stop saving copies.
 - **Browse Notes.** With a folder of notes chosen as the notes app, such as an Obsidian or Octarine vault, Browse Notes lists its notes in the panel, shows the selected one as Markdown and lets you write it. Command-N makes a note named by what you typed, Command-E starts and ends writing, and Command-O opens the note in its app. Floe keeps no copy: it reads and writes the files, says at the bottom which app they are kept in, and picks up what that app writes. A note changed elsewhere while you wrote is not overwritten; yours is saved beside it. It takes a hotkey in Settings > General.
 - **A preferred clipboard app.** Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies.
 - **SSH hosts.** The hosts in `~/.ssh/config` are in the search, and `ssh` and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.

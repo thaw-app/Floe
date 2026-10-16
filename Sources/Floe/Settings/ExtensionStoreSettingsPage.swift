@@ -8,15 +8,14 @@
 import SwiftUI
 
 struct ExtensionStoreSettingsPage: View {
-    @ObservedObject private var store: ExtensionStore = .shared
+    @ObservedObject var store: ExtensionStore
+    let settings: AppSettings
     @State private var query = ""
     /// The catalog against the query, as it was last worked out. The ranking runs when one of the two
     /// changes, not on every pass of the view, where a row's own state would ask for it again.
     @State private var matched: [StoreListing] = []
     @State private var selection: String?
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 220), spacing: 12, alignment: .top)]
-
-    init() {}
 
     var body: some View {
         VStack(spacing: 0) {
@@ -40,7 +39,7 @@ struct ExtensionStoreSettingsPage: View {
                 Button("OK", role: .cancel) { store.menuBarOffer = nil }
             } else {
                 Button("Add to Menu Bar") {
-                    AppSettings.shared.menuBarCommands.formUnion(offer.ready.map(\.id))
+                    settings.menuBarCommands.formUnion(offer.ready.map(\.id))
                 }
                 Button("Not Now", role: .cancel) { store.menuBarOffer = nil }
             }
@@ -94,7 +93,7 @@ struct ExtensionStoreSettingsPage: View {
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(filtered, id: \.name) { listing in
-                                StoreRow(name: listing.name)
+                                StoreRow(store: store, name: listing.name)
                                     .padding(.horizontal, 8)
                                     .background(
                                         RoundedRectangle(cornerRadius: 6, style: .continuous)
@@ -122,7 +121,7 @@ struct ExtensionStoreSettingsPage: View {
                     Divider()
                     Group {
                         if let name = selection {
-                            StoreDetail(name: name)
+                            StoreDetail(store: store, name: name)
                                 .id(name)
                         } else {
                             Text("Select an extension to see its details.")
@@ -138,7 +137,7 @@ struct ExtensionStoreSettingsPage: View {
 }
 
 private struct StoreRow: View {
-    @ObservedObject private var store: ExtensionStore = .shared
+    @ObservedObject var store: ExtensionStore
     let name: String
     @State private var loaded: StoreDetails?
     @State private var updateAvailable = false
@@ -147,7 +146,7 @@ private struct StoreRow: View {
         // What an earlier row already learned shows at once, so typing does not blank the rows it keeps.
         let details = store.cachedDetails(for: name) ?? loaded
         VStack(spacing: 8) {
-            StoreIcon(url: details?.iconURL, size: 40)
+            StoreIcon(store: store, url: details?.iconURL, size: 40)
             VStack(spacing: 2) {
                 Text(details?.title ?? name)
                     .lineLimit(1)
@@ -157,7 +156,7 @@ private struct StoreRow: View {
                     .lineLimit(2, reservesSpace: true)
             }
             .multilineTextAlignment(.center)
-            StoreActionButton(name: name, details: details, updateAvailable: updateAvailable)
+            StoreActionButton(store: store, name: name, details: details, updateAvailable: updateAvailable)
         }
         .padding(10)
         .frame(maxWidth: .infinity)
@@ -172,7 +171,7 @@ private struct StoreRow: View {
 }
 
 private struct StoreActionButton: View {
-    @ObservedObject private var store: ExtensionStore = .shared
+    @ObservedObject var store: ExtensionStore
     let name: String
     var details: StoreDetails?
     var updateAvailable: Bool
@@ -200,7 +199,7 @@ private struct StoreActionButton: View {
 }
 
 private struct StoreDetail: View {
-    @ObservedObject private var store: ExtensionStore = .shared
+    @ObservedObject var store: ExtensionStore
     let name: String
     @State private var details: StoreDetails?
     @State private var updateAvailable = false
@@ -213,7 +212,7 @@ private struct StoreDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 12) {
-                    StoreIcon(url: details?.iconURL, size: 48)
+                    StoreIcon(store: store, url: details?.iconURL, size: 48)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(details?.title ?? name)
                             .font(.title3.weight(.semibold))
@@ -287,6 +286,7 @@ private struct StoreDetail: View {
 }
 
 private struct StoreIcon: View {
+    let store: ExtensionStore
     let url: URL?
     let size: CGFloat
     @State private var file: String?
@@ -299,7 +299,7 @@ private struct StoreIcon: View {
 
     var body: some View {
         Group {
-            if let file = url.flatMap(ExtensionStore.shared.knownIconFile(for:)) ?? file {
+            if let file = url.flatMap(store.knownIconFile(for:)) ?? file {
                 IconThumbnailView(source: .file(path: file), size: size) { $0.resizable().scaledToFit() }
             } else {
                 placeholder
@@ -310,7 +310,7 @@ private struct StoreIcon: View {
         .task(id: url) {
             file = nil
             if let url {
-                file = await ExtensionStore.shared.iconFile(for: url)
+                file = await store.iconFile(for: url)
             }
         }
     }

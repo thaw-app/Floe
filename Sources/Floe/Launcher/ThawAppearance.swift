@@ -115,6 +115,10 @@ extension ThawAppearance {
         case .unmirrored:
             break
         }
+        // Thaw's tint replaces the launcher's own, also when that one tints the glass.
+        if followed.contains(.tint), !followed.contains(.glass) {
+            look.glass.isColored = false
+        }
         let unmirrored = zip([Layer.tint, .background], paints).filter { $0.1 == .unmirrored }.map(\.0)
         return ThawMirror(look: look, followed: followed, unmirrored: unmirrored)
     }
@@ -240,9 +244,19 @@ extension AppSettings {
 
     /// The look the user set, whatever Thaw's is.
     func ownLauncherLook(for colorScheme: ColorScheme) -> LauncherLook {
-        LauncherLook(
-            glass: launcherGlass,
-            tint: launcherTint(for: colorScheme),
+        var glass = launcherGlass
+        var tint = launcherTint(for: colorScheme)
+        glass.isColored = false
+        // A solid tint on a Liquid style washes the glass itself, as Thaw's tinted glass does.
+        if tint.kind == .solid, glass.resolvedStyle().usesTint {
+            glass.isColored = true
+            glass.color = tint.solid
+            glass.opacity = tint.opacity
+            tint.kind = .none
+        }
+        return LauncherLook(
+            glass: glass,
+            tint: tint,
             border: launcherShowsBorder ? launcherBorder : nil,
             hasShadow: launcherShowsShadow
         )

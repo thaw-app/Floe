@@ -28,8 +28,8 @@ struct OpenSettingsButton: View {
 
     var body: some View {
         Button {
-            model.hidePanel()
-            model.openSettings(nil)
+            model.panelHost.hidePanel()
+            model.panelHost.openSettings(nil)
         } label: {
             Image(systemName: "gearshape")
                 .resizable()
@@ -50,7 +50,7 @@ struct ActionsButton: View {
     let actions: (LauncherModel) -> [ItemAction?]
 
     var body: some View {
-        ShortcutHintButton(title: String(localized: "Actions…", bundle: .floe)) { model.showActions() } hint: {
+        ShortcutHintButton(title: String(localized: "Actions…", bundle: .floe)) { model.panelHost.showActions() } hint: {
             KeyCapView(text: "⌘")
             Text(verbatim: "+")
             KeyCapView(text: "K")

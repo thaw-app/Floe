@@ -10,18 +10,9 @@ import Foundation
 import SwiftUI
 import Testing
 
-/// A throwaway defaults suite per test, removed when the test's suite value goes away.
+/// Defaults of a test's own, kept in memory.
 final nonisolated class ScratchDefaults {
-    let name = "floe-tests-\(UUID().uuidString)"
-    let defaults: UserDefaults
-
-    init() throws {
-        defaults = try #require(UserDefaults(suiteName: name))
-    }
-
-    deinit {
-        defaults.removePersistentDomain(forName: name)
-    }
+    let defaults: UserDefaults = MemoryDefaults()
 }
 
 struct AppSettingsTests {
@@ -38,7 +29,7 @@ struct AppSettingsTests {
     private let scratch: ScratchDefaults
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     @Test func startsWithTheDocumentedDefaults() {
@@ -314,7 +305,7 @@ struct UsageStoreTests {
     }
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     private func makeStore() -> UsageStore {

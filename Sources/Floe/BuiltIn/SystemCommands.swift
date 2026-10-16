@@ -165,7 +165,8 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         }
     }
 
-    func perform() {
+    /// Runs the command. What a screen tool finds is said through say.
+    func perform(say: @escaping @MainActor (String) -> Void) {
         if let appleScript {
             runAppleScript(appleScript)
             return
@@ -184,9 +185,9 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .quitFloe:
             quitFloe()
         case .pickColor:
-            ScreenTools.run(.pickColor)
+            ScreenTools.run(.pickColor, say: say)
         case .copyScreenText:
-            ScreenTools.run(.copyText)
+            ScreenTools.run(.copyText, say: say)
         default:
             _ = flip?()
         }

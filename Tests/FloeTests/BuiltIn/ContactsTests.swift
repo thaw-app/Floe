@@ -78,13 +78,13 @@ struct ContactsTests {
 
     /// A model whose only scope reads the stand-in, and whose links go to it instead of being opened.
     private func model(in folder: URL, stand: Stand) -> LauncherModel {
-        let defaults = UserDefaults(suiteName: "floe-contacts-\(UUID().uuidString)")!
+        let defaults = MemoryDefaults()
         let model = LauncherModel(
             settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []),
             scopes: [stand.scope], sources: []
         )
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
         model.linkOpener = stand.opener
         return model
     }
@@ -172,7 +172,7 @@ struct ContactsTests {
         #expect(scope.text(in: SearchContext(query: "contact ")) == nil)
         #expect(scope.text(in: SearchContext(query: "contacts ana")) == nil)
         #expect(scope.text(in: SearchContext(query: "ana contact")) == nil)
-        let standard = RootSearch.standardScopes().map(\.keyword)
+        let standard = RootSearch.standardScopes { [] }.map(\.keyword)
         #expect(standard.contains("contact"))
     }
 
@@ -243,7 +243,7 @@ struct ContactsTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand)
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
         let titles: (ContactPerson) -> [String] = { person in model.rootActions(for: .contact(.person(person))).map { $0?.title ?? "-" } }
 
         let row = RootItem.contact(.person(Stand.ana))
@@ -256,7 +256,7 @@ struct ContactsTests {
         model.activate(row)
         #expect(stand.opened == ["addressbook://A1%3AABPerson"])
         #expect(hidden == 1)
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
 
         for title in ["Call", "FaceTime", "Message", "Email"] {
             let action = try #require(model.rootActions(for: row).compactMap(\.self).first { $0.title == title })

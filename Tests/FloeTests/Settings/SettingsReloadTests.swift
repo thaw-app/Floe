@@ -9,14 +9,14 @@
 import Foundation
 import Testing
 
-/// Two `AppSettings` on one scratch suite stand for the launcher and its settings process.
+/// Two `AppSettings` on one scratch defaults stand for the launcher and its settings process.
 struct SettingsReloadTests {
     private let scratch: ScratchDefaults
     private let launcher: AppSettings
     private let window: AppSettings
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
         // Saved by hand, so no test depends on when the debounced save would have run.
         launcher = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         window = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
@@ -108,7 +108,7 @@ struct SettingsReloadTests {
     }
 
     @Test func anImportReachesTheOtherProcess() throws {
-        let other = try ScratchDefaults()
+        let other = ScratchDefaults()
         let source = AppSettings(defaults: other.defaults, savesAfterEdits: false)
         source.aliases = ["sample/planets": "p"]
         source.launcherShowsShadow = true
@@ -210,8 +210,8 @@ struct StoreReloadTests {
 }
 
 struct ThawStatusMirrorTests {
-    @Test func theSettingsProcessShowsTheLaunchersStatusAndItsSavedAnswers() throws {
-        let scratch = try ScratchDefaults()
+    @Test func theSettingsProcessShowsTheLaunchersStatusAndItsSavedAnswers() {
+        let scratch = ScratchDefaults()
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         var environment = ThawAppearanceFollower.Environment.live
         environment.open = { _ in

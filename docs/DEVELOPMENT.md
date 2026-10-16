@@ -58,14 +58,15 @@ The resident keeps application and editing shortcuts but omits the whole Window 
 Window menu attached lets Accessibility queries populate AppKit's window commands and retain several MiB. Foreground
 and Settings processes still build the full menu, including Close Window and Minimize.
 
-When the panel closes, its process exits after a short idle grace period. It waits for the configured extension
+When the panel closes, its process waits three minutes for the next open, which then draws in milliseconds instead
+of starting over; under memory pressure it exits within a second. It also waits for the configured extension
 resume delay, open output/permission windows and finite work started by the user. `PanelWork` leases keep scripts,
 shell commands and automation alive after dismissal; add a lease when adding another asynchronous action that must
 outlive its panel. Timers belong to the resident, not a foreground lease. EOF ends the child if the resident dies.
 
-Clipboard pin/delete/clear operations and timer/usage/receipt writes go to the resident. The foreground reloads the
-clipboard's saved snapshot after a save notification, so opening history does not make the resident encode a second
-large copy. The foreground's file index may read and watch the cache but never writes or removes the resident's cache.
+Clipboard pin/delete/clear operations and timer/usage/receipt writes go to the resident. After each save the resident
+sends the foreground only the entries that changed and the ones gone (`ClipboardChange`); the foreground reads the
+whole saved list only when it starts, or when a change arrives before that first read finished. The foreground's file index may read and watch the cache but never writes or removes the resident's cache.
 Settings changes and extension preferences are relayed through the resident to Settings and sync.
 
 The **30 MiB budget is for the resident**, including after foreground use, not the sum of active UI and extension
@@ -84,6 +85,27 @@ a 120-second timeout and cleans up its own process group. It accepts only named 
 and `signed` for a locally signed copy at `.build/resident-signed/Floe.app`. Arbitrary executable paths are rejected. The existing `--bench-search` / `check-budget.sh` check remains a separate rendered-search budget;
 it does not exercise normal resident startup. For release comparisons use a Release build with the same signing,
 permissions, settings, indexes and background commands as the installed app.
+
+## How features are built
+
+The aim is code where no feature reaches into another. Each part knows only what it was handed.
+
+- **Decisions are plain code.** What to show, what to run and what to do next is worked out by values and functions
+  that touch nothing outside themselves, and return what should happen. `PanelLifetime` returns effects and never acts;
+  `Ranking`, `CommandLookup` and `UpdateLogic` work the same way. These carry the tests.
+- **A feature is handed what it uses.** A feature model takes its stores and an environment, a struct of closures for
+  the system, the disk and the other processes, through `init`. `ShellEnvironment`, `AppLookup`, `ModeHost` and
+  `ActionHost` are environments; `ClipboardHistoryModel` is given its store. A settings page is handed its stores from
+  the process's `SettingsStores`. A feature does not read `.shared`, and a test hands it fakes.
+- **Each state has one owner.** One process writes a store; the others keep a copy and read it again when told. The
+  stores every process saves announce and reload through `SharedStores`, not through hooks set in each process.
+- **Each process is wired in one place.** `main.swift` for the resident, `PanelMode` for the panel and `SettingsMode`
+  for settings make the concrete stores and connect features, stores and messages. They are the only code that names
+  the shared instances.
+- **`LauncherModel` routes.** It keeps the query, the results and which mode is on screen, and hands work to the
+  feature that owns it. New work goes in a feature of its own, not in the model. A feature that owns rows is a
+  `RowOwner`: it says what Return, its Actions menu and its keys do on them. `LauncherFeatures` holds the features
+  and is the one place that connects them to the model.
 
 ## Layout
 
@@ -114,8 +136,8 @@ permissions, settings, indexes and background commands as the installed app.
     (`HostRequest.swift`), the manifest, the store, menu bar commands, the background scheduler, OAuth, hot reload,
     and the views an extension's forms and errors are drawn with.
   - `Settings`: the settings model (`Settings.swift`), its window, pages and sections, settings search entries,
-    import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process, and
-    `SettingsCatalog.swift` the commands, scripts and apps it lists.
+    import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process. It lists
+    commands, scripts and apps from a `CatalogStore` (in `Launcher`) of its own, as the launcher does.
   - `Sync`: settings sync through iCloud, by CloudKit or the key-value store, written to be moved to Thaw as it is.
     It knows records, not Floe's settings (see "Settings sync").
   - `Picker`: `Floe --pick`.

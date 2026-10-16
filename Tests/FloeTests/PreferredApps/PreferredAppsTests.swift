@@ -141,18 +141,19 @@ struct PreferredAppsTests {
         #expect(AppRole.opening == [.terminal, .editor], "the browser is handed links, notes text and the clipboard nothing, not files")
     }
 
-    @Test func theNotesRoleOpensNoFilesAndStartsAtAppleNotes() throws {
+    @Test func theNotesRoleOpensNoFilesAndStartsAtAppleNotes() {
         #expect(PreferredApps.app(for: .notes, choice: nil, installed: mac()) == nil)
         #expect(PreferredApps.handoff([URL(fileURLWithPath: "/Fake/a.txt")], to: ResolvedApp(url: Fake.zed), role: .notes, isFolder: isFolder) == nil)
         #expect(AppRole.notes.defaultTitle(appName: nil) == "Apple Notes")
-        let settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-preferred-apps-tests-\(UUID().uuidString)")))
+        let settings = AppSettings(defaults: MemoryDefaults())
         #expect(settings.notesApp == .appleNotes)
         #expect(settings.appChoice(for: .notes) == nil, "its choice is the notes app setting")
     }
 
     @Test func theSettingsSearchFindsEveryRoleUnderPreferredApps() {
-        let entries = SearchIndex.generalEntries.filter { $0.section == "Preferred Apps" }
+        let entries = SearchIndex.generalEntries.filter { $0.section == "Preferred Apps" }.dropLast()
         #expect(entries.map(\.id) == ["general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp"])
+        #expect(SearchIndex.generalEntries.last { $0.section == "Preferred Apps" }?.id == "general.clearClipboardHistory", "clearing sits under the clipboard's picker")
         #expect(entries.map(\.title) == AppRole.allCases.map(\.title))
         #expect(entries.map(\.descriptionText) == AppRole.allCases.map(\.detail))
     }
@@ -204,11 +205,11 @@ struct PreferredAppsTests {
         #expect(RootSearch.results(for: named).first?.id == "finder-selection:editor")
     }
 
-    @Test func theModelsRowsAndFileActionsFollowTheChosenApps() throws {
-        let settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-preferred-apps-tests-\(UUID().uuidString)")))
+    @Test func theModelsRowsAndFileActionsFollowTheChosenApps() {
+        let settings = AppSettings(defaults: MemoryDefaults())
         settings.terminalApp = AppChoice(bundleIdentifier: "com.mitchellh.ghostty", path: Fake.ghostty.path)
         let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.appLookup = mac()
+        model.resolvedApps.lookup = mac()
         model.query = "finder selection"
         #expect(model.results.prefix(2).map(\.item.title).sorted() == ["Open Finder Selection in Ghostty", "Open Finder Selection in TextEdit"])
         let url = URL(fileURLWithPath: "/Fake/Documents/notes.txt")

@@ -143,8 +143,8 @@ struct ExchangeRatesTests {
         #expect(PrivacyNetwork.exchangeRatesLine(held: "2026-10-07").hasSuffix("Floe holds the rates of 2026-10-07."))
     }
 
-    @Test func theSwitchIsOffUntilTheUserTurnsItOnAndIsKept() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-rates-tests-\(UUID().uuidString)"))
+    @Test func theSwitchIsOffUntilTheUserTurnsItOnAndIsKept() {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         #expect(!settings.fetchesExchangeRates)
         settings.fetchesExchangeRates = true

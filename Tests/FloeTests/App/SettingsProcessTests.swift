@@ -104,8 +104,8 @@ struct UpdatesLinkTests {
         }
     }
 
-    @MainActor @Test func inTheSettingsProcessTheUpdateControlsAskTheLauncher() throws {
-        let scratch = try ScratchDefaults()
+    @MainActor @Test func inTheSettingsProcessTheUpdateControlsAskTheLauncher() {
+        let scratch = ScratchDefaults()
         let configuration = UpdateConfiguration(feedURL: "https://example.com/appcast.xml", publicKey: Data(count: 32).base64EncodedString())
         let manager = UpdatesManager(configuration: configuration, defaults: scratch.defaults)
         var sent: [UpdateRequest] = []
@@ -169,8 +169,8 @@ struct UpdatesLinkTests {
         UpdateRequest.check, .setChecks(true), .setChecks(false), .setDownloads(true), .setDownloads(false),
         .setChannel(.stable), .setChannel(.beta), .consent(.off), .consent(.check), .consent(.download),
     ])
-    func aRequestIsCarriedOutByTheControlItNames(request: UpdateRequest) throws {
-        let scratch = try ScratchDefaults()
+    func aRequestIsCarriedOutByTheControlItNames(request: UpdateRequest) {
+        let scratch = ScratchDefaults()
         let manager = UpdatesManager(configuration: UpdateConfiguration(feedURL: nil, publicKey: nil), defaults: scratch.defaults)
         var carriedOut: [UpdateRequest] = []
         manager.sendToLauncher = { carriedOut.append($0) }
@@ -178,8 +178,8 @@ struct UpdatesLinkTests {
         #expect(carriedOut == [request])
     }
 
-    @MainActor @Test func aLauncherThatCannotUpdateStillKeepsTheChannelAndTheConsentAnswer() throws {
-        let scratch = try ScratchDefaults()
+    @MainActor @Test func aLauncherThatCannotUpdateStillKeepsTheChannelAndTheConsentAnswer() {
+        let scratch = ScratchDefaults()
         let manager = UpdatesManager(configuration: UpdateConfiguration(feedURL: nil, publicKey: nil), defaults: scratch.defaults)
         #expect(manager.state == UpdatesState())
 
@@ -197,8 +197,8 @@ struct UpdatesLinkTests {
         #expect(!manager.hasStartedUpdater)
     }
 
-    @MainActor @Test func theStateIsWhatTheControlsShow() throws {
-        let scratch = try ScratchDefaults()
+    @MainActor @Test func theStateIsWhatTheControlsShow() {
+        let scratch = ScratchDefaults()
         let configuration = UpdateConfiguration(feedURL: "https://example.com/appcast.xml", publicKey: Data(count: 32).base64EncodedString())
         let manager = UpdatesManager(configuration: configuration, defaults: scratch.defaults)
         manager.sendToLauncher = { _ in /* nothing listens */ }
@@ -216,8 +216,8 @@ struct UpdatesLinkTests {
         #expect(manager.state.channel == "stable", "a channel this build does not know reads as stable")
     }
 
-    @MainActor @Test func everyChangeOfStateIsAnnouncedNotOnlyTheFirst() async throws {
-        let scratch = try ScratchDefaults()
+    @MainActor @Test func everyChangeOfStateIsAnnouncedNotOnlyTheFirst() async {
+        let scratch = ScratchDefaults()
         let manager = UpdatesManager(configuration: UpdateConfiguration(feedURL: nil, publicKey: nil), defaults: scratch.defaults)
         let (announced, continuation) = AsyncStream.makeStream(of: String.self)
         manager.observeState { continuation.yield(manager.state.channel) }

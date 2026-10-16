@@ -42,7 +42,7 @@ import Testing
         #expect(row.kind == "Place")
         #expect(row.isScopeResult)
         #expect(row.settingsKey == nil)
-        #expect(LauncherModel.keywordRowTitle(for: row) == "Open in Maps")
+        #expect(PlaceRows().returnTitle(for: row) == "Open in Maps")
         #expect(RootItem.place(Place(name: "Nowhere", address: "", latitude: 0, longitude: 0)).rowLabel == "Place")
     }
 
@@ -64,10 +64,10 @@ import Testing
         #expect(asked.all.isEmpty)
     }
 
-    @Test func aPlaceOffersTheWayThereAndItsAddress() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-places-\(UUID().uuidString)"))
+    @Test func aPlaceOffersTheWayThereAndItsAddress() {
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        #expect(model.placeActions(for: cafe).compactMap { $0?.title } == ["Get Directions", "Copy Address"])
-        #expect(model.keywordRowActions(for: .place(cafe))?.count == 3)
+        #expect(model.features.places.placeActions(for: cafe).compactMap { $0?.title } == ["Get Directions", "Copy Address"])
+        #expect(model.features.places.actions(for: .place(cafe))?.count == 3)
     }
 }

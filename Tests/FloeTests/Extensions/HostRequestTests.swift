@@ -294,8 +294,8 @@ struct HostRequestTests {
         #expect(AIEndpoint(baseURL: address, model: model, apiKey: key) == nil)
     }
 
-    @MainActor @Test func theChoiceInSettingsIsReadWithoutTheKeyUnlessTheAPIIsChosen() throws {
-        let scratch = try ScratchDefaults()
+    @MainActor @Test func theChoiceInSettingsIsReadWithoutTheKeyUnlessTheAPIIsChosen() {
+        let scratch = ScratchDefaults()
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         #expect(AIAnswer.configured(settings) == .tools)
         settings.aiSource = .appleIntelligence

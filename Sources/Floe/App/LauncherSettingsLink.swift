@@ -12,6 +12,7 @@ import Combine
 /// does what it asks. The launcher builds no settings view of its own.
 final class LauncherSettingsLink {
     private let model: LauncherModel
+    private let clipboard: ClipboardHistoryStore
     private let settings: AppSettings
     private let hotkeys: HotkeyRegistry
     private let process = SettingsProcess()
@@ -19,14 +20,15 @@ final class LauncherSettingsLink {
     private var recording = RemoteRecording()
     private lazy var sync = SettingsSyncService(settings: settings, extensions: extensionSync)
     private lazy var extensionSync = ExtensionSettingsSync(
-        access: .stored(includes: { [settings] in settings.syncsExtensionSettings }, commands: { [model] in model.allCommands }),
+        access: .stored(includes: { [settings] in settings.syncsExtensionSettings }, commands: { [model] in model.catalog.allCommands }),
         storage: .file(Paths.support.appendingPathComponent("ExtensionSync.json"))
     )
     private var cancellables = Set<AnyCancellable>()
     var onChange: (() -> Void)?
 
     /// Gates incoming Settings messages against the process this resident actually launched.
-    init(model: LauncherModel, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
+    init(model: LauncherModel, clipboard: ClipboardHistoryStore, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
+        self.clipboard = clipboard
         self.model = model
         self.settings = settings
         self.hotkeys = hotkeys
@@ -41,13 +43,10 @@ final class LauncherSettingsLink {
         link.handler = { [weak self] in self?.handle($0) }
         link.start()
 
-        settings.onSaved = { link.send(.settingsChanged) }
-        SnippetStore.shared.onSaved = { link.send(.storeChanged(.snippets)) }
-        QuicklinkStore.shared.onSaved = { link.send(.storeChanged(.quicklinks)) }
         let sync = sync
-        PreferenceStore.onSaved = { sync.extensionSettingsChanged() }
+        SharedStores.announceSaves(settings: settings, preferencesSaved: { sync.extensionSettingsChanged() }, send: link.send)
         // An extension installed after its record arrived takes the record once the scan lists it.
-        model.$allCommands.dropFirst()
+        model.catalog.$allCommands.dropFirst()
             .sink { _ in sync.extensionSettingsChanged() }
             .store(in: &cancellables)
         ThawAppearanceFollower.shared.$status
@@ -105,9 +104,7 @@ final class LauncherSettingsLink {
 
     /// Recovers foreground-saved changes after its pipe closes, including an unexpected exit.
     func refreshFromPanel() {
-        settings.reload()
-        SnippetStore.shared.reload()
-        QuicklinkStore.shared.reload()
+        SharedStores.reloadAll(settings: settings)
     }
 
     /// Accepts only the foreground's supported settings mutations and relays them to Settings.
@@ -128,7 +125,7 @@ final class LauncherSettingsLink {
         case .settingsChanged:
             settings.reload()
         case .storeChanged:
-            reload(message.store)
+            SharedStores.reload(message.store) { [sync] in sync.extensionSettingsChanged() }
         case .ready:
             // A process just started has its window up by now.
             process.activate()
@@ -146,21 +143,11 @@ final class LauncherSettingsLink {
         }
     }
 
-    /// Reloads only the named persistent store; absent or unsupported names do nothing.
-    private func reload(_ store: LinkStore?) {
-        switch store {
-        case .snippets: SnippetStore.shared.reload()
-        case .quicklinks: QuicklinkStore.shared.reload()
-        case .preferences: sync.extensionSettingsChanged()
-        case nil: break
-        }
-    }
-
     /// Refreshes the command or script catalog requested by Settings.
     private func rescan(_ scan: LinkScan?) {
         switch scan {
-        case .scripts: model.reloadScripts()
-        case .commands: model.reloadCommands()
+        case .scripts: model.catalog.reloadScripts()
+        case .commands: model.catalog.reloadCommands()
         case nil: break
         }
     }
@@ -175,7 +162,7 @@ final class LauncherSettingsLink {
         case .rescan:
             rescan(message.scan)
         case .clearClipboardHistory:
-            ClipboardHistoryStore.shared.clear()
+            clipboard.clear()
         case .removeSyncedSettings:
             sync.engine.removeFromCloud()
         case .forwardURL:

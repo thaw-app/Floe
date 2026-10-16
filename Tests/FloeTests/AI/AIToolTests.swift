@@ -88,8 +88,8 @@ struct AIToolTests {
     }
 
     @MainActor
-    @Test func theSetupIsReadFromTheSettings() throws {
-        let scratch = try ScratchDefaults()
+    @Test func theSetupIsReadFromTheSettings() {
+        let scratch = ScratchDefaults()
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         #expect(AIEngine.Setup(settings) == AIEngine.Setup(tool: nil), "Automatic until a tool is chosen")
         settings.aiTool = .pi

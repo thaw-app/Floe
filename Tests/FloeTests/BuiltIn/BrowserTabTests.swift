@@ -194,7 +194,7 @@ struct BrowserTabTests {
     // MARK: In the root search
 
     private func makeModel(_ source: TabSearchSource, on: Bool = true, usage: UsageStore = .shared) -> LauncherModel {
-        let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-tab-tests-\(UUID().uuidString)")!)
+        let settings = AppSettings(defaults: MemoryDefaults())
         settings.searchSources = on ? ["tabs"] : []
         return LauncherModel(settings: settings, usage: usage, snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [source])
     }
@@ -274,8 +274,8 @@ struct BrowserTabTests {
         #expect(scripts.ran == [BrowserTabScripts.activate(wanted)])
     }
 
-    @Test func tabRowsAreOpenedWithoutAUsageRecordAndCannotBeFavorites() throws {
-        let usage = try UsageStore(defaults: #require(UserDefaults(suiteName: "floe-tab-usage-\(UUID().uuidString)")))
+    @Test func tabRowsAreOpenedWithoutAUsageRecordAndCannotBeFavorites() {
+        let usage = UsageStore(defaults: MemoryDefaults())
         let model = makeModel(manyTabs, usage: usage)
         var opened: [String] = []
         model.scopeResultOpener = { opened.append($0.id) }

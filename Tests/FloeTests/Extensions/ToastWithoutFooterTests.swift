@@ -21,11 +21,11 @@ struct ToastWithoutFooterTests {
     }
 
     init() {
-        let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-toast-tests-\(UUID().uuidString)")!)
+        let settings = AppSettings(defaults: MemoryDefaults())
         model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("checkpoints.json"))
-        model.showHUD = { [said] in said.lines.append($0) }
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("checkpoints.json"))
+        model.panelHost.showHUD = { [said] in said.lines.append($0) }
     }
 
     private func session(mode: String) -> ExtensionSession {
@@ -37,7 +37,7 @@ struct ToastWithoutFooterTests {
         let session = ExtensionSession(command: command)
         session.onMessage = { [model, weak session] message in
             if let session {
-                model.handle(message, from: session)
+                model.runner.handle(message, from: session)
             }
         }
         return session

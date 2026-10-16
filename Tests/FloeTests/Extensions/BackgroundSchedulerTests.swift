@@ -45,7 +45,7 @@ final class BackgroundSchedulerTests {
     private let scheduler: BackgroundScheduler
 
     init() throws {
-        settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-background-scheduler-\(UUID().uuidString)")))
+        settings = AppSettings(defaults: MemoryDefaults())
         settings.menuBarCommands = [status.id]
         let current = Self.command("status", mode: "menu-bar", title: "Current")
         model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [current]))

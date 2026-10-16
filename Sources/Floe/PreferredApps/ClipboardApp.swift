@@ -137,29 +137,10 @@ enum ClipboardApps {
     static func row(for destination: ClipboardDestination) -> RootItem {
         destination == .floe ? .clipboardHistory : .clipboardApp(destination)
     }
-
-    /// Why the history switch in Settings is off, or nil while Floe keeps the history.
-    static func settingsNotice(for destination: ClipboardDestination) -> String? {
-        switch destination {
-        case .floe: nil
-        case let .app(app): handled(by: app.name)
-        case let .link(_, app): handled(by: app?.name)
-        case let .unavailable(app, _): handled(by: app)
-        }
-    }
-}
-
-extension ClipboardApps {
-    private static func handled(by app: String?) -> String {
-        guard let app else {
-            return String(localized: "Clipboard history is handled by another app. Floe saves no copies.", bundle: .floe)
-        }
-        return String(localized: "Clipboard history is handled by \(app). Floe saves no copies.", bundle: .floe, comment: "The placeholder is the name of an app.")
-    }
 }
 
 extension AppSettings {
-    /// Whether copies are saved now: the user's switch, and Floe being the clipboard manager.
+    /// Whether copies are saved now: Floe keeps the history, and it is not set to Off.
     var recordsClipboardHistory: Bool {
         ClipboardApps.records(handler: clipboardHandler, historyEnabled: clipboardHistoryEnabled, parked: clipboardHistoryIsParked)
     }
@@ -170,8 +151,7 @@ extension AppSettings {
 }
 
 extension SearchIndex {
-    /// The clipboard's controls on the General page: the role's picker, then the Clipboard section,
-    /// which stays in view whatever app is chosen.
+    /// The clipboard role's picker, and Clear History under it.
     static let clipboardEntries: [SearchEntry] = [
         .general(
             "clipboardApp",
@@ -179,29 +159,16 @@ extension SearchIndex {
             description: AppRole.clipboard.detail,
             section: String(localized: "Preferred Apps", bundle: .floe),
             keywords: String(
-                localized: "clipboard, clipboard manager, clipboard history, raycast, link, url, preferred app, default app",
+                localized: "clipboard, clipboard manager, clipboard history, save, off, copy, paste, pin, raycast, link, url, preferred app, default app",
                 bundle: .floe,
                 comment: "Words that find the Clipboard app setting in the settings search, separated by commas."
             ).searchTerms
         ),
-    ] + (ClipboardApps.ownHistoryIsParked ? [] : [
-        .general(
-            "clipboardHistory",
-            String(localized: "Save clipboard history", bundle: .floe),
-            description: String(localized: "Keeps text, links, images and files you copy.", bundle: .floe),
-            section: String(localized: "Clipboard", bundle: .floe),
-            keywords: String(
-                localized: "clipboard, history, copy, paste, copies, pin, clear",
-                bundle: .floe,
-                comment: "Words that find the Save clipboard history setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-    ]) + [
         .general(
             "clearClipboardHistory",
             String(localized: "Clear clipboard history", bundle: .floe),
             description: String(localized: "Removes every copy except pinned ones.", bundle: .floe),
-            section: String(localized: "Clipboard", bundle: .floe),
+            section: String(localized: "Preferred Apps", bundle: .floe),
             keywords: String(
                 localized: "clipboard, history, clear, delete, remove, copies",
                 bundle: .floe,

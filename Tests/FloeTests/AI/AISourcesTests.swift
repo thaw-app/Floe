@@ -179,8 +179,8 @@ struct AISourcesTests {
     /// see where a tool sends a question, so a model that looks local does not make it local.
     @MainActor
     @Test(arguments: AITool.allCases)
-    func withTheSwitchOnEveryToolIsRefused(tool: AITool) async throws {
-        let scratch = try ScratchDefaults()
+    func withTheSwitchOnEveryToolIsRefused(tool: AITool) async {
+        let scratch = ScratchDefaults()
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         settings.aiSource = .tools
         settings.aiTool = tool
@@ -254,8 +254,8 @@ struct AISourcesTests {
     }
 
     @MainActor
-    @Test func thePinIsReadFromTheSettingsWhereAQuestionIsAnswered() throws {
-        let scratch = try ScratchDefaults()
+    @Test func thePinIsReadFromTheSettingsWhereAQuestionIsAnswered() {
+        let scratch = ScratchDefaults()
         let settings = AppSettings(defaults: scratch.defaults)
         settings.aiSource = .tools
         settings.aiSourceByExtension = ["journal": .appleIntelligence]

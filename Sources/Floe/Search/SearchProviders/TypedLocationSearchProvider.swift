@@ -37,7 +37,7 @@ struct TypedLocationSearchProvider: SearchProvider, Sendable {
 extension LauncherModel {
     /// Opens a typed address in the browser role's app once the panel is gone. Floe itself fetches nothing.
     func open(_ address: WebAddress) {
-        hidePanel()
+        panelHost.hidePanel()
         reset()
         openLink(address.url)
     }

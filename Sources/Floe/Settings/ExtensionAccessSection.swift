@@ -13,7 +13,7 @@ struct ExtensionAccessSection: View {
     let extensionName: String
     /// Whether the record is kept, as its switch in Privacy has it.
     var records = true
-    var store = ExtensionAccessStore.shared
+    let store: ExtensionAccessStore
     @State private var access = ExtensionAccess()
 
     var body: some View {

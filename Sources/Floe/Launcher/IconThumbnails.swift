@@ -7,6 +7,7 @@
 
 import AppKit
 import ImageIO
+import Synchronization
 
 /// What an icon's thumbnail is made from.
 nonisolated enum IconSource: Hashable {
@@ -49,6 +50,13 @@ nonisolated struct LoadedIcon {
     }
 }
 
+/// A kept thumbnail, with what it costs and when it was last used.
+private nonisolated struct KeptIcon {
+    let image: CGImage
+    let cost: Int
+    var used: UInt64
+}
+
 /// Every icon the launcher and Settings draw, kept as the bitmap that reaches the screen and nothing larger.
 final nonisolated class IconThumbnailCache: Sendable {
     static let shared = IconThumbnailCache()
@@ -57,19 +65,36 @@ final nonisolated class IconThumbnailCache: Sendable {
     /// covers the Settings sizes, a second display's scale and a few dozen 96 pt file previews at 147 KB.
     static let defaultBudget = 8 * 1024 * 1024
 
-    private final class Entry: Sendable {
-        let image: CGImage
-        init(_ image: CGImage) {
-            self.image = image
+    /// The thumbnails kept. The one used longest ago goes first, and only once the budget is spent: NSCache
+    /// may drop an entry whenever it likes, so a row could draw its icon twice.
+    private struct Kept {
+        let budget: Int
+        var entries: [String: KeptIcon] = [:]
+        var total = 0
+        var clock: UInt64 = 0
+
+        mutating func image(for key: String) -> CGImage? {
+            clock += 1
+            entries[key]?.used = clock
+            return entries[key]?.image
+        }
+
+        mutating func store(_ image: CGImage, cost: Int, for key: String) {
+            clock += 1
+            let replaced = entries.updateValue(KeptIcon(image: image, cost: cost, used: clock), forKey: key)
+            total += cost - (replaced?.cost ?? 0)
+            while total > budget, let oldest = entries.min(by: { $0.value.used < $1.value.used }) {
+                entries[oldest.key] = nil
+                total -= oldest.value.cost
+            }
         }
     }
 
-    // NSCache locks itself; the compiler cannot see that.
-    private nonisolated(unsafe) let cache = NSCache<NSString, Entry>()
+    private let kept: Mutex<Kept>
     private let render: @Sendable (IconKey) -> CGImage?
 
     init(budget: Int = IconThumbnailCache.defaultBudget, render: @escaping @Sendable (IconKey) -> CGImage? = { IconThumbnail.render($0) }) {
-        cache.totalCostLimit = budget
+        kept = Mutex(Kept(budget: budget))
         self.render = render
     }
 
@@ -79,11 +104,12 @@ final nonisolated class IconThumbnailCache: Sendable {
     }
 
     func image(for key: IconKey) -> CGImage? {
-        cache.object(forKey: key.cacheKey as NSString)?.image
+        kept.withLock { $0.image(for: key.cacheKey) }
     }
 
     func store(_ image: CGImage, for key: IconKey) {
-        cache.setObject(Entry(image), forKey: key.cacheKey as NSString, cost: Self.cost(of: image))
+        let cost = Self.cost(of: image)
+        kept.withLock { $0.store(image, cost: cost, for: key.cacheKey) }
     }
 
     /// For what is drawn in one pass and never again: a menu bar image, a diagnostic.
@@ -147,13 +173,7 @@ nonisolated enum IconThumbnail {
         guard shorter > 0 else { return nil }
         // Twice the size wanted: the last halving is drawn at high quality, which ImageIO's own scaling is not.
         let wanted = Int((Double(pixels * 2) * Double(longer) / Double(shorter)).rounded(.up))
-        let options: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceShouldCacheImmediately: true,
-            kCGImageSourceThumbnailMaxPixelSize: min(longer, wanted),
-        ]
-        guard let decoded = CGImageSourceCreateThumbnailAtIndex(source, best, options as CFDictionary) else { return nil }
+        guard let decoded = source.thumbnail(at: best, maxPixelSize: min(longer, wanted)) else { return nil }
         let factor = min(1, CGFloat(pixels) / CGFloat(min(decoded.width, decoded.height)))
         let width = max(1, Int((CGFloat(decoded.width) * factor).rounded()))
         let height = max(1, Int((CGFloat(decoded.height) * factor).rounded()))
@@ -196,5 +216,22 @@ nonisolated enum IconThumbnail {
         context.interpolationQuality = .high
         draw(context)
         return context.makeImage()
+    }
+}
+
+nonisolated extension CGImageSource {
+    /// A decode scaled to `maxPixelSize`. ShouldCacheImmediately would keep every decoded image for as long
+    /// as the process runs, even with caching off.
+    static func thumbnailOptions(maxPixelSize: Int) -> [CFString: Any] {
+        [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true,
+            kCGImageSourceShouldCache: false,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
+        ]
+    }
+
+    func thumbnail(at index: Int, maxPixelSize: Int) -> CGImage? {
+        CGImageSourceCreateThumbnailAtIndex(self, index, Self.thumbnailOptions(maxPixelSize: maxPixelSize) as CFDictionary)
     }
 }

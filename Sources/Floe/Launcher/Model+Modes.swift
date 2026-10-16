@@ -14,21 +14,21 @@ extension LauncherModel {
         menuBarSearch.host = modeHost { [weak self] in self?.closeMenuBarSearch() }
         clipboardHistory.host = modeHost { [weak self] in self?.closeClipboardHistory() }
         fileSearch.host = modeHost { [weak self] in self?.closeFileSearch() }
-        fileSearch.preferredApps = { [weak self] in self?.preferredApps ?? [] }
+        fileSearch.preferredApps = { [weak self] in self?.resolvedApps.apps ?? [] }
     }
 
     func modeHost(close: @escaping () -> Void) -> ModeHost {
         ModeHost(
-            showHUD: { [weak self] in self?.showHUD($0) },
-            hidePanel: { [weak self] in self?.hidePanel() },
+            showHUD: { [weak self] in self?.panelHost.showHUD($0) },
+            hidePanel: { [weak self] in self?.panelHost.hidePanel() },
             dismiss: { [weak self] in
-                self?.hidePanel()
+                self?.panelHost.hidePanel()
                 self?.reset()
             },
             refocus: { [weak self] in self?.focusToken += 1 },
             close: close,
-            showActions: { [weak self] in self?.showActions() },
-            paste: { [weak self] in self?.paste(text: $0) }
+            showActions: { [weak self] in self?.panelHost.showActions() },
+            paste: { [weak self] in self?.runner.paste(text: $0) }
         )
     }
 }

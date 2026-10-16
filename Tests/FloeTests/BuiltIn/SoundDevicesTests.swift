@@ -115,11 +115,11 @@ import Testing
         #expect(row.id == "sound:output:display")
         #expect(row.isScopeResult)
         #expect(row.settingsKey == nil)
-        #expect(LauncherModel.laterTitle(for: row) == "Use for Sound Output")
+        #expect(SoundRows().returnTitle(for: row) == "Use for Sound Output")
 
         let input = SoundDeviceScope(role: .input, system: system())
         #expect(input.keyword == "input")
-        #expect(try LauncherModel.laterTitle(for: #require(input.results(for: "", context: SearchContext(query: "input")).first)) == "Use as Microphone")
+        #expect(try SoundRows().returnTitle(for: #require(input.results(for: "", context: SearchContext(query: "input")).first)) == "Use as Microphone")
     }
 
     @Test func withoutBluetoothHeadphonesNothingMoreIsAsked() {

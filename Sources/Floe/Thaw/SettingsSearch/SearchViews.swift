@@ -77,8 +77,8 @@ private struct SettingsSearchAnchorScroll: ViewModifier {
 struct SettingsSearchResults: View {
     @Environment(SearchModel.self) private var search
     let selection: SettingsSelection
-    /// The installed extensions' commands, read when the search begins.
-    let commands: [ExtensionCommand]
+    /// What is searched, built when the search begins.
+    let entries: () -> [SearchEntry]
 
     var body: some View {
         Group {
@@ -106,8 +106,8 @@ struct SettingsSearchResults: View {
             }
         }
         .navigationTitle("Search")
-        // Extensions join the index here, when a search begins, so showing a pane never builds it.
-        .onAppear { search.setCommands(commands) }
+        // The index is built here, when a search begins, so showing a pane never builds it.
+        .onAppear { search.setEntries(entries()) }
     }
 }
 

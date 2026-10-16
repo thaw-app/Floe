@@ -152,8 +152,8 @@ struct PanelSectionsTests {
         #expect(appearance.span == 0 ... 1)
     }
 
-    @Test func theSwitchIsOffUntilTurnedOnAndIsStored() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-panel-sections-tests-\(UUID().uuidString)"))
+    @Test func theSwitchIsOffUntilTurnedOnAndIsStored() {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
         #expect(settings.separatesSearchField == false)
         settings.separatesSearchField = true
@@ -162,7 +162,7 @@ struct PanelSectionsTests {
     }
 
     @Test func settingsStoredBeforeTheSwitchLoadUnchangedWithItOff() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-panel-sections-tests-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let earlier = AppSettings(defaults: defaults, savesAfterEdits: false)
         earlier.launcherLayout = .compact
         earlier.searchFieldShape = .capsule

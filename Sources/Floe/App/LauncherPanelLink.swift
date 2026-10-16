@@ -14,10 +14,12 @@ final class LauncherPanelLink {
     let process = PanelProcess()
     private let model: LauncherModel
     private let settingsLink: LauncherSettingsLink
+    private let clipboard: ClipboardHistoryStore
     private var appearance: AnyCancellable?
 
     /// Binds foreground requests to the resident model and its existing Settings owner.
-    init(model: LauncherModel, settingsLink: LauncherSettingsLink) {
+    init(model: LauncherModel, clipboard: ClipboardHistoryStore, settingsLink: LauncherSettingsLink) {
+        self.clipboard = clipboard
         self.model = model
         self.settingsLink = settingsLink
     }
@@ -25,21 +27,25 @@ final class LauncherPanelLink {
     /// Installs forwarding and snapshot publishers without eagerly launching a foreground child.
     func start() {
         let process = process
-        model.presentInPanelProcess = { process.request($0) }
-        model.showPanel = { process.request(.show) }
-        model.hidePanel = { process.request(.hide) }
-        model.showHUD = { process.request(.hud($0)) }
-        ThawHUD.forward = { process.request(.hud($0)) }
-        model.openSettings = { [settingsLink] in settingsLink.show(page: $0?.id) }
+        // The resident shows nothing itself: the panel process does, when asked.
+        model.panelHost = PanelHost(
+            hidePanel: { process.request(.hide) },
+            showPanel: { process.request(.show) },
+            showHUD: { process.request(.hud($0)) },
+            openSettings: { [settingsLink] in settingsLink.show(page: $0?.id) },
+            presentInPanelProcess: { process.request($0) }
+        )
+        IntentHandler.current = .serving(model) { process.request($0) }
+        OAuthBroker.shared.say { process.request(.hud($0)) }
         IncomingURLRouter.shared.forwardOAuth = { process.request(.url($0)) }
         process.onMessage = { [weak self] in self?.receive($0) }
         process.onExit = { [settingsLink] in settingsLink.refreshFromPanel() }
         settingsLink.onChange = { process.send(.reload) }
-        model.runningTimers.onChange = { [weak self] in
+        model.features.timers.running.onChange = { [weak self] in
             guard let self else { return }
-            process.send(.timers(self.model.runningTimers.all))
+            process.send(.timers(self.model.features.timers.running.all))
         }
-        ClipboardHistoryStore.shared.onSnapshotSaved = { process.send(.clipboardChanged) }
+        clipboard.onSaved = { process.send(.clipboard($0)) }
         appearance = ThawAppearanceFollower.shared.$status
             .receive(on: DispatchQueue.main)
             .sink { process.send(.appearance($0.rawValue)) }
@@ -49,8 +55,8 @@ final class LauncherPanelLink {
     private func receive(_ packet: PanelPacket) {
         switch packet {
         case .ready:
-            process.send(.timers(model.runningTimers.all))
-            process.send(.clipboardChanged)
+            process.send(.timers(model.features.timers.running.all))
+            process.send(.clipboard(.reload))
             process.send(.appearance(ThawAppearanceFollower.shared.status.rawValue))
         case let .present(request): process.request(request)
         case let .openSettings(page): settingsLink.show(page: page)
@@ -68,22 +74,22 @@ final class LauncherPanelLink {
     /// Applies timer, receipt and clipboard mutations once, using resident state rather than mirrors.
     private func receiveStoreRequest(_ packet: PanelPacket) {
         switch packet {
-        case let .startTimer(draft): model.startTimer(draft)
-        case let .stopTimer(id): _ = model.runningTimers.remove(id)
+        case let .startTimer(draft): model.features.timers.startTimer(draft)
+        case let .stopTimer(id): _ = model.features.timers.running.remove(id)
         case let .receipt(receipt):
             model.record(receipt)
             process.send(.refresh)
         case let .receiptUndone(id, date):
-            model.receipts.markUndone(id, at: date)
+            model.features.receipts.store.markUndone(id, at: date)
             process.send(.refresh)
-        case .clearClipboard: ClipboardHistoryStore.shared.clear()
+        case .clearClipboard: clipboard.clear()
         case let .deleteClipboard(id):
-            if let entry = ClipboardHistoryStore.shared.entries.first(where: { $0.id == id }) {
-                ClipboardHistoryStore.shared.delete(entry)
+            if let entry = clipboard.entries.first(where: { $0.id == id }) {
+                clipboard.delete(entry)
             }
         case let .pinClipboard(id):
-            if let entry = ClipboardHistoryStore.shared.entries.first(where: { $0.id == id }) {
-                ClipboardHistoryStore.shared.togglePin(entry)
+            if let entry = clipboard.entries.first(where: { $0.id == id }) {
+                clipboard.togglePin(entry)
             }
         default: break
         }

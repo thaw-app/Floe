@@ -11,9 +11,11 @@ import ThawUI
 
 /// The settings page of one extension: its switch and icon, its preferences, and a line for each command.
 struct ExtensionSettingsView: View {
-    @ObservedObject var catalog: SettingsCatalog
+    @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     let commands: [ExtensionCommand]
+    let extensions: ExtensionStore
+    let access: ExtensionAccessStore
     var onRemoved: () -> Void = { /* nowhere to go from a preview */ }
     @State private var confirmingRemoval = false
     @State private var choosingIcon = false
@@ -51,7 +53,7 @@ struct ExtensionSettingsView: View {
                             if CustomIcon.path(for: first.extensionName) != nil {
                                 Button("Use Its Own") {
                                     CustomIcon.remove(for: first.extensionName)
-                                    ExtensionStore.shared.onInstalled()
+                                    extensions.onInstalled()
                                 }
                             }
                         }
@@ -71,7 +73,7 @@ struct ExtensionSettingsView: View {
                         PreferencesEditor(fields: first.extensionPreferences, extensionName: first.extensionName, command: nil)
                     }
                 }
-                ExtensionAccessSection(extensionName: first.extensionName, records: settings.recordsExtensionAccess)
+                ExtensionAccessSection(extensionName: first.extensionName, records: settings.recordsExtensionAccess, store: access)
                 // A checkout's samples stay: they are files of the repository.
                 if ExtensionStore.canRemove(first.extensionDir) {
                     ThawSection {
@@ -106,7 +108,7 @@ struct ExtensionSettingsView: View {
                         }
                     }
                     try CustomIcon.set(url, for: first.extensionName)
-                    ExtensionStore.shared.onInstalled()
+                    extensions.onInstalled()
                 } catch {
                     iconError = error.localizedDescription
                 }
@@ -122,7 +124,7 @@ struct ExtensionSettingsView: View {
             }
             .alert("Remove \u{201C}\(first.extensionTitle)\u{201D}?", isPresented: $confirmingRemoval) {
                 Button("Remove", role: .destructive) {
-                    ExtensionStore.shared.remove(folder: first.extensionDir, named: first.extensionName)
+                    extensions.remove(folder: first.extensionDir, named: first.extensionName)
                     onRemoved()
                 }
                 Button("Cancel", role: .cancel) { /* the alert closes itself */ }

@@ -107,6 +107,18 @@ import Testing
 
     // MARK: Writing
 
+    @Test func aPauseInTypingSavesWithoutBeingAsked() async throws {
+        let desk = await makeDesk()
+        desk.toggleEditing()
+        desk.text = "# Plan\n\n- [x] ship\n"
+        desk.text = "# Plan\n\n- [x] ship it\n"
+        for _ in 0 ..< 300 where try text(of: "Plan.md") != desk.text {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(try text(of: "Plan.md") == "# Plan\n\n- [x] ship it\n")
+        desk.close()
+    }
+
     @Test func whatIsTypedIsWrittenToTheFileAndNothingElseIs() async throws {
         let desk = await makeDesk()
         desk.flush()
@@ -210,7 +222,7 @@ import Testing
     // MARK: The launcher
 
     @Test func theCommandOpensTheViewAndLeavingItSavesWhatWasTyped() async throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-notes-desk-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         settings.notesApp = .folder
         settings.notesFolder = vault.path

@@ -61,9 +61,7 @@ struct MenuBarOfferTests {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         try Data(player.utf8).write(to: folder.appendingPathComponent("package.json"))
-        let suite = "floe-offer-tests-\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
 
         let offer = try #require(ExtensionStore.menuBarOffer(for: "floe-test-player", in: root, settings: settings))
@@ -81,9 +79,7 @@ struct MenuBarOfferTests {
         defer { try? FileManager.default.removeItem(at: root) }
         let manifest = player.replacingOccurrences(of: #""name": "mini","#, with: #""name": "mini", "disabledByDefault": true,"#)
         try Data(manifest.utf8).write(to: folder.appendingPathComponent("package.json"))
-        let suite = "floe-offer-tests-\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
 
         let offer = try #require(ExtensionStore.menuBarOffer(for: "floe-test-player", in: root, settings: settings))

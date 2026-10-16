@@ -83,7 +83,7 @@ import Foundation
                     runs.removeValue(forKey: command.id)
                 }
             case "hud", "open", "copy", "paste":
-                model.handleBackgroundMessage(message)
+                model.runner.handleBackgroundMessage(message)
             default:
                 break
             }

@@ -5,7 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-import Foundation
+import AppKit
 
 /// Floe's own commands that a hotkey can run from anywhere: its views and the system commands.
 extension LauncherModel {
@@ -23,7 +23,7 @@ extension LauncherModel {
 
     /// A view opens the panel on itself, whatever the panel was showing. A system command runs with the panel closed.
     func runFromHotkey(_ item: RootItem) {
-        if let presentInPanelProcess, let key = item.settingsKey {
+        if let presentInPanelProcess = panelHost.presentInPanelProcess, let key = item.settingsKey {
             presentInPanelProcess(.builtIn(key))
             return
         }
@@ -33,7 +33,7 @@ extension LauncherModel {
         case .emojiSearch:
             reset()
             query = EmojiSearchProvider.prefix
-            showPanel()
+            panelHost.showPanel()
             focusToken += 1
         case .clipboardHistory:
             openClipboardHistory()
@@ -44,9 +44,19 @@ extension LauncherModel {
             reset()
             openNoteDesk()
         case let .system(command):
-            runSystemCommand(command)
+            features.system.run(command)
         default:
             break
+        }
+    }
+
+    /// Opens an app, or hides it if it's already in front, like a per-app hotkey in Thaw.
+    func toggleApp(_ app: AppEntry) {
+        usage.recordUse(of: RootItem.app(app).id)
+        if let running = NSWorkspace.shared.frontmostApplication, running.bundleURL?.standardizedFileURL == app.url.standardizedFileURL {
+            running.hide()
+        } else {
+            NSWorkspace.shared.openWithoutWaiting(app.url)
         }
     }
 }

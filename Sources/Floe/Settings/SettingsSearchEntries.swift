@@ -9,6 +9,7 @@ import Foundation
 
 extension SearchPaneLabel {
     static let general = SearchPaneLabel(title: String(localized: "General", bundle: .floe, comment: "The name of a settings page."), symbol: "gearshape")
+    static let commands = SearchPaneLabel(title: String(localized: "Commands", bundle: .floe, comment: "The name of a settings page."), symbol: "command")
     static let applications = SearchPaneLabel(title: String(localized: "Applications", bundle: .floe, comment: "The name of a settings page."), symbol: "square.grid.2x2")
     static let quicklinks = SearchPaneLabel(title: String(localized: "Quicklinks", bundle: .floe, comment: "The name of a settings page."), symbol: "link")
     static let snippets = SearchPaneLabel(title: String(localized: "Snippets", bundle: .floe, comment: "The name of a settings page."), symbol: "text.quote")
@@ -20,6 +21,7 @@ extension SearchPaneLabel {
 
 extension SearchPane {
     static let general = SearchPane(page: .general, label: .general)
+    static let commands = SearchPane(page: .commands, label: .commands)
     static let applications = SearchPane(page: .applications, label: .applications)
     static let quicklinks = SearchPane(page: .quicklinks, label: .quicklinks)
     static let snippets = SearchPane(page: .snippets, label: .snippets)
@@ -165,6 +167,17 @@ extension SearchIndex {
                 localized: "snippet, snippets, text, expansion, expand, keyword, abbreviation, template",
                 bundle: .floe,
                 comment: "Words that find the Snippets page in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        SearchEntry(
+            id: "pane.commands",
+            title: String(localized: "Commands", bundle: .floe, comment: "The name of a settings page."),
+            descriptionText: String(localized: "Built-in, shell, script and menu bar commands, and where extensions come from.", bundle: .floe),
+            pane: .commands,
+            keywords: String(
+                localized: "commands, built-in, hotkey, alias, shell, script, menu bar, extensions, raycast",
+                bundle: .floe,
+                comment: "Words that find the Commands page in the settings search, separated by commas."
             ).searchTerms
         ),
         SearchEntry(
@@ -387,7 +400,7 @@ extension SearchIndex {
         privacy(
             "recordsExtensionAccess",
             String(localized: "Record what extensions reach", bundle: .floe),
-            section: String(localized: "Shell Commands", bundle: .floe),
+            section: String(localized: "Extensions", bundle: .floe),
             keywords: String(
                 localized: "extensions, record, access, hosts, folders, programs, network, reached, forget",
                 bundle: .floe,
@@ -498,68 +511,6 @@ extension SearchIndex {
             ).searchTerms
         ),
         .general(
-            "popToRootDelay",
-            String(localized: "Return to root search", bundle: .floe),
-            description: String(localized: "How long a closed launcher keeps the command you had open.", bundle: .floe),
-            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
-            keywords: String(
-                localized: "pop to root, delay, timeout, reset, close, immediately, seconds, minutes",
-                bundle: .floe,
-                comment: "Words that find the Return to root search setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "emojiSkinTone",
-            String(localized: "Emoji skin tone", bundle: .floe),
-            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
-            keywords: String(
-                localized: "emoji, skin tone, skin colour, skin color, hand, people",
-                bundle: .floe,
-                comment: "Words that find the Emoji skin tone setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "focusShortcut",
-            String(localized: "Shortcut for Focus", bundle: .floe),
-            description: String(localized: "A Shortcut of yours that sets Focus. It receives the number of minutes, or the word off or toggle.", bundle: .floe),
-            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
-            keywords: String(
-                localized: "focus, do not disturb, dnd, shortcut, shortcuts, notifications, quiet",
-                bundle: .floe,
-                comment: "Words that find the Shortcut for Focus setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "runsShellCommands",
-            String(localized: "Run shell commands from the search", bundle: .floe),
-            section: String(localized: "Shell Commands", bundle: .floe),
-            keywords: String(
-                localized: "shell, command, terminal, command line, run, prefix, script, bash, zsh",
-                bundle: .floe,
-                comment: "Words that find the Run shell commands setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "suggestsShellCommands",
-            String(localized: "Suggest while typing a command", bundle: .floe),
-            section: String(localized: "Shell Commands", bundle: .floe),
-            keywords: String(
-                localized: "history, completion, autocomplete, tab, suggestions, zsh history, programs, paths",
-                bundle: .floe,
-                comment: "Words that find the Suggest while typing a command setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "recognizesCommands",
-            String(localized: "Recognize commands without the prefix", bundle: .floe),
-            section: String(localized: "Shell Commands", bundle: .floe),
-            keywords: String(
-                localized: "recognize, detect, prefix, command, automatic, without prefix",
-                bundle: .floe,
-                comment: "Words that find the Recognize commands without the prefix setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
             "checkForUpdates",
             String(localized: "Automatically check for updates", bundle: .floe),
             keywords: String(
@@ -569,67 +520,14 @@ extension SearchIndex {
             ).searchTerms
         ),
         .general(
-            "diagnosticLogging",
-            String(localized: "Detailed logging", bundle: .floe),
-            description: String(localized: "Writes a log for troubleshooting to ~/Library/Logs/Floe.", bundle: .floe),
-            section: String(localized: "Diagnostics", bundle: .floe, comment: "The heading over the logging settings."),
+            "popToRootDelay",
+            String(localized: "Return to root search", bundle: .floe),
+            description: String(localized: "How long a closed launcher keeps the command you had open.", bundle: .floe),
+            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
             keywords: String(
-                localized: "log, logs, logging, diagnostics, debug, troubleshoot, slow, report",
+                localized: "pop to root, delay, timeout, reset, close, immediately, seconds, minutes",
                 bundle: .floe,
-                comment: "Words that find the Detailed logging setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "menuBarSearchHotkey",
-            String(localized: "Search Menu Bar Items", bundle: .floe),
-            description: String(localized: "Find an item in the menu bar and open its menu.", bundle: .floe),
-            section: String(localized: "Menu Bar Items", bundle: .floe),
-            keywords: String(
-                localized: "hotkey, shortcut, keyboard, menu bar, status items, icons",
-                bundle: .floe,
-                comment: "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "builtInHotkeys",
-            String(localized: "Hotkeys for Built-in Commands", bundle: .floe),
-            section: String(localized: "Hotkeys for Built-in Commands", bundle: .floe),
-            keywords: String(
-                localized: "hotkey, shortcut, keyboard, emoji, clipboard, file search, system commands, lock, sleep, play, pause",
-                bundle: .floe,
-                comment: "Words that find the hotkeys for Floe's own commands in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "menuBarSearchAlias",
-            String(localized: "Alias", bundle: .floe, comment: "A short name typed in the search to find a command."),
-            section: String(localized: "Menu Bar Items", bundle: .floe),
-            keywords: String(
-                localized: "menu bar, keyword, abbreviation, short name",
-                bundle: .floe,
-                comment: "Words that find the Alias setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "thawSupport",
-            String(localized: "Thaw", bundle: .floe, comment: "Thaw is the name of an app."),
-            description: String(localized: "Thaw's actions are in the search: type “thaw” to see them.", bundle: .floe, comment: "The word in quotation marks is typed as it is and stays in English."),
-            section: String(localized: "Menu Bar Items", bundle: .floe),
-            keywords: String(
-                localized: "thaw, hidden items, thaw bar, menu bar manager",
-                bundle: .floe,
-                comment: "Words that find the Thaw setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "menuBarCommands",
-            String(localized: "Extension Commands in the Menu Bar", bundle: .floe),
-            description: String(localized: "Which extension commands have an item in the menu bar.", bundle: .floe),
-            section: String(localized: "Menu Bar Commands", bundle: .floe),
-            keywords: String(
-                localized: "status item, extension, show, remove",
-                bundle: .floe,
-                comment: "Words that find the Extension Commands in the Menu Bar setting in the settings search, separated by commas."
+                comment: "Words that find the Return to root search setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .general(
@@ -667,91 +565,6 @@ extension SearchIndex {
             ).searchTerms
         ),
     ] + clipboardEntries + [
-        .general(
-            "syncsWithICloud",
-            String(localized: "Sync settings with iCloud", bundle: .floe),
-            description: String(localized: "Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out.", bundle: .floe),
-            section: String(localized: "iCloud", bundle: .floe),
-            keywords: String(
-                localized: "sync, icloud, cloud, macs, devices, backup, share, remove",
-                bundle: .floe,
-                comment: "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "syncsExtensionSettings",
-            String(localized: "Include extension settings", bundle: .floe),
-            description: String(localized: "Preferences of your extensions sync too, except passwords, files, folders and chosen apps.", bundle: .floe),
-            section: String(localized: "iCloud", bundle: .floe),
-            keywords: String(
-                localized: "sync, icloud, extensions, extension preferences, extension settings, macs",
-                bundle: .floe,
-                comment: "Words that find the Include extension settings setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "syncsPasswords",
-            String(localized: "Sync passwords with iCloud Keychain", bundle: .floe),
-            description: String(localized: "Extension passwords and API keys are kept in iCloud Keychain, which has its own switch in System Settings.", bundle: .floe),
-            section: String(localized: "iCloud", bundle: .floe),
-            keywords: String(
-                localized: "passwords, keychain, icloud keychain, api key, secrets, tokens, sync, remove",
-                bundle: .floe,
-                comment: "Words that find the Sync passwords with iCloud Keychain setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "transferSettings",
-            String(localized: "Export or import settings", bundle: .floe),
-            description: String(localized: "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac.", bundle: .floe),
-            section: String(localized: "Your Settings", bundle: .floe),
-            keywords: String(
-                localized: "export, import, backup, transfer, move, file, restore",
-                bundle: .floe,
-                comment: "Words that find the Export or import settings setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "includeRaycastExtensions",
-            String(localized: "Include extensions installed in Raycast", bundle: .floe),
-            description: String(localized: "Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over.", bundle: .floe),
-            section: String(localized: "Extensions", bundle: .floe, comment: "The heading over the settings for extensions."),
-            keywords: String(
-                localized: "raycast, import, store, installed",
-                bundle: .floe,
-                comment: "Words that find the Include extensions installed in Raycast setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "extensionsFolder",
-            String(localized: "Extensions folder", bundle: .floe),
-            section: String(localized: "Extensions", bundle: .floe, comment: "The heading over the settings for extensions."),
-            keywords: String(
-                localized: "finder, directory, location, path, install, show in finder",
-                bundle: .floe,
-                comment: "Words that find the Extensions folder setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "runtime",
-            String(localized: "Runtime", bundle: .floe, comment: "The program that runs extensions."),
-            section: String(localized: "Extensions", bundle: .floe, comment: "The heading over the settings for extensions."),
-            keywords: String(
-                localized: "bun, javascript, node, engine",
-                bundle: .floe,
-                comment: "Words that find the Runtime setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "scriptsFolder",
-            String(localized: "Scripts folder", bundle: .floe),
-            section: String(localized: "Script Commands", bundle: .floe),
-            keywords: String(
-                localized: "script, scripts, script commands, raycast, finder, directory, new script",
-                bundle: .floe,
-                comment: "Words that find the Scripts folder setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
         .general(
             "aiSource",
             String(localized: "Answer AI requests with", bundle: .floe),
@@ -802,6 +615,61 @@ extension SearchIndex {
                 localized: "ai, api, key, token, secret, keychain, openai",
                 bundle: .floe,
                 comment: "Words that find the API key setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "syncsWithICloud",
+            String(localized: "Sync settings with iCloud", bundle: .floe),
+            description: String(localized: "Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out.", bundle: .floe),
+            section: String(localized: "iCloud", bundle: .floe),
+            keywords: String(
+                localized: "sync, icloud, cloud, macs, devices, backup, share, remove",
+                bundle: .floe,
+                comment: "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "syncsExtensionSettings",
+            String(localized: "Include extension settings", bundle: .floe),
+            description: String(localized: "Preferences of your extensions sync too, except passwords, files, folders and chosen apps.", bundle: .floe),
+            section: String(localized: "iCloud", bundle: .floe),
+            keywords: String(
+                localized: "sync, icloud, extensions, extension preferences, extension settings, macs",
+                bundle: .floe,
+                comment: "Words that find the Include extension settings setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "syncsPasswords",
+            String(localized: "Sync passwords with iCloud Keychain", bundle: .floe),
+            description: String(localized: "Extension passwords and API keys are kept in iCloud Keychain, which has its own switch in System Settings.", bundle: .floe),
+            section: String(localized: "iCloud", bundle: .floe),
+            keywords: String(
+                localized: "passwords, keychain, icloud keychain, api key, secrets, tokens, sync, remove",
+                bundle: .floe,
+                comment: "Words that find the Sync passwords with iCloud Keychain setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "transferSettings",
+            String(localized: "Export or import settings", bundle: .floe),
+            description: String(localized: "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac.", bundle: .floe),
+            section: String(localized: "Your Settings", bundle: .floe),
+            keywords: String(
+                localized: "export, import, backup, transfer, move, file, restore",
+                bundle: .floe,
+                comment: "Words that find the Export or import settings setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "diagnosticLogging",
+            String(localized: "Detailed logging", bundle: .floe),
+            description: String(localized: "Writes a log for troubleshooting to ~/Library/Logs/Floe.", bundle: .floe),
+            section: String(localized: "Diagnostics", bundle: .floe, comment: "The heading over the logging settings."),
+            keywords: String(
+                localized: "log, logs, logging, diagnostics, debug, troubleshoot, slow, report",
+                bundle: .floe,
+                comment: "Words that find the Detailed logging setting in the settings search, separated by commas."
             ).searchTerms
         ),
     ]

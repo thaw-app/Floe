@@ -87,9 +87,7 @@ struct ExtensionAccessTests {
 
     @MainActor
     @Test func theRecordIsOnUntilSwitchedOffAndSwitchingItOffForgetsWhatWasRecorded() throws {
-        let suite = "floe-access-\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let defaults = MemoryDefaults()
         let (store, file) = scratchStore()
         defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)

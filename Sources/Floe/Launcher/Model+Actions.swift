@@ -11,12 +11,12 @@ import AppKit
 extension LauncherModel {
     private var actionHost: ActionHost {
         ActionHost(
-            showHUD: { [weak self] in self?.showHUD($0) },
+            showHUD: { [weak self] in self?.panelHost.showHUD($0) },
             dismiss: { [weak self] in
-                self?.hidePanel()
+                self?.panelHost.hidePanel()
                 self?.reset()
             },
-            preferredApps: preferredApps,
+            preferredApps: resolvedApps.apps,
             record: { [weak self] in self?.record($0) }
         )
     }
@@ -36,12 +36,10 @@ extension LauncherModel {
             }
         case .clipboardEntry: String(localized: "Paste", bundle: .floe, comment: "A verb: insert what is on the clipboard.")
         case .askAI: String(localized: "Ask", bundle: .floe, comment: "A verb on a button: send the question to AI.")
-        case .sshHost: String(localized: "Connect", bundle: .floe, comment: "A verb on a button: open an SSH connection to the host.")
-        case .shortcut: String(localized: "Run", bundle: .floe, comment: "A verb on a button: run the shortcut or script.")
         case .menuBarItem: String(localized: "Click Item", bundle: .floe)
         case .browserTab(.tab): String(localized: "Switch to Tab", bundle: .floe)
         case .webAddress: openInBrowserTitle
-        default: Self.laterTitle(for: item) ?? String(localized: "Open", bundle: .floe, comment: "A verb on a button: open the selected result.")
+        default: ownerReturnTitle(for: item) ?? String(localized: "Open", bundle: .floe, comment: "A verb on a button: open the selected result.")
         }
     }
 
@@ -55,19 +53,19 @@ extension LauncherModel {
         case let .browserTab(.tab(tab)): switchToBrowserTab(tab)
         case let .browserTab(.access(browser)): SystemCommand.askForAutomation(toControl: browser.name)
         case let .webAddress(address): open(address)
-        default: openLater(item)
+        default: _ = openByOwner(item)
         }
     }
 
     /// Brings a tab forward once the panel is gone. A refusal is answered here, where the user asked for the tab.
     private func switchToBrowserTab(_ tab: BrowserTab) {
-        hidePanel()
+        panelHost.hidePanel()
         reset()
         BrowserTabs.activate(tab) { [weak self] outcome in
             switch outcome {
             case .text(BrowserTabScripts.switched): break
             case .refused: SystemCommand.askForAutomation(toControl: tab.browser.name)
-            case .text, .failed: self?.showHUD(String(localized: "That tab is no longer open", bundle: .floe))
+            case .text, .failed: self?.panelHost.showHUD(String(localized: "That tab is no longer open", bundle: .floe))
             }
         }
     }
@@ -81,21 +79,17 @@ extension LauncherModel {
             actions += [nil] + AppActions.actions(for: app, host: actionHost)
         case let .command(command):
             actions.append(ItemAction(title: String(localized: "Configure Extension…", bundle: .floe), symbol: "gearshape") { [weak self] in
-                self?.hidePanel()
-                self?.openSettings(.extensionPage(command.extensionName))
+                self?.panelHost.hidePanel()
+                self?.panelHost.openSettings(.extensionPage(command.extensionName))
             })
         case let .file(file):
             actions += FileActions.actions(for: file.url, host: actionHost)
-        case let .sshHost(host, _):
-            actions += SSHHostActions.actions(for: host, host: actionHost)
-        case let .shortcut(shortcut):
-            actions += shortcutActions(for: shortcut)
         case let .clipboardEntry(entry):
             actions.append(ItemAction(title: String(localized: "Copy", bundle: .floe, comment: "A verb: put the selection on the clipboard."), symbol: "doc.on.doc") { [weak self] in self?.clipboardHistory.copy(entry) })
         case .webAddress, .quicklink, .bookmark:
             actions += linkActions(for: item)
         default:
-            actions += laterActions(for: item)
+            actions += ownerActions(for: item) ?? []
         }
         if Self.keepsItsPlace(item) {
             let favorite = isFavorite(item)
@@ -112,19 +106,6 @@ extension LauncherModel {
             })
         }
         return actions
-    }
-
-    /// Return on the calculator's row: the answer goes to the clipboard. With no answer the row is still the
-    /// selected one, so Return says what is wrong, or that there is nothing yet.
-    func copyCalculation(_ result: String, error: String?) {
-        guard error == nil, !result.isEmpty else {
-            showHUD(error ?? String(localized: "Nothing to copy yet", bundle: .floe, comment: "Shown when Return is pressed on a calculation that has no answer."))
-            return
-        }
-        NSPasteboard.general.copy(result)
-        showHUD(String(localized: "Copied \(result)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
-        hidePanel()
-        reset()
     }
 
     /// Keeps the search that just opened something, unless the user switched that off.
@@ -154,7 +135,7 @@ extension LauncherModel {
         guard Self.canBeHidden(item) else { return }
         settings.hiddenResults[item.id] = item.title
         settings.favorites.removeAll { $0 == item.id }
-        showHUD(String(localized: "Hidden from search. Settings › General brings it back.", bundle: .floe))
+        panelHost.showHUD(String(localized: "Hidden from search. Settings › General brings it back.", bundle: .floe))
         refresh()
     }
 

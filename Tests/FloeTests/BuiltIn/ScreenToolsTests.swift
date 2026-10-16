@@ -92,17 +92,17 @@ import Vision
         #expect(row.id == "qr-code", "the id never holds the text")
         #expect(row.kind == "QR Code")
         #expect(row.isScopeResult)
-        #expect(LauncherModel.laterTitle(for: row) == "Copy Image")
+        #expect(QRCodeRows().returnTitle(for: row) == "Copy Image")
 
-        let defaults = try #require(UserDefaults(suiteName: "floe-qr-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-qr-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: folder) }
-        #expect(model.writeQRCode(for: "hello", to: folder)?.lastPathComponent == "QR Code.png")
-        #expect(model.writeQRCode(for: "hello", to: folder)?.lastPathComponent == "QR Code 2.png")
-        #expect(model.writeQRCode(for: String(repeating: "x", count: 5000), to: folder) == nil)
-        #expect(model.qrCodeActions(for: "hello").compactMap { $0?.title } == ["Quick Look", "Save to Downloads"])
+        #expect(model.features.qrCodes.writeQRCode(for: "hello", to: folder)?.lastPathComponent == "QR Code.png")
+        #expect(model.features.qrCodes.writeQRCode(for: "hello", to: folder)?.lastPathComponent == "QR Code 2.png")
+        #expect(model.features.qrCodes.writeQRCode(for: String(repeating: "x", count: 5000), to: folder) == nil)
+        #expect(model.features.qrCodes.qrCodeActions(for: "hello").compactMap { $0?.title } == ["Quick Look", "Save to Downloads"])
     }
 
     @Test func theScreenCommandsAreSystemCommandsFoundByTheirWords() {

@@ -157,7 +157,7 @@ extension NSStatusItem: MenuBarStatusItem {
         }
         let session = ExtensionSession(command: entry.command, launchType: launchType)
         session.onMessage = { [weak self] message in
-            self?.model.handleBackgroundMessage(message)
+            self?.model.runner.handleBackgroundMessage(message)
         }
         let presenter = entry.presenter
         presenter.show(failure: nil)

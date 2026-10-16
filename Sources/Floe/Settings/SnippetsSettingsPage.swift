@@ -10,7 +10,7 @@ import ThawUI
 
 /// Snippets: whether keywords expand as you type, and the list of snippets with their editor.
 struct SnippetsSettingsPage: View {
-    @ObservedObject private var store = SnippetStore.shared
+    @ObservedObject var store: SnippetStore
     @State private var editing: Snippet?
 
     var body: some View {
@@ -45,7 +45,7 @@ struct SnippetsSettingsPage: View {
         }
         .formStyle(.grouped)
         .sheet(item: $editing) { snippet in
-            SnippetEditor(snippet: snippet, isNew: !store.snippets.contains { $0.id == snippet.id }) { result in
+            SnippetEditor(snippet: snippet, others: store.snippets, isNew: !store.snippets.contains { $0.id == snippet.id }) { result in
                 if let result {
                     store.upsert(result)
                 }
@@ -60,13 +60,15 @@ struct SnippetsSettingsPage: View {
 
 private struct SnippetEditor: View {
     @State var snippet: Snippet
+    /// The snippets already saved, whose keywords this one may not take.
+    let others: [Snippet]
     let isNew: Bool
     let onDone: (Snippet?) -> Void
     let onDelete: () -> Void
     @State private var confirmingDelete = false
 
     private var problem: String? {
-        Snippet.keywordProblem(snippet.keyword, id: snippet.id, among: SnippetStore.shared.snippets)
+        Snippet.keywordProblem(snippet.keyword, id: snippet.id, among: others)
     }
 
     var body: some View {

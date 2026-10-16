@@ -42,7 +42,7 @@ extension LauncherModel {
         else { return false }
         // Running a menu-bar command that has its status item would take the item away.
         if command.mode != "menu-bar" || !isInMenuBar(command) {
-            run(command, arguments: link.arguments)
+            runner.run(command, arguments: link.arguments)
         }
         return true
     }

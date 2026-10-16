@@ -58,7 +58,7 @@ struct ErrorView: View {
                             .background(Color.primary.opacity(0.06), in: .rect(cornerRadius: ThawRadius.control))
                     }
                     HStack(spacing: ThawSpacing.base) {
-                        Button("Copy Details") { model.copyFailure() }
+                        Button("Copy Details") { model.runner.copyFailure() }
                         Button("Show Extension in Finder") {
                             NSWorkspace.shared.activateFileViewerSelecting([session.command.extensionDir])
                         }

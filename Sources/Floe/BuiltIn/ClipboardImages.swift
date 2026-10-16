@@ -16,15 +16,9 @@ extension ClipboardHistoryStore {
     /// ImageIO scales while it decodes, so the copied image never exists at full size. Drawn through
     /// AppKit, each one left a full-size bitmap in the system's caches. Nil for what ImageIO cannot read.
     static nonisolated func downsampledPNG(_ data: Data) -> Data? {
-        let options: [CFString: Any] = [
-            kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceShouldCacheImmediately: true,
-            kCGImageSourceThumbnailMaxPixelSize: Int(imageMaxDimension),
-        ]
         let png = NSMutableData()
         guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
-              let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary),
+              let image = source.thumbnail(at: 0, maxPixelSize: Int(imageMaxDimension)),
               let destination = CGImageDestinationCreateWithData(png, "public.png" as CFString, 1, nil)
         else { return nil }
         CGImageDestinationAddImage(destination, image, nil)

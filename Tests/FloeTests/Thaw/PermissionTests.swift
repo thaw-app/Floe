@@ -49,10 +49,8 @@ private final class SystemStub {
 struct PermissionPollingBudgetTests {
     private let stub = SystemStub()
 
-    @Test func aGrantAfterOnboardingIsRememberedBeforeAccessIsLost() throws {
-        let suite = "floe-permission-decisions-\(UUID())"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+    @Test func aGrantAfterOnboardingIsRememberedBeforeAccessIsLost() {
+        let defaults = MemoryDefaults()
         let decisions = PermissionDecisions(defaults: defaults)
         let permission = stub.makePermission()
         let permissions = AppPermissions(accessibility: permission, others: [], decisions: decisions)
@@ -73,10 +71,8 @@ struct PermissionPollingBudgetTests {
         #expect(permissions.hasUnanswered)
     }
 
-    @Test func aGrantAlreadyPresentAtStartupClearsAnEarlierDecline() throws {
-        let suite = "floe-permission-decisions-\(UUID())"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+    @Test func aGrantAlreadyPresentAtStartupClearsAnEarlierDecline() {
+        let defaults = MemoryDefaults()
         let decisions = PermissionDecisions(defaults: defaults)
         decisions.decline(["test"])
         stub.granted = true

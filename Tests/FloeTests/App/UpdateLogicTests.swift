@@ -71,7 +71,7 @@ struct UpdateConsentTests {
     private let scratch: ScratchDefaults
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     @Test func asksOnceAndOnlyWhenUpdatesAreConfigured() {
@@ -122,7 +122,7 @@ struct UpdateChannelTests {
     private let scratch: ScratchDefaults
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     @Test func stableIsTheDefault() {

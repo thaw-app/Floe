@@ -11,7 +11,7 @@ import ThawUI
 /// The menu-bar commands of the enabled extensions, each with the switch that gives it a status item.
 /// Left out when no extension has one.
 struct MenuBarCommandsSettingsSection: View {
-    @ObservedObject var catalog: SettingsCatalog
+    @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
 
     private var commands: [ExtensionCommand] {

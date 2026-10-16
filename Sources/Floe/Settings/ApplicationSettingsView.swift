@@ -12,7 +12,7 @@ import ThawUI
 /// Aliases and hotkeys for apps. A row is plain text so the page stays cheap with hundreds of apps;
 /// the editing controls exist only in the row that was clicked.
 struct ApplicationSettingsView: View {
-    @ObservedObject var catalog: SettingsCatalog
+    @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     @State private var filter = ""
     @State private var selection: URL?

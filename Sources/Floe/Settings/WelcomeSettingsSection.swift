@@ -10,10 +10,12 @@ import ThawUI
 
 /// Settings → General: a way back to the welcome window. The permissions themselves are on the Privacy page.
 struct WelcomeSettingsSection: View {
+    let showWelcome: () -> Void
+
     var body: some View {
         ThawSection("Welcome") {
             LabeledContent {
-                Button("Show Welcome") { OnboardingWindowController.shared.showIfNeeded(replayRequested: true) }
+                Button("Show Welcome") { showWelcome() }
             } label: {
                 Text("Welcome window")
                 Text("The introduction from the first launch.")

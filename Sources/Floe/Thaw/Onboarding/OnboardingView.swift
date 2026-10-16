@@ -26,6 +26,8 @@ struct ThawOnboardingView: View {
 
     @State private var step: OnboardingStep
 
+    private let settings: AppSettings
+    private let permissions: AppPermissions
     private let skipsAccessStep: Bool
     private let isReplay: Bool
     private let startsAtAccess: Bool
@@ -36,7 +38,9 @@ struct ThawOnboardingView: View {
     ///   - isReplay: The user reopened the flow from Settings, so its last button closes it instead of opening Floe.
     ///   - startsAtAccess: Shows the access step alone, for a grant that went missing after the welcome was seen.
     ///   - onFinish: Called once when the user finishes or skips the flow.
-    init(skipsAccessStep: Bool, isReplay: Bool = false, startsAtAccess: Bool = false, onFinish: @escaping () -> Void) {
+    init(settings: AppSettings, permissions: AppPermissions, skipsAccessStep: Bool, isReplay: Bool = false, startsAtAccess: Bool = false, onFinish: @escaping () -> Void) {
+        self.settings = settings
+        self.permissions = permissions
         self.skipsAccessStep = skipsAccessStep
         self.isReplay = isReplay
         self.startsAtAccess = startsAtAccess
@@ -65,10 +69,10 @@ struct ThawOnboardingView: View {
                 OnboardingWelcomeView(onContinue: advance, onSkip: onFinish)
                     .transition(.opacity)
             case .tour:
-                OnboardingTourView(continueTitle: skipsAccessStep ? finishTitle : String(localized: "Continue", bundle: .floe, comment: "The button that goes to the next step of the welcome window."), onContinue: advance)
+                OnboardingTourView(settings: settings, continueTitle: skipsAccessStep ? finishTitle : String(localized: "Continue", bundle: .floe, comment: "The button that goes to the next step of the welcome window."), onContinue: advance)
                     .transition(.opacity)
             case .access:
-                ThawPermissionsView(finishTitle: finishTitle, onContinue: advance)
+                ThawPermissionsView(permissions: permissions, finishTitle: finishTitle, onContinue: advance)
                     .transition(.opacity)
             }
         }

@@ -99,7 +99,7 @@ struct FileIndexServiceTests {
     }
 
     @Test func theSwitchIsOffUntilTheUserTurnsItOnAndIsKeptWithTheSettings() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-file-index-tests-\(UUID().uuidString)"))
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
         #expect(!settings.indexesFileNames)
         settings.indexesFileNames = true

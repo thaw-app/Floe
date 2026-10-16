@@ -25,9 +25,14 @@ final class ClipboardHistoryModel: ObservableObject {
     /// Asked for on first use: the user's own store starts with the first thing that reads it.
     private let store: () -> ClipboardHistoryStore
 
-    init(usage: UsageStore, store: @escaping () -> ClipboardHistoryStore = { .shared }) {
+    init(usage: UsageStore, store: @escaping () -> ClipboardHistoryStore) {
         self.usage = usage
         self.store = store
+    }
+
+    /// The history this view shows.
+    var history: ClipboardHistoryStore {
+        store()
     }
 
     /// History entries matching the query, pins first, then newest first.

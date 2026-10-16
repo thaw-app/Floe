@@ -26,8 +26,8 @@ struct SearchFieldShapeTests {
         }
     }
 
-    @Test func theShapeIsRoundedUntilChosenAndIsStored() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-field-shape-tests-\(UUID().uuidString)"))
+    @Test func theShapeIsRoundedUntilChosenAndIsStored() {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
         #expect(settings.searchFieldShape == .rounded)
         settings.searchFieldShape = .capsule

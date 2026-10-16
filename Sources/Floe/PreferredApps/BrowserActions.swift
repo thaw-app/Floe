@@ -64,7 +64,7 @@ enum LinkActions {
 
 extension LauncherModel {
     private var browserMenu: BrowserMenu {
-        BrowserMenu(choice: settings.browserApp, installed: appLookup)
+        BrowserMenu(choice: settings.browserApp, installed: resolvedApps.lookup)
     }
 
     var openInBrowserTitle: String {
@@ -73,15 +73,15 @@ extension LauncherModel {
 
     /// Opens a link of the user's: a web page in the role's browser, anything else through the system.
     func openLink(_ url: URL) {
-        if let message = Browsers.open(url, choice: settings.browserApp, installed: appLookup, opener: linkOpener) {
-            showHUD(message)
+        if let message = Browsers.open(url, choice: settings.browserApp, installed: resolvedApps.lookup, opener: linkOpener) {
+            panelHost.showHUD(message)
         }
     }
 
     /// Open With for a row that opens a web page, and Copy Address for a typed one. A quicklink to an app's own scheme gets neither.
     func linkActions(for item: RootItem) -> [ItemAction?] {
-        let host = ActionHost(showHUD: { [weak self] in self?.showHUD($0) }, dismiss: { [weak self] in
-            self?.hidePanel()
+        let host = ActionHost(showHUD: { [weak self] in self?.panelHost.showHUD($0) }, dismiss: { [weak self] in
+            self?.panelHost.hidePanel()
             self?.reset()
         })
         switch item {

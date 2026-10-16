@@ -59,9 +59,16 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Sign-ins waiting for the browser, keyed by extension name and state together.
     private let pending = Mutex<[String: Pending]>([:])
     private let notice: RaycastSignInNotice
+    /// How a missing browser is said. The resident sends it to the panel, which shows the HUD.
+    private let say = Mutex<@MainActor @Sendable (String) -> Void>({ ThawHUD.show(text: $0) })
 
     init(notice: RaycastSignInNotice = RaycastSignInNotice()) {
         self.notice = notice
+    }
+
+    /// Where the process that runs sign-ins shows what it has to say.
+    func say(through say: @escaping @MainActor @Sendable (String) -> Void) {
+        self.say.withLock { $0 = say }
     }
 
     /// Answers a request with a sign-in that is lent, when it is for one. Nil for any other request, which goes
@@ -108,7 +115,8 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// same extension replaces this one; cancelling the waiting task, the session stopping, or ten
     /// minutes passing fails it instead.
     func authorize(extensionName: String, url: URL, state: String) async throws -> String {
-        await MainActor.run { Browsers.openFromFloe(url) }
+        let say = say.withLock { $0 }
+        await MainActor.run { Browsers.openFromFloe(url, say: say) }
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 register(extensionName: extensionName, state: state) { result in

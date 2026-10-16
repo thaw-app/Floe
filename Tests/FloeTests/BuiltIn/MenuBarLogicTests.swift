@@ -56,39 +56,30 @@ struct MenuBarSearchRecentsTests {
         let id: String
     }
 
-    private let suiteName = "floe-tests-\(UUID().uuidString)"
     private let defaults: UserDefaults
     private let recents: MenuBarSearchRecents
 
     init() throws {
-        defaults = try #require(UserDefaults(suiteName: suiteName))
+        defaults = MemoryDefaults()
         recents = MenuBarSearchRecents(defaults: defaults)
     }
 
-    private func cleanUp() {
-        defaults.removePersistentDomain(forName: suiteName)
-    }
-
     @Test func startsEmpty() {
-        defer { cleanUp() }
         #expect(recents.identifiers.isEmpty)
     }
 
     @Test func theMostRecentComesFirstAndRepeatsMoveToTheFront() {
-        defer { cleanUp() }
         ["a", "b", "c", "a"].forEach(recents.record)
         #expect(recents.identifiers == ["a", "c", "b"])
     }
 
     @Test func keepsOnlyTheLastEight() {
-        defer { cleanUp() }
         (1 ... 12).map(String.init).forEach(recents.record)
         #expect(recents.identifiers == ["12", "11", "10", "9", "8", "7", "6", "5"])
         #expect(recents.identifiers.count == MenuBarSearchRecents.limit)
     }
 
     @Test func resolvesToLiveItemsInRecencyOrderSkippingOnesThatAreGone() {
-        defer { cleanUp() }
         ["gone", "tailscale", "flux"].forEach(recents.record)
         let live = [Item(id: "tailscale"), Item(id: "pandan"), Item(id: "flux")]
         #expect(recents.resolve(in: live).map(\.id) == ["flux", "tailscale"])

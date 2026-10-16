@@ -71,6 +71,12 @@ struct IconThumbnailTests {
         #expect(image.height == pixels)
     }
 
+    @Test func imageIOKeepsNoDecodedImage() {
+        let options = CGImageSource.thumbnailOptions(maxPixelSize: 64)
+        #expect(options[kCGImageSourceShouldCache] as? Bool == false)
+        #expect(options[kCGImageSourceShouldCacheImmediately] == nil, "it keeps each decoded image, 3 MB for a copied screenshot")
+    }
+
     @Test func anImageFileIsDownsampledUntilItsShorterSideFillsTheSquare() throws {
         try Self.withAssets { folder in
             let wide = folder.appendingPathComponent("wide.png")
@@ -145,9 +151,21 @@ struct IconThumbnailTests {
         for key in keys {
             cache.store(image, for: key)
         }
-        let kept = keys.filter { cache.image(for: $0) != nil }
-        #expect(kept.count <= 3)
-        #expect(!kept.isEmpty)
+        #expect(keys.filter { cache.image(for: $0) != nil } == Array(keys.suffix(3)), "the newest three are kept")
+    }
+
+    @Test func theIconUsedLongestAgoGoesFirst() {
+        let image = Self.solidImage(width: 48, height: 48)
+        let cache = IconThumbnailCache(budget: IconThumbnailCache.cost(of: image) * 2) { _ in image }
+        let first = Self.key(.file(path: "/first.png"))
+        let second = Self.key(.file(path: "/second.png"))
+        cache.store(image, for: first)
+        cache.store(image, for: second)
+        // Drawn again just now, so it outlasts the one drawn after it.
+        #expect(cache.image(for: first) != nil)
+        cache.store(image, for: Self.key(.file(path: "/third.png")))
+        #expect(cache.image(for: first) != nil)
+        #expect(cache.image(for: second) == nil)
     }
 
     @Test func aLoadMakesTheThumbnailOffTheMainThread() async {

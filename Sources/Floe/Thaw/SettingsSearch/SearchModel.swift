@@ -62,11 +62,11 @@ final class SearchModel {
         displayedGroups.reduce(0) { $0 + $1.entries.count }
     }
 
-    /// Rebuilds the index with the installed extensions' commands and preferences.
+    /// Replaces what is searched.
     ///
     /// Called when a search begins, not when a pane is shown, so switching panes never pays for it.
-    func setCommands(_ commands: [ExtensionCommand]) {
-        entries = SearchIndex.entries(commands: commands)
+    func setEntries(_ entries: [SearchEntry]) {
+        self.entries = entries
         updateDisplayedItems()
     }
 

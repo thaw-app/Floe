@@ -58,10 +58,10 @@ struct SetupFormModelTests {
     }
 
     @Test func theLauncherShowsTheFormAndTypingInItDoesNotRepublishTheLauncher() throws {
-        let settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-setup-form-tests-\(UUID().uuidString)")))
+        let settings = AppSettings(defaults: MemoryDefaults())
         let greet = command([Fixture.field("name", required: true)])
         let launcher = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [greet]), scopes: [], sources: [])
-        launcher.run(greet)
+        launcher.runner.run(greet)
         #expect(launcher.setup?.kind == .arguments)
         #expect(launcher.setupForm.values == ["name": ""])
         #expect(launcher.panelState.isRootSearch == false)
@@ -77,7 +77,7 @@ struct SetupFormModelTests {
 
         #expect(try launcher.handleKey(key(53)))
         #expect(launcher.setup == nil)
-        #expect(launcher.session == nil, "the command did not run")
+        #expect(launcher.runner.session == nil, "the command did not run")
     }
 
     private func notion(_ fields: [FieldSpec]) -> ExtensionCommand {
@@ -107,21 +107,21 @@ struct SetupFormModelTests {
     }
 
     @Test func aCommandThatAsksToSignInGetsAFormForItsTokenAndIsEnded() throws {
-        let settings = try AppSettings(defaults: #require(UserDefaults(suiteName: "floe-setup-form-tests-\(UUID().uuidString)")))
+        let settings = AppSettings(defaults: MemoryDefaults())
         let search = notion([Fixture.field("token", type: "password"), Fixture.field("open_in")])
         let launcher = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [search]), scopes: [], sources: [])
         let session = ExtensionSession(command: search, arguments: ["query": "notes"])
 
-        launcher.handle(["type": "signIn", "preference": "nothing-by-this-name", "provider": "Notion"], from: session)
+        launcher.runner.handle(["type": "signIn", "preference": "nothing-by-this-name", "provider": "Notion"], from: session)
         #expect(launcher.setup == nil, "a preference the command does not declare asks for nothing")
 
-        launcher.handle(["type": "signIn", "preference": "token", "provider": "Notion"], from: session)
+        launcher.runner.handle(["type": "signIn", "preference": "token", "provider": "Notion"], from: session)
         let setup = try #require(launcher.setup)
         #expect(setup.kind == .preferences)
         #expect(setup.fields.map(\.name) == ["token"])
         #expect(setup.provider == "Notion")
         #expect(setup.arguments?["query"] as? String == "notes")
-        #expect(launcher.session == nil)
+        #expect(launcher.runner.session == nil)
 
         #expect(try launcher.handleKey(key(36)), "Return with the token still empty")
         #expect(launcher.setupForm.error == "Fill in token.")

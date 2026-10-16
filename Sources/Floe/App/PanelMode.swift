@@ -15,7 +15,6 @@ enum PanelMode {
     /// Installs forwarding before creating the model, then runs until shutdown or parent EOF.
     static func run() -> Never {
         let channel = PanelChannel(input: .standardInput, output: .standardOutput)
-        ClipboardHistoryStore.remoteMutation = { channel.send($0) }
         UsageStore.shared.forwardUse = { channel.send(.used($0)) }
         UsageStore.shared.forwardQuery = { channel.send(.query($0)) }
         let app = NSApplication.shared
@@ -27,15 +26,32 @@ enum PanelMode {
     }
 }
 
+/// How long the closed launcher's process waits for the next open, which then draws in milliseconds
+/// instead of starting the process over.
+nonisolated enum PanelKeepAlive {
+    static let closed: TimeInterval = 180
+    /// Under memory pressure, and in the resident benchmark, the process goes as soon as it is idle.
+    static let brief: TimeInterval = 0.75
+
+    static func wait(underPressure: Bool, environment: [String: String] = ProcessInfo.processInfo.environment) -> TimeInterval {
+        underPressure || environment["FLOE_RESIDENT_BENCH"] != nil ? brief : closed
+    }
+}
+
 final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
-    let model = LauncherModel()
+    let model: LauncherModel
     let channel: PanelChannel
+    /// The resident's clipboard history, read again when it says it saved; changes are sent to it.
+    private let clipboard: ClipboardHistoryStore
     private let settings = AppSettings.shared
+    private lazy var onboarding = OnboardingWindowController(settings: settings, permissions: .shared)
     private var panel: LauncherPanel?
     private var keyMonitor: Any?
     private var appWatcher: AppFolderWatcher?
     private var timer: Timer?
     private var terminationWatch: DispatchSourceSignal?
+    private var pressureWatch: DispatchSourceMemoryPressure?
+    private var underPressure = false
     private var cancellables = Set<AnyCancellable>()
     private var sequence = 0
     private var lastActivity = Date()
@@ -45,6 +61,8 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
     /// Uses the inherited pipe channel; no public IPC endpoint is opened by the foreground.
     init(channel: PanelChannel) {
         self.channel = channel
+        clipboard = ClipboardHistoryStore(monitorsPasteboard: false, remote: { channel.send($0) })
+        model = LauncherModel(clipboard: clipboard)
     }
 
     /// Wires foreground-only services and state mirrors before announcing readiness.
@@ -52,14 +70,16 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         NSApp.setActivationPolicy(.accessory)
         NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings))
         Log.follow(settings).store(in: &cancellables)
-        model.hidePanel = { [weak self] in self?.hide() }
-        model.showPanel = { [weak self] in self?.show() }
-        model.showHUD = { ThawHUD.show(text: $0) }
-        model.openSettings = { [weak self] page in
-            self?.hide()
-            self?.channel.send(.openSettings(page?.id))
-        }
-        model.residentRequests = { [channel] in channel.send($0) }
+        model.panelHost = PanelHost(
+            hidePanel: { [weak self] in self?.hide() },
+            showPanel: { [weak self] in self?.show() },
+            showHUD: { ThawHUD.show(text: $0) },
+            openSettings: { [weak self] page in
+                self?.hide()
+                self?.channel.send(.openSettings(page?.id))
+            },
+            residentRequests: { [channel] in channel.send($0) }
+        )
         model.canAskAI = AskAI.availabilityCheck { AIAnswer.isAvailable }
         model.typing.window = 0.03
         // A shell suggestion's snapshot arrived: rows read again, so they are there without another key.
@@ -73,24 +93,26 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             self?.model.menuBarSearch.accessWasGranted()
             self?.model.refresh()
         }
-        settings.onSaved = { [channel] in
-            CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
-            channel.send(.settings(LinkMessage.Kind.settingsChanged.rawValue, ""))
+        SharedStores.announceSaves(settings: settings) { [channel] message in
+            // The defaults reach the disk before the resident reads them again.
+            if message.kind == .settingsChanged {
+                CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
+            }
+            channel.send(.settings(message.kind.rawValue, message.payload))
         }
-        SnippetStore.shared.onSaved = { [channel] in channel.send(.settings(LinkMessage.Kind.storeChanged.rawValue, LinkStore.snippets.rawValue)) }
-        QuicklinkStore.shared.onSaved = { [channel] in channel.send(.settings(LinkMessage.Kind.storeChanged.rawValue, LinkStore.quicklinks.rawValue)) }
-        PreferenceStore.onSaved = { [channel] in channel.send(.settings(LinkMessage.Kind.storeChanged.rawValue, LinkStore.preferences.rawValue)) }
-        appWatcher = AppFolderWatcher { [weak self] in self?.model.reloadApps() }
+        appWatcher = AppFolderWatcher { [weak self] in self?.model.catalog.reloadApps() }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.panel?.isKeyWindow == true else { return event }
             return self.model.handlePanelKey(event, layout: self.settings.launcherLayout) ? nil : event
         }
-        OnboardingWindowController.shared.openLauncher = { [weak self] in self?.show() }
+        onboarding.openLauncher = { [weak self] in self?.show() }
         channel.receive = { [weak self] in self?.receive($0) }
         channel.onClose = { [weak self] in self?.end() }
         channel.start()
         watchTermination()
+        watchMemoryPressure()
         model.startCatalogLoading()
+        IntentHandler.current = .serving(model) { [channel] in channel.send(.present($0)) }
         IncomingURLRouter.shared.forwardAppearance = { [channel] in channel.send(.settings(LinkMessage.Kind.forwardURL.rawValue, $0.absoluteString)) }
         IncomingURLRouter.shared.install(followsAppearance: false)
         timer = Timer.scheduledOnMain(withTimeInterval: 0.25, repeats: true) { [weak self] in self?.reportIdleIfDue() }
@@ -128,17 +150,15 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             }
         case .refresh: model.refresh()
         case .reload:
-            settings.reload()
-            SnippetStore.shared.reload()
-            QuicklinkStore.shared.reload()
-            model.reloadCommands()
-            model.reloadScripts()
+            SharedStores.reloadAll(settings: settings)
+            model.catalog.reloadCommands()
+            model.catalog.reloadScripts()
             model.refresh()
         case let .timers(timers):
-            model.runningTimers.mirror(timers)
+            model.features.timers.running.mirror(timers)
             model.refresh()
-        case .clipboardChanged:
-            ClipboardHistoryStore.shared.reloadMirror()
+        case let .clipboard(change):
+            clipboard.apply(change)
         default: break
         }
     }
@@ -155,7 +175,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             }
         case .hide: hide()
         case .onboarding:
-            if !OnboardingWindowController.shared.showIfNeeded() {
+            if !onboarding.showIfNeeded() {
                 show()
             }
         case let .hud(text): ThawHUD.show(text: text)
@@ -173,16 +193,16 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             }
         case let .command(id, data):
             PanelWork.perform { [model] in
-                await model.waitForCommands()
+                await model.catalog.waitForCommands()
                 guard let command = model.commands.first(where: { $0.id == id }) else { return }
                 let arguments = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-                model.run(command, arguments: arguments)
+                model.runner.run(command, arguments: arguments)
             }
         case let .script(id):
             PanelWork.perform { [model] in
-                await model.waitForScripts()
-                if let script = model.allScripts.first(where: { $0.id == id }) {
-                    model.run(script)
+                await model.catalog.waitForScripts()
+                if let script = model.catalog.allScripts.first(where: { $0.id == id }) {
+                    model.features.scripts.run(script)
                 }
             }
         default: break
@@ -236,10 +256,10 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
     /// Reports idle once per request only when no surface, modal interaction or finite work remains.
     private func reportIdleIfDue() {
         guard sequence > 0, !reportedIdle,
-              Date().timeIntervalSince(lastActivity) >= 0.75,
+              Date().timeIntervalSince(lastActivity) >= PanelKeepAlive.wait(underPressure: underPressure),
               !PanelWork.isBusy, !ModalGuard.isActive,
-              model.session == nil, model.setup == nil,
-              !OnboardingWindowController.shared.isOpen,
+              model.runner.session == nil, model.setup == nil,
+              !onboarding.isOpen,
               !NSApp.windows.contains(where: \.isVisible)
         else { return }
         reportedIdle = true
@@ -266,6 +286,14 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         terminationWatch = watch
     }
 
+    /// Once macOS asks for memory back, the closed launcher's process stops waiting for the next open.
+    private func watchMemoryPressure() {
+        let watch = DispatchSource.makeMemoryPressureSource(eventMask: [.warning, .critical], queue: .main)
+        watch.setEventHandler { [weak self] in self?.underPressure = true }
+        watch.resume()
+        pressureWatch = watch
+    }
+
     /// Saves pending settings and drains outgoing mutations before ending the disposable process.
     private func end() {
         guard !ending else { return }
@@ -274,7 +302,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         if settings.hasUnsavedChanges {
             settings.save()
         }
-        model.session?.forceStop()
+        model.runner.session?.forceStop()
         CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
         channel.drain { exit(0) }
     }

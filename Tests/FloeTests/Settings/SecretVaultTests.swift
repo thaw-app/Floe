@@ -18,7 +18,7 @@ struct SecretVaultTests {
     private let vault: SecretVault
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
         vault = SecretVault(keychain: keychain, defaults: scratch.defaults, isEntitled: { true })
     }
 

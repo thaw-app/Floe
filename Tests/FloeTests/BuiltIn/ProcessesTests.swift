@@ -103,31 +103,31 @@ struct ProcessesTests {
         #expect(scope.text(in: SearchContext(query: "kill thaw")) == "thaw")
         #expect(scope.text(in: SearchContext(query: "thaw")) == nil)
         #expect(scope.title == "Running Processes")
-        let keywords = RootSearch.standardScopes().map(\.keyword)
+        let keywords = RootSearch.standardScopes { [] }.map(\.keyword)
         #expect(keywords.contains("kill") && keywords.contains("port"))
     }
 
-    @Test func returnAsksAProcessToQuitAndTheActionForcesIt() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-process-tests-\(UUID().uuidString)"))
+    @Test func returnAsksAProcessToQuitAndTheActionForcesIt() {
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.receipts = ReceiptStore(file: FileManager.default.temporaryDirectory.appendingPathComponent("floe-receipts-\(UUID().uuidString).json"))
+        model.features.receipts.store = ReceiptStore(file: FileManager.default.temporaryDirectory.appendingPathComponent("floe-receipts-\(UUID().uuidString).json"))
         var ended: [String] = []
         var refuse = false
-        model.shell.endProcess = { process, force in
+        model.features.shell.environment.endProcess = { process, force in
             ended.append("\(process.pid) \(force ? "forced" : "asked")")
             return !refuse
         }
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         let item = RootItem.process(notch)
 
         #expect(model.primaryActionTitle(for: item) == "Quit")
         #expect(model.rootActions(for: item).map { $0?.title ?? "-" } == ["Quit", "Force Quit…", "-", "Show in Finder", "Copy Process ID"])
         model.activate(item)
-        model.shell.confirmsForceQuit = { _ in false }
+        model.features.shell.environment.confirmsForceQuit = { _ in false }
         model.rootActions(for: item)[1]?.run()
         #expect(ended == ["400 asked"], "a no to the question ends nothing")
-        model.shell.confirmsForceQuit = { _ in true }
+        model.features.shell.environment.confirmsForceQuit = { _ in true }
         model.rootActions(for: item)[1]?.run()
         refuse = true
         model.activate(item)

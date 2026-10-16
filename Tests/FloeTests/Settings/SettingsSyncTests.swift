@@ -29,7 +29,7 @@ final class SyncedFloe {
     private var journal: SyncJournal?
 
     init(cloud: MemorySyncCloud, folder: URL, name: String) throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
         settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         snippets = SnippetStore(file: folder.appendingPathComponent("\(name)-snippets.json"))
         quicklinks = QuicklinkStore(file: folder.appendingPathComponent("\(name)-quicklinks.json"))

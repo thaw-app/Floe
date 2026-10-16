@@ -18,7 +18,7 @@ struct ClipboardHistoryView: View {
     /// For the gear. Not observed: nothing here is drawn from it.
     let launcher: LauncherModel
     let focusToken: Int
-    @ObservedObject var history = ClipboardHistoryStore.shared
+    @ObservedObject var history: ClipboardHistoryStore
     @ObservedObject var settings = AppSettings.shared
 
     var body: some View {
@@ -37,7 +37,7 @@ struct ClipboardHistoryView: View {
             ThawEmptyState(
                 systemImage: "doc.on.clipboard",
                 title: "Clipboard history is off",
-                caption: "Turn on Save clipboard history in Settings to keep copies here."
+                caption: "Choose Floe for Clipboard in Settings → General to keep copies here."
             )
         } else {
             let entries = clipboard.filteredEntries()
@@ -91,27 +91,13 @@ struct ClipboardHistoryView: View {
     }
 
     private func row(_ entry: ClipboardEntry, index: Int) -> some View {
-        let selected = index == clipboard.selection
-        return HStack(spacing: 10) {
-            Image(systemName: entry.kind.symbol)
-                .foregroundStyle(.secondary)
-                .frame(width: 18)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(entry.title.isEmpty ? kindName(for: entry.kind) : entry.title)
-                    .lineLimit(1)
-                Text(rowSubtitle(for: entry))
-                    .font(ThawType.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            Spacer(minLength: 8)
-            if entry.pinned {
-                Image(systemName: "pin.fill").font(ThawType.caption).foregroundStyle(.secondary)
-                    .accessibilityLabel("Pinned")
-            }
-        }
-        .font(ThawType.body)
-        .modifier(RowBackground(selected: selected))
+        ClipboardRow(
+            entry: entry,
+            title: entry.title.isEmpty ? kindName(for: entry.kind) : entry.title,
+            subtitle: rowSubtitle(for: entry),
+            selected: index == clipboard.selection,
+            clipboard: clipboard
+        )
         .id(entry.id)
         .onTapGesture(count: 2) { clipboard.paste(entry) }
         .onTapGesture { clipboard.selection = index }
@@ -167,10 +153,10 @@ struct ClipboardHistoryView: View {
             OpenSettingsButton(model: launcher)
             Spacer(minLength: 0)
             if let entry = clipboard.selectedEntry {
-                ShortcutHintButton(title: entry.pinned ? String(localized: "Unpin", bundle: .floe, comment: "A button that takes a copy off the pinned list.") : String(localized: "Pin", bundle: .floe, comment: "A button that keeps a copy at the top of the list.")) { clipboard.togglePin(entry) } hint: {
+                ShortcutHintButton(title: ClipboardRow.pinTitle(for: entry)) { clipboard.togglePin(entry) } hint: {
                     KeyCapView(systemImage: "pin")
                 }
-                ShortcutHintButton(title: String(localized: "Delete", bundle: .floe, comment: "A button that removes a copy from the history.")) { clipboard.delete(entry) } hint: {
+                ShortcutHintButton(title: ClipboardRow.deleteTitle) { clipboard.delete(entry) } hint: {
                     KeyCapView(text: "⌫")
                 }
                 ShortcutHintButton(title: String(localized: "Copy", bundle: .floe, comment: "A button that copies the selected entry.")) { clipboard.copy(entry) } hint: {
@@ -262,4 +248,63 @@ struct ClipboardHistoryView: View {
         formatter.countStyle = .file
         return formatter
     }()
+}
+
+/// One copy. While the pointer is over it, Pin and Delete buttons take the place of its pin mark.
+private struct ClipboardRow: View {
+    let entry: ClipboardEntry
+    let title: String
+    let subtitle: String
+    let selected: Bool
+    let clipboard: ClipboardHistoryModel
+    @State private var isHovering = false
+
+    static func pinTitle(for entry: ClipboardEntry) -> String {
+        entry.pinned
+            ? String(localized: "Unpin", bundle: .floe, comment: "A button that takes a copy off the pinned list.")
+            : String(localized: "Pin", bundle: .floe, comment: "A button that keeps a copy at the top of the list.")
+    }
+
+    static let deleteTitle = String(localized: "Delete", bundle: .floe, comment: "A button that removes a copy from the history.")
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: entry.kind.symbol)
+                .foregroundStyle(.secondary)
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title).lineLimit(1)
+                Text(subtitle)
+                    .font(ThawType.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 8)
+            if isHovering {
+                button(Self.pinTitle(for: entry), symbol: entry.pinned ? "pin.slash" : "pin") { clipboard.togglePin(entry) }
+                button(Self.deleteTitle, symbol: "trash") { clipboard.delete(entry) }
+            } else if entry.pinned {
+                Image(systemName: "pin.fill").font(ThawType.caption).foregroundStyle(.secondary)
+                    .accessibilityLabel("Pinned")
+            }
+        }
+        .font(ThawType.body)
+        .modifier(RowBackground(selected: selected))
+        .modifier(PointerHover(isHovering: $isHovering))
+        .accessibilityAction(named: Self.pinTitle(for: entry)) { clipboard.togglePin(entry) }
+        .accessibilityAction(named: Self.deleteTitle) { clipboard.delete(entry) }
+    }
+
+    private func button(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(ThawType.caption)
+                .foregroundStyle(.secondary)
+                .frame(width: 22, height: 22)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(title)
+        .accessibilityLabel(title)
+    }
 }

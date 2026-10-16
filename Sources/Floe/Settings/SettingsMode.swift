@@ -31,8 +31,10 @@ enum SettingsExit {
 
 final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
     private let settings = AppSettings.shared
-    private let catalog = SettingsCatalog()
-    private lazy var window = SettingsWindowController(catalog: catalog)
+    private let catalog = CatalogStore()
+    private lazy var onboarding = OnboardingWindowController(settings: settings, permissions: .shared)
+    private lazy var stores = SettingsStores.live { [weak self] in self?.onboarding.showIfNeeded(replayRequested: true) }
+    private lazy var window = SettingsWindowController(catalog: catalog, stores: stores)
     private let launcherPid = getppid()
     private lazy var link = ProcessLink(role: .settings, gate: LinkGate(ownPid: getpid()) { [launcherPid] in launcherPid })
     private let startPage: SettingsPage?
@@ -69,10 +71,7 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
         link.handler = { [weak self] in self?.handle($0) }
         link.start()
 
-        settings.onSaved = { link.send(.settingsChanged) }
-        SnippetStore.shared.onSaved = { link.send(.storeChanged(.snippets)) }
-        QuicklinkStore.shared.onSaved = { link.send(.storeChanged(.quicklinks)) }
-        PreferenceStore.onSaved = { link.send(.storeChanged(.preferences)) }
+        SharedStores.announceSaves(settings: settings, send: link.send)
         settings.$isRecordingHotkey.removeDuplicates().dropFirst()
             .sink { link.send(.recording($0)) }
             .store(in: &cancellables)
@@ -86,22 +85,22 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
 
         // No updater here: Sparkle runs in the launcher, which is asked instead.
-        UpdatesManager.shared.sendToLauncher = { [launcherPid] request in
+        stores.updates.sendToLauncher = { [launcherPid] request in
             if request == .check, let launcher = NSRunningApplication(processIdentifier: launcherPid) {
                 // Sparkle's window belongs to the launcher, which may only come forward if this app lets it.
                 NSApp.yieldActivation(to: launcher)
             }
             link.send(LinkMessage(.updates, request.text))
         }
-        ExtensionStore.shared.onInstalled = { [weak self] in
+        stores.extensions.onInstalled = { [weak self] in
             self?.catalog.reloadCommands()
             link.send(.rescan(.commands))
         }
-        ExtensionStore.shared.$busy
+        stores.extensions.$busy
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.endIfDue() }
             .store(in: &cancellables)
-        OnboardingWindowController.shared.onClose = { [weak self] in self?.endIfDue() }
+        onboarding.onClose = { [weak self] in self?.endIfDue() }
         ReadingWindow.onClose = { [weak self] in self?.endIfDue() }
         NSAppleEventManager.shared().setEventHandler(
             self,
@@ -116,31 +115,23 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
         case .settingsChanged:
             settings.reload()
         case .storeChanged:
-            reload(message.store)
+            SharedStores.reload(message.store)
         case .showPage:
             window.show(page: SettingsPage(id: message.payload))
         case .updatesState:
             if let state = UpdatesState(text: message.payload) {
-                UpdatesManager.shared.show(state)
+                stores.updates.show(state)
             }
         case .thawStatus:
             if let status = ThawAppearanceFollower.Status(rawValue: message.payload) {
-                ThawAppearanceFollower.shared.mirror(status)
+                stores.appearance.mirror(status)
             }
         case .fileIndexState:
-            FileIndexStatus.shared.state = FileIndexService.State(text: message.payload)
+            stores.fileIndex.state = FileIndexService.State(text: message.payload)
         case .syncState:
-            SettingsSyncStatus.shared.status = SyncStatus(text: message.payload) ?? SyncStatus()
+            stores.sync.status = SyncStatus(text: message.payload) ?? SyncStatus()
         default:
             break
-        }
-    }
-
-    private func reload(_ store: LinkStore?) {
-        switch store {
-        case .snippets: SnippetStore.shared.reload()
-        case .quicklinks: QuicklinkStore.shared.reload()
-        case .preferences, nil: break
         }
     }
 
@@ -164,8 +155,8 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
     /// Ends the process once the window is closed, unless a window opened from it (the welcome,
     /// the release notes, the acknowledgements) is still up or an install it started is still going.
     private func endIfDue() {
-        let otherWindowOpen = OnboardingWindowController.shared.isOpen || ReadingWindow.isAnyOpen
-        let installing = !ExtensionStore.shared.busy.isEmpty
+        let otherWindowOpen = onboarding.isOpen || ReadingWindow.isAnyOpen
+        let installing = !stores.extensions.busy.isEmpty
         if SettingsExit.isDue(windowOpen: window.isOpen, otherWindowOpen: otherWindowOpen, installing: installing) {
             end()
         }
@@ -218,5 +209,26 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
               url.scheme?.lowercased() == "floe", url.host?.lowercased() == ThawAppearanceFollower.callbackHost
         else { return }
         link.send(LinkMessage(.forwardURL, text))
+    }
+}
+
+extension SettingsStores {
+    /// The stores of this process, with the way to open the welcome window again.
+    static func live(showWelcome: @escaping () -> Void = {}) -> SettingsStores {
+        SettingsStores(
+            settings: .shared,
+            usage: .shared,
+            receipts: .shared,
+            quicklinks: .shared,
+            snippets: .shared,
+            extensions: .shared,
+            extensionAccess: .shared,
+            permissions: .shared,
+            fileIndex: .shared,
+            sync: .shared,
+            appearance: .shared,
+            updates: .shared,
+            showWelcome: showWelcome
+        )
     }
 }

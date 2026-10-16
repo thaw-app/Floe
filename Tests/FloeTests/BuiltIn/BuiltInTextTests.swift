@@ -153,8 +153,8 @@ struct BuiltInTextTests {
 
     // MARK: Menu bar, tabs, scripts, selection
 
-    @Test func theActionsOfAMenuBarItemNameItsApp() throws {
-        let scratch = try #require(UserDefaults(suiteName: "floe-built-in-text-tests-\(UUID().uuidString)"))
+    @Test func theActionsOfAMenuBarItemNameItsApp() {
+        let scratch = MemoryDefaults()
         let model = MenuBarSearchModel(settings: AppSettings(defaults: scratch), recents: MenuBarSearchRecents(defaults: scratch))
         let extra = MenuBarExtra(
             id: "1", name: "Clock", ownerName: Self.awkward, ownerURL: URL(fileURLWithPath: "/Applications/Example.app"),

@@ -164,7 +164,6 @@ final class AppSettings: ObservableObject {
         var menuBarItemNames: [String: String]?
         var showInDock: Bool?
         var hasSeenOnboarding: Bool?
-        var launcherTint: LauncherTint?
         var launcherTintIsDynamic: Bool?
         var launcherTintLight: LauncherTint?
         var launcherTintDark: LauncherTint?
@@ -328,7 +327,7 @@ final class AppSettings: ObservableObject {
     /// How the launcher looks, taken in apart from the rest so neither list grows past reading.
     private func applyAppearance(_ stored: Stored) {
         // A tint saved before light and dark variants existed becomes the light one.
-        launcherTintLight = stored.launcherTintLight ?? stored.launcherTint ?? launcherTintLight
+        launcherTintLight = stored.launcherTintLight ?? launcherTintLight
         launcherTintDark = stored.launcherTintDark ?? launcherTintDark
         launcherTintIsDynamic = stored.launcherTintIsDynamic ?? launcherTintIsDynamic
         launcherBorder = stored.launcherBorder ?? launcherBorder

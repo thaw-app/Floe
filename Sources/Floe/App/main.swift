@@ -41,13 +41,14 @@ extension NSView {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    /// Read by the App Intents (see Thaw/FloeIntents.swift), which reach the running model through the delegate.
     let model = LauncherModel(isResident: true)
+    /// The clipboard history, recorded here from launch and mirrored by the panel process.
+    private lazy var clipboard = ClipboardHistoryStore()
     private let hotkeys = HotkeyRegistry()
     private let settings = AppSettings.shared
     /// Settings is a process of its own; this starts it and keeps the two in step.
-    private lazy var settingsLink = LauncherSettingsLink(model: model, hotkeys: hotkeys)
-    private lazy var panelLink = LauncherPanelLink(model: model, settingsLink: settingsLink)
+    private lazy var settingsLink = LauncherSettingsLink(model: model, clipboard: clipboard, hotkeys: hotkeys)
+    private lazy var panelLink = LauncherPanelLink(model: model, clipboard: clipboard, settingsLink: settingsLink)
     private var cancellables = Set<AnyCancellable>()
     private var statusItem: NSStatusItem?
     private var showItem: NSMenuItem?
@@ -83,12 +84,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
         NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings), includesWindowMenu: false)
 
-        appWatcher = AppFolderWatcher { [weak self] in self?.model.reloadApps() }
+        appWatcher = AppFolderWatcher { [weak self] in self?.model.catalog.reloadApps() }
         // Without duplicates: a reload of the settings saved by the settings process sends every value again.
-        settings.$toggleHotkey.removeDuplicates().combineLatest(settings.$commandHotkeys.removeDuplicates(), model.$allCommands, model.$apps)
+        settings.$toggleHotkey.removeDuplicates().combineLatest(settings.$commandHotkeys.removeDuplicates(), model.catalog.$allCommands, model.catalog.$apps)
             .sink { [weak self] _, _, _, _ in DispatchQueue.main.async { self?.registerHotkeys() } }
             .store(in: &cancellables)
-        model.$allScripts
+        model.catalog.$allScripts
             .sink { [weak self] _ in DispatchQueue.main.async { self?.registerHotkeys() } }
             .store(in: &cancellables)
         // The switch is in the settings process, which stays in front: the launcher only changes its own policy.
@@ -96,17 +97,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { NSApp.setActivationPolicy($0 ? .regular : .accessory) }
             .store(in: &cancellables)
         settings.$includeRaycastExtensions.removeDuplicates().dropFirst()
-            .sink { [weak self] _ in DispatchQueue.main.async { self?.model.reloadCommands() } }
+            .sink { [weak self] _ in DispatchQueue.main.async { self?.model.catalog.reloadCommands() } }
             .store(in: &cancellables)
         // Shortcuts and Spotlight list the commands by name, so they hear about every rescan.
-        model.$allCommands
+        model.catalog.$allCommands
             .sink { _ in DispatchQueue.main.async { FloeShortcuts.updateAppShortcutParameters() } }
             .store(in: &cancellables)
         let menuBarCommands = MenuBarCommands(model: model)
         let backgroundScheduler = BackgroundScheduler(model: model, menuBarCommands: menuBarCommands)
         self.menuBarCommands = menuBarCommands
         self.backgroundScheduler = backgroundScheduler
-        model.$allCommands
+        model.catalog.$allCommands
             .combineLatest(settings.$disabledExtensions.removeDuplicates(), settings.$disabledCommands.combineLatest(settings.$enabledCommands).removeDuplicates(by: ==), settings.$menuBarCommands.removeDuplicates())
             .sink { [weak self] _, _, _, _ in
                 // After the publishers' willSet, so enabledCommands reads the new values.
@@ -124,8 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Takes floe:// links: Thaw's answer about its appearance, and the browser's return once sign-in is back.
         IncomingURLRouter.shared.install()
         TextExpander.shared.start()
-        // Made here so copies are recorded from launch, not from the first time the history is looked at.
-        _ = ClipboardHistoryStore.shared
+        _ = clipboard
         settingsLink.start()
 
         // Welcome and permissions are foreground UI too; none is constructed in the resident.
@@ -147,15 +147,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             _ = hotkeys.register(toggleHotkey) { [weak self] in self?.toggle() }
         }
         showItem?.title = settings.toggleHotkey.map { String(localized: "Show Floe (\($0.displayValue))", bundle: .floe, comment: "A menu item. The placeholder is a keyboard shortcut such as ⌥Space.") } ?? String(localized: "Show Floe", bundle: .floe)
-        for command in model.allCommands {
+        for command in model.catalog.allCommands {
             guard let keyCombination = settings.commandHotkeys[command.id] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in
                 guard let self, settings.isEnabled(command) else { return }
                 UsageStore.shared.recordUse(of: RootItem.command(command).id)
-                model.run(command)
+                model.runner.run(command)
             }
         }
-        for script in model.allScripts {
+        for script in model.catalog.allScripts {
             guard let keyCombination = settings.commandHotkeys[script.id] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in
                 self?.panelLink.process.request(.script(script.id))
@@ -164,7 +164,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for (item, keyCombination) in LauncherModel.assigned(settings.commandHotkeys) {
             _ = hotkeys.register(keyCombination) { [weak self] in self?.model.runFromHotkey(item) }
         }
-        for app in model.apps {
+        for app in model.catalog.apps {
             guard let key = RootItem.app(app).settingsKey, let keyCombination = settings.commandHotkeys[key] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in self?.model.toggleApp(app) }
         }
@@ -192,12 +192,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Flushes resident state and stops owned processes before quitting or ending a benchmark.
     func shutDown() {
-        model.session?.forceStop()
+        model.runner.session?.forceStop()
         menuBarCommands?.stopAll()
         backgroundScheduler?.stopAll()
         panelLink.process.terminate()
         settingsLink.terminate()
-        ClipboardHistoryStore.flushShared()
+        clipboard.flush()
         UsageStore.shared.flush()
     }
 
@@ -301,11 +301,11 @@ if options.benchSearch {
 // Catches slow page switches.
 if options.benchSettings {
     _ = NSApplication.shared
-    let catalog = SettingsCatalog(snapshot: .scanningNow(includeRaycast: AppSettings.shared.includeRaycastExtensions))
+    let catalog = CatalogStore(snapshot: .scanningNow(includeRaycast: AppSettings.shared.includeRaycastExtensions))
     let selection = SettingsSelection()
     let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 820, height: 560), styleMask: [.titled], backing: .buffered, defer: false)
     let search = SearchModel()
-    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, settings: .shared, selection: selection, search: search))
+    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search))
     window.orderFrontRegardless()
     let pages: [(String, SettingsPage)] = [("general", .general), ("applications", .applications), ("privacy", .privacy), ("about", .about), ("extension", .extensionPage("kill-process"))]
     for (name, page) in pages {
@@ -321,15 +321,15 @@ if options.benchSettings {
         }
     }
     runSettingsSearchBench(search: search, window: window)
-    // General's AI section sits below the fold, so each of its states is drawn on its own, on scratch settings.
-    if let directory = ProcessInfo.processInfo.environment["FLOE_BENCH_DUMP"], let scratch = UserDefaults(suiteName: "floe.bench.\(UUID().uuidString)") {
+    // General's AI section sits below the fold, so each of its states is drawn on its own, on scratch settings that are never saved.
+    if let directory = ProcessInfo.processInfo.environment["FLOE_BENCH_DUMP"], let scratch = UserDefaults(suiteName: "floe.bench.ai") {
         // Name, source, the API's model and key, the tool chosen by name, and the API's service.
         let states: [(String, AISource, String, String?, AITool?, AIService)] = [
             ("ai-tools", .tools, "", nil, nil, .openAI), ("ai-tool-model", .tools, "", nil, .opencode, .openAI),
             ("ai-api", .api, "small", "key-123", nil, .openAI), ("ai-api-incomplete", .api, "", nil, nil, .openAI), ("ai-api-zai", .api, "", nil, nil, .zai),
         ]
         for (name, source, aiModel, key, tool, service) in states {
-            let settings = AppSettings(defaults: scratch)
+            let settings = AppSettings(defaults: scratch, savesAfterEdits: false)
             settings.aiSource = source
             settings.aiModel = aiModel
             settings.aiTool = tool

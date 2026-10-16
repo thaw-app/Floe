@@ -93,7 +93,6 @@ enum SettingsSync {
         "showInDock": "how the app sits on this Mac",
         "hasSeenOnboarding": "the welcome is shown once on each Mac",
         "diagnosticLogging": "a log file on this Mac",
-        "launcherTint": "read once from an older version's settings and never saved",
         "syncsWithICloud": "the sync switch itself, so each Mac joins by choice",
         "syncsExtensionSettings": "whether this Mac shares its extensions' settings, chosen on each Mac",
     ]

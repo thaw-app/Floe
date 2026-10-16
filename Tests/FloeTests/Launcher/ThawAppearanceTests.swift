@@ -355,7 +355,7 @@ struct ThawAppearanceFollowerTests {
     private let follower: ThawAppearanceFollower
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
         settings = AppSettings(defaults: scratch.defaults)
         settings.followsThawAppearance = true
         follower = ThawAppearanceFollower(settings: settings, defaults: scratch.defaults, environment: thaw.environment)
@@ -494,6 +494,40 @@ struct ThawAppearanceFollowerTests {
         #expect(settings.thawMirror(for: .dark) == nil)
     }
 
+    @Test func aSolidTintOnLiquidGlassWashesTheGlass() {
+        settings.followsThawAppearance = false
+        settings.launcherGlass = LauncherGlass(style: .liquid)
+        settings.launcherTintLight = LauncherTint(kind: .solid, opacity: 0.4)
+        let look = settings.ownLauncherLook(for: .light)
+        #expect(look.glass.tintColor(for: .liquid)?.alphaComponent == 0.4)
+        #expect(look.tint.kind == .none)
+    }
+
+    @Test(arguments: [
+        (LauncherGlassStyle.liquid, LauncherTintKind.gradient),
+        (LauncherGlassStyle.regular, LauncherTintKind.solid),
+        (LauncherGlassStyle.clear, LauncherTintKind.solid),
+    ])
+    func otherTintsAreDrawnOverTheGlass(style: LauncherGlassStyle, kind: LauncherTintKind) {
+        settings.followsThawAppearance = false
+        settings.launcherGlass = LauncherGlass(style: style, isColored: true)
+        settings.launcherTintLight = LauncherTint(kind: kind)
+        let look = settings.ownLauncherLook(for: .light)
+        #expect(look.glass.isColored == false, "a wash saved by an earlier version is not drawn")
+        #expect(look.tint.kind == kind)
+    }
+
+    @Test func thawsTintReplacesTheWashOnTheLaunchersOwnGlass() throws {
+        settings.launcherGlass = LauncherGlass(style: .liquid)
+        settings.launcherTintLight = LauncherTint(kind: .solid)
+        settings.launcherTintDark = LauncherTint(kind: .solid)
+        follower.refresh()
+        try follower.receive(thaw.answer("request-1"))
+        let look = settings.launcherLook(for: .dark)
+        #expect(look.glass.isColored == false)
+        #expect(look.tint.kind == .solid)
+    }
+
     @Test func theLastAnswersComeBackAfterARelaunch() throws {
         follower.refresh()
         try follower.receive(thaw.answer("request-1"))
@@ -562,7 +596,7 @@ struct ThawAppearanceSettingTests {
     private let scratch: ScratchDefaults
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     @Test func followingThawIsOffUntilItIsChosen() {

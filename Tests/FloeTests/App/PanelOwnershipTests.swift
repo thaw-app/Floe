@@ -49,7 +49,7 @@ struct PanelOwnershipTests {
         let file = directory.appendingPathComponent(ClipboardFiles.historyName)
         let saved = try JSONEncoder().encode([entry])
         try saved.write(to: file)
-        store.reloadMirror()
+        store.apply(.reload)
         store.flush()
         store.togglePin(entry)
         store.delete(entry)
@@ -59,19 +59,19 @@ struct PanelOwnershipTests {
         #expect(store.entries.map(\.id) == [entry.id], "only the resident's snapshot changes the mirror")
         #expect(try Data(contentsOf: file) == saved)
         try Data("[]".utf8).write(to: file)
-        store.reloadMirror()
+        store.apply(.reload)
         store.flush()
         #expect(store.entries.isEmpty)
     }
 
     /// Hotkey routing must leave the resident's search state and results uninitialized.
     @Test func residentHotkeysForwardInsteadOfBuildingForegroundState() throws {
-        let scratch = try ScratchDefaults()
+        let scratch = ScratchDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: scratch.defaults, savesAfterEdits: false), usage: UsageStore(defaults: scratch.defaults), snapshot: CatalogSnapshot(apps: [], commands: []), isResident: true)
         var requests: [PanelRequest] = []
         var localShows = 0
-        model.presentInPanelProcess = { requests.append($0) }
-        model.showPanel = { localShows += 1 }
+        model.panelHost.presentInPanelProcess = { requests.append($0) }
+        model.panelHost.showPanel = { localShows += 1 }
         model.runFromHotkey(.emojiSearch)
         model.openMenuBarSearch()
         #expect(try requests == [.builtIn(#require(RootItem.emojiSearch.settingsKey)), .builtIn(#require(RootItem.menuBarSearch.settingsKey))])

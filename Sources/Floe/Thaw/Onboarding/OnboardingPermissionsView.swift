@@ -25,11 +25,11 @@ struct ThawPermissionsView: View {
     @State private var appeared = false
 
     /// - Parameters:
-    ///   - permissions: Defaults to the app's shared permissions.
+    ///   - permissions: What is asked for, and what has been granted.
     ///   - finishTitle: The button's title once every permission is granted.
     ///   - onContinue: Called once the user has finished with the step.
-    init(permissions: AppPermissions? = nil, finishTitle: String, onContinue: @escaping () -> Void) {
-        self.permissions = permissions ?? .shared
+    init(permissions: AppPermissions, finishTitle: String, onContinue: @escaping () -> Void) {
+        self.permissions = permissions
         self.finishTitle = finishTitle
         self.onContinue = onContinue
     }

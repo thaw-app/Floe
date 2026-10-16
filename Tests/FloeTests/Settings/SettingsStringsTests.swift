@@ -48,17 +48,18 @@ struct SettingsStringsTests {
 
     @Test func theIdsAreTheOnesTheWindowKnows() {
         #expect(SearchIndex.staticEntries.map(\.id) == [
-            "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.quicklinks", "pane.snippets", "pane.extensionStore", "pane.about",
+            "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.quicklinks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
             "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.separatesSearchField", "appearance.glassEffect",
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
             "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
-            "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.popToRootDelay", "general.emojiSkinTone", "general.focusShortcut", "general.runsShellCommands", "general.suggestsShellCommands", "general.recognizesCommands",
-            "general.checkForUpdates",
-            "general.diagnosticLogging", "general.menuBarSearchHotkey", "general.builtInHotkeys", "general.menuBarSearchAlias", "general.thawSupport", "general.menuBarCommands",
-            "general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp",
-            "general.clipboardHistory", "general.clearClipboardHistory", "general.syncsWithICloud", "general.syncsExtensionSettings", "general.syncsPasswords", "general.transferSettings", "general.includeRaycastExtensions", "general.extensionsFolder", "general.runtime",
-            "general.scriptsFolder", "general.aiSource", "general.aiTool", "general.aiAddress", "general.aiModel", "general.aiKey",
+            "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.checkForUpdates", "general.popToRootDelay",
+            "general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp", "general.clearClipboardHistory",
+            "general.aiSource", "general.aiTool", "general.aiAddress", "general.aiModel", "general.aiKey",
+            "general.syncsWithICloud", "general.syncsExtensionSettings", "general.syncsPasswords", "general.transferSettings", "general.diagnosticLogging",
+            "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.thawSupport",
+            "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
+            "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",
             "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol", "quicklinks.fallback",
             "quicklinks.fallbacks",
         ])
@@ -78,9 +79,9 @@ struct SettingsStringsTests {
         #expect(found("autostart") == ["general.launchAtLogin"], "a keyword finds it too")
         // The section's name finds the entries whose own text carries it; the section is shown, not matched.
         let underMenuBarItems = found("Menu Bar Items")
-        #expect(underMenuBarItems == ["general.menuBarSearchHotkey", "general.thawSupport"])
+        #expect(underMenuBarItems == ["commands.menuBarSearchHotkey", "commands.thawSupport"])
         for id in underMenuBarItems {
-            #expect(try #require(SearchIndex.staticEntries.first { $0.id == id }).section == "Menu Bar Items")
+            #expect(try #require(SearchIndex.staticEntries.first { $0.id == id }).section == "Built-in Commands")
         }
         #expect(found("tint") == ["appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "pane.appearance"], "the ranking is the one it was")
     }
@@ -128,8 +129,6 @@ struct SettingsStringsTests {
     }
 
     @Test func aNameGoesIntoItsSentence() {
-        #expect(ClipboardApps.settingsNotice(for: .unavailable(app: "Clippy", message: "")) == "Clipboard history is handled by Clippy. Floe saves no copies.")
-        #expect(ClipboardApps.settingsNotice(for: .unavailable(app: nil, message: "")) == "Clipboard history is handled by another app. Floe saves no copies.")
         #expect(AppRole.editor.defaultTitle(appName: "Zed") == "Default for Text Files (Zed)")
         #expect(AppRole.terminal.defaultTitle(appName: nil) == "Terminal")
         #expect(NoteAction.new.title(text: "buy milk") == "New Note “buy milk”")

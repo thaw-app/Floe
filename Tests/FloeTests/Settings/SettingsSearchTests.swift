@@ -132,6 +132,7 @@ struct SearchIndexTests {
             #expect(!entry.title.isEmpty)
             switch entry.pane {
             case .general: #expect(entry.paneLabel == .general)
+            case .commands: #expect(entry.paneLabel == .commands)
             case .applications: #expect(entry.paneLabel == .applications)
             case .appearance: #expect(entry.paneLabel == .appearance)
             case .quicklinks: #expect(entry.paneLabel == .quicklinks)
@@ -144,7 +145,7 @@ struct SearchIndexTests {
         }
     }
 
-    @Test(arguments: [SettingsPage.general, .applications, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about])
+    @Test(arguments: [SettingsPage.general, .commands, .applications, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about])
     func everyPaneOfFloeCanBeFoundByName(pane: SettingsPage) {
         #expect(SearchIndex.paneEntries.contains { $0.pane == pane })
     }
@@ -228,13 +229,13 @@ struct SearchModelTests {
         ("dock", "general.showInDock"),
         ("pop to root", "general.popToRootDelay"),
         ("return to root", "general.popToRootDelay"),
-        ("menu bar", "general.menuBarSearchHotkey"),
+        ("menu bar", "commands.menuBarSearchHotkey"),
         ("permissions", "privacy.permissions"),
         ("accessibility", "privacy.accessibility"),
         ("check for updates", "general.checkForUpdates"),
-        ("raycast", "general.includeRaycastExtensions"),
-        ("extensions folder", "general.extensionsFolder"),
-        ("bun", "general.runtime"),
+        ("raycast", "commands.includeRaycastExtensions"),
+        ("extensions folder", "commands.extensionsFolder"),
+        ("bun", "commands.runtime"),
         ("applications", "pane.applications"),
         ("about", "pane.about"),
         ("credits", "pane.about"),
@@ -293,7 +294,7 @@ struct SearchModelTests {
         model.searchText = "convert units"
         #expect(model.displayedGroups.isEmpty)
         // Setting the commands refreshes the results of the query already typed.
-        model.setCommands(SearchFixture.commands)
+        model.setEntries(SearchIndex.entries(commands: SearchFixture.commands))
         let group = try #require(model.displayedGroups.first)
         #expect(group.pane == .extensionPage("zeta-tools"))
         #expect(group.label.title == "Zeta Tools")
@@ -310,22 +311,22 @@ struct SearchModelTests {
     ])
     func extensionsCommandsAndPreferencesAreFoundByTitle(query: String, id: String) {
         let model = SearchModel()
-        model.setCommands(SearchFixture.commands)
+        model.setEntries(SearchIndex.entries(commands: SearchFixture.commands))
         model.searchText = query
         #expect(model.displayedGroups.first?.entries.first?.id == id)
     }
 
     @Test func removedExtensionsLeaveTheIndex() {
         let model = SearchModel()
-        model.setCommands(SearchFixture.commands)
-        model.setCommands([])
+        model.setEntries(SearchIndex.entries(commands: SearchFixture.commands))
+        model.setEntries(SearchIndex.entries(commands: []))
         model.searchText = "convert units"
         #expect(model.displayedGroups.isEmpty)
     }
 
     @Test func resultsStopAtTheLimit() {
         let model = SearchModel()
-        model.setCommands(SearchFixture.manyCommands(SearchModel.resultLimit + 20))
+        model.setEntries(SearchIndex.entries(commands: SearchFixture.manyCommands(SearchModel.resultLimit + 20)))
         model.searchText = "widget"
         #expect(model.resultCount == SearchModel.resultLimit)
     }
@@ -340,7 +341,7 @@ struct SettingsSearchNavigationTests {
     @Test func choosingAResultOpensItsPaneAndEndsTheSearch() throws {
         let selection = SettingsSelection()
         let search = SearchModel()
-        search.setCommands(SearchFixture.commands)
+        search.setEntries(SearchIndex.entries(commands: SearchFixture.commands))
         search.searchText = "timer"
         try SettingsSearchNavigation.selectSearchResult(commandEntry(), selection: selection, search: search)
         #expect(selection.page == .extensionPage("zeta-tools"))

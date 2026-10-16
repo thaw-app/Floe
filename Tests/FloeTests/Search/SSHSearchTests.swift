@@ -47,7 +47,7 @@ struct SSHSearchTests {
     private let bastion = SSHHost(alias: "bastion", user: "ops")
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
     }
 
     private var hosts: [SSHHost] {
@@ -70,7 +70,7 @@ struct SSHSearchTests {
         let settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         let snapshot = CatalogSnapshot(apps: apps, commands: [], sshHosts: hosts)
         let model = LauncherModel(scanner: scanner ?? HostScanner(hosts), settings: settings, usage: UsageStore(defaults: scratch.defaults), snapshot: snapshot, sources: [])
-        model.appLookup = AppLookup(
+        model.resolvedApps.lookup = AppLookup(
             url: { $0 == AppRole.systemTerminal ? Fake.terminal : nil },
             plainTextApp: { nil },
             exists: { _ in false },
@@ -144,8 +144,8 @@ struct SSHSearchTests {
         let contribution = SSHHostSearchProvider().contribution(for: context("web", hosts: []))
         #expect(contribution.ranked.isEmpty && contribution.searchOnly.isEmpty && contribution.pinned.isEmpty)
         #expect(contribution.sectioned.isEmpty && contribution.appended.isEmpty)
-        #expect(RootSearch.scope(in: context("ssh web", hosts: []), scopes: RootSearch.standardScopes()) == nil, "the word is not a scope then")
-        #expect(RootSearch.scope(in: context("ssh ", hosts: []), scopes: RootSearch.standardScopes()) == nil)
+        #expect(RootSearch.scope(in: context("ssh web", hosts: []), scopes: RootSearch.standardScopes { [] }) == nil, "the word is not a scope then")
+        #expect(RootSearch.scope(in: context("ssh ", hosts: []), scopes: RootSearch.standardScopes { [] }) == nil)
     }
 
     @Test func eachRowCarriesTheTerminalItWouldOpenIn() {
@@ -166,7 +166,7 @@ struct SSHSearchTests {
     @Test func theKeywordAndSomeTextShowOnlyTheHostsThatMatch() throws {
         let webex = AppEntry(name: "Webex", url: URL(fileURLWithPath: "/Fake/Applications/Webex.app"))
         let context = context("ssh web") { $0.apps = [webex] }
-        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()))
+        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }))
         #expect(match.scope.keyword == "ssh")
         #expect(match.scope.title == "SSH Hosts")
         #expect(match.scope.emptyTitle == "No SSH hosts match")
@@ -185,18 +185,18 @@ struct SSHSearchTests {
 
     @Test func theKeywordAndASpaceListEveryHostInTheConfigurationsOrder() throws {
         let context = context("SSH ")
-        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes()))
+        let match = try #require(RootSearch.scope(in: context, scopes: RootSearch.standardScopes { [] }))
         #expect(match.text.isEmpty)
         #expect(match.scope.results(for: match.text, context: context).map(\.id) == hosts.map(\.id))
     }
 
     @Test func theKeywordAloneIsAnOrdinarySearch() {
-        #expect(RootSearch.scope(in: context("ssh"), scopes: RootSearch.standardScopes()) == nil)
-        #expect(RootSearch.scope(in: context("sshfs mount"), scopes: RootSearch.standardScopes()) == nil)
+        #expect(RootSearch.scope(in: context("ssh"), scopes: RootSearch.standardScopes { [] }) == nil)
+        #expect(RootSearch.scope(in: context("sshfs mount"), scopes: RootSearch.standardScopes { [] }) == nil)
     }
 
     @Test func theOtherScopesStillNeedSomeText() {
-        let scopes = RootSearch.standardScopes()
+        let scopes = RootSearch.standardScopes { [] }
         #expect(RootSearch.scope(in: context("files "), scopes: scopes) == nil)
         #expect(RootSearch.scope(in: context("clipboard "), scopes: scopes) == nil)
         #expect(RootSearch.scope(in: context("clipboard meeting"), scopes: scopes)?.scope.keyword == "clipboard")
@@ -247,8 +247,8 @@ struct SSHSearchTests {
         let model = makeModel(hosts: hosts)
         let (opened, continuation) = AsyncStream.makeStream(of: Handoff.self)
         var hides = 0
-        model.hidePanel = { hides += 1 }
-        model.sshConnector = SSHConnector(
+        model.panelHost.hidePanel = { hides += 1 }
+        model.features.system.sshConnector = SSHConnector(
             bundleIdentifier: { _ in nil },
             takesSSHLinks: { $0 == Fake.terminal },
             systemTerminal: { nil },
@@ -274,10 +274,10 @@ struct SSHSearchTests {
         model.query = "bast"
         #expect(!ids(model.results).contains(bastion.id))
         await scanner.replace(with: [web, bastion])
-        await model.reloadSSHHosts().value
+        await model.catalog.reloadSSHHosts().value
         #expect(model.results.first?.id == bastion.id)
         await scanner.replace(with: [])
-        await model.reloadSSHHosts().value
+        await model.catalog.reloadSSHHosts().value
         #expect(!ids(model.results).contains(bastion.id), "a host taken out of the configuration is gone")
     }
 }

@@ -77,10 +77,10 @@ struct TranslateTests {
         let missing = try #require(Translate.row(for: .notDownloaded(from: Self.spanish, to: Self.german), locale: englishLocale))
         #expect(missing.text == "Spanish to German is not downloaded")
         #expect(missing.link == Translate.settingsLink)
-        #expect(LauncherModel.laterTitle(for: .answer(missing)) == "Open System Settings")
+        #expect(FoundRows().returnTitle(for: .answer(missing)) == "Open System Settings")
         var elsewhere = missing
         elsewhere.linkTitle = nil
-        #expect(LauncherModel.laterTitle(for: .answer(elsewhere)) == "Open", "a link with no title of its own is just opened")
+        #expect(FoundRows().returnTitle(for: .answer(elsewhere)) == "Open", "a link with no title of its own is just opened")
         #expect(missing.kind == "Apple Translation")
 
         #expect(Translate.row(for: .alreadyIn(Self.english), locale: englishLocale)?.text == "This is already English")
@@ -105,10 +105,10 @@ struct TranslateTests {
         _ = try await rows("")
         #expect(asked.all.map { $0.split(separator: ": ").last.map(String.init) } == ["hola mundo", "del portapapeles"])
         let missing = try #require(try await rows("to german hola").first)
-        #expect(LauncherModel.laterTitle(for: missing) == "Open System Settings")
+        #expect(FoundRows().returnTitle(for: missing) == "Open System Settings")
         #expect(missing.isScopeResult)
         let done = try #require(try await rows("hola").first)
-        #expect(LauncherModel.laterTitle(for: done) == "Copy to Clipboard")
+        #expect(FoundRows().returnTitle(for: done) == "Copy to Clipboard")
         #expect(done.kind == "Apple Translation")
     }
 

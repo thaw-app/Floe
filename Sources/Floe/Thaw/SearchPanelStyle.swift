@@ -22,6 +22,8 @@ struct SearchQueryField<Accessory: View>: View {
     @Binding var text: String
     let focusToken: Int
     var isLoading = false
+    /// Outlines the field in red: Return found nothing to open.
+    var isRefused = false
     @ViewBuilder var accessory: Accessory
     @FocusState private var isFocused: Bool
     @Environment(\.searchFieldShape) private var fieldShape
@@ -34,10 +36,20 @@ struct SearchQueryField<Accessory: View>: View {
                 row
                     .padding(.horizontal, ThawSpacing.inset + 14)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .overlay {
+                        if isRefused, let pieceOutline {
+                            pieceOutline.strokeBorder(Color(nsColor: .systemRed), lineWidth: 1.5)
+                        }
+                    }
             } else {
                 row
                     .padding(EdgeInsets(top: 11, leading: 14, bottom: 11, trailing: 14))
                     .thawGlass(.field(isFocused: isFocused), in: fieldShape.outline)
+                    .overlay {
+                        if isRefused {
+                            fieldShape.outline.strokeBorder(Color(nsColor: .systemRed), lineWidth: 1.5)
+                        }
+                    }
                     .padding(.horizontal, ThawSpacing.inset)
                     .padding(.top, ThawSpacing.inset)
                     .padding(.bottom, ThawSpacing.row)
@@ -137,7 +149,7 @@ struct SearchRowBackground: ViewModifier {
             }
             // Under Differentiate Without Color the accent wash alone is not a mark.
             .thawSelectionCue(isSelected: selected)
-            .onHover { isHovering = $0 }
+            .modifier(PointerHover(isHovering: $isHovering))
     }
 }
 

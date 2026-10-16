@@ -135,7 +135,7 @@ struct LauncherCatalogTests {
     }
 
     private func makeSettings() -> AppSettings {
-        AppSettings(defaults: UserDefaults(suiteName: "floe-catalog-tests-\(UUID().uuidString)")!)
+        AppSettings(defaults: MemoryDefaults())
     }
 
     // MARK: Construction
@@ -151,18 +151,18 @@ struct LauncherCatalogTests {
                     + SystemCommand.allCases.map { "system:\($0.rawValue)" }).sorted(),
             "the built-ins are there before any catalog arrives"
         )
-        #expect(model.isLoadingCatalog, "without a snapshot the first load is still pending")
+        #expect(model.catalog.isLoading, "without a snapshot the first load is still pending")
     }
 
     @Test func aSnapshotWorksImmediatelyAndStartsNoScans() async {
         let scanner = ControlledScanner(apps: [], commands: [])
         let model = LauncherModel(scanner: scanner, settings: makeSettings(), snapshot: CatalogSnapshot(apps: [safari], commands: [planets]))
         #expect(scanner.startedScans.value == 0)
-        #expect(model.isLoadingCatalog == false, "readiness starts complete with a snapshot")
-        #expect(model.allCommands.map(\.id) == [planets.id])
+        #expect(model.catalog.isLoading == false, "readiness starts complete with a snapshot")
+        #expect(model.catalog.allCommands.map(\.id) == [planets.id])
         model.query = "planets"
         #expect(model.results.first?.item.id == "command:sample/planets", "a preloaded model ranks normally")
-        await model.waitForCommands()
+        await model.catalog.waitForCommands()
     }
 
     // MARK: Publication
@@ -174,12 +174,12 @@ struct LauncherCatalogTests {
         await waitFor("scanner.startedScans.value >= 2") { scanner.startedScans.value >= 2 }
 
         await scanner.openAppScan(at: 0)
-        await waitFor("safari apps") { model.apps.map(\.name) == [safari.name] }
-        #expect(model.isLoadingCatalog, "commands are still loading")
+        await waitFor("safari apps") { model.catalog.apps.map(\.name) == [safari.name] }
+        #expect(model.catalog.isLoading, "commands are still loading")
 
         await scanner.openCommandScan(at: 0)
-        await waitFor("!model.isLoadingCatalog") { !model.isLoadingCatalog }
-        #expect(model.allCommands.map(\.id) == [planets.id])
+        await waitFor("the catalog loaded") { !model.catalog.isLoading }
+        #expect(model.catalog.allCommands.map(\.id) == [planets.id])
         let ids = model.results.map(\.id)
         #expect(ids.contains("app:\(safari.url.path)"))
         #expect(ids.contains("command:\(planets.id)"))
@@ -206,19 +206,19 @@ struct LauncherCatalogTests {
         model.startCatalogLoading()
         await waitFor("both initial scans") { scanner.startedScans.value >= 2 }
         await scanner.openAppScan(at: 0)
-        await waitFor("initial apps") { model.apps.map(\.name) == [safari.name] }
+        await waitFor("initial apps") { model.catalog.apps.map(\.name) == [safari.name] }
 
-        model.reloadCommands()
+        model.catalog.reloadCommands()
         await waitFor("second command scan") { scanner.startedScans.value >= 3 }
-        #expect(model.isLoadingCatalog, "the newer request keeps the load marked as running")
+        #expect(model.catalog.isLoading, "the newer request keeps the load marked as running")
 
         await scanner.openCommandScan(at: 0)
-        #expect(model.allCommands.isEmpty, "the stale result is dropped, not applied")
-        #expect(model.isLoadingCatalog, "only the newest request may finish the load")
+        #expect(model.catalog.allCommands.isEmpty, "the stale result is dropped, not applied")
+        #expect(model.catalog.isLoading, "only the newest request may finish the load")
 
         await scanner.openCommandScan(at: 1)
-        await waitFor("the newest load") { !model.isLoadingCatalog }
-        #expect(model.allCommands.map(\.id) == [weather.id])
+        await waitFor("the newest load") { !model.catalog.isLoading }
+        #expect(model.catalog.allCommands.map(\.id) == [weather.id])
         #expect(scanner.receivedIncludeRaycast.all == [true, true], "includeRaycast is captured when the request is made")
     }
 
@@ -229,14 +229,14 @@ struct LauncherCatalogTests {
         model.startCatalogLoading()
         await waitFor("scanner.startedScans.value >= 1") { scanner.startedScans.value >= 1 }
 
-        model.reloadApps()
+        model.catalog.reloadApps()
         await waitFor("scanner.startedScans.value >= 2") { scanner.startedScans.value >= 2 }
 
         await scanner.openAppScan(at: 0)
-        #expect(model.apps.isEmpty, "the stale app scan is dropped")
+        #expect(model.catalog.apps.isEmpty, "the stale app scan is dropped")
 
         await scanner.openAppScan(at: 1)
-        await waitFor("finder apps") { model.apps.map(\.name) == [finder.name] }
+        await waitFor("finder apps") { model.catalog.apps.map(\.name) == [finder.name] }
     }
 
     @Test func aRescanKeepsThePreviousResultsVisible() async {
@@ -246,15 +246,15 @@ struct LauncherCatalogTests {
         await waitFor("scanner.startedScans.value >= 2") { scanner.startedScans.value >= 2 }
         await scanner.openAppScan(at: 0)
         await scanner.openCommandScan(at: 0)
-        await waitFor("!model.isLoadingCatalog") { !model.isLoadingCatalog }
+        await waitFor("the catalog loaded") { !model.catalog.isLoading }
 
-        model.reloadCommands()
+        model.catalog.reloadCommands()
         await waitFor("scanner.startedScans.value >= 3") { scanner.startedScans.value >= 3 }
-        #expect(model.allCommands.map(\.id) == [planets.id], "results stay while the rescan runs")
+        #expect(model.catalog.allCommands.map(\.id) == [planets.id], "results stay while the rescan runs")
 
         await scanner.openCommandScan(at: 1)
-        await waitFor("!model.isLoadingCatalog") { !model.isLoadingCatalog }
-        #expect(model.allCommands.map(\.id) == [planets.id])
+        await waitFor("the catalog loaded") { !model.catalog.isLoading }
+        #expect(model.catalog.allCommands.map(\.id) == [planets.id])
     }
 
     // MARK: Readiness
@@ -266,9 +266,9 @@ struct LauncherCatalogTests {
         await waitFor("scanner.startedScans.value >= 2") { scanner.startedScans.value >= 2 }
         await scanner.openAppScan(at: 0)
         await scanner.openCommandScan(at: 0)
-        await model.waitForCommands()
-        await waitFor("!model.isLoadingCatalog") { !model.isLoadingCatalog }
-        #expect(model.allCommands.isEmpty, "empty success is still success")
+        await model.catalog.waitForCommands()
+        await waitFor("the catalog loaded") { !model.catalog.isLoading }
+        #expect(model.catalog.allCommands.isEmpty, "empty success is still success")
     }
 
     @Test func readinessCallersShareOneLoadAndFollowItsReplacement() async {
@@ -280,22 +280,22 @@ struct LauncherCatalogTests {
 
         let firstDone = Gate()
         let secondDone = Gate()
-        Task { await model.waitForCommands(); await firstDone.open() }
-        Task { await model.waitForCommands(); await secondDone.open() }
+        Task { await model.catalog.waitForCommands(); await firstDone.open() }
+        Task { await model.catalog.waitForCommands(); await secondDone.open() }
 
-        model.reloadCommands()
+        model.catalog.reloadCommands()
         await waitFor("the second command scan") { scanner.startedCommandScans.value >= 2 }
         await scanner.openCommandScan(at: 0)
         await scanner.openCommandScan(at: 1)
         await firstDone.wait()
         await secondDone.wait()
-        #expect(model.allCommands.map(\.id) == [weather.id], "a caller that returns sees the newest catalog, not a stale one")
+        #expect(model.catalog.allCommands.map(\.id) == [weather.id], "a caller that returns sees the newest catalog, not a stale one")
     }
 
     @Test func readinessReturnsImmediatelyWhenNothingIsLoading() async {
         let scanner = ControlledScanner(apps: [], commands: [])
         let model = LauncherModel(scanner: scanner, settings: makeSettings())
-        await model.waitForCommands()
+        await model.catalog.waitForCommands()
         #expect(scanner.startedScans.value == 0)
     }
 
@@ -360,7 +360,7 @@ struct LauncherCatalogTests {
             Task { await recorder.record(command) }
         }
         await scanner.openCommandScan(at: 0)
-        await model.waitForCommands()
+        await model.catalog.waitForCommands()
         try? await Task.sleep(for: .milliseconds(20))
         #expect(await recorder.commands.isEmpty)
     }

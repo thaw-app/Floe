@@ -19,10 +19,20 @@ import ThawUI
 /// What the app may see and where anything goes: the permissions it holds and the network calls it makes.
 struct PrivacySettingsPane: View {
     @ObservedObject var settings: AppSettings
-    var permissions: AppPermissions = .shared
-    @ObservedObject var fileIndex: FileIndexStatus = .shared
+    @ObservedObject var fileIndex: FileIndexStatus
+    private let permissions: AppPermissions
+    private let usage: UsageStore
+    private let receipts: ReceiptStore
     @State private var forgotSearches = false
     @State private var forgotReceipts = false
+
+    init(settings: AppSettings, stores: SettingsStores) {
+        self.settings = settings
+        fileIndex = stores.fileIndex
+        permissions = stores.permissions
+        usage = stores.usage
+        receipts = stores.receipts
+    }
 
     var body: some View {
         Form {
@@ -67,6 +77,9 @@ struct PrivacySettingsPane: View {
                 row("Commands", String(localized: "A search that starts with the prefix runs as a command in your shell, with everything your account may do. Nothing asks first.", bundle: .floe))
                 row("Shell history", String(localized: "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept.", bundle: .floe))
                 row("Processes", String(localized: "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept.", bundle: .floe))
+                row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
+            }
+            ThawSection("Extensions") {
                 Toggle(isOn: Binding(
                     get: { settings.recordsExtensionAccess },
                     set: { settings.setRecordsExtensionAccess($0) }
@@ -75,7 +88,6 @@ struct PrivacySettingsPane: View {
                     Text("Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them.")
                 }
                 row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension.", bundle: .floe))
-                row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
             }
             ThawSection("Search History") {
                 Toggle(isOn: Binding(
@@ -83,7 +95,7 @@ struct PrivacySettingsPane: View {
                     set: { remembers in
                         settings.remembersSearches = remembers
                         if !remembers {
-                            UsageStore.shared.forgetQueries()
+                            usage.forgetQueries()
                         }
                     }
                 )) {
@@ -92,7 +104,7 @@ struct PrivacySettingsPane: View {
                 }
                 LabeledContent("Remembered searches") {
                     Button("Forget Them") {
-                        UsageStore.shared.forgetQueries()
+                        usage.forgetQueries()
                         forgotSearches = true
                     }
                     .disabled(!settings.remembersSearches || forgotSearches)
@@ -111,7 +123,7 @@ struct PrivacySettingsPane: View {
                     set: { keeps in
                         settings.keepsReceipts = keeps
                         if !keeps {
-                            ReceiptStore.shared.forget()
+                            receipts.forget()
                         }
                     }
                 )) {
@@ -120,7 +132,7 @@ struct PrivacySettingsPane: View {
                 }
                 LabeledContent("Receipts kept") {
                     Button("Forget Them") {
-                        ReceiptStore.shared.forget()
+                        receipts.forget()
                         forgotReceipts = true
                     }
                     .disabled(!settings.keepsReceipts || forgotReceipts)
@@ -128,8 +140,7 @@ struct PrivacySettingsPane: View {
             }
             ThawSection("Network Access") {
                 if let host = PrivacyNetwork.updateHost {
-                    AutomaticUpdateCheckToggle()
-                    row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started doing this.", bundle: .floe, comment: "The placeholder is the address of a server."))
+                    row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started. The switch is in General.", bundle: .floe, comment: "The placeholder is the address of a server."))
                 }
                 row("Extension Store", String(localized: "The Extension Store lists and downloads extensions from GitHub, and their packages from the npm registry.", bundle: .floe))
                 row("Extension sign-in", String(localized: "An extension that signs in through the browser uses Raycast’s sign-in service for now: the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary: Floe’s own sign-in service is planned to replace it.", bundle: .floe, comment: "Raycast is another app's name."))

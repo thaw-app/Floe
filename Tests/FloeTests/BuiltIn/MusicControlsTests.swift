@@ -53,12 +53,12 @@ struct MusicControlsTests {
 
     /// A model whose players are the stand-in. The lists it fills are the HUD's lines and the apps Automation was asked for.
     private func model(in folder: URL, stand: Stand, said: @escaping (String) -> Void, asked: @escaping (String) -> Void = { _ in }) -> LauncherModel {
-        let defaults = UserDefaults(suiteName: "floe-music-\(UUID().uuidString)")!
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
-        model.music = MusicEnvironment(isRunning: { stand.isRunning($0) }, run: stand.runner, askForAutomation: asked)
-        model.showHUD = said
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.music.environment = MusicEnvironment(isRunning: { stand.isRunning($0) }, run: stand.runner, askForAutomation: asked)
+        model.panelHost.showHUD = said
         return model
     }
 
@@ -162,7 +162,7 @@ struct MusicControlsTests {
         var said: [String] = []
         let model = model(in: folder, stand: stand) { said.append($0) }
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
 
         model.query = "next song"
         let row = try #require(model.results.first?.item)
@@ -177,11 +177,11 @@ struct MusicControlsTests {
         #expect(stand.state.withLock { $0.ranOnMain } == false)
 
         stand.state.withLock { $0.open = [Self.appleMusic, Self.spotify] }
-        await model.controlMusic(.playPause).value
-        await model.controlMusic(.previousTrack).value
+        await model.features.music.controlMusic(.playPause).value
+        await model.features.music.controlMusic(.previousTrack).value
         #expect(stand.scripts.dropFirst() == [#"tell application id "com.spotify.client" to playpause"#, #"tell application id "com.spotify.client" to previous track"#])
         #expect(said.isEmpty, "the music says it")
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
     }
 
     @Test func nowPlayingShowsTheTrackAndItsArtist() async throws {
@@ -194,15 +194,15 @@ struct MusicControlsTests {
         }
         var said: [String] = []
         let model = model(in: folder, stand: stand) { said.append($0) }
-        await model.controlMusic(.nowPlaying).value
+        await model.features.music.controlMusic(.nowPlaying).value
         #expect(said == ["So What · Miles Davis"])
         #expect(stand.scripts == [MusicScripts.script(.nowPlaying, for: .spotify)])
 
         stand.state.withLock { $0.answer = .text("") }
-        await model.controlMusic(.nowPlaying).value
+        await model.features.music.controlMusic(.nowPlaying).value
         #expect(said.last == "Nothing is playing in Spotify")
         stand.state.withLock { $0.answer = .failed }
-        await model.controlMusic(.nextTrack).value
+        await model.features.music.controlMusic(.nextTrack).value
         #expect(said.last == "Spotify did not answer")
     }
 
@@ -213,12 +213,12 @@ struct MusicControlsTests {
         var said: [String] = []
         let model = model(in: folder, stand: stand) { said.append($0) }
         for command in [MusicCommand.nextTrack, .previousTrack, .nowPlaying] {
-            await model.controlMusic(command).value
+            await model.features.music.controlMusic(command).value
         }
         #expect(said == Array(repeating: "Neither Spotify nor Music is open", count: 3))
         #expect(stand.scripts.isEmpty)
 
-        await model.controlMusic(.playPause).value
+        await model.features.music.controlMusic(.playPause).value
         #expect(stand.scripts == [#"tell application id "com.apple.Music" to play"#])
         #expect(said.count == 3)
     }
@@ -234,12 +234,12 @@ struct MusicControlsTests {
         var said: [String] = []
         var asked: [String] = []
         let model = model(in: folder, stand: stand, said: { said.append($0) }, asked: { asked.append($0) })
-        await model.controlMusic(.playPause).value
+        await model.features.music.controlMusic(.playPause).value
         #expect(asked == ["Spotify"])
         #expect(said.isEmpty)
 
         stand.state.withLock { $0.open = [] }
-        await model.controlMusic(.playPause).value
+        await model.features.music.controlMusic(.playPause).value
         #expect(asked == ["Spotify", "Music"], "starting Music is scripting it too")
     }
 }

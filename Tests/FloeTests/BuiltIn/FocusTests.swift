@@ -62,13 +62,13 @@ struct FocusTests {
 
     /// A model whose Shortcuts tool and link opener are the stand-in, with that Shortcut named in its settings.
     private func model(in folder: URL, stand: Stand, shortcut: String) -> LauncherModel {
-        let defaults = UserDefaults(suiteName: "floe-focus-\(UUID().uuidString)")!
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         settings.focusShortcut = shortcut
         let model = LauncherModel(settings: settings, usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
-        model.shortcutLibrary.tool = stand.tool
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.shortcuts.library.tool = stand.tool
         model.linkOpener = stand.opener
         return model
     }
@@ -145,9 +145,9 @@ struct FocusTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand, shortcut: "Set Focus")
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
 
         model.query = "focus 1 hour"
         let row = try #require(model.results.first?.item)
@@ -166,14 +166,14 @@ struct FocusTests {
         }
         #expect(stand.runs.map(\.input) == ["60"])
 
-        await model.setFocus(request, shortcut: shortcut)?.value
-        await model.setFocus(FocusRequest(change: .off), shortcut: shortcut)?.value
-        await model.setFocus(.toggle, shortcut: shortcut)?.value
+        await model.features.focus.setFocus(request, shortcut: shortcut)?.value
+        await model.features.focus.setFocus(FocusRequest(change: .off), shortcut: shortcut)?.value
+        await model.features.focus.setFocus(.toggle, shortcut: shortcut)?.value
         let run = ["run", "--input-path", "<input>", "--", "Set Focus"]
         #expect(stand.runs.suffix(3) == [.init(arguments: run, input: "60"), .init(arguments: run, input: "off"), .init(arguments: run, input: "toggle")])
         #expect(said.isEmpty, "only a failure is heard of")
         #expect(stand.opened.isEmpty)
-        #expect(model.receipts.all.isEmpty)
+        #expect(model.features.receipts.store.all.isEmpty)
         let files = stand.state.withLock { $0.files }
         #expect(files.count == 4)
         #expect(!files.suffix(3).contains { FileManager.default.fileExists(atPath: $0) }, "each input file is gone once its run ends")
@@ -203,12 +203,12 @@ struct FocusTests {
         stand.state.withLock { $0.answer = ShortcutsToolResult(succeeded: false, errorOutput: "Error: The shortcut “Set Focus” could not be found.\n") }
         let model = model(in: folder, stand: stand, shortcut: "Set Focus")
         var said: [String] = []
-        model.showHUD = { said.append($0) }
-        await model.setFocus(.toggle, shortcut: "Set Focus")?.value
+        model.panelHost.showHUD = { said.append($0) }
+        await model.features.focus.setFocus(.toggle, shortcut: "Set Focus")?.value
         #expect(said == ["Set Focus failed: Error: The shortcut “Set Focus” could not be found."])
 
         stand.state.withLock { $0.answer = ShortcutsToolResult(succeeded: false) }
-        await model.setFocus(.toggle, shortcut: "Set Focus")?.value
+        await model.features.focus.setFocus(.toggle, shortcut: "Set Focus")?.value
         #expect(said.last == "Set Focus failed. Open it in Shortcuts to see why.")
     }
 
@@ -218,7 +218,7 @@ struct FocusTests {
         let stand = Stand()
         let model = model(in: folder, stand: stand, shortcut: "")
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
 
         model.query = "focus off"
         let row = try #require(model.results.first?.item)
@@ -234,7 +234,7 @@ struct FocusTests {
         let toggle = try #require(model.results.first?.item)
         #expect(toggle.rowLabel == "No Shortcut named in Settings")
         #expect(model.primaryActionTitle(for: toggle) == "Open Shortcuts")
-        #expect(model.setFocus(.toggle, shortcut: "") == nil)
+        #expect(model.features.focus.setFocus(.toggle, shortcut: "") == nil)
         #expect(stand.opened.count == 2)
         #expect(stand.runs.isEmpty)
     }
@@ -242,18 +242,16 @@ struct FocusTests {
     // MARK: The setting
 
     @Test func theShortcutsNameIsKeptWithTheSettings() throws {
-        let suite = "floe-focus-\(UUID().uuidString)"
-        let defaults = try #require(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
         #expect(settings.focusShortcut.isEmpty, "none is named until the user names one")
         settings.focusShortcut = "Set Focus"
         settings.save()
         #expect(AppSettings(defaults: defaults, savesAfterEdits: false).focusShortcut == "Set Focus")
 
-        let entry = try #require(SearchIndex.staticEntries.first { $0.id == "general.focusShortcut" })
+        let entry = try #require(SearchIndex.staticEntries.first { $0.id == "commands.focusShortcut" })
         #expect(entry.title == "Shortcut for Focus")
-        #expect(entry.pane == .general)
+        #expect(entry.pane == .commands)
         #expect(entry.descriptionText?.contains("the number of minutes, or the word off or toggle") == true)
     }
 }

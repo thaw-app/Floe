@@ -12,7 +12,7 @@ import ThawUI
 /// The preview draws them at miniature scale, so a change reads without summoning the panel.
 struct AppearanceSettingsPane: View {
     @ObservedObject var settings: AppSettings
-    @ObservedObject private var follower = ThawAppearanceFollower.shared
+    @ObservedObject var follower: ThawAppearanceFollower
     @Environment(\.colorScheme) private var colorScheme
     @State private var thawIsInstalled = Thaw.applicationURL != nil
 
@@ -58,13 +58,6 @@ struct AppearanceSettingsPane: View {
         Binding(
             get: { settings.launcherBorder.color.color },
             set: { settings.launcherBorder.color = StoredColor($0) }
-        )
-    }
-
-    private var glassColor: Binding<Color> {
-        Binding(
-            get: { settings.launcherGlass.color.color },
-            set: { settings.launcherGlass.color = StoredColor($0) }
         )
     }
 
@@ -167,7 +160,6 @@ struct AppearanceSettingsPane: View {
         .formStyle(.grouped)
     }
 
-    @ViewBuilder
     private var glassControls: some View {
         Picker("Effect", selection: glassChoice) {
             Text("Match System").tag(GlassChoice.matchSystem)
@@ -176,20 +168,6 @@ struct AppearanceSettingsPane: View {
             }
         }
         .help("Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear.")
-        // Only the Liquid styles take a wash; Regular and Clear are the system's glass as it is.
-        if settings.launcherGlass.resolvedStyle().usesTint {
-            Toggle("Tint the glass", isOn: $settings.launcherGlass.isColored)
-            if settings.launcherGlass.isColored {
-                ColorPicker("Tint color", selection: glassColor, supportsOpacity: false)
-                Slider(value: $settings.launcherGlass.opacity, in: 0.05 ... 1) {
-                    Text("Opacity")
-                } minimumValueLabel: {
-                    Text("5%")
-                } maximumValueLabel: {
-                    Text("100%")
-                }
-            }
-        }
     }
 
     @ViewBuilder

@@ -279,8 +279,8 @@ struct LentSignInTests {
         #expect(!HostRequest.oauthSetTokens(providerId: "x", tokens: "").asksOnlyForTokens)
     }
 
-    @MainActor @Test func whoIsLentASignInIsKeptInSettings() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-lent-tests-\(UUID().uuidString)"))
+    @MainActor @Test func whoIsLentASignInIsKeptInSettings() {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         #expect(settings.lentSignIns.isEmpty)
         settings.lentSignIns.insert(LentProvider.github.key(for: "github"))

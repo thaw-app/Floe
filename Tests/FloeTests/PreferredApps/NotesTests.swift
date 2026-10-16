@@ -13,7 +13,7 @@ import Testing
 @MainActor
 struct NotesTests {
     private func makeModel(app: NotesApp) -> LauncherModel {
-        let settings = AppSettings(defaults: UserDefaults(suiteName: "floe-notes-tests-\(UUID().uuidString)")!)
+        let settings = AppSettings(defaults: MemoryDefaults())
         settings.notesApp = app
         return LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []))
     }
@@ -87,8 +87,8 @@ struct NotesTests {
         #expect(!apple.results.contains { $0.id == "note:append" }, "Apple Notes has no current note to add to")
     }
 
-    @Test func theNotesAppAndItsLinkComeBackAfterASave() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-notes-tests-\(UUID().uuidString)"))
+    @Test func theNotesAppAndItsLinkComeBackAfterASave() {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         #expect(settings.notesApp == .appleNotes, "the app every Mac has is the default")
         settings.notesApp = .custom
@@ -195,8 +195,8 @@ struct NotesTests {
         let folder = try scratchFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
         let model = makeModel(app: .folder)
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
 
         model.query = "todo renew passport"
         let task = try #require(model.results.first?.item)
@@ -283,8 +283,8 @@ struct NotesTests {
         #expect(NoteFiles.perform(.new, text: "x", folder: file.path) == "Choose a folder for your notes in Settings", "a file is not a folder")
     }
 
-    @MainActor @Test func theFolderIsKeptInSettings() throws {
-        let defaults = try #require(UserDefaults(suiteName: "floe-notes-tests-\(UUID().uuidString)"))
+    @MainActor @Test func theFolderIsKeptInSettings() {
+        let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults)
         settings.notesApp = .folder
         settings.notesFolder = "/Users/me/Notes"

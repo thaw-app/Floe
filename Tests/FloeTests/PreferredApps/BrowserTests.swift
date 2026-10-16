@@ -54,17 +54,17 @@ struct BrowserTests {
     private let opened = Opened()
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
         settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
     }
 
     /// A model on scratch settings whose lookups, opener, HUD and panel are the test's own.
     private func makeModel(_ lookup: AppLookup = Fake.mac()) -> LauncherModel {
         let model = LauncherModel(settings: settings, usage: UsageStore(defaults: scratch.defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        model.appLookup = lookup
+        model.resolvedApps.lookup = lookup
         model.linkOpener = opened.opener
-        model.showHUD = { [opened] in opened.hud.append($0) }
-        model.hidePanel = { [opened] in opened.hides += 1 }
+        model.panelHost.showHUD = { [opened] in opened.hud.append($0) }
+        model.panelHost.hidePanel = { [opened] in opened.hides += 1 }
         return model
     }
 
@@ -275,17 +275,17 @@ struct BrowserTests {
     @Test func anExtensionsOpenUsesTheChosenBrowserUnlessItNamesAnApp() {
         let model = makeModel()
         settings.browserApp = Fake.zenChoice
-        model.handleBackgroundMessage(["type": "open", "target": "https://example.com/docs"])
-        model.handleBackgroundMessage(["type": "open", "target": "https://example.com/docs", "application": Fake.arc.path])
-        model.handleBackgroundMessage(["type": "open", "target": "/Fake/notes.txt"])
-        model.handleBackgroundMessage(["type": "open", "target": "raycast://extensions/a/b"])
+        model.runner.handleBackgroundMessage(["type": "open", "target": "https://example.com/docs"])
+        model.runner.handleBackgroundMessage(["type": "open", "target": "https://example.com/docs", "application": Fake.arc.path])
+        model.runner.handleBackgroundMessage(["type": "open", "target": "/Fake/notes.txt"])
+        model.runner.handleBackgroundMessage(["type": "open", "target": "raycast://extensions/a/b"])
         #expect(opened.links == ["https://example.com/docs", "https://example.com/docs", "file:///Fake/notes.txt", "raycast://extensions/a/b"])
         #expect(opened.apps == [Fake.zen, Fake.arc, nil, nil], "the extension's own choice of app is honoured")
     }
 
     @Test func onDefaultAnExtensionsOpenGoesThroughTheSystem() {
         let model = makeModel()
-        model.handleBackgroundMessage(["type": "open", "target": "https://example.com/docs"])
+        model.runner.handleBackgroundMessage(["type": "open", "target": "https://example.com/docs"])
         #expect(opened.apps == [nil])
     }
 

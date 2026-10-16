@@ -56,9 +56,7 @@ struct RowSelectionTests {
     }
 
     @Test func theModelsSelectionIsTheRowThatIsTold() throws {
-        let suite = "floe.tests.rowselection.\(UUID().uuidString)"
-        let scratch = UserDefaults(suiteName: suite) ?? .standard
-        defer { scratch.removePersistentDomain(forName: suite) }
+        let scratch = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: scratch), snapshot: CatalogSnapshot(apps: [], commands: []))
         model.query = ""
         try #require(model.results.count >= 2, "the built-in rows are enough for this")
@@ -77,9 +75,7 @@ struct RowSelectionTests {
     }
 
     @Test func whileTypingIsPacedTheRowsKeepTheTextTheirResultsAnswer() {
-        let suite = "floe.tests.rowselection.\(UUID().uuidString)"
-        let scratch = UserDefaults(suiteName: suite) ?? .standard
-        defer { scratch.removePersistentDomain(forName: suite) }
+        let scratch = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: scratch), snapshot: CatalogSnapshot(apps: [], commands: []))
         model.typing.window = 60
 

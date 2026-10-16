@@ -77,14 +77,14 @@ private struct UpdateConsentModifier: ViewModifier {
 }
 
 extension View {
-    func updateConsentSheet() -> some View {
-        modifier(UpdateConsentModifier(updatesManager: .shared))
+    func updateConsentSheet(_ updatesManager: UpdatesManager) -> some View {
+        modifier(UpdateConsentModifier(updatesManager: updatesManager))
     }
 }
 
 /// The General page's switch. Draws nothing in a build that cannot update.
 struct AutomaticUpdateCheckToggle: View {
-    @Bindable private var updatesManager = UpdatesManager.shared
+    @Bindable var updatesManager: UpdatesManager
 
     var body: some View {
         if updatesManager.isAvailable {

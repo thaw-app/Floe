@@ -18,8 +18,8 @@ struct DiagnosticsTests {
         #expect(AIAnswer.Choice.api(nil).logName.contains("not set"))
     }
 
-    @Test func detailedLoggingIsOffUntilTurnedOnAndIsStored() throws {
-        let scratch = try #require(UserDefaults(suiteName: "floe-diagnostics-tests-\(UUID().uuidString)"))
+    @Test func detailedLoggingIsOffUntilTurnedOnAndIsStored() {
+        let scratch = MemoryDefaults()
         let settings = AppSettings(defaults: scratch)
         #expect(!settings.diagnosticLogging)
         settings.diagnosticLogging = true

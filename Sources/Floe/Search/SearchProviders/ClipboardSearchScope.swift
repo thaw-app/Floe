@@ -16,7 +16,7 @@ struct ClipboardSearchScope: SearchScope {
     let title = String(localized: "Clipboard History", bundle: .floe)
     let emptyTitle = String(localized: "No clipboard entries match", bundle: .floe)
     /// The history is read through this, so a test can stand in for the user's own.
-    var entries: () -> [ClipboardEntry] = { ClipboardHistoryStore.shared.entries }
+    var entries: () -> [ClipboardEntry] = { [] }
 
     func results(for text: String, context _: SearchContext) -> [RootItem] {
         Self.matching(entries(), query: text).prefix(Self.limit).map(RootItem.clipboardEntry)

@@ -12,7 +12,7 @@ import ThawUI
 /// Thaw 3's settings sidebar: a standard source list, so selection, keyboard and VoiceOver
 /// come from AppKit rather than from hand-drawn rows.
 struct SettingsSidebarPaneList: View {
-    @ObservedObject var catalog: SettingsCatalog
+    @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     @ObservedObject var selection: SettingsSelection
 
@@ -43,7 +43,7 @@ struct SettingsSidebarPaneList: View {
         }
     }
 
-    /// General and Applications first, then each extension, About last, as in Thaw.
+    /// General, Commands and Applications first, then each extension, About last, as in Thaw.
     private var rows: [Row] {
         let extensions = catalog.allCommands
             .uniqued(on: \.extensionName)
@@ -60,6 +60,7 @@ struct SettingsSidebarPaneList: View {
             }
         return [
             Row(page: .general, title: SearchPaneLabel.general.title, symbol: "gearshape", icon: nil, assetsPath: ""),
+            Row(page: .commands, title: SearchPaneLabel.commands.title, symbol: "command", icon: nil, assetsPath: ""),
             Row(page: .applications, title: SearchPaneLabel.applications.title, symbol: "square.grid.2x2", icon: nil, assetsPath: ""),
             Row(page: .quicklinks, title: SearchPaneLabel.quicklinks.title, symbol: "link", icon: nil, assetsPath: ""),
             Row(page: .snippets, title: SearchPaneLabel.snippets.title, symbol: "text.quote", icon: nil, assetsPath: ""),

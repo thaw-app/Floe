@@ -105,7 +105,7 @@ nonisolated enum ScreenTools {
     /// Runs a tool and says what came of it. The task is for tests to wait on.
     @MainActor
     @discardableResult
-    static func run(_ tool: Tool, say: @escaping @MainActor (String) -> Void = { ThawHUD.show(text: $0) }) -> Task<Void, Never> {
+    static func run(_ tool: Tool, say: @escaping @MainActor (String) -> Void) -> Task<Void, Never> {
         PanelWork.perform {
             switch tool {
             case .pickColor:

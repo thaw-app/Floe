@@ -10,7 +10,7 @@ import ThawUI
 
 /// The middle of onboarding: what Floe does, before it asks for anything.
 struct OnboardingTourView: View {
-    @ObservedObject private var settings = AppSettings.shared
+    @ObservedObject var settings: AppSettings
 
     let continueTitle: String
     var onContinue: () -> Void

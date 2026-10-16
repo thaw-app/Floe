@@ -55,7 +55,7 @@ struct ClipboardAppTests {
     private let opened = Opened()
 
     init() throws {
-        scratch = try ScratchDefaults()
+        scratch = ScratchDefaults()
         settings = AppSettings(defaults: scratch.defaults, savesAfterEdits: false)
         settings.clipboardHistoryIsParked = false
     }
@@ -63,10 +63,10 @@ struct ClipboardAppTests {
     /// A model on scratch settings whose lookups, opener, HUD and panel are the test's own.
     private func makeModel(_ lookup: AppLookup = Fake.mac(), scopes: [any SearchScope] = []) -> LauncherModel {
         let model = LauncherModel(settings: settings, usage: UsageStore(defaults: scratch.defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: scopes, sources: [])
-        model.appLookup = lookup
+        model.resolvedApps.lookup = lookup
         model.clipboardOpener = opened.opener
-        model.showHUD = { [opened] in opened.hud.append($0) }
-        model.hidePanel = { [opened] in opened.hides += 1 }
+        model.panelHost.showHUD = { [opened] in opened.hud.append($0) }
+        model.panelHost.hidePanel = { [opened] in opened.hides += 1 }
         return model
     }
 
@@ -126,7 +126,7 @@ struct ClipboardAppTests {
         settings.clipboardHandler = .link
         settings.clipboardURL = "clippy://history"
         let exported = try settings.exportedJSON()
-        let other = try AppSettings(defaults: ScratchDefaults().defaults, savesAfterEdits: false)
+        let other = AppSettings(defaults: ScratchDefaults().defaults, savesAfterEdits: false)
         try other.importJSON(exported)
         #expect(other.clipboardHandler == .link)
         #expect(other.clipboardURL == "clippy://history")
@@ -406,22 +406,12 @@ struct ClipboardAppTests {
 
     // MARK: Settings
 
-    @Test func theHistorySwitchSaysWhichAppHandlesTheClipboard() throws {
-        #expect(ClipboardApps.settingsNotice(for: .floe) == nil, "the switch is the user's while Floe keeps the history")
-        let clippy = ResolvedApp(url: Fake.clippy)
-        #expect(ClipboardApps.settingsNotice(for: .app(clippy)) == "Clipboard history is handled by Clippy. Floe saves no copies.")
-        let url = try #require(URL(string: "clippy://history"))
-        #expect(ClipboardApps.settingsNotice(for: .link(url, app: clippy)) == "Clipboard history is handled by Clippy. Floe saves no copies.")
-        #expect(ClipboardApps.settingsNotice(for: .unavailable(app: "Raycast", message: "")) == "Clipboard history is handled by Raycast. Floe saves no copies.")
-        #expect(ClipboardApps.settingsNotice(for: .unavailable(app: nil, message: "")) == "Clipboard history is handled by another app. Floe saves no copies.")
-    }
-
-    @Test func theSettingsSearchFindsTheRoleTheSwitchAndClearing() {
+    @Test func theSettingsSearchFindsTheRoleAndClearing() {
         let entries = SearchIndex.generalEntries.filter { SearchIndex.clipboardEntries.map(\.id).contains($0.id) }
-        #expect(entries.map(\.id) == ["general.clipboardApp", "general.clipboardHistory", "general.clearClipboardHistory"])
-        #expect(entries.map(\.section) == ["Preferred Apps", "Clipboard", "Clipboard"], "the section stays in view whatever app is chosen")
+        #expect(entries.map(\.id) == ["general.clipboardApp", "general.clearClipboardHistory"])
+        #expect(entries.map(\.section) == ["Preferred Apps", "Preferred Apps"])
         #expect(entries.first?.title == AppRole.clipboard.title)
         #expect(entries.first?.descriptionText == AppRole.clipboard.detail)
-        #expect(AppRole.clipboard.detail == "Opens from Clipboard History in the search. With another app chosen, Floe saves no copies and keeps the history it has.")
+        #expect(AppRole.clipboard.detail == "Opens from Clipboard History in the search. With Off or another app, Floe saves no new copies and keeps the ones it has.")
     }
 }

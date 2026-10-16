@@ -31,10 +31,10 @@ struct OutgoingDraftsTests {
 
     /// A model whose links go to the test instead of being opened.
     private func model(in folder: URL, opened: Opened) -> LauncherModel {
-        let defaults = UserDefaults(suiteName: "floe-drafts-\(UUID().uuidString)")!
+        let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        model.receipts = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
-        model.checkpointStore = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
+        model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
         model.linkOpener = opened.opener
         return model
     }
@@ -211,9 +211,9 @@ struct OutgoingDraftsTests {
         let opened = Opened()
         let model = model(in: folder, opened: opened)
         var said: [String] = []
-        model.showHUD = { said.append($0) }
+        model.panelHost.showHUD = { said.append($0) }
         var hidden = 0
-        model.hidePanel = { hidden += 1 }
+        model.panelHost.hidePanel = { hidden += 1 }
 
         model.query = "mail toni@example.com the build is ready"
         let mail = try #require(model.results.first?.item)
@@ -231,7 +231,7 @@ struct OutgoingDraftsTests {
         model.activate(message)
         #expect(opened.links.last == "sms:+15551234567&body=running%20late")
         #expect(said.isEmpty, "the app shows the draft, so nothing is said")
-        #expect(model.receipts.all.isEmpty, "nothing was sent or changed")
+        #expect(model.features.receipts.store.all.isEmpty, "nothing was sent or changed")
 
         model.query = "mail"
         #expect(model.results.first?.item.id != "mail-draft", "the word alone is an ordinary search")
