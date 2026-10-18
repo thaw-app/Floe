@@ -356,6 +356,7 @@ export default () => ({ attribute: (<a title="as &#xXXXX; or &#x41;" />).props.t
     expect(command()).toBe("cjs x");
   });
 
+
   // got requires electron only inside Electron, and node-ssdp a coverage build only when one is asked for.
   test("a dependency's require of something missing, in a branch that never runs, builds as an empty module", async () => {
     makeExtension(
@@ -411,6 +412,20 @@ export default () => ({ fetch, Agent, WebSocket });`,
     const command = (await import(await bundle(findEntry()))).default;
 
     expect(command()).toEqual({ env: "none", url: Bun.pathToFileURL(path.join(extDir, "meta.js")).href, dirname: extDir });
+  });
+
+  test("import.meta.resolve in a CommonJS build resolves from the extension's folder", async () => {
+    const extDir = makeExtension(
+      {
+        "src/resolve.ts": 'export default () => import.meta.resolve("worker-pkg");',
+        "node_modules/worker-pkg/package.json": '{ "name": "worker-pkg", "main": "worker.js" }',
+        "node_modules/worker-pkg/worker.js": "",
+      },
+      "resolve",
+    );
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toBe(Bun.pathToFileURL(fs.realpathSync(path.join(extDir, "node_modules/worker-pkg/worker.js"))).href);
   });
 
   test("better-sqlite3 is bun:sqlite underneath, even with no copy of its own installed", async () => {

@@ -157,7 +157,14 @@ function importMeta(): Record<string, string> {
     "import.meta.url": JSON.stringify(pathToFileURL(file).href),
     "import.meta.filename": JSON.stringify(file),
     "import.meta.dirname": JSON.stringify(ctx.extDir),
+    // A function, which define cannot hold, so the banner below declares it; Jev's PDF library resolves its worker.
+    "import.meta.resolve": "__floeImportMetaResolve",
   };
+}
+
+// Resolves from the extension's folder, where its node_modules are, as a module there would.
+function importMetaResolveBanner(): string {
+  return `var __floeImportMetaResolve = (specifier) => require("node:url").pathToFileURL(Bun.resolveSync(specifier, ${JSON.stringify(ctx.extDir)})).href;`;
 }
 
 function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number], retry: Retry = {}) {
@@ -167,6 +174,7 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
     target: "bun",
     format,
     naming: `${ctx.commandName}.js`,
+    banner: format === "cjs" ? importMetaResolveBanner() : undefined,
     // Raycast's own build leaves one file per command at the extension's root, and extensions find their
     // assets from there. Bun would put each source file's own folder in its place.
     define: {
