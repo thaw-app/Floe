@@ -34,6 +34,21 @@ extension ExtensionSession {
         return true
     }
 
+    /// Takes `toggleQuickLook`, for the selected item's `quickLook` file; false for any other message.
+    func toggledQuickLook(_ fields: [String: Any]) -> Bool {
+        guard fields["type"] as? String == "toggleQuickLook" else { return false }
+        if let url = Self.quickLookFile(of: selectedRow) {
+            QuickLookPresenter.shared.toggle(url)
+        }
+        return true
+    }
+
+    /// The file an item names in its `quickLook` prop, as `{ path, name }`.
+    static func quickLookFile(of row: Row?) -> URL? {
+        guard let quickLook = row?.node.props["quickLook"] as? [String: Any], let path = quickLook["path"] as? String, !path.isEmpty else { return nil }
+        return URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+    }
+
     /// Starts answering one request and replies when the answer is there, after any `replyChunk`s. A request the host
     /// cancelled, or one cut off because the session stopped, gets no reply: nobody is waiting.
     private func answerRequest(_ fields: [String: Any]) {

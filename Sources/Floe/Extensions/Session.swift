@@ -224,7 +224,7 @@ final class ExtensionSession: ObservableObject {
             searchText = ""
         default:
             // Requests are in Session+Requests.swift; the rest is the model's.
-            if !recordedAccess(fields), !storedSubtitle(fields), !handleRequest(fields) {
+            if !recordedAccess(fields), !storedSubtitle(fields), !toggledQuickLook(fields), !handleRequest(fields) {
                 onMessage(fields)
             }
         }

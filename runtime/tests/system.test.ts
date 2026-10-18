@@ -245,9 +245,17 @@ describe("window and system", () => {
       { name: "Odd Tool", path: "/Applications/Odd Tool.app", bundleId: undefined },
       { name: "Bare", path: "/Applications/Bare.app", bundleId: undefined },
     ]);
-    expect(await api.getApplications("/tmp/file.txt")).toBe(applications);
+    expect(await api.getApplications()).toBe(applications);
     expect(tool.commands()).toHaveLength(1);
     expect(tool.commands()[0][0]).toBe("mdfind");
+  });
+
+  test("the apps for a file come from the app", async () => {
+    const apps = api.getApplications("/tmp/file.txt");
+    const [request] = sent("request");
+    expect(request).toMatchObject({ method: "environment.getApplications", params: { path: "/tmp/file.txt" } });
+    handleReply({ id: request.id, result: [{ name: "TextEdit", path: "/Applications/TextEdit.app" }] });
+    expect(await apps).toEqual([{ name: "TextEdit", path: "/Applications/TextEdit.app" }]);
   });
 
   test("the default and frontmost application come from the app, Finder when it names none", async () => {

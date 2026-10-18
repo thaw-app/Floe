@@ -9,9 +9,9 @@ import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
 import React from "react";
-import { handlePop } from "../bridge";
+import { handlePop, handleReply } from "../bridge";
 import { Action, ActionPanel, Detail, Icon } from "../api/index";
-import { find, findAll, fire, installRuntime, makeTempDir, sent, settle, showScreen, type TreeNode } from "./support";
+import { find, findAll, fire, installRuntime, makeTempDir, renderCount, sent, settle, showScreen, type TreeNode } from "./support";
 
 const h = React.createElement;
 installRuntime("actions-tests");
@@ -56,9 +56,35 @@ describe("built-in actions", () => {
     expect(opened).toEqual(["/tmp/notes.txt"]);
   });
 
-  test("OpenWith opens the path", async () => {
-    await fire(await showAction(h(Action.OpenWith, { path: "/tmp/notes.txt" })), "onAction");
-    expect(sent()).toEqual([{ type: "open", target: "/tmp/notes.txt" }]);
+  test("OpenWith asks for the file's apps when it opens, and opens the file in the one chosen", async () => {
+    const opened: string[] = [];
+    const openWith = h(Action.OpenWith, { path: "/tmp/notes.txt", onOpen: (target: string) => opened.push(target) });
+    const submenu = find(await showScreen(h(Detail, { markdown: "host", actions: h(ActionPanel, null, openWith) })), "ActionPanel.Submenu");
+    expect(submenu.props).toMatchObject({ title: "Open With", icon: "icon:Finder" });
+    expect(findAll(submenu, "Action")).toEqual([]);
+
+    await fire(submenu, "onOpen");
+    const [request] = sent("request");
+    expect(request).toMatchObject({ method: "environment.getApplications", params: { path: "/tmp/notes.txt" } });
+    const before = renderCount();
+    handleReply({ id: request.id, result: [{ name: "TextEdit", path: "/Applications/TextEdit.app" }, { name: "Xcode", path: "/Applications/Xcode.app" }] });
+    const apps = findAll(find(await settle(before), "ActionPanel.Submenu"), "Action");
+    expect(apps.map((app) => app.props.title)).toEqual(["TextEdit", "Xcode"]);
+    expect(apps[1].props.icon).toEqual({ fileIcon: "/Applications/Xcode.app" });
+
+    await fire(apps[1], "onAction");
+    expect(sent().filter((message) => message.type !== "request")).toEqual([
+      { type: "open", target: "/tmp/notes.txt", application: "/Applications/Xcode.app" },
+      { type: "close" },
+    ]);
+    expect(opened).toEqual(["/tmp/notes.txt"]);
+  });
+
+  test("ToggleQuickLook asks the app to preview the selected item's file", async () => {
+    const action = await showAction(h(Action.ToggleQuickLook));
+    expect(action.props.title).toBe("Quick Look");
+    await fire(action, "onAction");
+    expect(sent()).toEqual([{ type: "toggleQuickLook" }]);
   });
 
   test("CopyToClipboard copies, tells the extension, and confirms with a HUD", async () => {
@@ -146,7 +172,6 @@ describe("built-in actions", () => {
   });
 
   test.each([
-    ["ToggleQuickLook", "Quick Look", "Quick Look isn't supported yet"],
     ["CreateSnippet", "Create Snippet", "Snippets isn't supported yet"],
     ["CreateQuicklink", "Create Quicklink", "Quicklinks isn't supported yet"],
     ["PickDate", "Pick Date", "Date picker isn't supported yet"],

@@ -205,6 +205,28 @@ function action(defaultTitle: string, defaultIcon: string, run: (props: Props, n
   };
 }
 
+// A submenu of the apps that can open the file, asked for when it opens; the system's default is first.
+function OpenWithSubmenu(props: Props) {
+  const [apps, setApps] = useState<Application[]>();
+  const choose = async (app: Application) => {
+    await open(props.path, app);
+    props.onOpen?.(props.path);
+    await closeMainWindow();
+  };
+  return h(
+    "ActionPanel.Submenu",
+    {
+      title: props.title ?? "Open With",
+      icon: props.icon ?? "icon:Finder",
+      shortcut: macShortcut(props.shortcut),
+      onOpen: () => {
+        if (!apps) getApplications(props.path).then(setApps, () => setApps([]));
+      },
+    },
+    ...(apps ?? []).map((app) => h("Action", { key: app.path, title: app.name, icon: { fileIcon: app.path }, onAction: () => choose(app) })),
+  );
+}
+
 export const Action = Object.assign(BaseAction, {
   Style: { Regular: "regular", Destructive: "destructive" },
   OpenInBrowser: action("Open in Browser", "Globe", async (props) => {
@@ -241,8 +263,9 @@ export const Action = Object.assign(BaseAction, {
   }),
   SubmitForm: (props: Props) =>
     h("Action", { title: props.title ?? "Submit", icon: props.icon, shortcut: macShortcut(props.shortcut), isSubmit: true, onSubmit: props.onSubmit }),
-  OpenWith: action("Open With", "Finder", (props) => open(props.path)),
-  ToggleQuickLook: action("Quick Look", "Eye", () => unsupported("Quick Look")),
+  OpenWith: OpenWithSubmenu,
+  // The app previews the selected item's quickLook file, or closes the preview it shows.
+  ToggleQuickLook: action("Quick Look", "Eye", () => send({ type: "toggleQuickLook" })),
   CreateSnippet: action("Create Snippet", "Document", () => unsupported("Snippets")),
   CreateQuicklink: action("Create Quicklink", "Link", () => unsupported("Quicklinks")),
   PickDate: Object.assign(action("Pick Date", "Calendar", () => unsupported("Date picker")), {
@@ -426,7 +449,8 @@ export function getSelectedFinderItems(): Promise<{ path: string }[]> {
 }
 type Application = { name: string; path: string; bundleId?: string };
 let applications: Application[] | undefined;
-export function getApplications(_path?: string): Promise<Application[]> {
+export function getApplications(file?: string): Promise<Application[]> {
+  if (file) return request<Application[]>("environment.getApplications", { path: file });
   applications ??= Bun.spawnSync(["mdfind", "-attr", "kMDItemCFBundleIdentifier", "kMDItemContentType == 'com.apple.application-bundle'"])
     .stdout.toString()
     .split("\n")

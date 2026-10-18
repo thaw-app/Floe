@@ -23,6 +23,15 @@ final class QuickLookPresenter: NSObject, QLPreviewPanelDataSource, QLPreviewPan
         panel.makeKeyAndOrderFront(nil)
     }
 
+    /// `Action.ToggleQuickLook`: closes the preview of this file, or shows it.
+    func toggle(_ url: URL) {
+        if QLPreviewPanel.sharedPreviewPanelExists(), let panel = QLPreviewPanel.shared(), panel.isVisible, self.url == url {
+            panel.orderOut(nil)
+        } else {
+            show(url)
+        }
+    }
+
     func numberOfPreviewItems(in _: QLPreviewPanel?) -> Int {
         url == nil ? 0 : 1
     }
@@ -39,21 +48,50 @@ final class QuickLookPresenter: NSObject, QLPreviewPanelDataSource, QLPreviewPan
     }
 }
 
-/// The panel asks the responder chain who controls it, and the app's delegate is the end of that chain.
+/// The panel asks the responder chain who controls it, and the app's delegate is the end of that chain:
+/// the resident's, and the panel process's, where extensions show their files.
 /// AppKit declares the three calls without an actor and makes them on the main thread.
 extension AppDelegate {
     override nonisolated func acceptsPreviewPanelControl(_: QLPreviewPanel?) -> Bool {
-        MainActor.assumeIsolated { QuickLookPresenter.shared.url != nil }
+        QuickLookPresenter.accepts()
     }
 
     override nonisolated func beginPreviewPanelControl(_ panel: QLPreviewPanel?) {
-        MainActor.assumeIsolated {
-            panel?.dataSource = QuickLookPresenter.shared
-            panel?.delegate = QuickLookPresenter.shared
-        }
+        QuickLookPresenter.begin(panel)
     }
 
     override nonisolated func endPreviewPanelControl(_ panel: QLPreviewPanel?) {
+        QuickLookPresenter.end(panel)
+    }
+}
+
+extension PanelAppDelegate {
+    override nonisolated func acceptsPreviewPanelControl(_: QLPreviewPanel?) -> Bool {
+        QuickLookPresenter.accepts()
+    }
+
+    override nonisolated func beginPreviewPanelControl(_ panel: QLPreviewPanel?) {
+        QuickLookPresenter.begin(panel)
+    }
+
+    override nonisolated func endPreviewPanelControl(_ panel: QLPreviewPanel?) {
+        QuickLookPresenter.end(panel)
+    }
+}
+
+extension QuickLookPresenter {
+    nonisolated static func accepts() -> Bool {
+        MainActor.assumeIsolated { shared.url != nil }
+    }
+
+    nonisolated static func begin(_ panel: QLPreviewPanel?) {
+        MainActor.assumeIsolated {
+            panel?.dataSource = shared
+            panel?.delegate = shared
+        }
+    }
+
+    nonisolated static func end(_ panel: QLPreviewPanel?) {
         MainActor.assumeIsolated {
             panel?.dataSource = nil
             panel?.delegate = nil

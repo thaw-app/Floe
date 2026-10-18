@@ -36,7 +36,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
         switch self {
         case .oauthAuthorize, .oauthGetTokens, .oauthSetTokens, .oauthRemoveTokens:
             true
-        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication:
+        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication, .applications:
             false
         }
     }
@@ -52,6 +52,8 @@ nonisolated enum HostRequest: Sendable, Equatable {
     case frontmostApplication
     /// `getDefaultApplication`: the app that would open the file at a path.
     case defaultApplication(path: String)
+    /// `getApplications(path)` and `Action.OpenWith`: every app that can open the file, the default first.
+    case applications(path: String)
 
     /// Nil for a method the app doesn't know, or one whose parameters are missing.
     init?(method: String, params: [String: Any]) {
@@ -103,6 +105,9 @@ nonisolated enum HostRequest: Sendable, Equatable {
         case "environment.getDefaultApplication":
             guard let path = params["path"] as? String else { return nil }
             return .defaultApplication(path: path)
+        case "environment.getApplications":
+            guard let path = params["path"] as? String else { return nil }
+            return .applications(path: path)
         default:
             return nil
         }
@@ -131,6 +136,8 @@ nonisolated enum HostRequest: Sendable, Equatable {
             return await MainActor.run { Self.frontmostApplication() } as Any
         case let .defaultApplication(path):
             return await MainActor.run { Self.defaultApplication(forFileAt: path) } as Any
+        case let .applications(path):
+            return Self.applications(forFileAt: path)
         }
     }
 
@@ -147,6 +154,14 @@ nonisolated enum HostRequest: Sendable, Equatable {
         var application = ["name": name ?? url.deletingPathExtension().lastPathComponent, "path": url.path]
         application["bundleId"] = Bundle(url: url)?.bundleIdentifier
         return application
+    }
+
+    /// The apps that can open the file, the one the system would use first, each once.
+    nonisolated static func applications(forFileAt path: String) -> [[String: String]] {
+        let file = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
+        let preferred = NSWorkspace.shared.urlForApplication(toOpen: file)
+        let urls = (preferred.map { [$0] } ?? []) + NSWorkspace.shared.urlsForApplications(toOpen: file).filter { $0 != preferred }
+        return urls.map { application(at: $0) }
     }
 
     /// The app the system would open the file with. Nil when it names none, which the caller
