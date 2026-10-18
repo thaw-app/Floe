@@ -236,6 +236,23 @@ enum PasteboardContent {
         }
         return result
     }
+
+    /// The copy `offset` places back in the history, newest first, as `read` answers. Raycast goes back
+    /// at most five; past that, or past the history's end, the text is empty, as Raycast's empty slot is.
+    static func copy(offset: Int, in entries: [ClipboardEntry], directory: URL) -> [String: String] {
+        guard offset <= 5, entries.indices.contains(offset) else { return ["text": ""] }
+        let entry = entries[offset]
+        switch entry.kind {
+        case .text, .link:
+            return ["text": entry.text ?? ""]
+        case .file:
+            guard let first = entry.filePaths?.first else { return ["text": ""] }
+            return ["text": first, "file": first]
+        case .image:
+            guard let name = entry.imageFile else { return ["text": ""] }
+            return ["text": "", "file": directory.appendingPathComponent(name).path]
+        }
+    }
 }
 
 /// Command keystrokes posted to the frontmost app. Needs Accessibility access to land.

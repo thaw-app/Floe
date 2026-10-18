@@ -45,8 +45,9 @@ nonisolated enum HostRequest: Sendable, Equatable {
     case selectedText
     /// `getSelectedFinderItems`: the Finder's selection, when Finder is frontmost.
     case selectedFinderItems
-    /// `Clipboard.read`: the pasteboard as text, HTML and file.
-    case clipboardRead
+    /// `Clipboard.read`: the pasteboard as text, HTML and file. With an offset, a copy before it, which the session
+    /// answers from Floe's history.
+    case clipboardRead(offset: Int)
     /// `getFrontmostApplication`: the app the user is in, as name, path and bundle id.
     case frontmostApplication
     /// `getDefaultApplication`: the app that would open the file at a path.
@@ -88,7 +89,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
         case "selectedFinderItems":
             self = .selectedFinderItems
         case "clipboard.read":
-            self = .clipboardRead
+            self = .clipboardRead(offset: max(params["offset"] as? Int ?? 0, 0))
         default:
             return nil
         }

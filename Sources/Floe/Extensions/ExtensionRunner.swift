@@ -44,6 +44,8 @@ final class ExtensionRunner: ObservableObject {
         }
         /// The extension's manifest changed on disk.
         var manifestChanged: () -> Void = { /* set by the launcher's model */ }
+        /// Floe's clipboard history, newest first, which the command reads older copies from.
+        var clipboardHistory: @MainActor @Sendable () -> [ClipboardEntry] = { [] }
     }
 
     @Published private(set) var session: ExtensionSession?
@@ -119,6 +121,7 @@ final class ExtensionRunner: ObservableObject {
             guard let self, let session else { return }
             handle(message, from: session)
         }
+        session.answer = Self.answer(withHistory: host.clipboardHistory)
         self.session = session
         session.start()
         sourceWatcher = HotReload.watcher(for: command) { [weak self, weak session] paths in
@@ -139,6 +142,17 @@ final class ExtensionRunner: ObservableObject {
             launch(watched.command, arguments: watched.arguments)
         } else {
             retry()
+        }
+    }
+
+    /// The app's answers, with `Clipboard.read`'s older copies taken from Floe's history.
+    static func answer(withHistory history: @escaping @MainActor @Sendable () -> [ClipboardEntry])
+        -> @concurrent @Sendable (HostRequest, @Sendable (String) async -> Void) async throws -> Any {
+        { request, emit in
+            guard case let .clipboardRead(offset) = request, offset > 0 else {
+                return try await HostRequest.answer(request, emit: emit)
+            }
+            return await MainActor.run { PasteboardContent.copy(offset: offset, in: history(), directory: ClipboardHistoryStore.directory) }
         }
     }
 

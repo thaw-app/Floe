@@ -26,7 +26,11 @@ extension LauncherModel {
             },
             open: { [weak self] in self?.open($0, application: $1) },
             showPreferences: { [weak self] in self?.showPreferences($0, of: $1) },
-            manifestChanged: { [weak self] in self?.catalog.reloadCommands() }
+            manifestChanged: { [weak self] in self?.catalog.reloadCommands() },
+            clipboardHistory: { [weak self] in
+                guard let self, settings.recordsClipboardHistory else { return [] }
+                return clipboard.entries
+            }
         )
     }
 

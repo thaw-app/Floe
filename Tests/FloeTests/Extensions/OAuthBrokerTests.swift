@@ -178,7 +178,7 @@ nonisolated struct OAuthBrokerTests {
         #expect(error.localizedDescription == message)
     }
 
-    @Test(arguments: [HostRequest.askAI(prompt: "hello", model: nil), .selectedText, .selectedFinderItems, .clipboardRead])
+    @Test(arguments: [HostRequest.askAI(prompt: "hello", model: nil), .selectedText, .selectedFinderItems, .clipboardRead(offset: 0)])
     func aRequestThatIsNotASignInIsRefused(request: HostRequest) async {
         #expect(await failure(of: request) == "unknownRequest")
     }

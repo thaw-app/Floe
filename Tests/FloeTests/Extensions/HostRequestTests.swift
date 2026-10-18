@@ -198,7 +198,7 @@ struct HostRequestTests {
         #expect(HostRequest(method: "oauth.setTokens", params: ["providerId": "github", "tokens": "a"]) == nil)
     }
 
-    @Test(arguments: [("selectedText", HostRequest.selectedText), ("selectedFinderItems", .selectedFinderItems), ("clipboard.read", .clipboardRead)])
+    @Test(arguments: [("selectedText", HostRequest.selectedText), ("selectedFinderItems", .selectedFinderItems), ("clipboard.read", .clipboardRead(offset: 0))])
     func aRequestWithoutParametersIsReadFromItsMethodAlone(method: String, request: HostRequest) {
         #expect(HostRequest(method: method, params: [:]) == request)
         #expect(HostRequest(method: method, params: ["extra": true]) == request)
@@ -217,7 +217,7 @@ struct HostRequestTests {
         (.askAI(prompt: "why?", model: nil), false),
         (.selectedText, false),
         (.selectedFinderItems, false),
-        (.clipboardRead, false),
+        (.clipboardRead(offset: 0), false),
     ])
     func onlySignInRequestsGoToTheOAuthBroker(request: HostRequest, isOAuth: Bool) {
         #expect(request.isOAuth == isOAuth)
