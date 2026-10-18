@@ -9,6 +9,7 @@
 // which host.ts fills in before calling.
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { ctx } from "./bridge";
 
 // Bundle the command so that @raycast/api points at our shim and React at the host's copy,
@@ -148,6 +149,17 @@ function commonJSMain(specifier: string, importer: string): string | undefined {
   }
 }
 
+// The members extensions read, for the same file __filename names; Vite's env is not there, as under Node.
+function importMeta(): Record<string, string> {
+  const file = path.join(ctx.extDir, `${ctx.commandName}.js`);
+  return {
+    "import.meta.env": "undefined",
+    "import.meta.url": JSON.stringify(pathToFileURL(file).href),
+    "import.meta.filename": JSON.stringify(file),
+    "import.meta.dirname": JSON.stringify(ctx.extDir),
+  };
+}
+
 function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number], retry: Retry = {}) {
   return Bun.build({
     entrypoints: [entry],
@@ -160,6 +172,8 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
     define: {
       __dirname: JSON.stringify(ctx.extDir),
       __filename: JSON.stringify(path.join(ctx.extDir, `${ctx.commandName}.js`)),
+      // CommonJS has no import.meta, so a module build that reads it (zustand's import.meta.env) would not even load.
+      ...(format === "cjs" ? importMeta() : {}),
     },
     plugins: [
       {

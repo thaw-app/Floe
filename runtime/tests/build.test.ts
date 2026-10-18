@@ -402,6 +402,17 @@ export default () => ({ fetch, Agent, WebSocket });`,
     expect(command()).toBe("ran");
   });
 
+  // zustand's module build reads Vite's import.meta.env, which a CommonJS bundle could not even load.
+  test("import.meta in a CommonJS build has the command file's place, and no Vite env", async () => {
+    const extDir = makeExtension(
+      { "src/meta.ts": 'export default () => ({ env: import.meta.env ? "vite" : "none", url: import.meta.url, dirname: import.meta.dirname });' },
+      "meta",
+    );
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toEqual({ env: "none", url: Bun.pathToFileURL(path.join(extDir, "meta.js")).href, dirname: extDir });
+  });
+
   test("better-sqlite3 is bun:sqlite underneath, even with no copy of its own installed", async () => {
     makeExtension({ "src/db.ts": 'import Database from "better-sqlite3-multiple-ciphers";\nexport default () => new Database().prepare("SELECT 1 + 1 AS two").get();' }, "db");
     const command = (await import(await bundle(findEntry()))).default;
