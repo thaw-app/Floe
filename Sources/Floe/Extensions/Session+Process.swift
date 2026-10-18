@@ -30,7 +30,8 @@ extension ExtensionSession {
         }
         // --smol trades some GC headroom for a smaller footprint: extension trees stay mounted for
         // Back and resume, so the allocator's retention is the host's biggest memory cost.
-        let hostArguments = Arguments(["--smol", Paths.host.path, command.extensionDir.path, command.name, argumentsJSON])
+        // --no-install: an import left for run time must never make Bun fetch a package.
+        let hostArguments = Arguments(["--smol", "--no-install", Paths.host.path, command.extensionDir.path, command.name, argumentsJSON])
         // One decoder per host: it owns the partial bytes between chunks and keeps decoding off the main actor.
         let decoder = HostMessageDecoder()
         let started: @Sendable (pid_t) async -> Void = { [weak self] identifier in

@@ -357,7 +357,7 @@ export default () => ({ attribute: (<a title="as &#xXXXX; or &#x41;" />).props.t
   });
 
   // got requires electron only inside Electron, and node-ssdp a coverage build only when one is asked for.
-  test("a dependency's require of something missing, in a branch that never runs, builds and is left for run time", async () => {
+  test("a dependency's require of something missing, in a branch that never runs, builds as an empty module", async () => {
     makeExtension(
       {
         "src/net.ts": 'import got from "got-like";\nexport default () => got();',

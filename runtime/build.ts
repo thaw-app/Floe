@@ -99,8 +99,8 @@ async function build(entry: string, outdir: string) {
 // command with a top-level await.
 function retryFor(error: unknown): Retry {
   const message = describe(error);
-  // A dependency's require of something that isn't there, such as got's of electron, sits in a branch that never
-  // runs here; esbuild leaves it to fail at run time, if it is ever reached.
+  // A dependency's import of something that isn't installed, such as got's of electron or an optional peer, sits in
+  // code that never runs here. It builds as an empty module: nothing is looked up, or fetched, when the command runs.
   const unresolved = ((error as AggregateError).errors ?? [])
     .filter((item) => item?.name === "ResolveMessage" && String(item.position?.file).includes("/node_modules/"))
     .map((item) => `${item.position.file}\0${item.specifier}`);
@@ -181,7 +181,8 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
           }));
           if (retry.unresolved) {
             const unresolved = retry.unresolved;
-            build.onResolve({ filter: /.*/ }, (args) => (unresolved.has(`${args.importer}\0${args.path}`) ? { path: args.path, external: true } : undefined));
+            build.onResolve({ filter: /.*/ }, (args) => (unresolved.has(`${args.importer}\0${args.path}`) ? { path: args.path, namespace: "missing" } : undefined));
+            build.onLoad({ filter: /.*/, namespace: "missing" }, () => ({ loader: "js", contents: "module.exports = {};" }));
           }
           if (retry.preferMain) {
             build.onResolve({ filter: /^(@[^/]+\/)?[^./@][^/]*$/ }, (args) => {

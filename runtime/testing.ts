@@ -12,7 +12,7 @@ export type TreeNode = { id: number; type: string; props: Record<string, any>; h
 export type HostMessage = { type: string; tree?: TreeNode; [key: string]: any };
 
 export function startHost(extensionDir: string, command: string, stderr: "inherit" | "pipe" | "ignore") {
-  return Bun.spawn(["bun", path.join(import.meta.dir, "host.ts"), extensionDir, command], { stdin: "pipe", stdout: "pipe", stderr });
+  return Bun.spawn(["bun", "--no-install", path.join(import.meta.dir, "host.ts"), extensionDir, command], { stdin: "pipe", stdout: "pipe", stderr });
 }
 
 export function sendToHost(proc: ReturnType<typeof startHost>, message: Record<string, unknown>) {
