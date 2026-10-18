@@ -36,7 +36,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
         switch self {
         case .oauthAuthorize, .oauthGetTokens, .oauthSetTokens, .oauthRemoveTokens:
             true
-        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication, .applications:
+        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication, .applications, .browserTabs, .browserScript:
             false
         }
     }
@@ -54,12 +54,16 @@ nonisolated enum HostRequest: Sendable, Equatable {
     case defaultApplication(path: String)
     /// `getApplications(path)` and `Action.OpenWith`: every app that can open the file, the default first.
     case applications(path: String)
+    /// `BrowserExtension.getTabs()`.
+    case browserTabs
+    /// `BrowserExtension.getContent()`: the runtime's script for the page, run in a tab.
+    case browserScript(javascript: String, tabID: Int?)
 
     /// Nil for a method the app doesn't know, or one whose parameters are missing.
     init?(method: String, params: [String: Any]) {
-        if method.hasPrefix("environment.") {
-            guard let environment = Self.environmentRequest(method: method, params: params) else { return nil }
-            self = environment
+        if let family = Self.families[String(method.prefix { $0 != "." })] {
+            guard let request = family(method, params) else { return nil }
+            self = request
             return
         }
         switch method {
@@ -97,7 +101,13 @@ nonisolated enum HostRequest: Sendable, Equatable {
         }
     }
 
-    /// The `environment.*` methods, apart from the rest so the main switch stays readable.
+    /// Methods read apart from the main switch, by the word before their first dot, so it stays readable.
+    private static let families: [String: @Sendable (String, [String: Any]) -> HostRequest?] = [
+        "environment": environmentRequest,
+        "browser": browserRequest,
+    ]
+
+    /// The `environment.*` methods.
     private static func environmentRequest(method: String, params: [String: Any]) -> HostRequest? {
         switch method {
         case "environment.frontmostApplication":
@@ -108,6 +118,19 @@ nonisolated enum HostRequest: Sendable, Equatable {
         case "environment.getApplications":
             guard let path = params["path"] as? String else { return nil }
             return .applications(path: path)
+        default:
+            return nil
+        }
+    }
+
+    /// The `BrowserExtension` methods.
+    private static func browserRequest(method: String, params: [String: Any]) -> HostRequest? {
+        switch method {
+        case "browser.tabs":
+            return .browserTabs
+        case "browser.script":
+            guard let javascript = params["javascript"] as? String else { return nil }
+            return .browserScript(javascript: javascript, tabID: params["tabId"] as? Int)
         default:
             return nil
         }
@@ -138,7 +161,16 @@ nonisolated enum HostRequest: Sendable, Equatable {
             return await MainActor.run { Self.defaultApplication(forFileAt: path) } as Any
         case let .applications(path):
             return Self.applications(forFileAt: path)
+        case .browserTabs:
+            return try await BrowserExtensionBridge.tabs(frontmost: frontmostBundleID(), run: AppleScript.execute)
+        case let .browserScript(javascript, tabID):
+            return try await BrowserExtensionBridge.run(javascript, tabID: tabID, frontmost: frontmostBundleID(), run: AppleScript.execute)
         }
+    }
+
+    /// The frontmost app's bundle id, which says which browser BrowserExtension reads.
+    private static func frontmostBundleID() async -> String? {
+        await MainActor.run { NSWorkspace.shared.frontmostApplication?.bundleIdentifier }
     }
 
     /// The frontmost app as the API's Application: name, path and bundle id. Nil when nothing is

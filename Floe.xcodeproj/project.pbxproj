@@ -232,6 +232,7 @@
 		98567844EDD7930E94C53A48 /* ShellSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED515CCCABAF96E696DF5D18 /* ShellSuggestions.swift */; };
 		986F8CAC6A66B0930D4280AF /* Receipts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00BD4AB165EA8BF5EDA5CABA /* Receipts.swift */; };
 		99BEFA324285975C6C22D63D /* SyncRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 908E7F3E6F02AAA50465A10F /* SyncRecord.swift */; };
+		9A1BA82D6322FDB780D67251 /* BrowserExtensionBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C187D386A4232E01E22B780 /* BrowserExtensionBridge.swift */; };
 		9A4AACE1DDD805AB1A0D71ED /* MarkdownContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F32158235EE8D9750BCD10F2 /* MarkdownContent.swift */; };
 		9A89FDB20437589618587324 /* AIConversation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03E2064C17DB821332617CDB /* AIConversation.swift */; };
 		9BCA580FCA8421373D07A616 /* ScopeRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAAAB6379CF2805E7A3A0A9E /* ScopeRows.swift */; };
@@ -519,6 +520,7 @@
 		49F344E4E1A683D2886D89AA /* ExtensionAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionAccess.swift; sourceTree = "<group>"; };
 		49F9E4F50999F37A0B4D3C13 /* ShellCommandSearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellCommandSearchProvider.swift; sourceTree = "<group>"; };
 		4C111C74FE8C998059BB71F9 /* Calculator+Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calculator+Result.swift"; sourceTree = "<group>"; };
+		4C187D386A4232E01E22B780 /* BrowserExtensionBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserExtensionBridge.swift; sourceTree = "<group>"; };
 		4CB6FF4189AA62999432BD2F /* SyncAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAvailability.swift; sourceTree = "<group>"; };
 		4F0249DC6940E1049818D55E /* SnippetsSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsSettingsPage.swift; sourceTree = "<group>"; };
 		4F258F443B0715319BB464D8 /* ReceiptRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptRows.swift; sourceTree = "<group>"; };
@@ -1118,6 +1120,7 @@
 			isa = PBXGroup;
 			children = (
 				26FC03A029A34D38B9446379 /* BackgroundScheduler.swift */,
+				4C187D386A4232E01E22B780 /* BrowserExtensionBridge.swift */,
 				39126B19AD0484198EF610C8 /* CommandLauncher.swift */,
 				0E0F090C4AA55A571B10E9C5 /* CommandSubtitles.swift */,
 				A70BF33F9908B530D3859110 /* CustomIcon.swift */,
@@ -1560,6 +1563,7 @@
 				0B9F4749B71F9218EB6940E5 /* BrewRows.swift in Sources */,
 				B4022E41A6B70A45AEDD4A3B /* Browser.swift in Sources */,
 				173CC8FBD3F3597C06824F27 /* BrowserActions.swift in Sources */,
+				9A1BA82D6322FDB780D67251 /* BrowserExtensionBridge.swift in Sources */,
 				2B1A399FDE1939D1D734D098 /* BrowserTabs.swift in Sources */,
 				8D48C584A1FF3B392D7A1754 /* BuiltInCommandsSection.swift in Sources */,
 				7E6BE34495E0D03B075CB14B /* Calculator+Number.swift in Sources */,

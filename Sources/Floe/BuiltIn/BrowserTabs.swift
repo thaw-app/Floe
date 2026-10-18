@@ -46,18 +46,27 @@ nonisolated struct BrowserApp: Equatable, Sendable {
         select: ["focus tab floeIndex of floeWindow"]
     )
     /// Helium has Chromium's scripting suite.
-    static let helium = BrowserApp(
-        name: "Helium",
-        bundleID: "net.imput.helium",
-        titleTerm: "title",
-        tabKey: .id,
-        select: [
-            "set active tab index of floeWindow to floeIndex",
-            "if minimized of floeWindow then set minimized of floeWindow to false",
-            "set index of floeWindow to 1",
-        ]
-    )
-    static let all = [safari, dia, helium]
+    static let helium = chromium(name: "Helium", bundleID: "net.imput.helium")
+    /// Chromium's scripting suite, as Helium's definition has it: Chrome and the browsers built on it ship the same one.
+    static let chrome = chromium(name: "Google Chrome", bundleID: "com.google.Chrome")
+    static let brave = chromium(name: "Brave Browser", bundleID: "com.brave.Browser")
+    static let edge = chromium(name: "Microsoft Edge", bundleID: "com.microsoft.edgemac")
+    static let vivaldi = chromium(name: "Vivaldi", bundleID: "com.vivaldi.Vivaldi")
+    static let all = [safari, dia, helium, chrome, brave, edge, vivaldi]
+
+    private static func chromium(name: String, bundleID: String) -> BrowserApp {
+        BrowserApp(
+            name: name,
+            bundleID: bundleID,
+            titleTerm: "title",
+            tabKey: .id,
+            select: [
+                "set active tab index of floeWindow to floeIndex",
+                "if minimized of floeWindow then set minimized of floeWindow to false",
+                "set index of floeWindow to 1",
+            ]
+        )
+    }
 
     /// Read without scripting, so asking never launches the browser or needs a permission.
     static func isRunning(_ browser: BrowserApp) -> Bool {

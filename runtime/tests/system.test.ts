@@ -628,11 +628,8 @@ describe("what Raycast exports", () => {
     expect(exported.filter((name) => !(name in api))).toEqual([]);
   });
 
-  test("the browser and the windows are refused, with the reason", async () => {
-    expect(api.environment.canAccess(api.BrowserExtension)).toBe(false);
+  test("the windows are refused, with the reason", async () => {
     expect(api.environment.canAccess(api.WindowManagement)).toBe(false);
-    await expect(api.BrowserExtension.getTabs()).rejects.toThrow("BrowserExtension.getTabs isn't supported in Floe yet");
-    await expect(api.BrowserExtension.getContent()).rejects.toThrow("isn't supported in Floe yet");
     await expect(api.WindowManagement.getActiveWindow()).rejects.toThrow("WindowManagement.getActiveWindow isn't supported in Floe yet");
     expect(api.WindowManagement.DesktopType.FullScreen).toBe("FullScreen");
   });

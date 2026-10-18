@@ -119,7 +119,7 @@ struct BrowserTabTests {
     // MARK: Asking the browsers
 
     @Test func everyBrowserInTheTableHasAScriptThatOnlyTalksToItWhileItIsRunning() {
-        #expect(BrowserApp.all.map(\.name) == ["Safari", "Dia", "Helium"])
+        #expect(BrowserApp.all.map(\.name) == ["Safari", "Dia", "Helium", "Google Chrome", "Brave Browser", "Microsoft Edge", "Vivaldi"])
         for browser in BrowserApp.all {
             let script = BrowserTabScripts.list(browser)
             let app = "application id \"\(browser.bundleID)\""
