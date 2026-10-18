@@ -95,6 +95,13 @@ After you install:
 - **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch. A fresh install offers to add ready menu bar commands that are not already enabled. Commands needing preferences show setup guidance instead.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
 - **An extension that holds more than 1 GB of memory is stopped.** Floe says so, and how much it held.
+- **Grids draw as tiles**, in the columns, shape and inset each section asks for. The arrow keys move through them.
+- **Commands can start other commands** with `launchCommand`, set the subtitle shown beside them in the search, follow the selected item and load the next page at the end of a list.
+- **More actions work.** Open With lists the apps that open a file, Quick Look previews it, Create Snippet and Create Quicklink keep what you confirm, and Pick Date hands the date on.
+- **Extensions read the browser tab in front** in Safari, Dia, Helium, Chrome, Brave, Edge and Vivaldi, through AppleScript where Raycast uses its browser extension.
+- **An extension's Swift helper is built the first time a command calls it**, which takes a few minutes. Rust helpers do not run on macOS, as in Raycast.
+- **`Clipboard.read` with an offset reads Floe's clipboard history**, and Raycast's icon names draw as SF Symbols.
+- **More extensions build and run as they do in Raycast:** self-signed certificates and proxies through node-fetch, undici and ws, better-sqlite3 on Bun's SQLite, and packages whose module build lacks what Node's build has. An extension's support folder holds only its own files.
 - **An extension you are writing runs again when you save it.** While one of its commands is open, a save under `src` or `assets`, or of `package.json`, runs the command again with the same arguments.
 
 #### Extension settings and sign-in
@@ -102,7 +109,7 @@ After you install:
 - **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension, whether Floe or Raycast installed it.
 - **Each extension's page shows what it has reached:** the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It records what the extension did and stops none of it. Settings > Privacy switches the record off and forgets it.
 - **GitHub and GitLab extensions sign in with the GitHub CLI and the GitLab CLI.** If `gh` or `glab` is signed in on your Mac, Floe asks once per extension whether it may use that sign-in. For GitHub it lists what the sign-in may do. The extension's page in Settings takes it back.
-- **Other extensions sign in in the browser.** Where the browser's answer cannot reach Floe, Floe asks for the token the extension takes and runs the command again. Known issues says whose service the sign-in uses for now.
+- **Other extensions sign in in the browser.** When the provider returns to Raycast's own app address, Floe takes `raycast://` and `com.raycast:/` links while the sign-in waits and gives them back after. Where the browser's answer cannot reach Floe, Floe asks for the token the extension takes and runs the command again. Known issues says whose service the sign-in uses for now.
 
 #### Built in
 - **Snippets with text expansion, and quicklinks** with fallback searches. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
@@ -172,7 +179,7 @@ After you install:
 
 ### Known issues
 - **Extension sign-in goes through Raycast's sign-in service for now.** Floe has none of its own yet: the browser returns through raycast.com, and some extensions get their token from Raycast's servers. Floe says so before the first sign-in. This is temporary and may stop working, and Floe's own sign-in service is planned to replace it. GitHub and GitLab use their command line tools first, and an extension whose sign-in cannot be received is asked for its token.
-- **`launchCommand`, deeplinks, AI tools and the grid layout** for extensions are not built yet.
+- **Deeplinks, AI tools and window management** for extensions are not built yet. [Limitations](docs/LIMITATIONS.md) lists the rest.
 - **The record of what an extension reaches misses some file access.** It sees hosts and programs more reliably than files.
 - **Timers end when Floe quits.** They are held in memory.
 - **Fast file search leaves out iCloud Drive**, which macOS keeps inside Library.

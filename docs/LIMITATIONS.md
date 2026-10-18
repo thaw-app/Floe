@@ -5,8 +5,11 @@ The gaps as they stand. The [roadmap](../README.md#roadmap) says which come next
 ## Extensions
 
 - **Sign-in uses Raycast's service for now.** It is temporary and may stop working. Floe's own service is planned. GitHub and GitLab extensions use `gh` and `glab`.
-- `launchCommand`, deeplinks, AI tools and the grid layout.
-- Swift or Rust helpers inside an extension.
+- Deeplinks, AI tools and window management.
+- An extension's Swift helper is built the first time a command calls it, which takes a few minutes and needs Apple's Swift tools (Xcode, or `xcode-select --install`). Rust helpers do not run on macOS, as in Raycast.
+- `react-dom/server`, which a few extensions use to draw text.
+- Dependencies that only work once their install scripts have run: Floe installs extensions with scripts off.
+- Encrypted SQLite databases (`better-sqlite3-multiple-ciphers` with a key).
 
 ## Search and AI
 
