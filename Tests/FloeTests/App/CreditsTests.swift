@@ -46,7 +46,7 @@ struct CreditsTests {
     }
 
     @Test func originsAreTheProjectsFloeCarriesCodeFromAndTheRestAreLibraries() {
-        #expect(Credits.origins.map(\.name) == ["Thaw", "Droppy Code", "Barometer", "Audio Priority Bar"])
+        #expect(Credits.origins.map(\.name) == ["Thaw", "Droppy Code", "Barometer", "Audio Priority Bar", "CMD-Z"])
         #expect(Credits.origins.count + Credits.libraries.count == Credits.all.count)
         #expect(Credits.libraries.allSatisfy { $0.group == .library })
     }

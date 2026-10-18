@@ -13,6 +13,7 @@ extension LauncherModel {
         runner.endOpenCommand()
         setup = nil
         isSearchingMenuBar = false
+        menuItemSearch = nil
         isShowingClipboardHistory = false
         isSearchingFiles = false
         closeNoteDesk()

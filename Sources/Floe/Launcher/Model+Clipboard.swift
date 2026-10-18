@@ -25,6 +25,7 @@ extension LauncherModel {
         runner.endOpenCommand()
         setup = nil
         isSearchingMenuBar = false
+        menuItemSearch = nil
         isShowingClipboardHistory = true
         clipboardHistory.query = ""
         clipboardHistory.selection = 0

@@ -52,6 +52,17 @@ extension SearchIndex {
             ).searchTerms
         ),
         .commands(
+            "menuItemSearchHotkey",
+            String(localized: "Search Menu Items", bundle: .floe, comment: "The command that lists the commands in the menus of the app in front."),
+            description: String(localized: "Find a command in the menus of the app in front and choose it.", bundle: .floe),
+            section: String(localized: "Built-in Commands", bundle: .floe),
+            keywords: String(
+                localized: "hotkey, shortcut, keyboard, alias, menus, menu commands, app menu, file, edit, view",
+                bundle: .floe,
+                comment: "Words that find the Search Menu Items setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .commands(
             "emojiSkinTone",
             String(localized: "Emoji skin tone", bundle: .floe),
             section: String(localized: "Built-in Commands", bundle: .floe),

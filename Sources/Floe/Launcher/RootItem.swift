@@ -22,6 +22,8 @@ enum RootItem: Identifiable {
     case command(ExtensionCommand)
     case script(ScriptCommand)
     case menuBarSearch
+    /// The commands in the menus of the app in front, to choose one from the keyboard.
+    case menuItemSearch
     case emojiSearch
     case clipboardHistory
     /// The notes of the folder the user chose, to read and write in the panel.
@@ -92,6 +94,8 @@ enum RootItem: Identifiable {
     case definition(WordDefinition)
     /// Something worked out from the query, such as a time elsewhere or a new identifier; Return copies it.
     case answer(AnswerRow)
+    /// A command of the front app's menus, found by `menus`, or the row that stands in for them until Floe may read them.
+    case menuItem(MenuItemRow)
     /// An open window, found by `windows` and its title, or the row that stands in for them until Floe may read them.
     case window(WindowRow)
     /// A bookmark of one of the browsers, found by `bookmarks`; Return opens it.
@@ -106,6 +110,7 @@ enum RootItem: Identifiable {
     case brew(BrewPackage)
 
     static let menuBarSearchKey = "builtin:menubar-search"
+    static let menuItemSearchKey = "builtin:menu-item-search"
     static let emojiSearchKey = "builtin:emoji-search"
     static let clipboardHistoryKey = "builtin:clipboard-history"
     static let fileSearchKey = "builtin:file-search"
@@ -117,6 +122,7 @@ enum RootItem: Identifiable {
         case let .command(command): "command:\(command.id)"
         case let .script(script): "script:\(script.file.lastPathComponent)"
         case .menuBarSearch: Self.menuBarSearchKey
+        case .menuItemSearch: Self.menuItemSearchKey
         case .emojiSearch: Self.emojiSearchKey
         case .clipboardHistory, .clipboardApp: Self.clipboardHistoryKey
         case .fileSearch: Self.fileSearchKey
@@ -158,6 +164,8 @@ enum RootItem: Identifiable {
         case let .keyword(hint): "keyword:\(hint.keyword)"
         case .definition: "definition"
         case let .answer(row): row.id
+        case let .menuItem(.item(entry, target)): "menu-item:\(target.pid):\(entry.pathKey)"
+        case .menuItem(.access): "menu-item-access"
         case let .window(.window(window)): "window:\(window.id)"
         case .window(.access): "window-access"
         case let .bookmark(bookmark): "bookmark:\(bookmark.url.absoluteString)"
@@ -174,6 +182,7 @@ enum RootItem: Identifiable {
         case let .command(command): command.title
         case let .script(script): script.title
         case .menuBarSearch: String(localized: "Search Menu Bar Items", bundle: .floe)
+        case .menuItemSearch: String(localized: "Search Menu Items", bundle: .floe, comment: "The command that lists the commands in the menus of the app in front.")
         case .emojiSearch: String(localized: "Search Emoji & Symbols", bundle: .floe)
         case .clipboardHistory, .clipboardApp: String(localized: "Clipboard History", bundle: .floe)
         case .fileSearch: String(localized: "Search Files", bundle: .floe)
@@ -219,6 +228,8 @@ enum RootItem: Identifiable {
         case let .keyword(hint): hint.example
         case let .definition(definition): definition.text
         case let .answer(row): row.title
+        case let .menuItem(.item(entry, _)): entry.title
+        case .menuItem(.access): String(localized: "Floe needs Accessibility to read the menus of the app in front", bundle: .floe, comment: "Accessibility is the name of a permission in System Settings.")
         case let .window(.window(window)): window.title
         case let .bookmark(bookmark): bookmark.title
         case let .brew(package): package.name
@@ -250,6 +261,8 @@ enum RootItem: Identifiable {
             return host.subtitle
         case let .answer(row):
             return row.subtitle
+        case let .menuItem(.item(entry, _)):
+            return entry.menuPath.isEmpty ? nil : entry.menuPath
         default:
             return nil
         }
@@ -262,6 +275,7 @@ enum RootItem: Identifiable {
         case let .command(command): command.id
         case let .script(script): script.id
         case .menuBarSearch: Self.menuBarSearchKey
+        case .menuItemSearch: Self.menuItemSearchKey
         case .emojiSearch: Self.emojiSearchKey
         case .clipboardHistory, .clipboardApp: Self.clipboardHistoryKey
         case .fileSearch: Self.fileSearchKey
@@ -270,7 +284,7 @@ enum RootItem: Identifiable {
         case .snippet: id
         case let .focus(request, _): request == .toggle ? id : nil
         case .settings, .extensionStore, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
-        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .definition, .answer, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: nil
+        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .definition, .answer, .menuItem, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: nil
         }
     }
 }
@@ -282,7 +296,7 @@ extension RootItem {
         case let .command(command) where command.mode == "menu-bar": String(localized: "Menu Bar", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .command: String(localized: "Command", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .script: String(localized: "Script", bundle: .floe, comment: "The kind of a result, shown beside its title.")
-        case .menuBarSearch, .emojiSearch, .clipboardHistory, .noteDesk, .settings, .extensionStore: "Floe"
+        case .menuBarSearch, .menuItemSearch, .emojiSearch, .clipboardHistory, .noteDesk, .settings, .extensionStore: "Floe"
         case let .clipboardApp(destination): destination.label
         case .fileSearch, .searchFiles: String(localized: "Files", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .calculator: String(localized: "Calculator", bundle: .floe)
@@ -315,6 +329,7 @@ extension RootItem {
         case .place: String(localized: "Place", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a place on the map.")
         case .qrCode: String(localized: "QR Code", bundle: .floe, comment: "The kind of a result, shown beside its title, and the name of the file it is saved as.")
         case let .soundDevice(row): SoundDeviceScope(role: row.device.role).title
+        case .menuItem: String(localized: "Menu Item", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a command in the menus of the app in front.")
         case .window: String(localized: "Window", bundle: .floe, comment: "The kind of a result, shown beside its title. Here an open window of an app.")
         case .contact: String(localized: "Contact", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a person from Contacts.")
         case .timer: String(localized: "Timer", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a countdown.")

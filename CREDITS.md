@@ -17,6 +17,7 @@ language, join the project there.
 - [Droppy Code](https://gitlab.com/droppyformac1/droppy-code): Droppy Code by Jordy Spruit (Droppy), https://getdroppycode.app. Floe uses its login shell environment, its process runner, the tools and the streamed API request that answer AI.ask and Ask AI, its reading of the claude tool's streamed answer, the way it starts pi and hands opencode its configuration, its hang watchdog and the folder watcher behind hot reload, each modified for Floe and used with his permission. AGPL-3.0.
 - [Barometer](https://github.com/mackid1993/Barometer): Barometer by mackid1993. Floe reads the battery, the memory in use and the network address with its system sources, cut down for a row in the search. GPL-3.0.
 - [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar): Audio Priority Bar by Camille Guillory, originally by tobi. Floe lists the sound devices, makes one the default and reads the battery of Bluetooth headphones with its sources, cut down for a list in the search. MIT.
+- [CMD-Z](https://github.com/stonerl/CMD-Z): CMD-Z by Toni Förster. Floe reads the menus of the app in front and chooses a command in them with its menu scanner. MIT.
 - [CompactSlider](https://github.com/buh/CompactSlider) `2.1.0`: Used by ThawUI. MIT.
 - [Sparkle](https://sparkle-project.org) `2.10.0`: Checks for updates and installs them. MIT.
 - [swift-subprocess](https://github.com/swiftlang/swift-subprocess) `1.0.0`: Starts and stops the process an extension runs in. Apache-2.0.

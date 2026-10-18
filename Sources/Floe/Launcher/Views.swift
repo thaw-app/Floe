@@ -31,6 +31,8 @@ struct LauncherView: View {
                 SessionContainer(model: model, session: session)
             } else if model.isSearchingMenuBar {
                 MenuBarSearchView(search: model.menuBarSearch, launcher: model, focusToken: model.focusToken)
+            } else if let menuItems = model.menuItemSearch {
+                MenuItemSearchView(search: menuItems, launcher: model, focusToken: model.focusToken)
             } else if model.isShowingClipboardHistory {
                 ClipboardHistoryView(clipboard: model.clipboardHistory, launcher: model, focusToken: model.focusToken, history: model.clipboard)
             } else if model.isSearchingFiles {

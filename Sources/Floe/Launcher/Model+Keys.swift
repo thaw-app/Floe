@@ -26,6 +26,9 @@ extension LauncherModel {
         if isSearchingMenuBar {
             return menuBarSearch.handleKey(event, flags)
         }
+        if let menuItemSearch {
+            return menuItemSearch.handleKey(event, flags)
+        }
         if let session = runner.session, session.command.mode == "view", session.alert != nil {
             return handleAlertKey(event, session)
         }

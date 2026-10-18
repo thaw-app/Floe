@@ -61,8 +61,8 @@ struct SearchProviderTests {
         })
         let ids = contribution.ranked.map(\.id)
         #expect(ids.prefix(3) == ["command:sample/planets", "script:deploy.sh", "app:/Applications/Safari.app"])
-        #expect(Array(ids.dropFirst(3).prefix(6)) == [
-            "builtin:menubar-search", "builtin:emoji-search", "builtin:clipboard-history", "builtin:file-search", "builtin:notes", "settings",
+        #expect(Array(ids.dropFirst(3).prefix(7)) == [
+            "builtin:menubar-search", "builtin:menu-item-search", "builtin:emoji-search", "builtin:clipboard-history", "builtin:file-search", "builtin:notes", "settings",
         ])
         #expect(ids.suffix(4) == ["snippet:\(snippet.id.uuidString)", "note:new", "note:append", "thaw:toggleSwap"])
         #expect(ids.contains("system:\(SystemCommand.allCases[0].rawValue)"))

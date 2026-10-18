@@ -67,9 +67,9 @@ file_header:
   required_pattern: |-
     //
     //  SWIFTLINT_CURRENT_FILENAME
-    //  Project: (Floe|Thaw|Droppy Code|Barometer|Audio Priority Bar)
+    //  Project: (Floe|Thaw|Droppy Code|Barometer|Audio Priority Bar|CMD-Z)
     //
-    //  Copyright \((Floe\) © 2026 René Jiménez|Thaw\) © 2026 Toni Förster|Droppy Code\) © 2026 Jordy Spruit\n//  Droppy Code by Jordy Spruit \(Droppy\), https://getdroppycode\.app|Barometer\) © 2026 mackid1993\n//  Barometer by mackid1993, https://github\.com/mackid1993/Barometer|Audio Priority Bar\) © 2024 tobi, © 2026 Camille Guillory\n//  Audio Priority Bar by Camille Guillory, https://github\.com/camguillory/Audio-Priority-Bar)
+    //  Copyright \((Floe\) © 2026 René Jiménez|Thaw\) © 2026 Toni Förster|Droppy Code\) © 2026 Jordy Spruit\n//  Droppy Code by Jordy Spruit \(Droppy\), https://getdroppycode\.app|Barometer\) © 2026 mackid1993\n//  Barometer by mackid1993, https://github\.com/mackid1993/Barometer|Audio Priority Bar\) © 2024 tobi, © 2026 Camille Guillory\n//  Audio Priority Bar by Camille Guillory, https://github\.com/camguillory/Audio-Priority-Bar|CMD-Z\) © 2026 Toni Förster\n//  CMD-Z by Toni Förster, https://github\.com/stonerl/CMD-Z)
 
 modifier_order:
   preferred_modifier_order:

@@ -57,7 +57,7 @@ struct SettingsStringsTests {
             "general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp", "general.clearClipboardHistory",
             "general.aiSource", "general.aiTool", "general.aiAddress", "general.aiModel", "general.aiKey",
             "general.syncsWithICloud", "general.syncsExtensionSettings", "general.syncsPasswords", "general.transferSettings", "general.diagnosticLogging",
-            "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.thawSupport",
+            "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.thawSupport",
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
             "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",
             "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol", "quicklinks.fallback",

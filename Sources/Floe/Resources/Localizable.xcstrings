@@ -1082,6 +1082,9 @@
     "Choose Another" : {
 
     },
+    "Choose Command" : {
+      "comment" : "A button that runs the selected command of an app's menus."
+    },
     "Choose Floe for Clipboard in Settings → General to keep copies here." : {
 
     },
@@ -1089,6 +1092,9 @@
 
     },
     "Choose a clipboard app in Settings" : {
+
+    },
+    "Choose a command from the menus of the app in front" : {
 
     },
     "Choose a folder for your notes" : {
@@ -1793,6 +1799,9 @@
     "Find" : {
       "comment" : "A button that puts the cursor in the settings search field."
     },
+    "Find a command in the menus of the app in front and choose it." : {
+
+    },
     "Find a menu bar item by name and open its menu. This is the one feature that needs Accessibility." : {
 
     },
@@ -1889,6 +1898,12 @@
     },
     "Floe needs Accessibility to list your windows" : {
       "comment" : "Accessibility is the name of a permission in System Settings."
+    },
+    "Floe needs Accessibility to read the menus of the app in front" : {
+      "comment" : "Accessibility is the name of a permission in System Settings."
+    },
+    "Floe needs Accessibility to read the menus of the app in front." : {
+
     },
     "Floe needs Automation access to read the Finder selection. Turn it on under System Settings › Privacy & Security › Automation, then try again. (-1743)" : {
 
@@ -2436,6 +2451,12 @@
     "Menu Bar Items" : {
 
     },
+    "Menu Item" : {
+      "comment" : "The kind of a result, shown beside its title. Here a command in the menus of the app in front."
+    },
+    "Menu Items" : {
+
+    },
     "Message" : {
       "comment" : "A verb on a button: write the person a message.\nThe kind of a result, shown beside its title. Here a row that opens a message draft."
     },
@@ -2577,6 +2598,9 @@
     "No answer" : {
 
     },
+    "No app in front" : {
+
+    },
     "No app opens that URL" : {
 
     },
@@ -2623,6 +2647,12 @@
 
     },
     "No menu bar items match" : {
+
+    },
+    "No menu items found" : {
+
+    },
+    "No menu items match" : {
 
     },
     "No note has that name" : {
@@ -2897,6 +2927,9 @@
     "Open source under the AGPL, so you can read how it works" : {
 
     },
+    "Open the launcher from an app to search its menus." : {
+
+    },
     "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy." : {
 
     },
@@ -3161,6 +3194,9 @@
 
     },
     "Read from" : {
+
+    },
+    "Reading the menus…" : {
 
     },
     "Reading the names of your files…" : {
@@ -3524,6 +3560,9 @@
     "Search Menu Bar Items in Thaw" : {
 
     },
+    "Search Menu Items" : {
+      "comment" : "The command that lists the commands in the menus of the app in front."
+    },
     "Search Sources" : {
 
     },
@@ -3548,11 +3587,17 @@
     "Search menu bar items…" : {
 
     },
+    "Search menu items…" : {
+
+    },
     "Search notes, or name a new one…" : {
 
     },
     "Search the menu bar" : {
 
+    },
+    "Search the menus of %@…" : {
+      "comment" : "The placeholder is the name of an app."
     },
     "Search what you copied" : {
 
@@ -4172,6 +4217,9 @@
     "This Mac keeps its own copies. Your other devices lose these passwords unless password sync is switched off there first." : {
 
     },
+    "This app has no menu commands Floe can choose." : {
+
+    },
     "This cannot be undone." : {
 
     },
@@ -4359,6 +4407,9 @@
 
     },
     "Try part of an app's or a command's name, or an alias." : {
+
+    },
+    "Try part of the command's name or the menu it is in." : {
 
     },
     "Try part of the copied text, link or app name." : {
@@ -4867,6 +4918,9 @@
     },
     "hotkey, shortcut, keyboard, alias, menu bar, status items, icons" : {
       "comment" : "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."
+    },
+    "hotkey, shortcut, keyboard, alias, menus, menu commands, app menu, file, edit, view" : {
+      "comment" : "Words that find the Search Menu Items setting in the settings search, separated by commas."
     },
     "hotkey, shortcut, keyboard, global, toggle, show, launcher, summon" : {
       "comment" : "Words that find the Open Floe setting in the settings search, separated by commas."

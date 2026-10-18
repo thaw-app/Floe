@@ -19,8 +19,8 @@ struct BuiltInHotkeysTests {
         let keys = LauncherModel.hotkeyItems.compactMap(\.settingsKey)
         #expect(keys.count == LauncherModel.hotkeyItems.count, "each can be stored")
         #expect(Set(keys).count == keys.count, "no two share a key")
-        #expect(keys.prefix(5) == [RootItem.menuBarSearchKey, RootItem.emojiSearchKey, RootItem.clipboardHistoryKey, RootItem.fileSearchKey, RootItem.noteDeskKey])
-        #expect(keys.count == 5 + SystemCommand.allCases.count)
+        #expect(keys.prefix(6) == [RootItem.menuBarSearchKey, RootItem.menuItemSearchKey, RootItem.emojiSearchKey, RootItem.clipboardHistoryKey, RootItem.fileSearchKey, RootItem.noteDeskKey])
+        #expect(keys.count == 6 + SystemCommand.allCases.count)
     }
 
     @Test func onlyTheCommandsGivenAHotkeyAreRegistered() {

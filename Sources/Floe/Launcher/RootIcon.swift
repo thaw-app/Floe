@@ -21,6 +21,8 @@ struct RootIcon: View {
             IconView(value: script.icon ?? "icon:Terminal", assetsPath: "", size: 24)
         case .menuBarSearch:
             IconView(value: "icon:MenubarRectangle", assetsPath: "", size: 24)
+        case .menuItemSearch:
+            SymbolTile(symbol: "filemenu.and.selection")
         case .emojiSearch:
             Text(verbatim: "😀").font(.system(size: 20))
         case .clipboardHistory:
@@ -97,8 +99,15 @@ struct RootIcon: View {
             } else {
                 SymbolTile(symbol: "macwindow")
             }
-        case .window(.access):
+        case .window(.access), .menuItem(.access):
             SymbolTile(symbol: "hand.raised")
+        case let .menuItem(.item(_, target)):
+            // The app's icon says whose menus the command is in.
+            if let url = target.url {
+                AppIconView(path: url.path, size: 24)
+            } else {
+                SymbolTile(symbol: "filemenu.and.selection")
+            }
         case .extensionStore, .system, .note, .snippet, .event, .clipboardEntry,
              .menuBarAccess, .askAI, .webAddress, .checkpoint, .checkpointDraft,
              .reminderDraft, .eventDraft, .contact, .outgoing, .focus, .keyword,

@@ -39,7 +39,7 @@ After you install:
 #### Search
 
 - **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too. Two apps with the same name each get their own row. Scattered letters match, and the ones that matched show in a stronger weight.
-- **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search, Search Menu Bar Items and the system commands take an alias and a hotkey too, in Settings > Commands. Favorites stay at the top.
+- **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search, Search Menu Bar Items, Search Menu Items and the system commands take an alias and a hotkey too, in Settings > Commands. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `menu wifi`, `tabs invoice`.
 - **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions.
 - **`keywords` or `?` lists every word the search answers to**, each with an example and what it does: `remind call mom tomorrow at 5pm`, `timer 10 minutes tea`. Type more to narrow the list. Return puts the keyword in the search for you to finish. What is switched off is left out.
@@ -126,6 +126,7 @@ After you install:
 - **Command-Y shows a file in Quick Look** from the search, and a file's Actions menu has Quick Look.
 - **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > Commands. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder, in memory and in a file on this Mac, and answers from those: scattered letters match, at each key, and files you opened lately come first. Later launches read the file and only what changed since; switching it off deletes the file. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **Search Menu Items lists the commands in the menus of the app in front**, submenus included, with the menus each one is in and its shortcut. Type part of a name to narrow them, and Return runs the command in that app. Commands that are greyed out are left out. `menus export` does the same from the search. It needs Accessibility. The menus are read with CMD-Z's menu scanner, by Toni Förster.
 - **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 
 #### Your own apps

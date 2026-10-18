@@ -13,7 +13,7 @@ extension RootItem {
     var isScopeResult: Bool {
         switch self {
         case let .focus(request, _): request != .toggle
-        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .webAddress, .shell, .process, .receipt, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .answer, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: true
+        case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .webAddress, .shell, .process, .receipt, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .answer, .menuItem, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: true
         default: false
         }
     }
@@ -30,6 +30,7 @@ extension RootItem {
         case let .place(place): place.address.isEmpty ? kind : place.address
         case let .soundDevice(row): row.label.isEmpty ? kind : row.label
         case let .window(.window(window)): window.isMinimized ? String(localized: "\(window.appName), minimized", bundle: .floe, comment: "Beside a window that is in the Dock. The placeholder is its app's name.") : window.appName
+        case let .menuItem(.item(entry, _)): entry.shortcut?.label ?? kind
         case let .process(process): Processes.label(for: process)
         case let .receipt(receipt): receipt.label()
         case let .checkpoint(checkpoint): checkpoint.summary

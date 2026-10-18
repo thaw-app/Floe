@@ -39,6 +39,8 @@
 		<string>https://github.com/mackid1993/Barometer</string>
 		<key>bun</key>
 		<string>https://bun.sh</string>
+		<key>cmdz</key>
+		<string>https://github.com/stonerl/CMD-Z</string>
 		<key>compactSlider</key>
 		<string>https://github.com/buh/CompactSlider</string>
 		<key>discord</key>

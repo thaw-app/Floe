@@ -40,7 +40,7 @@
 
 - **One hotkey, one search.** Applications, commands, quicklinks and System Settings panes, ranked by how often and how recently you use them. Aliases, hotkeys and favorites for the ones you use most.
 - **Raycast extensions, unmodified.** Including the ones Raycast has already installed, on a Bun runtime inside the app, with an Extension Store page to install and update them.
-- **The basics, built in.** Snippets, emoji, file search, calendar, a calculator with unit conversion, system commands, the menu bar's items from the keyboard, and, once you switch it on, the shortcuts you made in Apple's Shortcuts app, run by name.
+- **The basics, built in.** Snippets, emoji, file search, calendar, a calculator with unit conversion, system commands, the menu bar's items and the front app's menus from the keyboard, and, once you switch it on, the shortcuts you made in Apple's Shortcuts app, run by name.
 - **Your own apps, not replacements for them.** Pick the terminal, editor, browser, notes app and clipboard manager you already use, and Floe hands work to them, down to a host from your SSH configuration, which opens in your terminal.
 - **Ask AI.** `ask` and a question shows the answer in the launcher, and you can follow it up there. You choose who answers: a command line tool you are already signed in to (`claude`, `codex`, `opencode` or `pi`), Apple Intelligence on your Mac, or an OpenAI-compatible API. A switch keeps all AI on your Mac.
 - **Works with [Thaw](https://github.com/thaw-app/Thaw).** Thaw 3's actions are in the search, and the launcher can follow Thaw's menu bar appearance.
@@ -58,7 +58,7 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 - Results are ranked by how often and how recently you use them, with fuzzy matching on scattered letters.
 - Give an application or command an alias or a hotkey, and mark favorites that stay at the top.
 - Set hotkeys for Emoji, Clipboard History, File Search and the system commands.
-- Narrow a search to one place with a scope: `files`, `menu`, `tabs`, `windows`, `bookmarks`, `recent`.
+- Narrow a search to one place with a scope: `files`, `menu`, `menus`, `tabs`, `windows`, `bookmarks`, `recent`.
 - Type a web address or a path in full to open it (`~/Downloads` gets the file actions).
 - Type `keywords` or `?` to list every word the search answers to, with an example of each.
 - Press the Up arrow to bring back the last 50 searches that opened something.
@@ -132,6 +132,7 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 - Emoji and symbols picker with a skin tone setting.
 - File search through Spotlight, or Fast file search from Floe's own index of file names (opt-in).
 - Menu bar item search that opens the items' menus from the keyboard.
+- Search Menu Items lists the commands in the menus of the app in front, with their shortcuts, and runs the one you choose. `menus` does the same from the search.
 - Run your Apple Shortcuts by name (opt-in).
 - Connect to SSH hosts from `~/.ssh/config` in your terminal.
 
@@ -244,8 +245,7 @@ Next, in this order. The order can change.
 1. **Documentation.** A guide for extension authors first: how to run a local extension in Floe, what works and what does not. Then Floe's section on the Thaw website.
 2. **Floe's own sign-in service** for extensions, in place of Raycast's.
 3. **More of the extension API:** the grid layout, `launchCommand` and deeplinks.
-4. **Search the front app's menus**, built on the menu scanner in [CMD-Z](https://github.com/stonerl/CMD-Z) and shared with Thaw.
-5. **Settings sync switched on:** releases signed for iCloud, then the same sync in Thaw.
+4. **Settings sync switched on:** releases signed for iCloud, then the same sync in Thaw.
 
 Later:
 
@@ -285,4 +285,4 @@ Open to partnerships, integrations, and sponsorships. [Get in touch](https://git
 
 [AGPL-3.0](LICENSE). Code ported from other projects keeps its own terms; [LICENSES](LICENSES/README.md) says which license covers which folder.
 
-[Credits](CREDITS.md) lists what Floe is built from, including [Thaw](https://github.com/thaw-app/Thaw), [Droppy Code](https://getdroppycode.app) by Jordy Spruit, [Barometer](https://github.com/mackid1993/Barometer) by mackid1993 and [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar) by Camille Guillory. Raycast is a trademark of Raycast Technologies Inc. Floe is not affiliated with Raycast.
+[Credits](CREDITS.md) lists what Floe is built from, including [Thaw](https://github.com/thaw-app/Thaw), [Droppy Code](https://getdroppycode.app) by Jordy Spruit, [Barometer](https://github.com/mackid1993/Barometer) by mackid1993, [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar) by Camille Guillory and [CMD-Z](https://github.com/stonerl/CMD-Z) by Toni Förster. Raycast is a trademark of Raycast Technologies Inc. Floe is not affiliated with Raycast.

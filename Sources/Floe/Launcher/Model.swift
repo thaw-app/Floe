@@ -77,6 +77,10 @@ final class LauncherModel: ObservableObject {
     var canAskAI: () -> Bool = { false }
     /// The menu bar item search's own state. Not published: its changes redraw its view only.
     lazy var menuBarSearch = MenuBarSearchModel(settings: settings)
+    /// The front app's menu commands, while the panel shows them instead of the root search.
+    @Published var menuItemSearch: MenuItemSearchModel?
+    /// What that search asks of the system. A test replaces it: the real thing reads another app's menus.
+    var menuItemEnvironment = MenuItemSearchModel.Environment()
 
     /// What the model asks of the process around it.
     var panelHost = PanelHost()
@@ -317,6 +321,7 @@ final class LauncherModel: ObservableObject {
         runner.endOpenCommand()
         setup = nil
         isSearchingMenuBar = false
+        menuItemSearch = nil
         isShowingClipboardHistory = false
         isSearchingFiles = false
         fileSearch.cancel()

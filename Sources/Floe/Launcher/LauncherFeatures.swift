@@ -22,6 +22,7 @@ final class LauncherFeatures {
     let music = MusicRemote()
     let emoji = EmojiRows()
     let windows = WindowRows()
+    let menuItems = MenuItemRows()
     let brew = BrewRows()
     let sound = SoundRows()
     let places = PlaceRows()
@@ -38,7 +39,7 @@ final class LauncherFeatures {
     init(model: LauncherModel) {
         shell = ShellRows(settings: model.settings)
         notes = NoteRows(settings: model.settings)
-        rowOwners = [shell, checkpoints, timers, reminders, events, receipts, contacts, focus, emoji, windows, brew, sound, places, qrCodes, shortcuts, scripts, system, notes, found]
+        rowOwners = [shell, checkpoints, timers, reminders, events, receipts, contacts, focus, emoji, windows, menuItems, brew, sound, places, qrCodes, shortcuts, scripts, system, notes, found]
         let links = Links(model: model)
         connectShell(links)
         connectKept(links)
@@ -163,11 +164,13 @@ final class LauncherFeatures {
         emoji.recordUse = { model?.usage.recordUse(of: $0) }
     }
 
-    /// The rows a keyword finds outside the catalog: windows, Homebrew packages, sound devices, places and QR codes.
+    /// The rows a keyword finds outside the catalog: windows, menu commands, Homebrew packages, sound devices, places and QR codes.
     private func connectKeywords(_ links: Links) {
         weak let model = links.model
         let host = links.row
         windows.host = host
+        menuItems.host = host
+        menuItems.openSearch = { model?.openMenuItemSearch() }
         brew.host = host
         brew.runInTerminal = { [shell] command in
             let terminal = model?.resolvedApps.apps.first { $0.role == .terminal }?.app

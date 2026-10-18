@@ -90,8 +90,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         followSearchSettings()
         AppPermissions.shared.onPermissionTransition = { [weak self] permission, granted in
             guard granted, permission === AppPermissions.shared.accessibility else { return }
-            self?.model.menuBarSearch.accessWasGranted()
-            self?.model.refresh()
+            self?.model.accessibilityWasGranted()
         }
         SharedStores.announceSaves(settings: settings) { [channel] message in
             // The defaults reach the disk before the resident reads them again.

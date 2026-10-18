@@ -73,6 +73,9 @@ DEPENDENCIES = [
                "Audio Priority Bar by Camille Guillory, originally by tobi. Floe lists the sound devices, makes one "
                "the default and reads the battery of Bluetooth headphones with its sources, cut down for a list "
                "in the search", group="origin"),
+    Dependency("CMD-Z", "cmdz", "MIT",
+               "CMD-Z by Toni Förster. Floe reads the menus of the app in front and chooses a command in them "
+               "with its menu scanner", group="origin"),
     Dependency("CompactSlider", "compactSlider", "MIT", "Used by ThawUI", "swift", "compactslider"),
     Dependency("Sparkle", "sparkle", "MIT", "Checks for updates and installs them", "swift", "sparkle",
                optional=True),

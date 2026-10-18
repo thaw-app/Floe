@@ -58,6 +58,7 @@ struct PanelPieceHeights: Equatable {
 
 /// What the panel is showing, reduced to the facts its size depends on.
 struct LauncherPanelState: Equatable {
+    /// The menu bar item search or the search of the front app's menus.
     var menuBarSearch = false
     /// The plain root search: no setup, command, menu bar search, clipboard history, file search or answer on screen.
     var isRootSearch = true
@@ -119,7 +120,7 @@ extension LauncherModel {
         LauncherPanelState(
             showingSetup: setup != nil,
             showingCommand: runner.session?.command.mode == "view",
-            menuBarSearch: isSearchingMenuBar,
+            menuBarSearch: isSearchingMenuBar || menuItemSearch != nil,
             clipboardHistory: isShowingClipboardHistory,
             fileSearch: isSearchingFiles || noteDesk != nil,
             queryIsEmpty: query.isEmpty,
@@ -130,8 +131,10 @@ extension LauncherModel {
     /// The panel's window size, sent again whenever the view on screen, the query or the layout changes it.
     func panelWindowSizes(settings: AppSettings) -> AnyPublisher<NSSize, Never> {
         // Published values arrive before they are stored, so the state is built from what is sent.
+        // Either menu search fills the panel the same way.
+        let menuSearches = $isSearchingMenuBar.combineLatest($menuItemSearch.map { $0 != nil }).map { $0 || $1 }
         let views = $setup.map { $0 != nil }
-            .combineLatest(runner.$session.map { $0?.command.mode == "view" }, $isSearchingMenuBar, $isShowingClipboardHistory)
+            .combineLatest(runner.$session.map { $0?.command.mode == "view" }, menuSearches, $isShowingClipboardHistory)
         let searches = $isSearchingFiles.combineLatest($noteDesk.map { $0 != nil }).map { $0 || $1 }.combineLatest($askAI.map { $0 != nil })
         return views.combineLatest(searches, $query.map(\.isEmpty), settings.$launcherLayout)
             .map { views, searches, queryIsEmpty, layout in

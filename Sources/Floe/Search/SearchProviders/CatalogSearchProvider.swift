@@ -11,7 +11,7 @@ import Foundation
 /// system commands, snippets and note actions. System Settings' panes are only searched for.
 struct CatalogSearchProvider: SearchProvider {
     func contribution(for context: SearchContext) -> SearchContribution {
-        let builtIns: [RootItem] = [.menuBarSearch, .emojiSearch, ClipboardApps.row(for: context.clipboardDestination), .fileSearch, .noteDesk, .settings, .extensionStore]
+        let builtIns: [RootItem] = [.menuBarSearch, .menuItemSearch, .emojiSearch, ClipboardApps.row(for: context.clipboardDestination), .fileSearch, .noteDesk, .settings, .extensionStore]
         let found = context.commands.map(RootItem.command) + context.scripts.map(RootItem.script) + context.apps.map(RootItem.app)
         let own = builtIns + SystemCommand.allCases.map(RootItem.system) + context.snippets.map(RootItem.snippet)
             + context.notesApp.actions.filter(\.standsAlone).map { RootItem.note($0, text: "") } + context.thawActions.map(RootItem.thaw)

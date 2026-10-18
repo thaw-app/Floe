@@ -10,7 +10,7 @@ import AppKit
 /// Floe's own commands that a hotkey can run from anywhere: its views and the system commands.
 extension LauncherModel {
     /// The views, in the order Settings lists them.
-    static let hotkeyViews: [RootItem] = [.menuBarSearch, .emojiSearch, .clipboardHistory, .fileSearch, .noteDesk]
+    static let hotkeyViews: [RootItem] = [.menuBarSearch, .menuItemSearch, .emojiSearch, .clipboardHistory, .fileSearch, .noteDesk]
 
     static var hotkeyItems: [RootItem] {
         hotkeyViews + SystemCommand.allCases.map(RootItem.system)
@@ -30,6 +30,8 @@ extension LauncherModel {
         switch item {
         case .menuBarSearch:
             openMenuBarSearch()
+        case .menuItemSearch:
+            openMenuItemSearch()
         case .emojiSearch:
             reset()
             query = EmojiSearchProvider.prefix

@@ -55,6 +55,7 @@ extension KeywordHint {
         KeywordHint(keyword: "menu", example: "menu wifi", detail: String(localized: "Click a menu bar item", bundle: .floe)),
         KeywordHint(keyword: "tabs", example: "tabs invoice", detail: String(localized: "Switch to an open browser tab", bundle: .floe), need: .source(SearchSourceInfo.tabs.id)),
         KeywordHint(keyword: OpenWindows.keyword, example: "windows invoice", detail: String(localized: "Switch to an open window", bundle: .floe)),
+        KeywordHint(keyword: MenuItems.keyword, example: "menus export", detail: String(localized: "Choose a command from the menus of the app in front", bundle: .floe)),
         KeywordHint(keyword: Bookmarks.keyword, example: "bookmarks invoice", detail: String(localized: "Open a bookmark of Chrome, Brave, Edge, Arc, Vivaldi, Dia or Helium", bundle: .floe, comment: "The names are browsers.")),
         KeywordHint(keyword: Homebrew.keyword, example: "brew ripgrep", detail: String(localized: "Install or upgrade a Homebrew package in your terminal", bundle: .floe, comment: "Homebrew is the name of a package manager.")),
         KeywordHint(keyword: RecentDocuments.keyword, example: "recent preview", detail: String(localized: "List the recently used files an application opens", bundle: .floe)),

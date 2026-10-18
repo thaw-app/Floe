@@ -11,7 +11,6 @@ The gaps as they stand. The [roadmap](../README.md#roadmap) says which come next
 ## Search and AI
 
 - Searching your notes.
-- Searching the front app's menus.
 - AI chat.
 
 ## Sync
