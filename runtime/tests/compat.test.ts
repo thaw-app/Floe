@@ -102,3 +102,50 @@ describe("proxies and forms written for Node", () => {
     expect(bunInit("https://example.invalid/", init)).toBe(init);
   });
 });
+
+// Raycast Focus Stats keeps its sessions through Drizzle's better-sqlite3 driver, which calls these.
+describe("better-sqlite3 over bun:sqlite", () => {
+  const Database = require("../compat/better-sqlite3.ts");
+
+  test("prepares, binds named parameters without their prefix, and returns rows, raw rows or a column", () => {
+    const db = new Database();
+    db.exec("CREATE TABLE sessions (id INTEGER PRIMARY KEY, goal TEXT UNIQUE)");
+    const inserted = db.prepare("INSERT INTO sessions (goal) VALUES (@goal)").run({ goal: "write" });
+    db.prepare("INSERT INTO sessions (goal) VALUES (?)").run("read");
+
+    expect(inserted).toEqual({ changes: 1, lastInsertRowid: 1 });
+    expect(db.prepare("SELECT * FROM sessions ORDER BY id").all()).toEqual([{ id: 1, goal: "write" }, { id: 2, goal: "read" }]);
+    expect(db.prepare("SELECT * FROM sessions ORDER BY id").raw().all()).toEqual([[1, "write"], [2, "read"]]);
+    expect(db.prepare("SELECT goal FROM sessions WHERE id = ?").pluck().get(2)).toBe("read");
+    expect(db.prepare("SELECT * FROM sessions WHERE id = 9").get()).toBeUndefined();
+    expect(db.pragma("user_version", { simple: true })).toBe(0);
+  });
+
+  test("a broken constraint is a SqliteError with SQLite's code, and a transaction rolls back on a throw", () => {
+    const db = new Database();
+    db.exec("CREATE TABLE goals (name TEXT UNIQUE)");
+    const add = db.prepare("INSERT INTO goals VALUES (?)");
+    add.run("focus");
+
+    let caught: unknown;
+    try {
+      add.run("focus");
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(Database.SqliteError);
+    expect((caught as { code: string }).code).toBe("SQLITE_CONSTRAINT_UNIQUE");
+
+    const addBoth = db.transaction(() => {
+      add.run("rest");
+      add.run("focus");
+    });
+    expect(() => addBoth()).toThrow();
+    expect(db.prepare("SELECT name FROM goals").pluck().all()).toEqual(["focus"]);
+  });
+
+  // Code Saver encrypts its snippets with a key the user sets.
+  test("an encryption key is refused, not ignored", () => {
+    expect(() => new Database().pragma("cipher='aes256cbc'")).toThrow("Floe can't open encrypted databases");
+  });
+});

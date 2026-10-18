@@ -135,6 +135,8 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
             loader: "js",
             contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${JSON.stringify(args.path)}));`,
           }));
+          // A V8 addon Bun cannot load, whichever build of it the extension installed.
+          build.onResolve({ filter: /^better-sqlite3(-multiple-ciphers)?$/ }, () => ({ path: path.join(compatDir, "better-sqlite3.ts"), external: true }));
           // Each importer gets its own copy, holding the names it imports.
           build.onResolve({ filter: /^(swift|rust):/ }, (args) => ({ path: `${args.importer}|${args.path}`, namespace: "native" }));
           build.onLoad({ filter: /.*/, namespace: "native" }, (args) => {

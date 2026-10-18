@@ -273,6 +273,13 @@ export default () => ({ fetch, Agent, WebSocket });`,
     expect(parts.WebSocket).toBe(require("../compat/ws.ts"));
   });
 
+  test("better-sqlite3 is bun:sqlite underneath, even with no copy of its own installed", async () => {
+    makeExtension({ "src/db.ts": 'import Database from "better-sqlite3-multiple-ciphers";\nexport default () => new Database().prepare("SELECT 1 + 1 AS two").get();' }, "db");
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toEqual({ two: 2 });
+  });
+
   // A bundle cached from before was built as an ES module, and one of those fails only when it is imported.
   test("builds again over a bundle cached from before commands were built as CommonJS", async () => {
     makeExtension({ "src/older.ts": "export default () => 1;" }, "older");
