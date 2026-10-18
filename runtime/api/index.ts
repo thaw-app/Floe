@@ -153,7 +153,7 @@ export const Grid = Object.assign(paginated("Grid"), {
   Section: host("Grid.Section"),
   EmptyView: host("EmptyView", ["actions"]),
   Dropdown: dropdown("Grid"),
-  Inset: { Small: "small", Medium: "medium", Large: "large" },
+  Inset: { Zero: "zero", Small: "sm", Medium: "md", Large: "lg" },
   ItemSize: { Small: "small", Medium: "medium", Large: "large" },
   Fit: { Contain: "contain", Fill: "fill" },
 });
@@ -195,6 +195,8 @@ export const Form = Object.assign(host("Form", ["actions", "searchBarAccessory"]
   Separator: host("Form.Separator"),
   LinkAccessory: host("Form.LinkAccessory"),
 });
+// The older spellings, which extensions built against API 1.x still use; Conventional Comments draws Form.DropdownItem.
+Object.assign(Form, { DropdownItem: Form.Dropdown.Item, DropdownSection: Form.Dropdown.Section, TagPickerItem: Form.TagPicker.Item });
 
 export const MenuBarExtra = Object.assign(host("MenuBarExtra"), {
   Item: host("MenuBarExtra.Item"),
@@ -329,6 +331,8 @@ export const Action = Object.assign(BaseAction, {
   CreateQuicklink: action("Create Quicklink", "Link", (props, navigation) =>
     navigation.push(h(QuicklinkForm, { quicklink: props.quicklink ?? {} })),
   ),
+  // Raycast adds the server to its own AI settings, which Floe has no counterpart for.
+  InstallMCPServer: action("Install MCP Server", "Plug", () => showToast({ style: Toast.Style.Failure, title: "Floe can't install MCP servers" })),
   PickDate: Object.assign(action("Pick Date", "Calendar", (props, navigation) => navigation.push(h(DateForm, props))), {
     Type: { Date: "date", DateTime: "dateTime" },
     isFullDay,

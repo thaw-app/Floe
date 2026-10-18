@@ -211,7 +211,7 @@ describe("Grid and MenuBarExtra", () => {
       ),
     );
     const grid = find(tree, "Grid");
-    expect(grid.props).toEqual({ columns: 4, inset: "large", fit: "contain", itemSize: "small" });
+    expect(grid.props).toEqual({ columns: 4, inset: "lg", fit: "contain", itemSize: "small" });
     const item = find(find(grid, "Grid.Section"), "Grid.Item");
     expect(item.props).toEqual({ title: "Star", content: "icon:Star" });
     expect(titles(findAll(slot(item, "actions"), "Action"))).toEqual(["Pick"]);
@@ -292,6 +292,13 @@ const planetItems = [
   h(List.Dropdown.Section, { key: "inner", title: "Inner" }, h(List.Dropdown.Item, { value: "mercury", title: "Mercury" })),
   h(List.Dropdown.Item, { key: "venus", value: "venus", title: "Venus" }),
 ];
+
+// Extensions built against API 1.x spell some members the older way.
+test("the older Form member spellings are the same components", () => {
+  expect(Form.DropdownItem).toBe(Form.Dropdown.Item);
+  expect(Form.DropdownSection).toBe(Form.Dropdown.Section);
+  expect(Form.TagPickerItem).toBe(Form.TagPicker.Item);
+});
 
 describe("search bar dropdown", () => {
   test("calls onChange on mount with the first item, even inside a section", async () => {

@@ -73,11 +73,12 @@ nonisolated struct GridLayout: Equatable {
         return height > 0 ? width / height : 1
     }
 
+    /// Raycast's Grid.Inset values, and the long names some extensions write out.
     static func inset(_ value: Any?) -> Double {
         switch value as? String {
-        case "small": 0.06
-        case "medium": 0.12
-        case "large": 0.2
+        case "sm", "small": 0.06
+        case "md", "medium": 0.12
+        case "lg", "large": 0.2
         default: 0
         }
     }

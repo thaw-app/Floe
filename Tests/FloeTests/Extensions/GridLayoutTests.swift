@@ -74,7 +74,9 @@ struct GridLayoutTests {
         #expect(GridLayout.aspectRatio("3/2") == 1.5)
         #expect(GridLayout.aspectRatio("2/3") == 2.0 / 3)
         #expect(GridLayout.aspectRatio("wide") == 1)
+        #expect(GridLayout.inset("lg") == 0.2, "Raycast's Grid.Inset.Large")
         #expect(GridLayout.inset("large") == 0.2)
+        #expect(GridLayout.inset("zero") == 0)
         #expect(GridLayout.inset(nil) == 0)
     }
 }
