@@ -58,7 +58,7 @@ struct CommandLinkTests {
     }
 
     private func arguments(of request: PanelRequest?) throws -> [String: String]? {
-        guard case let .command(_, data) = request else { return nil }
+        guard case let .command(_, data, _) = request else { return nil }
         return try data.map { try #require(JSONSerialization.jsonObject(with: $0) as? [String: String]) }
     }
 

@@ -13,8 +13,11 @@ extension ExtensionSession {
     func handleRequest(_ fields: [String: Any]) -> Bool {
         switch fields["type"] as? String {
         case "request":
+            let params = fields["params"] as? [String: Any] ?? [:]
             if fields["method"] as? String == "alert.confirm", let id = fields["id"] as? Int {
-                showAlert(id: id, params: fields["params"] as? [String: Any] ?? [:])
+                showAlert(id: id, params: params)
+            } else if fields["method"] as? String == "command.launch", let id = fields["id"] as? Int {
+                answerLaunch(id: id, params: params)
             } else {
                 answerRequest(fields)
             }
@@ -134,6 +137,7 @@ extension ExtensionSession {
         preferences: Data?,
         hasAI: Bool,
         launchType: String = "userInitiated",
+        launchContext: [String: Any]? = nil,
         recordsAccess: Bool = true,
         isDevelopment: Bool = false,
         isDark: Bool? = nil
@@ -146,6 +150,7 @@ extension ExtensionSession {
         variables["FLOE_AI"] = hasAI ? "1" : nil
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launchType
+        variables["FLOE_LAUNCH_CONTEXT"] = CommandLauncher.data(launchContext).flatMap { String(bytes: $0, encoding: .utf8) }
         variables[referencesVariable] = String(KeptRender.referenceVersion)
         variables[accessVariable] = recordsAccess ? nil : accessOff
         variables[developmentVariable] = isDevelopment ? "1" : nil

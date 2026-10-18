@@ -29,7 +29,7 @@ struct ExtensionRunnerTests {
             isPanelShown: { panelShown },
             beginSetup: { asked.calls.append("setup \($0.kind)") },
             toggleMenuBar: { asked.calls.append("menu bar \($0.name)") },
-            runElsewhere: { command, _ in
+            runElsewhere: { command, _, _ in
                 if runsElsewhere {
                     asked.calls.append("elsewhere \(command.name)")
                 }
@@ -118,12 +118,12 @@ struct ExtensionRunnerTests {
         #expect(asked.calls.isEmpty)
     }
 
-    @Test func aCommandWithoutAViewThatExitsOrCrashesHidesThePanelOrSaysSo() {
+    @Test func aCommandThatIsNotTheOpenOneExitsWithoutHidingThePanelAndSaysWhenItCrashes() {
         let runner = runner()
         runner.handle(["type": "exit"], from: ExtensionSession(command: command(mode: "no-view")))
         runner.handle(["type": "exit"], from: ExtensionSession(command: command()))
         runner.handle(["type": "crashed"], from: ExtensionSession(command: command(mode: "no-view")))
-        #expect(asked.calls == ["hide", "hud Greet failed"], "a view that exits leaves the panel to the launcher")
+        #expect(asked.calls == ["hud Greet failed"], "one launched in the background by another leaves the panel to the command on screen")
     }
 
     @Test func whatACommandAsksForReachesTheHost() {

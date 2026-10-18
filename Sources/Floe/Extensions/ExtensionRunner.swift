@@ -33,7 +33,7 @@ final class ExtensionRunner: ObservableObject {
             // Set by the launcher's model.
         }
         /// Hands the run to the panel process and says whether it did. Only the resident hands runs on.
-        var runElsewhere: (ExtensionCommand, [String: Any]?) -> Bool = { _, _ in false }
+        var runElsewhere: (_ command: ExtensionCommand, _ arguments: [String: Any]?, _ context: [String: Any]?) -> Bool = { _, _, _ in false }
         /// Opens a link or a file, in a named app when there is one.
         var open: (_ target: String, _ application: String?) -> Void = { _, _ in
             // Set by the launcher's model.
@@ -58,8 +58,9 @@ final class ExtensionRunner: ObservableObject {
     /// Watches the open command's extension while it is one being developed (see HotReload.swift).
     private var sourceWatcher: DirectoryWatcher?
 
-    func run(_ command: ExtensionCommand, arguments: [String: Any]? = nil) {
-        if host.runElsewhere(command, arguments) {
+    /// A command that first has to ask for preferences or arguments starts without `launchCommand`'s context.
+    func run(_ command: ExtensionCommand, arguments: [String: Any]? = nil, context: [String: Any]? = nil) {
+        if host.runElsewhere(command, arguments, context) {
             return
         }
         let missing = PreferenceStore.missingRequired(for: command)
@@ -78,7 +79,7 @@ final class ExtensionRunner: ObservableObject {
             if command.mode == "view" {
                 host.showPanel()
             }
-            launch(command, arguments: arguments ?? [:])
+            launch(command, arguments: arguments ?? [:], context: context)
         }
     }
 
@@ -87,8 +88,9 @@ final class ExtensionRunner: ObservableObject {
         guard let session else { return }
         let command = session.command
         let arguments = session.arguments
+        let context = session.launchContext
         end(session)
-        run(command, arguments: arguments)
+        run(command, arguments: arguments, context: context)
     }
 
     func copyFailure() {
@@ -114,9 +116,9 @@ final class ExtensionRunner: ObservableObject {
         }
     }
 
-    private func launch(_ command: ExtensionCommand, arguments: [String: Any]) {
+    private func launch(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]? = nil) {
         Log.extensions.info("Running \(command.extensionName)/\(command.name) (\(command.mode))")
-        let session = ExtensionSession(command: command, arguments: arguments)
+        let session = ExtensionSession(command: command, arguments: arguments, launchContext: context)
         session.onMessage = { [weak self, weak session] message in
             guard let self, let session else { return }
             handle(message, from: session)
@@ -139,7 +141,7 @@ final class ExtensionRunner: ObservableObject {
         }
         if host.isWaitingToResume() {
             end(watched)
-            launch(watched.command, arguments: watched.arguments)
+            launch(watched.command, arguments: watched.arguments, context: watched.launchContext)
         } else {
             retry()
         }
@@ -161,7 +163,8 @@ final class ExtensionRunner: ObservableObject {
     func handle(_ message: [String: Any], from session: ExtensionSession) {
         switch message["type"] as? String {
         case "exit", "popToRoot":
-            let wasBackground = session.command.mode != "view"
+            // A command launched in the background by another leaves the panel to the one on screen.
+            let wasBackground = session.command.mode != "view" && self.session === session
             end(session)
             if wasBackground {
                 host.hidePanel()

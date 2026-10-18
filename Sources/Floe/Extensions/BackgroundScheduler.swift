@@ -17,9 +17,15 @@ import Foundation
     private var intervals: [String: TimeInterval] = [:]
     private var runs: [String: ExtensionSession] = [:]
 
+    /// There is one, in the resident, so it also answers `launchCommand` there.
     init(model: LauncherModel, menuBarCommands: MenuBarCommands) {
         self.model = model
         self.menuBarCommands = menuBarCommands
+        CommandLauncher.shared = CommandLauncher(
+            commands: { [weak model] in model?.commands ?? [] },
+            userInitiated: { [weak model] command, arguments, context in model?.runner.run(command, arguments: arguments, context: context) },
+            background: { [weak self] command, arguments, context in self?.launch(command, arguments: arguments, context: context) }
+        )
     }
 
     /// Reschedules every enabled command with an interval; commands that can't run unattended
@@ -70,10 +76,24 @@ import Foundation
             return
         }
         guard command.mode == "no-view" else { return }
+        start(command)
+    }
+
+    /// `launchCommand` with the background type: a menu-bar command refreshes, a no-view one runs once.
+    func launch(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]?) {
+        if command.mode == "menu-bar" {
+            menuBarCommands.refresh(command)
+        } else if command.mode == "no-view" {
+            start(command, arguments: arguments, context: context)
+        }
+    }
+
+    /// One run of a no-view command, unless one is still going; stopped after a minute.
+    private func start(_ command: ExtensionCommand, arguments: [String: Any] = [:], context: [String: Any]? = nil) {
         if let run = runs[command.id], run.isRunning {
             return
         }
-        let session = ExtensionSession(command: command, launchType: "background")
+        let session = ExtensionSession(command: command, arguments: arguments, launchType: "background", launchContext: context)
         session.onMessage = { [weak self, weak session] message in
             guard let self, let session else { return }
             switch message["type"] as? String {

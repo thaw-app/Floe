@@ -48,6 +48,8 @@ final class ExtensionSession: ObservableObject {
     var recordsAccess: () -> Bool = { AppSettings.shared.recordsExtensionAccess }
     let arguments: [String: Any]
     let launchType: String
+    /// What `launchCommand` handed on, which the command reads as `launchContext`.
+    let launchContext: [String: Any]?
     @Published private(set) var root: Node?
     /// Form field values by field id. Dates are kept as ISO 8601 strings.
     @Published var formValues: [String: Any] = [:]
@@ -118,10 +120,11 @@ final class ExtensionSession: ObservableObject {
     private(set) var pingSentAt: Date?
     private var suppressSearchEvent = false
 
-    init(command: ExtensionCommand, arguments: [String: Any] = [:], launchType: String = "userInitiated") {
+    init(command: ExtensionCommand, arguments: [String: Any] = [:], launchType: String = "userInitiated", launchContext: [String: Any]? = nil) {
         self.command = command
         self.arguments = arguments
         self.launchType = launchType
+        self.launchContext = launchContext
     }
 
     /// Set while the host is running.

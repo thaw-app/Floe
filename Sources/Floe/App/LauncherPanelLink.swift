@@ -68,6 +68,7 @@ final class LauncherPanelLink {
         case .quit: NSApp.terminate(nil)
         case let .used(id): UsageStore.shared.recordUse(of: id)
         case let .query(query): UsageStore.shared.recordQuery(query)
+        case let .launchInBackground(id, arguments, context): CommandLauncher.shared?.launchInBackground(id: id, arguments: arguments, context: context)
         default: receiveStoreRequest(packet)
         }
     }

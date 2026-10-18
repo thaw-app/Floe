@@ -276,8 +276,19 @@ describe("window and system", () => {
     await expect(items).rejects.toThrow("No files are selected in the Finder.");
   });
 
-  test("calls that are not supported yet reject with a message saying so", async () => {
-    await expect(api.launchCommand({ name: "other" })).rejects.toThrow("launchCommand isn't supported yet");
+  test("launchCommand asks the app to start the command, and rejects with the app's reason", async () => {
+    const started = api.launchCommand({ name: "inbox", type: api.LaunchType.Background, context: { unread: 3 } });
+    const [request] = sent("request");
+    expect(request).toMatchObject({
+      method: "command.launch",
+      params: { name: "inbox", type: "background", arguments: {}, context: { unread: 3 } },
+    });
+    handleReply({ id: request.id, result: null });
+    expect(await started).toBeUndefined();
+
+    const refused = api.launchCommand({ name: "gone", type: api.LaunchType.UserInitiated, extensionName: "mail" });
+    handleReply({ id: sent("request")[1].id, error: "The extension \"mail\" isn't installed" });
+    await expect(refused).rejects.toThrow("isn't installed");
   });
 
   test("updateCommandMetadata sends the subtitle, and null for anything that isn't text", async () => {

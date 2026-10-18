@@ -9,7 +9,7 @@ import Foundation
 
 nonisolated enum PanelRequest: Codable, Equatable, Sendable {
     case show, toggle, hide, onboarding
-    case command(String, arguments: Data?)
+    case command(String, arguments: Data?, context: Data? = nil)
     case script(String)
     case builtIn(String)
     case hud(String)
@@ -40,6 +40,8 @@ nonisolated enum PanelPacket: Codable, Sendable {
     case clearClipboard
     case deleteClipboard(UUID)
     case pinClipboard(UUID)
+    /// `launchCommand` with the background type, from the panel, which runs nothing in the background itself.
+    case launchInBackground(String, arguments: Data?, context: Data?)
 }
 
 /// Serializes opening and closing: an idle report from before the latest request cannot close

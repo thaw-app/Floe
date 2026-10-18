@@ -94,6 +94,8 @@ process.stdin.on("end", () => process.exit(0));
 const launchProps = {
   launchType: ctx.launchType,
   arguments: argumentsJSON ? JSON.parse(argumentsJSON) : {},
+  // What the command that called launchCommand handed on.
+  launchContext: process.env.FLOE_LAUNCH_CONTEXT ? JSON.parse(process.env.FLOE_LAUNCH_CONTEXT) : undefined,
   fallbackText: undefined,
 };
 

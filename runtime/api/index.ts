@@ -507,8 +507,15 @@ export const environment = {
     api === AI || api === "AI" ? process.env.FLOE_AI === "1" : api === Clipboard || api === getSelectedText || api === getSelectedFinderItems,
 };
 
-export function launchCommand(_options: Props): Promise<void> {
-  return Promise.reject(new Error("launchCommand isn't supported yet"));
+// The app starts the command, of this extension or another installed one, and answers once it has.
+export async function launchCommand(options: Props): Promise<void> {
+  await request("command.launch", {
+    name: options?.name,
+    type: options?.type,
+    extensionName: options?.extensionName,
+    arguments: options?.arguments ?? {},
+    context: options?.context ?? null,
+  });
 }
 // The subtitle shows beside the command in the root search until a null one puts the manifest's back.
 export function updateCommandMetadata(metadata: Props): Promise<void> {

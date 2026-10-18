@@ -80,6 +80,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             },
             residentRequests: { [channel] in channel.send($0) }
         )
+        CommandLauncher.shared = .panel(model: model) { [channel] in channel.send($0) }
         model.canAskAI = AskAI.availabilityCheck { AIAnswer.isAvailable }
         model.typing.window = 0.03
         // A shell suggestion's snapshot arrived: rows read again, so they are there without another key.
@@ -191,12 +192,11 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             if let item = LauncherModel.hotkeyItems.first(where: { $0.settingsKey == key }) {
                 model.runFromHotkey(item)
             }
-        case let .command(id, data):
+        case let .command(id, data, context):
             PanelWork.perform { [model] in
                 await model.catalog.waitForCommands()
                 guard let command = model.commands.first(where: { $0.id == id }) else { return }
-                let arguments = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-                model.runner.run(command, arguments: arguments)
+                model.runner.run(command, arguments: CommandLauncher.object(data), context: CommandLauncher.object(context))
             }
         case let .script(id):
             PanelWork.perform { [model] in

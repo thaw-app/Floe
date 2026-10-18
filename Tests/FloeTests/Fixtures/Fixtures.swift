@@ -98,13 +98,14 @@ enum Fixture {
         _ name: String,
         extension extensionName: String = "sample",
         title: String? = nil,
+        mode: String = "view",
         extensionPreferences: [FieldSpec] = [],
         commandPreferences: [FieldSpec] = []
     ) -> ExtensionCommand {
         ExtensionCommand(
             extensionDir: URL(fileURLWithPath: "/tmp/\(extensionName)"), extensionName: extensionName,
             extensionTitle: extensionName.capitalized, source: .local, name: name, title: title ?? name.capitalized,
-            mode: "view", interval: nil, icon: nil, arguments: [], extensionPreferences: extensionPreferences, commandPreferences: commandPreferences
+            mode: mode, interval: nil, icon: nil, arguments: [], extensionPreferences: extensionPreferences, commandPreferences: commandPreferences
         )
     }
 
