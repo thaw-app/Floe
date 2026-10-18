@@ -125,7 +125,16 @@ const dropdown = (prefix: string) => {
   return Object.assign(Dropdown, { Item: host("Dropdown.Item"), Section: host("Dropdown.Section") });
 };
 
-export const List = Object.assign(host("List", ["actions", "searchBarAccessory"]), {
+// pagination's onLoadMore goes as a handler of its own: a function inside an object prop is dropped on the way to the app.
+function paginated(type: string) {
+  const component = host(type, ["actions", "searchBarAccessory"]);
+  const wrapper = ({ pagination, ...props }: Props) =>
+    h(component, pagination ? { ...props, onLoadMore: pagination.onLoadMore, hasMore: pagination.hasMore, pageSize: pagination.pageSize } : props);
+  wrapper.displayName = type;
+  return wrapper;
+}
+
+export const List = Object.assign(paginated("List"), {
   Item: Object.assign(host("List.Item", ["actions", "detail"]), {
     Detail: Object.assign(host("List.Item.Detail", ["metadata"]), { Metadata: metadata("List.Item.Detail") }),
   }),
@@ -134,7 +143,7 @@ export const List = Object.assign(host("List", ["actions", "searchBarAccessory"]
   Dropdown: dropdown("List"),
 });
 
-export const Grid = Object.assign(host("Grid", ["actions", "searchBarAccessory"]), {
+export const Grid = Object.assign(paginated("Grid"), {
   Item: host("Grid.Item", ["actions"]),
   Section: host("Grid.Section"),
   EmptyView: host("EmptyView", ["actions"]),

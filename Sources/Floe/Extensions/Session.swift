@@ -63,7 +63,14 @@ final class ExtensionSession: ObservableObject {
         }
     }
 
-    @Published var selection = 0
+    @Published var selection = 0 {
+        didSet { reportSelection() }
+    }
+
+    /// The `id` last told to `onSelectionChange`, the `selectedItemId` last followed, and the row count `onLoadMore` was asked at.
+    var reportedItemID: String?
+    var followedItemID: String?
+    var loadMoreAsked: Int?
     @Published var actionMenuOpen = false {
         didSet {
             actionQuery = ""
@@ -159,7 +166,9 @@ final class ExtensionSession: ObservableObject {
                 suppressSearchEvent = false
                 selection = 0
                 actionMenuOpen = false
+                followedItemID = nil
             }
+            followSelectedItem()
         case .unresolvedRender:
             // The last good tree stays on show until the whole one arrives.
             send(["type": "fullRender"])
@@ -272,6 +281,7 @@ final class ExtensionSession: ObservableObject {
         guard next != rows else { return }
         rows = next
         rowsVersion += 1
+        reportSelection()
     }
 
     /// Keeps the open submenus only while they still exist, and as this render has them: the path

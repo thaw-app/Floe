@@ -78,6 +78,11 @@ struct ListRows: View, Equatable {
                                 .onTapGesture { session.selection = index }
                         }
                         .id(row.id)
+                        .onAppear {
+                            if index >= rows.count - 3 {
+                                session.loadMore()
+                            }
+                        }
                     }
                 }
                 .padding(8)

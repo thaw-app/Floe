@@ -71,6 +71,19 @@ describe("List", () => {
     expect(titles(findAll(slot(empty, "actions"), "Action"))).toEqual(["Create"]);
   });
 
+  test("pagination's onLoadMore becomes a handler of the list, with hasMore and pageSize beside it", async () => {
+    const loads: string[] = [];
+    const pagination = { onLoadMore: () => loads.push("more"), hasMore: true, pageSize: 20 };
+    for (const component of [List, Grid]) {
+      const view = find(await showScreen(h(component, { pagination }, h(component.Item, { title: "One" }))), component === List ? "List" : "Grid");
+      expect(view.props).toMatchObject({ hasMore: true, pageSize: 20 });
+      expect(view.props.pagination).toBeUndefined();
+      expect(view.handlers).toContain("onLoadMore");
+      await fire(view, "onLoadMore");
+    }
+    expect(loads).toEqual(["more", "more"]);
+  });
+
   test("leaves out the slot when the prop is not set", async () => {
     const tree = await showScreen(h(List, null, h(List.Item, { title: "Mars", actions: undefined })));
     expect(findAll(tree, "_slot")).toEqual([]);
