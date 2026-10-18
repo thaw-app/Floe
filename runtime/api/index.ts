@@ -236,6 +236,51 @@ function OpenWithSubmenu(props: Props) {
   );
 }
 
+// As in Raycast, a snippet or a quicklink is kept only once the user confirms the form the extension filled in.
+function keepForm(method: string, title: string, kept: string, fields: unknown[]) {
+  const { pop } = useNavigation();
+  const keep = async (values: Props) => {
+    try {
+      await request(method, values);
+      await showToast({ style: Toast.Style.Success, title: kept });
+      pop();
+    } catch (error) {
+      await showToast({ style: Toast.Style.Failure, title: error instanceof Error ? error.message : String(error) });
+    }
+  };
+  return h(Form, { navigationTitle: title, actions: h(ActionPanel, null, h(Action.SubmitForm, { title, onSubmit: keep })) }, ...fields);
+}
+
+function SnippetForm({ snippet }: Props) {
+  return keepForm("snippet.create", "Create Snippet", "Snippet saved", [
+    h(Form.TextField, { id: "name", title: "Name", defaultValue: snippet.name ?? "" }),
+    h(Form.TextArea, { id: "text", title: "Snippet", defaultValue: snippet.text ?? "" }),
+    h(Form.TextField, { id: "keyword", title: "Keyword", defaultValue: snippet.keyword ?? "" }),
+  ]);
+}
+
+function QuicklinkForm({ quicklink }: Props) {
+  return keepForm("quicklink.create", "Create Quicklink", "Quicklink saved", [
+    h(Form.TextField, { id: "name", title: "Name", defaultValue: quicklink.name ?? "" }),
+    h(Form.TextField, { id: "link", title: "Link", defaultValue: quicklink.link ?? "" }),
+    h(Form.TextField, { id: "keyword", title: "Keyword", defaultValue: "" }),
+  ]);
+}
+
+// The date goes to onChange once picked; the form closes and the extension's view is back.
+function DateForm(props: Props) {
+  const { pop } = useNavigation();
+  const pick = (values: Props) => {
+    props.onChange?.(values.date ?? null);
+    pop();
+  };
+  return h(
+    Form,
+    { navigationTitle: props.title ?? "Pick Date", actions: h(ActionPanel, null, h(Action.SubmitForm, { title: props.title ?? "Pick Date", onSubmit: pick })) },
+    h(Form.DatePicker, { id: "date", title: "Date", type: props.type ?? "dateTime", min: props.min, max: props.max, defaultValue: props.min }),
+  );
+}
+
 export const Action = Object.assign(BaseAction, {
   Style: { Regular: "regular", Destructive: "destructive" },
   OpenInBrowser: action("Open in Browser", "Globe", async (props) => {
@@ -275,9 +320,11 @@ export const Action = Object.assign(BaseAction, {
   OpenWith: OpenWithSubmenu,
   // The app previews the selected item's quickLook file, or closes the preview it shows.
   ToggleQuickLook: action("Quick Look", "Eye", () => send({ type: "toggleQuickLook" })),
-  CreateSnippet: action("Create Snippet", "Document", () => unsupported("Snippets")),
-  CreateQuicklink: action("Create Quicklink", "Link", () => unsupported("Quicklinks")),
-  PickDate: Object.assign(action("Pick Date", "Calendar", () => unsupported("Date picker")), {
+  CreateSnippet: action("Create Snippet", "Document", (props, navigation) => navigation.push(h(SnippetForm, { snippet: props.snippet ?? {} }))),
+  CreateQuicklink: action("Create Quicklink", "Link", (props, navigation) =>
+    navigation.push(h(QuicklinkForm, { quicklink: props.quicklink ?? {} })),
+  ),
+  PickDate: Object.assign(action("Pick Date", "Calendar", (props, navigation) => navigation.push(h(DateForm, props))), {
     Type: { Date: "date", DateTime: "dateTime" },
     isFullDay,
   }),
@@ -290,10 +337,6 @@ export const ActionPanel = Object.assign(host("ActionPanel"), {
 });
 
 // Feedback
-
-function unsupported(feature: string) {
-  return showToast({ style: Toast.Style.Failure, title: `${feature} isn't supported yet` });
-}
 
 // Extensions hand a caught Error to a toast as its text. As JSON it would be {}, which the app shows as nothing.
 const toastText = (value: unknown) => (value == null ? undefined : value instanceof Error ? value.message : String(value));

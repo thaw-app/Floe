@@ -72,6 +72,7 @@
 		2C40C06B4FFD0149F302B4C5 /* SettingsSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3100D60F947CCED23DE9323E /* SettingsSyncService.swift */; };
 		2D727CC2445AAC4F56D021BC /* SharedStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 348720DBE211B7470E8566C5 /* SharedStores.swift */; };
 		2DB3E601CF97F2DDF0C51F46 /* Reminders.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2C9473A53B6666AEE0D77E1 /* Reminders.swift */; };
+		2E3353459AA22721CAEE0E6E /* ExtensionCreations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D702951911A2EC642275F11 /* ExtensionCreations.swift */; };
 		2F19BE68349DD746A6A50DDD /* ReminderRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACEA04274E0B77D710CBC5AC /* ReminderRows.swift */; };
 		2F2C92D19D7245D7F8BC804D /* NoteDesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = B464443DD490926A31FA4AE7 /* NoteDesk.swift */; };
 		2F3F9827F777B4EEE63793FB /* Model+RowOwners.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1DAF12F434B6E09FED35160 /* Model+RowOwners.swift */; };
@@ -438,6 +439,7 @@
 		1BF8D4B47628BB959BFF6E65 /* QuicklinksSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuicklinksSettingsPage.swift; sourceTree = "<group>"; };
 		1C151CC615A8A75880C8E1EB /* CalculatorFormatter+Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CalculatorFormatter+Result.swift"; sourceTree = "<group>"; };
 		1C95D477FBBF126AC5F15E12 /* BluetoothBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothBattery.swift; sourceTree = "<group>"; };
+		1D702951911A2EC642275F11 /* ExtensionCreations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionCreations.swift; sourceTree = "<group>"; };
 		1D7504FB669B2427B3BF4A39 /* sync-strings.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "sync-strings.sh"; sourceTree = "<group>"; };
 		1DD6BBFFC885CC8B3D7E3E1C /* ToolTextStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolTextStream.swift; sourceTree = "<group>"; };
 		1E248280C8BC41591C09710E /* set-secrets.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "set-secrets.sh"; sourceTree = "<group>"; };
@@ -1118,6 +1120,7 @@
 				FC0E28DFBAEC63960564EE39 /* DropdownMenu.swift */,
 				CC2033FDF332D4135EDF2DEF /* ErrorView.swift */,
 				49F344E4E1A683D2886D89AA /* ExtensionAccess.swift */,
+				1D702951911A2EC642275F11 /* ExtensionCreations.swift */,
 				A8AEDEB267607D5474C20D6F /* ExtensionListViews.swift */,
 				707E686E00003A43CD0F9C14 /* ExtensionRunner.swift */,
 				CD8A94377EF11E114774E2F4 /* ExtensionStore.swift */,
@@ -1617,6 +1620,7 @@
 				B0394ED7B2F6B9D812AF3EE0 /* ExtensionAISource.swift in Sources */,
 				C600E49CB6098283C630DA71 /* ExtensionAccess.swift in Sources */,
 				747084900218D005E77A5CA3 /* ExtensionAccessSection.swift in Sources */,
+				2E3353459AA22721CAEE0E6E /* ExtensionCreations.swift in Sources */,
 				F79ECEE81B269EF3999DF3DA /* ExtensionListViews.swift in Sources */,
 				DA961FACB1C6D738B8FC46EC /* ExtensionRunner.swift in Sources */,
 				D2B7F5F30C8DE1216477CA51 /* ExtensionSettingsSync.swift in Sources */,

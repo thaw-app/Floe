@@ -171,15 +171,53 @@ describe("built-in actions", () => {
     }
   });
 
-  test.each([
-    ["CreateSnippet", "Create Snippet", "Snippets isn't supported yet"],
-    ["CreateQuicklink", "Create Quicklink", "Quicklinks isn't supported yet"],
-    ["PickDate", "Pick Date", "Date picker isn't supported yet"],
-  ] as const)("%s says it is not supported instead of failing", async (name, title, message) => {
-    const action = await showAction(h(Action[name]));
-    expect(action.props.title).toBe(title);
-    await fire(action, "onAction");
-    expect(sent()).toEqual([expect.objectContaining({ type: "toast", style: "failure", title: message, hidden: false })]);
+  // The submit action of the form a built-in action pushed.
+  function submitOf(screen: TreeNode): TreeNode {
+    return findAll(screen, "Action").find((action) => action.props.isSubmit) as TreeNode;
+  }
+
+  test("CreateSnippet asks with a filled-in form and keeps the snippet once the user confirms", async () => {
+    const action = await showAction(h(Action.CreateSnippet, { snippet: { name: "Greeting", text: "Hello" } }));
+    expect(action.props).toEqual({ title: "Create Snippet", icon: "icon:Document" });
+    const form = await fire(action, "onAction");
+    expect(findAll(form, "Form.TextField").map((field) => [field.props.id, field.props.defaultValue])).toEqual([
+      ["name", "Greeting"],
+      ["keyword", ""],
+    ]);
+    expect(find(form, "Form.TextArea").props.defaultValue).toBe("Hello");
+
+    await fire(submitOf(form), "onSubmit", { name: "Greeting", text: "Hello", keyword: "hi" });
+    const [request] = sent("request");
+    expect(request).toMatchObject({ method: "snippet.create", params: { name: "Greeting", text: "Hello", keyword: "hi" } });
+    handleReply({ id: request.id, result: null });
+    const back = await settle();
+    expect(sent("toast")).toEqual([expect.objectContaining({ style: "success", title: "Snippet saved" })]);
+    expect(find(back, "Detail").props.markdown).toBe("host");
+  });
+
+  test("CreateQuicklink stays on its form and says why when Floe refuses the link", async () => {
+    const action = await showAction(h(Action.CreateQuicklink, { quicklink: { name: "Search", link: "https://example.com?q={argument}" } }));
+    const form = await fire(action, "onAction");
+    expect(findAll(form, "Form.TextField").map((field) => field.props.defaultValue)).toEqual(["Search", "https://example.com?q={argument}", ""]);
+
+    await fire(submitOf(form), "onSubmit", { name: "Search", link: "https://example.com?q={argument}", keyword: "" });
+    const [request] = sent("request");
+    expect(request.method).toBe("quicklink.create");
+    handleReply({ id: request.id, error: "Enter a keyword." });
+    const still = await settle();
+    expect(sent("toast")).toEqual([expect.objectContaining({ style: "failure", title: "Enter a keyword." })]);
+    expect(find(still, "Form").props.navigationTitle).toBe("Create Quicklink");
+  });
+
+  test("PickDate hands the picked date to onChange and goes back", async () => {
+    const picked: unknown[] = [];
+    const action = await showAction(h(Action.PickDate, { title: "Set Due Date", type: Action.PickDate.Type.Date, onChange: (date: unknown) => picked.push(date) }));
+    const form = await fire(action, "onAction");
+    expect(find(form, "Form.DatePicker").props).toMatchObject({ id: "date", type: "date" });
+
+    const back = await fire(submitOf(form), "onSubmit", { date: { $date: "2026-10-20T00:00:00.000Z" } });
+    expect(picked).toEqual([new Date("2026-10-20T00:00:00.000Z")]);
+    expect(find(back, "Detail").props.markdown).toBe("host");
   });
 
   test("a plain Action runs the extension's own handler", async () => {

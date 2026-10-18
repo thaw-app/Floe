@@ -14,12 +14,13 @@ extension ExtensionSession {
         switch fields["type"] as? String {
         case "request":
             let params = fields["params"] as? [String: Any] ?? [:]
-            if fields["method"] as? String == "alert.confirm", let id = fields["id"] as? Int {
-                showAlert(id: id, params: params)
-            } else if fields["method"] as? String == "command.launch", let id = fields["id"] as? Int {
-                answerLaunch(id: id, params: params)
-            } else {
-                answerRequest(fields)
+            let method = fields["method"] as? String ?? ""
+            guard let id = fields["id"] as? Int else { break }
+            switch method {
+            case "alert.confirm": showAlert(id: id, params: params)
+            case "command.launch": answerLaunch(id: id, params: params)
+            case "snippet.create", "quicklink.create": answerCreation(id: id, method: method, params: params)
+            default: answerRequest(fields)
             }
         case "cancelRequest":
             if let id = fields["id"] as? Int {

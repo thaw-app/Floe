@@ -151,6 +151,27 @@ final class QuicklinkStore: ObservableObject {
         return !links.contains { $0.id != id && $0.keyword.lowercased() == lowered }
     }
 
+    /// Nil when the link can be kept, otherwise why it can't: Settings and extensions keep links by the same rules.
+    func problem(with link: Quicklink, ignoring id: UUID? = nil) -> String? {
+        let keyword = link.keyword.trimmingCharacters(in: .whitespaces)
+        if link.name.trimmingCharacters(in: .whitespaces).isEmpty {
+            return String(localized: "Enter a name.", bundle: .floe)
+        }
+        if keyword.isEmpty {
+            return String(localized: "Enter a keyword.", bundle: .floe)
+        }
+        if keyword.contains(where: \.isWhitespace) {
+            return String(localized: "Keywords cannot contain spaces.", bundle: .floe)
+        }
+        if !isKeywordUnique(keyword, ignoring: id) {
+            return String(localized: "That keyword is already used.", bundle: .floe)
+        }
+        guard let url = URL(string: link.url), let scheme = url.scheme, !scheme.isEmpty else {
+            return String(localized: "Enter a URL with a scheme, like https://.", bundle: .floe)
+        }
+        return nil
+    }
+
     private func save() {
         guard !isLoading, JSONFile.write(links, to: file) else { return }
         onSaved?()
