@@ -37,6 +37,8 @@ function observe(view: TreeNode, seen: Observation) {
 
 function classify(seen: Observation, stderrError: string): string {
   if (seen.view && seen.hasContent) return seen.view === "Form" ? "form" : "ok";
+  // Signing in needs the app and a person, so a headless run counts it apart from a failure.
+  if (/Floe can't sign in/.test(seen.error || stderrError)) return "needs-signin";
   if (seen.error) return "error";
   if (seen.view) return "empty";
   return stderrError ? "error" : "nothing";
@@ -45,7 +47,11 @@ function classify(seen: Observation, stderrError: string): string {
 async function run(ext: string, command: string): Promise<Result> {
   const proc = startHost(path.join(root, ext), command, "pipe");
   const seen: Observation = { view: "", items: 0, loading: false, hasContent: false, error: "", probed: false };
-  const timer = setTimeout(() => proc.kill(), seconds * 1000);
+  // SIGTERM first, as the app does; a command that blocks its event loop never runs the handler, so SIGKILL follows.
+  const timer = setTimeout(() => {
+    proc.kill();
+    setTimeout(() => proc.kill("SIGKILL"), 1000).unref();
+  }, seconds * 1000);
   const stderr = new Response(proc.stderr as ReadableStream).text();
 
   for await (const message of hostMessages(proc.stdout)) {
@@ -67,7 +73,7 @@ async function run(ext: string, command: string): Promise<Result> {
     (await stderr).split("\n").find((line) => /error|cannot find|not found|undefined is not/i.test(line) && !line.includes("Deprecation")) ?? "";
   const firstError = seen.error || stderrError;
   const status = classify(seen, stderrError);
-  const reason = status === "ok" || status === "form" ? "" : firstError.trim().slice(0, 140);
+  const reason = status === "ok" || status === "form" || status === "needs-signin" ? "" : firstError.trim().slice(0, 140);
   const detail = `${seen.view || "-"} items=${seen.items}${seen.loading ? " loading" : ""}${seen.probed ? " (after typing)" : ""} ${reason}`;
   return { ext, command, status, detail };
 }
@@ -79,12 +85,15 @@ for (const ext of fs.readdirSync(root).sort((a, b) => a.localeCompare(b))) {
   const file = path.join(root, ext, "package.json");
   if (!fs.existsSync(file)) continue;
   const manifest = JSON.parse(fs.readFileSync(file, "utf8"));
-  const commands: { name: string; mode?: string; preferences?: Preference[] }[] = manifest.commands ?? [];
+  const commands: { name: string; mode?: string; preferences?: Preference[]; arguments?: Preference[] }[] = manifest.commands ?? [];
   const views = commands.filter((candidate) => (candidate.mode ?? "view") === "view");
   noView += commands.length - views.length;
   for (const command of views.slice(0, 2)) {
     const needs = [...required(manifest.preferences), ...required(command.preferences)];
+    // The app asks for required arguments before it starts a command, which a headless run can't answer.
+    const asks = (command.arguments ?? []).filter((argument) => argument.required).map((argument) => argument.name);
     if (needs.length > 0) results.push({ ext, command: command.name, status: "needs-prefs", detail: needs.join(", ") });
+    else if (asks.length > 0) results.push({ ext, command: command.name, status: "needs-args", detail: asks.join(", ") });
     else jobs.push(() => run(ext, command.name));
   }
 }
