@@ -278,7 +278,17 @@ describe("window and system", () => {
 
   test("calls that are not supported yet reject with a message saying so", async () => {
     await expect(api.launchCommand({ name: "other" })).rejects.toThrow("launchCommand isn't supported yet");
+  });
+
+  test("updateCommandMetadata sends the subtitle, and null for anything that isn't text", async () => {
     expect(await api.updateCommandMetadata({ subtitle: "3 unread" })).toBeUndefined();
+    await api.updateCommandMetadata({ subtitle: null });
+    await api.updateCommandMetadata({});
+    expect(sent("commandMetadata")).toEqual([
+      { type: "commandMetadata", subtitle: "3 unread" },
+      { type: "commandMetadata", subtitle: null },
+      { type: "commandMetadata", subtitle: null },
+    ]);
   });
 
   test("captureException logs the error", () => {

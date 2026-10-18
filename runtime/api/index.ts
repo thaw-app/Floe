@@ -510,8 +510,9 @@ export const environment = {
 export function launchCommand(_options: Props): Promise<void> {
   return Promise.reject(new Error("launchCommand isn't supported yet"));
 }
-// Subtitles set from a command aren't shown anywhere yet, so there is nothing to update.
-export function updateCommandMetadata(_metadata: Props): Promise<void> {
+// The subtitle shows beside the command in the root search until a null one puts the manifest's back.
+export function updateCommandMetadata(metadata: Props): Promise<void> {
+  send({ type: "commandMetadata", subtitle: typeof metadata?.subtitle === "string" ? metadata.subtitle : null });
   return done;
 }
 export function captureException(error: unknown) {

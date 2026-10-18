@@ -41,6 +41,7 @@ extension RootItem {
         case let .focus(_, shortcut): FocusRequest.label(shortcut: shortcut)
         case let .keyword(hint): hint.detail
         case let .app(app): app.origin ?? kind
+        case let .command(command): CommandSubtitles.subtitle(for: command.id) ?? command.subtitle ?? kind
         default: kind
         }
     }
