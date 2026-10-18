@@ -197,6 +197,7 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
                 : { loader: args.path.endsWith(".tsx") ? "tsx" : "jsx", contents: escapeUnreadableEntities(fs.readFileSync(args.path, "utf8")) },
             );
           }
+          build.onResolve({ filter: /^react-dom$/ }, () => ({ path: path.join(compatDir, "react-dom.ts"), external: true }));
           // A V8 addon Bun cannot load, whichever build of it the extension installed.
           build.onResolve({ filter: /^better-sqlite3(-multiple-ciphers)?$/ }, () => ({ path: path.join(compatDir, "better-sqlite3.ts"), external: true }));
           // Outside the bundle, like the shim, so the toast it shows while building is the shim's own.

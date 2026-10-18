@@ -394,6 +394,14 @@ export default () => ({ fetch, Agent, WebSocket });`,
     expect(parts.WebSocket).toBe(require("../compat/ws.ts"));
   });
 
+  // Dropshare's React Query batches through react-dom 18, which reads internals React 19 no longer has.
+  test("react-dom is Floe's own, whose batching runs the function, whatever the extension installed", async () => {
+    makeExtension({ "src/batch.ts": 'import { unstable_batchedUpdates } from "react-dom";\nexport default () => unstable_batchedUpdates(() => "ran");' }, "batch");
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toBe("ran");
+  });
+
   test("better-sqlite3 is bun:sqlite underneath, even with no copy of its own installed", async () => {
     makeExtension({ "src/db.ts": 'import Database from "better-sqlite3-multiple-ciphers";\nexport default () => new Database().prepare("SELECT 1 + 1 AS two").get();' }, "db");
     const command = (await import(await bundle(findEntry()))).default;
