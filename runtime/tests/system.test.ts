@@ -394,7 +394,7 @@ describe("LocalStorage", () => {
 
   test("keeps its values in the extension's support folder", async () => {
     await api.LocalStorage.setItem("kept", "yes");
-    const database = new Database(path.join(runtime.supportPath, "local-storage.sqlite"), { readonly: true });
+    const database = new Database(path.join(runtime.dataPath, "local-storage.sqlite"), { readonly: true });
     try {
       expect(JSON.parse((database.prepare("select value from items where key = 'kept'").get() as { value: string }).value)).toBe("yes");
     } finally {
@@ -403,12 +403,12 @@ describe("LocalStorage", () => {
   });
 
   test("a former file that cannot be read is moved aside, and the database keeps what it has", async () => {
-    fs.writeFileSync(path.join(runtime.supportPath, "local-storage.json"), "{not json");
-    const opened = createLocalStorage(() => path.join(runtime.supportPath, "local-storage.sqlite"));
+    fs.writeFileSync(path.join(runtime.dataPath, "local-storage.json"), "{not json");
+    const opened = createLocalStorage(() => path.join(runtime.dataPath, "local-storage.sqlite"));
     expect(await opened.getItem("kept")).toBe("yes");
     await opened.setItem("fresh", "start");
     expect(await opened.getItem("fresh")).toBe("start");
-    const aside = fs.readdirSync(runtime.supportPath).filter((name) => name.includes(".unreadable-"));
+    const aside = fs.readdirSync(runtime.dataPath).filter((name) => name.includes(".unreadable-"));
     expect(aside).toHaveLength(1);
   });
 });
@@ -436,7 +436,7 @@ describe("Cache", () => {
     expect(new api.Cache({ namespace: "persisted" }).get("key")).toBe("value");
     expect(new api.Cache({ namespace: "elsewhere" }).has("key")).toBe(false);
     expect(new api.Cache().has("key")).toBe(false);
-    expect(fs.existsSync(path.join(runtime.supportPath, "cache-persisted.json"))).toBe(true);
+    expect(fs.existsSync(path.join(runtime.dataPath, "cache", "persisted.json"))).toBe(true);
   });
 
   test("its methods work when passed around unbound", () => {
@@ -475,7 +475,7 @@ describe("getPreferenceValues", () => {
     preferences: [{ name: "greeting", default: "Hello" }, { name: "token" }, { name: "shout", default: false }],
     commands: [{ name: "main", preferences: [{ name: "limit", default: 10 }] }, { name: "other", preferences: [{ name: "unrelated", default: 1 }] }],
   };
-  const preferencesFile = () => path.join(runtime.supportPath, "preferences.json");
+  const preferencesFile = () => path.join(runtime.dataPath, "preferences.json");
   beforeEach(() => {
     ctx.manifest = manifest;
     fs.rmSync(preferencesFile(), { force: true });

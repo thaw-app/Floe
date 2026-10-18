@@ -20,13 +20,25 @@ const bytes = (text: string) => Buffer.byteLength(text, "utf8");
 // Snapshots are written once per burst, so the pending one is flushed before the file is read.
 function entriesOf(namespace: string): [string, string][] {
     flushCaches();
-    const parsed = JSON.parse(fs.readFileSync(path.join(support.supportPath, `cache-${namespace}.json`), "utf8"));
+    const parsed = JSON.parse(fs.readFileSync(path.join(support.dataPath, "cache", `${namespace}.json`), "utf8"));
     return parsed.entries ?? Object.entries(parsed);
 }
 
 function writeRaw(namespace: string, content: string) {
-    fs.writeFileSync(path.join(support.supportPath, `cache-${namespace}.json`), content);
+    fs.mkdirSync(path.join(support.dataPath, "cache"), { recursive: true });
+    fs.writeFileSync(path.join(support.dataPath, "cache", `${namespace}.json`), content);
 }
+
+// Proton Drive deletes storageDirectory on logout, then sweeps supportPath.
+test("storageDirectory is a folder holding the caches alone, outside supportPath", () => {
+    const cache = new Cache({ namespace: "located" });
+    cache.set("k", "v");
+    flushCaches();
+
+    expect(cache.storageDirectory).toBe(path.join(support.dataPath, "cache"));
+    expect(fs.readdirSync(cache.storageDirectory)).toContain("located.json");
+    expect(cache.storageDirectory.startsWith(support.supportPath)).toBe(false);
+});
 
 describe("lru", () => {
     test("get promotes, has does not", () => {
@@ -67,14 +79,14 @@ describe("lru", () => {
         cache.set("k", "v");
         expect(cache.isEmpty).toBe(true);
         expect(cache.get("k")).toBeUndefined();
-        expect(fs.existsSync(path.join(support.supportPath, "cache-empty.json"))).toBe(false);
+        expect(fs.existsSync(path.join(support.dataPath, "cache", "empty.json"))).toBe(false);
     });
 
     test.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.MAX_SAFE_INTEGER + 1])(
         "a capacity of %p is rejected before touching the disk",
         (capacity) => {
             expect(() => new Cache({ namespace: "invalid", capacity })).toThrow(RangeError);
-            expect(fs.existsSync(path.join(support.supportPath, "cache-invalid.json"))).toBe(false);
+            expect(fs.existsSync(path.join(support.dataPath, "cache", "invalid.json"))).toBe(false);
         },
     );
 
@@ -243,7 +255,7 @@ describe("persistence", () => {
         const first = new Cache({ namespace: "escaping", capacity });
         for (const key of ["a", "b", "c", "d"]) first.set(key, slashy);
 
-        const file = path.join(support.supportPath, "cache-escaping.json");
+        const file = path.join(support.dataPath, "cache", "escaping.json");
         const accounted = entriesOf("escaping").reduce((total, [key, value]) => total + bytes(key) + bytes(value), 0);
         expect(fs.statSync(file).size).toBeLessThan(16 * capacity + 64 * 1024);
         expect(accounted).toBeLessThanOrEqual(capacity);
@@ -315,7 +327,7 @@ describe("coalesced writes", () => {
 
         runTimers();
         expect(written).toHaveLength(1);
-        expect(path.basename(written[0].file)).toBe("cache-burst.json");
+        expect(path.basename(written[0].file)).toBe("burst.json");
         expect(JSON.parse(written[0].content)).toEqual({ version: 1, entries: [["a", "3"], ["c", "4"]] });
         expect(new Cache({ namespace: "burst" }).get("c")).toBe("4");
     });
@@ -324,7 +336,7 @@ describe("coalesced writes", () => {
         const cache = new Cache({ namespace: "amplification" });
         for (let index = 0; index < 100; index++) cache.set(`k-${index}`, "v".repeat(32 * 1024));
         runTimers();
-        const finalBytes = fs.statSync(path.join(support.supportPath, "cache-amplification.json")).size;
+        const finalBytes = fs.statSync(path.join(support.dataPath, "cache", "amplification.json")).size;
         expect(finalBytes).toBeGreaterThan(100 * 32 * 1024);
         expect(written).toHaveLength(1);
         expect(writtenBytes(), "writing per insert cost fifty times the final snapshot").toBe(finalBytes);
@@ -336,7 +348,7 @@ describe("coalesced writes", () => {
             for (let index = 0; index < 25; index++) cache.set(`k-${tick}-${index}`, "v".repeat(1024));
             runTimers();
         }
-        const finalBytes = fs.statSync(path.join(support.supportPath, "cache-ticks.json")).size;
+        const finalBytes = fs.statSync(path.join(support.dataPath, "cache", "ticks.json")).size;
         expect(written).toHaveLength(4);
         expect(writtenBytes()).toBeLessThan(3 * finalBytes);
     });
@@ -346,7 +358,7 @@ describe("coalesced writes", () => {
         cache.set("k", "v");
         flushCaches();
         expect(written).toHaveLength(1);
-        expect(JSON.parse(fs.readFileSync(path.join(support.supportPath, "cache-shutdown.json"), "utf8")).entries).toEqual([["k", "v"]]);
+        expect(JSON.parse(fs.readFileSync(path.join(support.dataPath, "cache", "shutdown.json"), "utf8")).entries).toEqual([["k", "v"]]);
 
         expect(timers).toHaveLength(0);
         flushCaches();
@@ -488,7 +500,7 @@ describe("host shutdown", () => {
             env: { ...process.env, HOME: home },
         });
         const saved = () => {
-            const file = path.join(home, "Library/Application Support/Floe/Data/flush-sample/cache-default.json");
+            const file = path.join(home, "Library/Application Support/Floe/Data/flush-sample/cache/default.json");
             const entries = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")).entries : undefined;
             fs.rmSync(home, { recursive: true, force: true });
             return entries;

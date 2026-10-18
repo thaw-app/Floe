@@ -329,14 +329,14 @@ describe("search bar dropdown", () => {
     const after = await fire(dropdownOf(tree, "Grid.Dropdown"), "onChange", "venus");
     expect(dropdownOf(after, "Grid.Dropdown").props.value).toBe("venus");
     expect(changes).toEqual(["mercury", "venus"]);
-    expect(fs.existsSync(path.join(runtime.supportPath, "dropdown-values.json"))).toBe(false);
+    expect(fs.existsSync(path.join(runtime.dataPath, "dropdown-values.json"))).toBe(false);
   });
 
   test("storeValue remembers the selection per command and dropdown id", async () => {
     const element = () => h(List, { searchBarAccessory: h(List.Dropdown, { id: "planet", storeValue: true }, ...planetItems) });
     const tree = await showScreen(element());
     await fire(dropdownOf(tree, "List.Dropdown"), "onChange", "venus");
-    expect(JSON.parse(fs.readFileSync(path.join(runtime.supportPath, "dropdown-values.json"), "utf8"))).toEqual({ "main:planet": "venus" });
+    expect(JSON.parse(fs.readFileSync(path.join(runtime.dataPath, "dropdown-values.json"), "utf8"))).toEqual({ "main:planet": "venus" });
 
     const reopened = await showScreen(element());
     expect(dropdownOf(reopened, "List.Dropdown").props.value).toBe("venus");

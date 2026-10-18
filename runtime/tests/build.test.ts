@@ -36,8 +36,8 @@ function makeExtension(files: Record<string, string>, command = "main"): string 
   ctx.manifest = { name: "sample" };
   // Each extension has its own support folder in the app too. Bun also remembers a folder's listing
   // once it has imported from it, so a second bundle in the same folder would not be found.
-  ctx.supportPath = makeTempDir("support");
-  tempDirs.push(ctx.supportPath);
+  ctx.dataPath = makeTempDir("data");
+  tempDirs.push(ctx.dataPath);
   return extDir;
 }
 
@@ -164,7 +164,7 @@ describe("bundle", () => {
     const extDir = makeExtension({ "src/hello.tsx": commandSource, "src/label.ts": 'export const label = "from the bundle";' }, "hello");
     const output = await bundle(findEntry());
 
-    expect(output).toBe(path.join(ctx.supportPath, "build", "hello.js"));
+    expect(output).toBe(path.join(ctx.dataPath, "build", "hello.js"));
     const code = fs.readFileSync(output, "utf8");
     expect(code).toContain(JSON.stringify(shimPath));
     expect(code).toContain("from the bundle");
@@ -336,6 +336,6 @@ export default async () => ({ windows: typeof setWindows, failure: await listDev
   test("fails with the build messages when the command does not compile", async () => {
     makeExtension({ "src/broken.ts": 'import { nothing } from "./does-not-exist";\nexport default nothing;' }, "broken");
     await expect(bundle(findEntry())).rejects.toThrow(/does-not-exist/);
-    expect(fs.existsSync(path.join(ctx.supportPath, "build", "broken.fingerprint"))).toBe(false);
+    expect(fs.existsSync(path.join(ctx.dataPath, "build", "broken.fingerprint"))).toBe(false);
   });
 });

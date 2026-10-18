@@ -25,7 +25,7 @@ const valueBytes = 1024 * 1024;
 const capacity = 1024 * 1024;
 
 const support = fs.mkdtempSync(path.join(os.tmpdir(), "floe-bench-cache-"));
-ctx.supportPath = support;
+ctx.dataPath = support;
 
 function sample(label: string) {
     const memory = process.memoryUsage();

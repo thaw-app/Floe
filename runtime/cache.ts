@@ -44,6 +44,13 @@ export const cachePersistence = {
     },
 };
 
+/// Every namespace's snapshot, in a folder of its own: an extension may delete Cache.storageDirectory outright.
+function cacheDirectory(): string {
+    const directory = path.join(ctx.dataPath, "cache");
+    fs.mkdirSync(directory, { recursive: true });
+    return directory;
+}
+
 const pending = new Set<() => void>();
 let cancelDeferred: (() => void) | undefined;
 
@@ -81,10 +88,14 @@ export class Cache {
             throw new RangeError(`cache capacity must be a nonnegative integer, got ${String(options?.capacity)}`);
         }
         this.capacity = requested;
-        this.file = path.join(ctx.supportPath, `cache-${options?.namespace ?? "default"}.json`);
+        this.file = path.join(cacheDirectory(), `${options?.namespace ?? "default"}.json`);
         // Another instance over the same file may have changes that are not on disk yet.
         flushCaches();
         this.restore();
+    }
+
+    get storageDirectory() {
+        return path.dirname(this.file);
     }
 
     get isEmpty() {

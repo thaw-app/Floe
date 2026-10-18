@@ -23,6 +23,9 @@ export const ctx = {
   commandName: "",
   commandMode: "view",
   launchType: "userInitiated" as "userInitiated" | "background",
+  // Floe's own files for the extension: build, cache, local storage, preferences.
+  dataPath: "",
+  // environment.supportPath, the extension's alone.
   supportPath: "",
   manifest: { name: "" } as Manifest,
 };

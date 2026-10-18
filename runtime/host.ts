@@ -16,6 +16,7 @@ import { dispatchEvent, render, renderInFull, toError } from "./renderer";
 import { NavigationRoot, commandDrewItself, handleToastAction } from "./api/index";
 import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
+import { prepareFolders } from "./folders";
 import { withNodeCause } from "./fetch";
 import { lineSplitter } from "./lines";
 import { isRecording, observe } from "./access";
@@ -43,8 +44,8 @@ ctx.commandName = commandName;
 ctx.commandMode = command.mode ?? "view";
 ctx.launchType = process.env.FLOE_LAUNCH_TYPE === "background" ? "background" : "userInitiated";
 ctx.manifest = manifest;
-ctx.supportPath = path.join(os.homedir(), "Library/Application Support/Floe/Data", manifest.name);
-fs.mkdirSync(ctx.supportPath, { recursive: true });
+ctx.dataPath = path.join(os.homedir(), "Library/Application Support/Floe/Data", manifest.name);
+ctx.supportPath = prepareFolders(ctx.dataPath);
 
 function fail(error: unknown, fatal = true) {
   const err = toError(error);
@@ -105,7 +106,7 @@ try {
   const entry = await bundle(findEntry());
   // From here on it is the extension that reads, writes and calls out. Its own folders are not news.
   const report = observe({
-    own: [ctx.extDir, ctx.supportPath, import.meta.dir, fs.realpathSync(os.tmpdir())],
+    own: [ctx.extDir, ctx.dataPath, import.meta.dir, fs.realpathSync(os.tmpdir())],
     report: (found) => send({ type: "access", ...found }),
     recording: isRecording(),
   });

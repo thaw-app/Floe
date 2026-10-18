@@ -30,7 +30,7 @@ const deadline = Date.now() + 60_000;
 
 const h = React.createElement;
 const support = fs.mkdtempSync(path.join(os.tmpdir(), "floe-bench-navigation-"));
-ctx.supportPath = support;
+ctx.dataPath = support;
 ctx.manifest = { name: "bench-navigation" };
 
 type Capture = { sequence: number; line: string };

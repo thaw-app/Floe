@@ -18,7 +18,7 @@ export const shimPath = path.join(import.meta.dir, "api/index.ts");
 // import. A command with a top-level await cannot be CommonJS, so that one is built as a module.
 const formats = ["cjs", "esm"] as const;
 export async function bundle(entry: string): Promise<string> {
-  const outdir = path.join(ctx.supportPath, "build");
+  const outdir = path.join(ctx.dataPath, "build");
   const output = path.join(outdir, `${ctx.commandName}.js`);
   const stamp = path.join(outdir, `${ctx.commandName}.fingerprint`);
   const current = fingerprint(entry);

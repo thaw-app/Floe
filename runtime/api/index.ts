@@ -100,7 +100,7 @@ function firstDropdownValue(children: React.ReactNode): string | undefined {
   }
   return undefined;
 }
-const dropdownStore = () => path.join(ctx.supportPath, "dropdown-values.json");
+const dropdownStore = () => path.join(ctx.dataPath, "dropdown-values.json");
 const dropdown = (prefix: string) => {
   const Host = host(`${prefix}.Dropdown`);
   const Dropdown = (props: Props) => {
@@ -536,7 +536,7 @@ function readJSON(file: string): Record<string, any> {
   }
 }
 // The implementation lives in local-storage.ts; the file is the extension's, shared by all of its commands.
-export const LocalStorage = createLocalStorage(() => path.join(ctx.supportPath, "local-storage.sqlite"));
+export const LocalStorage = createLocalStorage(() => path.join(ctx.dataPath, "local-storage.sqlite"));
 
 // The bounded implementation lives in cache.ts; this re-export keeps the API surface stable.
 export { Cache } from "../cache";
@@ -547,7 +547,7 @@ export function getPreferenceValues<T = Props>(): T {
   const command = ctx.manifest.commands?.find((candidate) => candidate.name === ctx.commandName);
   const declared = [...(ctx.manifest.preferences ?? []), ...(command?.preferences ?? [])];
   const defaults = Object.fromEntries(declared.filter((pref) => pref.default !== undefined).map((pref) => [pref.name, pref.default]));
-  return { ...defaults, ...readJSON(path.join(ctx.supportPath, "preferences.json")) } as T;
+  return { ...defaults, ...readJSON(path.join(ctx.dataPath, "preferences.json")) } as T;
 }
 export function openExtensionPreferences(): Promise<void> {
   send({ type: "openPreferences" });
