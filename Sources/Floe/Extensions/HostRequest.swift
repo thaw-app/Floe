@@ -8,6 +8,11 @@
 import AppKit
 import Foundation
 
+/// Why the app turned a request down, said to the extension as the request's error.
+nonisolated struct RequestRefusal: LocalizedError, Sendable {
+    let errorDescription: String?
+}
+
 /// Something an extension asks the app for and waits on: the host sends `request` with an id, a
 /// method and its parameters, and the app sends back `reply` with the same id and a result or an error.
 nonisolated enum HostRequest: Sendable, Equatable {

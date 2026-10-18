@@ -14,10 +14,6 @@ final class CommandLauncher {
 
     static var shared: CommandLauncher?
 
-    struct Refusal: LocalizedError {
-        let errorDescription: String?
-    }
-
     private let commands: () -> [ExtensionCommand]
     private let userInitiated: Start
     private let background: Start
@@ -31,11 +27,11 @@ final class CommandLauncher {
     /// The messages go to the extension's own code, which shows or logs them, so they stay in English.
     func launch(_ params: [String: Any], from caller: ExtensionCommand) throws {
         guard let name = params["name"] as? String, !name.isEmpty else {
-            throw Refusal(errorDescription: "launchCommand needs the name of a command.")
+            throw RequestRefusal(errorDescription: "launchCommand needs the name of a command.")
         }
         let extensionName = params["extensionName"] as? String ?? caller.extensionName
         guard let command = commands().first(where: { $0.extensionName == extensionName && $0.name == name }) else {
-            throw Refusal(errorDescription: extensionName == caller.extensionName
+            throw RequestRefusal(errorDescription: extensionName == caller.extensionName
                 ? "This extension has no command \"\(name)\" that is switched on in Floe."
                 : "The extension \"\(extensionName)\" isn't installed, or its command \"\(name)\" is switched off.")
         }
@@ -46,7 +42,7 @@ final class CommandLauncher {
             return
         }
         guard command.mode != "view" else {
-            throw Refusal(errorDescription: "\"\(name)\" has a view, so it can only be launched by the user, not in the background.")
+            throw RequestRefusal(errorDescription: "\"\(name)\" has a view, so it can only be launched by the user, not in the background.")
         }
         background(command, arguments, context)
     }
@@ -79,22 +75,5 @@ extension CommandLauncher {
                 send(.launchInBackground(command.id, arguments: data(arguments), context: data(context)))
             }
         )
-    }
-}
-
-extension ExtensionSession {
-    /// Answers `command.launch` once the command has been started, or with why it could not be.
-    func answerLaunch(id: Int, params: [String: Any]) {
-        var reply: [String: Any] = ["type": "reply", "id": id]
-        do {
-            guard let launcher = CommandLauncher.shared else {
-                throw CommandLauncher.Refusal(errorDescription: "Floe can't launch commands from here.")
-            }
-            try launcher.launch(params, from: command)
-            reply["result"] = NSNull()
-        } catch {
-            reply["error"] = error.localizedDescription
-        }
-        send(reply)
     }
 }

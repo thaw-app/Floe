@@ -18,8 +18,8 @@ extension ExtensionSession {
             guard let id = fields["id"] as? Int else { break }
             switch method {
             case "alert.confirm": showAlert(id: id, params: params)
-            case "command.launch": answerLaunch(id: id, params: params)
-            case "snippet.create", "quicklink.create": answerCreation(id: id, method: method, params: params)
+            case "command.launch": reply(to: id) { try launch(params) }
+            case "snippet.create", "quicklink.create": reply(to: id) { try ExtensionCreations.create(method, params) }
             default: answerRequest(fields)
             }
         case "cancelRequest":
@@ -33,6 +33,26 @@ extension ExtensionSession {
             return false
         }
         return true
+    }
+
+    /// Answers a request the app settles at once: null when `body` returns, its error when it throws.
+    private func reply(to id: Int, _ body: () throws -> Void) {
+        var reply: [String: Any] = ["type": "reply", "id": id]
+        do {
+            try body()
+            reply["result"] = NSNull()
+        } catch {
+            reply["error"] = error.localizedDescription
+        }
+        send(reply)
+    }
+
+    /// `launchCommand`, which starts the command before it answers.
+    private func launch(_ params: [String: Any]) throws {
+        guard let launcher = CommandLauncher.shared else {
+            throw RequestRefusal(errorDescription: "Floe can't launch commands from here.")
+        }
+        try launcher.launch(params, from: command)
     }
 
     /// Takes `toggleQuickLook`, for the selected item's `quickLook` file; false for any other message.

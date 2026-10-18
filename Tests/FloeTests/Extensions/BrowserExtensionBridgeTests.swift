@@ -14,7 +14,7 @@ struct BrowserExtensionBridgeTests {
     @Test func theFrontmostBrowserIsAskedElseTheFirstOneRunning() throws {
         #expect(try BrowserExtensionBridge.browser(frontmost: "com.google.Chrome", running: { _ in false }) == .chrome)
         #expect(try BrowserExtensionBridge.browser(frontmost: "com.apple.Notes", running: { $0 == .dia }) == .dia)
-        #expect(throws: BrowserExtensionBridge.Refusal.self) {
+        #expect(throws: RequestRefusal.self) {
             try BrowserExtensionBridge.browser(frontmost: nil, running: { _ in false })
         }
     }
@@ -49,7 +49,7 @@ struct BrowserExtensionBridgeTests {
     }
 
     @Test func aRefusalOrADisabledOptionIsSaidInWords() throws {
-        #expect(throws: BrowserExtensionBridge.Refusal.self) {
+        #expect(throws: RequestRefusal.self) {
             try BrowserExtensionBridge.answer(AppleScript.Execution(didRun: false, hasError: true, errorNumber: AppleScript.refusedErrorNumber), from: .safari)
         }
         do {

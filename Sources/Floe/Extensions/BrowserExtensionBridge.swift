@@ -10,10 +10,6 @@ import AppKit
 /// Answers Raycast's BrowserExtension API from the browser itself, through AppleScript, where Raycast asks its
 /// companion browser extension. The browser is the frontmost one Floe can script, else the first one running.
 nonisolated enum BrowserExtensionBridge {
-    struct Refusal: LocalizedError {
-        let errorDescription: String?
-    }
-
     /// Safari's tabs have no id, so one is made of the window's id and the tab's place in it.
     static let safariTabsPerWindow = 1000
 
@@ -24,7 +20,7 @@ nonisolated enum BrowserExtensionBridge {
         }
         guard let open = BrowserApp.all.first(where: running) else {
             let names = BrowserApp.all.map(\.name).joined(separator: ", ")
-            throw Refusal(errorDescription: "No browser Floe can read is open. Floe reads tabs from \(names).")
+            throw RequestRefusal(errorDescription: "No browser Floe can read is open. Floe reads tabs from \(names).")
         }
         return open
     }
@@ -123,10 +119,10 @@ nonisolated enum BrowserExtensionBridge {
     /// The browser's own message says how to allow scripts from Apple Events, when that is what stopped one.
     static func answer(_ execution: AppleScript.Execution, from browser: BrowserApp) throws -> String {
         if execution.isRefused {
-            throw Refusal(errorDescription: "Floe isn't allowed to control \(browser.name). Allow it in System Settings › Privacy & Security › Automation.")
+            throw RequestRefusal(errorDescription: "Floe isn't allowed to control \(browser.name). Allow it in System Settings › Privacy & Security › Automation.")
         }
         guard let text = execution.text, !execution.hasError else {
-            throw Refusal(errorDescription: execution.errorMessage ?? "\(browser.name) didn't answer.")
+            throw RequestRefusal(errorDescription: execution.errorMessage ?? "\(browser.name) didn't answer.")
         }
         return text
     }

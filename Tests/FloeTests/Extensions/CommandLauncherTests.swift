@@ -48,13 +48,13 @@ struct CommandLauncherTests {
     @Test func theBackgroundTypeRunsANoViewCommandAndRefusesAView() throws {
         try launcher().launch(["name": "unread", "type": "background"], from: caller)
         #expect(started.background.map(\.id) == ["mail/unread"])
-        #expect(throws: CommandLauncher.Refusal.self) { try launcher().launch(["name": "compose", "type": "background"], from: caller) }
+        #expect(throws: RequestRefusal.self) { try launcher().launch(["name": "compose", "type": "background"], from: caller) }
     }
 
     @Test func aCommandThatIsNotThereIsRefusedWithWhy() {
-        #expect(throws: CommandLauncher.Refusal.self) { try launcher().launch([:], from: caller) }
-        #expect(throws: CommandLauncher.Refusal.self) { try launcher().launch(["name": "gone"], from: caller) }
-        #expect(throws: CommandLauncher.Refusal.self) { try launcher().launch(["name": "inbox", "extensionName": "weather"], from: caller) }
+        #expect(throws: RequestRefusal.self) { try launcher().launch([:], from: caller) }
+        #expect(throws: RequestRefusal.self) { try launcher().launch(["name": "gone"], from: caller) }
+        #expect(throws: RequestRefusal.self) { try launcher().launch(["name": "inbox", "extensionName": "weather"], from: caller) }
         #expect(started.userInitiated.isEmpty)
     }
 
