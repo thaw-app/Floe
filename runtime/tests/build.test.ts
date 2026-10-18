@@ -340,6 +340,22 @@ export default () => ({ attribute: (<a title="as &#xXXXX; or &#x41;" />).props.t
     expect(command()).toEqual({ attribute: "as &#xXXXX; or A", code: ["a", "b"] });
   });
 
+  // File Manager does a default import of a package whose module build exports only names, as Node's build allows.
+  test("a default import that only the package's CommonJS main has is built from that main", async () => {
+    makeExtension(
+      {
+        "src/ignore.ts": 'import parser from "dual";\nexport default () => parser.parse("x");',
+        "node_modules/dual/package.json": '{ "name": "dual", "main": "main.js", "module": "module.mjs" }',
+        "node_modules/dual/main.js": "exports.parse = (text) => `cjs ${text}`;",
+        "node_modules/dual/module.mjs": "export const parse = (text) => `esm ${text}`;",
+      },
+      "ignore",
+    );
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toBe("cjs x");
+  });
+
   // Bun builds these three to its own modules, which drop certificate and proxy settings written for Node.
   test("node-fetch, undici and ws are Floe's stand-ins, whatever the extension installed", async () => {
     makeExtension(

@@ -90,8 +90,9 @@ async function build(entry: string, outdir: string) {
   try {
     return await buildUnchecked(entry, outdir, "cjs");
   } catch (error) {
-    const entities = describe(error).includes("Invalid JSX entity escape");
-    return buildAs(entry, outdir, entities ? "cjs" : "esm", entities);
+    const message = describe(error);
+    const retry = { entities: message.includes("Invalid JSX entity escape"), preferMain: /No matching export in .* for import "default"/.test(message) };
+    return buildAs(entry, outdir, retry.entities || retry.preferMain ? "cjs" : "esm", retry);
   }
 }
 
@@ -100,9 +101,12 @@ function describe(error: unknown): string {
   return (error as AggregateError).errors?.map(String).join("\n") || String(error);
 }
 
-async function buildAs(entry: string, outdir: string, format: (typeof formats)[number], lenientEntities = false) {
+// What a second build does differently, after the first stopped where Raycast's esbuild would have gone on.
+type Retry = { entities?: boolean; preferMain?: boolean };
+
+async function buildAs(entry: string, outdir: string, format: (typeof formats)[number], retry: Retry = {}) {
   try {
-    return await buildUnchecked(entry, outdir, format, lenientEntities);
+    return await buildUnchecked(entry, outdir, format, retry);
   } catch (error) {
     throw new Error(describe(error));
   }
@@ -116,7 +120,20 @@ export function escapeUnreadableEntities(source: string): string {
   );
 }
 
-function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number], lenientEntities = false) {
+// Raycast builds for Node, which takes a package's CommonJS main over its module build; a default import of a
+// package whose module build has none only works there. Packages with an exports map say for themselves.
+function commonJSMain(specifier: string, importer: string): string | undefined {
+  try {
+    const manifestPath = Bun.resolveSync(`${specifier}/package.json`, path.dirname(importer));
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    if (manifest.exports || !manifest.main || !manifest.module) return undefined;
+    return Bun.resolveSync(`./${manifest.main}`, path.dirname(manifestPath));
+  } catch {
+    return undefined;
+  }
+}
+
+function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number], retry: Retry = {}) {
   return Bun.build({
     entrypoints: [entry],
     outdir,
@@ -147,7 +164,13 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
             loader: "js",
             contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${JSON.stringify(args.path)}));`,
           }));
-          if (lenientEntities) {
+          if (retry.preferMain) {
+            build.onResolve({ filter: /^(@[^/]+\/)?[^./@][^/]*$/ }, (args) => {
+              const main = commonJSMain(args.path, args.importer);
+              return main ? { path: main } : undefined;
+            });
+          }
+          if (retry.entities) {
             build.onLoad({ filter: /\.[jt]sx$/ }, (args) =>
               args.path.includes("/node_modules/")
                 ? undefined
