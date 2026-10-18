@@ -89,22 +89,34 @@ export function fingerprint(entry: string): string {
 async function build(entry: string, outdir: string) {
   try {
     return await buildUnchecked(entry, outdir, "cjs");
-  } catch {
-    return buildAs(entry, outdir, "esm");
-  }
-}
-
-async function buildAs(entry: string, outdir: string, format: (typeof formats)[number]) {
-  try {
-    return await buildUnchecked(entry, outdir, format);
   } catch (error) {
-    // Bun throws an AggregateError whose useful text is in the individual build messages.
-    const messages = (error as AggregateError).errors?.map(String).join("\n");
-    throw new Error(messages || String(error));
+    const entities = describe(error).includes("Invalid JSX entity escape");
+    return buildAs(entry, outdir, entities ? "cjs" : "esm", entities);
   }
 }
 
-function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number]) {
+// Bun throws an AggregateError whose useful text is in the individual build messages.
+function describe(error: unknown): string {
+  return (error as AggregateError).errors?.map(String).join("\n") || String(error);
+}
+
+async function buildAs(entry: string, outdir: string, format: (typeof formats)[number], lenientEntities = false) {
+  try {
+    return await buildUnchecked(entry, outdir, format, lenientEntities);
+  } catch (error) {
+    throw new Error(describe(error));
+  }
+}
+
+// esbuild, which Raycast builds with, keeps an entity it can't read as plain text, as Converter's placeholder="&#xXXXX;";
+// Bun stops. Only attribute values written name="…" are touched, since the same letters in code are code.
+export function escapeUnreadableEntities(source: string): string {
+  return source.replace(/(\s[\w:-]+=")([^"]*)"/g, (_match, lead: string, value: string) =>
+    `${lead}${value.replace(/&#(?!(?:x[0-9a-fA-F]+|[0-9]+);)/g, "&amp;#")}"`,
+  );
+}
+
+function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number], lenientEntities = false) {
   return Bun.build({
     entrypoints: [entry],
     outdir,
@@ -135,6 +147,13 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
             loader: "js",
             contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${JSON.stringify(args.path)}));`,
           }));
+          if (lenientEntities) {
+            build.onLoad({ filter: /\.[jt]sx$/ }, (args) =>
+              args.path.includes("/node_modules/")
+                ? undefined
+                : { loader: args.path.endsWith(".tsx") ? "tsx" : "jsx", contents: escapeUnreadableEntities(fs.readFileSync(args.path, "utf8")) },
+            );
+          }
           // A V8 addon Bun cannot load, whichever build of it the extension installed.
           build.onResolve({ filter: /^better-sqlite3(-multiple-ciphers)?$/ }, () => ({ path: path.join(compatDir, "better-sqlite3.ts"), external: true }));
           // Outside the bundle, like the shim, so the toast it shows while building is the shim's own.

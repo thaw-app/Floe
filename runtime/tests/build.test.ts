@@ -326,6 +326,20 @@ export default async () => ({ nothing: await nothing(), error: await fail().catc
     });
   });
 
+  // Converter's form says placeholder="&#xXXXX;", which esbuild keeps as text and Bun refuses to read.
+  test("an entity Bun can't read in a JSX attribute is kept as text, and the same letters in code are left alone", async () => {
+    makeExtension(
+      {
+        "src/entities.tsx": `const split = (text: string) => text.split("&#x");
+export default () => ({ attribute: (<a title="as &#xXXXX; or &#x41;" />).props.title, code: split("a&#xb") });`,
+      },
+      "entities",
+    );
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toEqual({ attribute: "as &#xXXXX; or A", code: ["a", "b"] });
+  });
+
   // Bun builds these three to its own modules, which drop certificate and proxy settings written for Node.
   test("node-fetch, undici and ws are Floe's stand-ins, whatever the extension installed", async () => {
     makeExtension(
