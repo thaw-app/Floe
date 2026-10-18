@@ -11,7 +11,7 @@ import path from "node:path";
 import React from "react";
 import { ctx } from "../bridge";
 import { bundle, findEntry, fingerprint, newestChange, shimPath } from "../build";
-import { find, installRuntime, makeTempDir, showScreen } from "./support";
+import { find, installRuntime, makeTempDir, sent, showScreen } from "./support";
 
 installRuntime("build-tests");
 const tempDirs: string[] = [];
@@ -241,18 +241,89 @@ export default async () => {
   });
 
   // Raycast Wallpaper imports a Rust helper it only calls on Windows; Bun could not resolve the import at all.
-  test("a swift: or rust: import builds, and calling what it names says Floe can't build that code", async () => {
+  test("a rust: import builds, and a call rejects as Raycast's own macOS stub does", async () => {
     makeExtension(
       {
         "src/wall.ts": `import { set_wallpaper as setWindows, type Monitor } from "rust:../rust";
-import { listDevices } from "swift:../swift";
-export default async () => ({ windows: typeof setWindows, failure: await listDevices().catch((error: Error) => error.message) });`,
+export default async () => ({ windows: typeof setWindows, failure: await setWindows("a", "b").catch((error: Error) => error.message) });`,
       },
       "wall",
     );
     const command = (await import(await bundle(findEntry()))).default;
 
-    expect(await command()).toEqual({ windows: "function", failure: "listDevices is part of this extension's Swift code, which Floe can't build yet" });
+    expect(await command()).toEqual({ windows: "function", failure: "Rust functions are not supported on macOS" });
+  });
+
+  // Apple Reminders, Safari and others call Swift code of their own, built with Raycast's extensions-swift-tools.
+  describe("a swift: import", () => {
+    // Stands in for the toolchain: it describes the package and "builds" a script that answers like a built helper.
+    function fakeSwift(folder: string) {
+      const helper = path.join(folder, "helper.sh");
+      write(helper, `#!/bin/sh
+case "$1" in
+  fail) echo "nope(\\"why\\")" >&2; exit 1 ;;
+  nothing) exit 0 ;;
+  *) name="$1"; shift; args=$(printf '%s,' "$@"); printf '{"called":"%s","args":[%s]}' "$name" "\${args%,}" ;;
+esac
+`);
+      const swift = path.join(folder, "swift.sh");
+      write(swift, `#!/bin/sh
+case "$1" in
+  package) echo '{"targets":[{"name":"Helper","type":"executable"},{"name":"HelperTests","type":"test"}]}' ;;
+  build)
+    while [ "$#" -gt 0 ]; do [ "$1" = "--scratch-path" ] && scratch="$2"; shift; done
+    mkdir -p "$scratch/release" && cp "${helper}" "$scratch/release/Helper" && echo built >> "${folder}/builds.log" ;;
+esac
+`);
+      fs.chmodSync(helper, 0o755);
+      fs.chmodSync(swift, 0o755);
+      return swift;
+    }
+
+    test("builds the package once and runs a function with one JSON value per argument", async () => {
+      const extDir = makeExtension(
+        {
+          "src/remind.ts": `import { addReminder, removeReminder, clearAll } from "swift:../swift/Reminders";
+export default async () => [await addReminder({ title: "Milk", due: undefined }, 2), await removeReminder("x"), await clearAll()];`,
+          "swift/Reminders/Package.swift": "",
+        },
+        "remind",
+      );
+      process.env.FLOE_SWIFT = fakeSwift(extDir);
+      try {
+        const command = (await import(await bundle(findEntry()))).default;
+
+        expect(await command()).toEqual([
+          { called: "addReminder", args: [{ title: "Milk", due: null }, 2] },
+          { called: "removeReminder", args: ["x"] },
+          { called: "clearAll", args: [] },
+        ]);
+        expect(fs.readFileSync(path.join(extDir, "builds.log"), "utf8")).toBe("built\n");
+        expect(fs.existsSync(path.join(ctx.dataPath, "swift", "Reminders", "release", "Helper"))).toBe(true);
+        const toasts = sent("toast");
+        expect(toasts.at(-1)).toMatchObject({ title: "Building this extension's Swift code", hidden: true });
+      } finally {
+        delete process.env.FLOE_SWIFT;
+      }
+    });
+
+    test("a function that throws rejects with a SwiftError carrying what Swift printed, and nothing printed is null", async () => {
+      const extDir = makeExtension(
+        {
+          "src/fails.ts": `import { fail, nothing } from "swift:../swift/Helper";
+export default async () => ({ nothing: await nothing(), error: await fail().catch((error: Error & { stderr: string }) => [error.name, error.message, error.stderr]) });`,
+        },
+        "fails",
+      );
+      process.env.FLOE_SWIFT = fakeSwift(extDir);
+      try {
+        const command = (await import(await bundle(findEntry()))).default;
+
+        expect(await command()).toEqual({ nothing: null, error: ["SwiftError", 'nope("why")', 'nope("why")'] });
+      } finally {
+        delete process.env.FLOE_SWIFT;
+      }
+    });
   });
 
   // Bun builds these three to its own modules, which drop certificate and proxy settings written for Node.
