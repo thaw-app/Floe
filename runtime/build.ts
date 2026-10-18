@@ -122,10 +122,39 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
             loader: "js",
             contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${JSON.stringify(args.path)}));`,
           }));
+          // Each importer gets its own copy, holding the names it imports.
+          build.onResolve({ filter: /^(swift|rust):/ }, (args) => ({ path: `${args.importer}|${args.path}`, namespace: "native" }));
+          build.onLoad({ filter: /.*/, namespace: "native" }, (args) => {
+            const [importer, specifier] = splitLast(args.path, "|");
+            return { loader: "js", contents: nativeStub(specifier, readText(importer) ?? "") };
+          });
         },
       },
     ],
   });
+}
+
+function splitLast(text: string, separator: string): [string, string] {
+  const index = text.lastIndexOf(separator);
+  return [text.slice(0, index), text.slice(index + separator.length)];
+}
+
+// Raycast compiles an extension's swift: or rust: package into a helper Floe cannot build yet. The import
+// still builds, so commands that never call the helper (some only do on Windows) run, and a call says why it fails.
+export function nativeStub(specifier: string, importerSource: string): string {
+  const language = specifier.startsWith("swift:") ? "Swift" : "Rust";
+  const quoted = specifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const imports = new RegExp(`import\\s+(?:type\\s+)?(?:[\\w$]+\\s*,\\s*)?\\{([^}]*)\\}\\s*from\\s*["']${quoted}["']`, "g");
+  const names = new Set<string>();
+  for (const match of importerSource.matchAll(imports)) {
+    for (const part of match[1].split(",")) {
+      const name = part.trim().split(/\s+as\s+/)[0];
+      if (/^[\w$]+$/.test(name)) names.add(name);
+    }
+  }
+  const unavailable = (name: string) =>
+    `() => Promise.reject(new Error(${JSON.stringify(`${name} is part of this extension's ${language} code, which Floe can't build yet`)}))`;
+  return [...[...names].map((name) => `export const ${name} = ${unavailable(name)};`), `export default {};`].join("\n");
 }
 
 export function findEntry(): string {
