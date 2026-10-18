@@ -92,7 +92,7 @@ async function build(entry: string, outdir: string) {
     return await buildUnchecked(entry, outdir, "cjs");
   } catch (error) {
     const retry = retryFor(error);
-    return buildAs(entry, outdir, retry.entities || retry.preferMain || retry.unresolved ? "cjs" : "esm", retry);
+    return buildAs(entry, outdir, Object.values(retry).some(Boolean) ? "cjs" : "esm", retry);
   }
 }
 
@@ -107,7 +107,8 @@ function retryFor(error: unknown): Retry {
     .map((item) => `${item.position.file}\0${item.specifier}`);
   return {
     entities: message.includes("Invalid JSX entity escape"),
-    preferMain: /No matching export in .* for import "default"/.test(message),
+    // Default imports (File Manager) and named ones (Twitter's parseTweet) that only a package's CommonJS main has.
+    preferMain: /No matching export in "[^"]*node_modules[^"]*" for import "/.test(message),
     unresolved: unresolved.length > 0 ? new Set(unresolved) : undefined,
   };
 }
@@ -130,14 +131,14 @@ async function buildAs(entry: string, outdir: string, format: (typeof formats)[n
 
 // esbuild, which Raycast builds with, keeps an entity it can't read as plain text, as Converter's placeholder="&#xXXXX;";
 // Bun stops. Only attribute values written name="…" are touched, since the same letters in code are code.
-export function escapeUnreadableEntities(source: string): string {
+function escapeUnreadableEntities(source: string): string {
   return source.replace(/(\s[\w:-]+=")([^"]*)"/g, (_match, lead: string, value: string) =>
     `${lead}${value.replace(/&#(?!(?:x[0-9a-fA-F]+|[0-9]+);)/g, "&amp;#")}"`,
   );
 }
 
-// Raycast builds for Node, which takes a package's CommonJS main over its module build; a default import of a
-// package whose module build has none only works there. Packages with an exports map say for themselves.
+// Raycast builds for Node, which takes a package's CommonJS main over its module build; an import of a name the
+// module build lacks only works there. Packages with an exports map say for themselves.
 function commonJSMain(specifier: string, importer: string): string | undefined {
   try {
     const manifestPath = Bun.resolveSync(`${specifier}/package.json`, path.dirname(importer));
@@ -224,7 +225,8 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
           build.onResolve({ filter: /^better-sqlite3(-multiple-ciphers)?$/ }, () => ({ path: path.join(compatDir, "better-sqlite3.ts"), external: true }));
           // Outside the bundle, like the shim, so the toast it shows while building is the shim's own.
           build.onResolve({ filter: /^floe:native$/ }, () => ({ path: path.join(import.meta.dir, "native.ts"), external: true }));
-          // Each importer gets its own copy, holding the names it imports.
+          // Each importer gets its own copy, holding the names it imports. Bun passes no pluginData from here to onLoad,
+          // so the importer travels in the path.
           build.onResolve({ filter: /^(swift|rust):/ }, (args) => ({ path: `${args.importer}|${args.path}`, namespace: "native" }));
           build.onLoad({ filter: /.*/, namespace: "native" }, (args) => {
             const [importer, specifier] = splitLast(args.path, "|");

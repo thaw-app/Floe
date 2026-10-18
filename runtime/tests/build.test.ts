@@ -356,6 +356,21 @@ export default () => ({ attribute: (<a title="as &#xXXXX; or &#x41;" />).props.t
     expect(command()).toBe("cjs x");
   });
 
+  // Twitter imports parseTweet, which twitter-text's module build does not export.
+  test("a named import that only the package's CommonJS main has is built from that main", async () => {
+    makeExtension(
+      {
+        "src/tweet.ts": 'import { parseTweet } from "split";\nexport default () => parseTweet("hi");',
+        "node_modules/split/package.json": '{ "name": "split", "main": "main.js", "module": "module.mjs" }',
+        "node_modules/split/main.js": "exports.parseTweet = (text) => text.length;",
+        "node_modules/split/module.mjs": "export const other = 1;",
+      },
+      "tweet",
+    );
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toBe(2);
+  });
 
   // got requires electron only inside Electron, and node-ssdp a coverage build only when one is asked for.
   test("a dependency's require of something missing, in a branch that never runs, builds as an empty module", async () => {
