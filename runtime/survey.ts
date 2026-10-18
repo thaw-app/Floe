@@ -55,6 +55,8 @@ async function run(ext: string, command: string): Promise<Result> {
   const stderr = new Response(proc.stderr as ReadableStream).text();
 
   for await (const message of hostMessages(proc.stdout)) {
+    // No app answers here: a request (the browser's tabs, the clipboard) gets the error one would give with nothing to offer.
+    if (message.type === "request") sendToHost(proc, { type: "reply", id: message.id, error: "Not available in a headless run" });
     seen.error ||= errorFrom(message);
     const view = message.type === "render" && message.tree ? topView(message.tree).view : undefined;
     if (!view) continue;
