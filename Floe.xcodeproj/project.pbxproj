@@ -300,6 +300,7 @@
 		C74B57F3DEB3EBF2FFE145AF /* ShellCommandSearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F9E4F50999F37A0B4D3C13 /* ShellCommandSearchProvider.swift */; };
 		C7736ACC6DCFDB827967C091 /* SSHSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1799F047450A092C64765090 /* SSHSearch.swift */; };
 		C9355782C74610B86425EBFC /* MenuBarOffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC2CA2E30AF5B70539D91FF7 /* MenuBarOffer.swift */; };
+		C95410E3E14E868027AE0A19 /* IconSymbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607B21E253698186EC9FF541 /* IconSymbols.swift */; };
 		C970B52A7B428A83D32F4329 /* SystemSettingsPanes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70CF65BDA95BF501847A21BE /* SystemSettingsPanes.swift */; };
 		C9BAEA1DB299E5B8BD25CDDC /* ShellCommandsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E988DE65E609D0E3B8F836 /* ShellCommandsSettingsSection.swift */; };
 		CA6F48A770106DB4DD682E37 /* SettingsStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA1420E83E4D30EBC897A57 /* SettingsStores.swift */; };
@@ -536,6 +537,7 @@
 		5EF4D81C831111FE2EA1FE13 /* SearchRanker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRanker.swift; sourceTree = "<group>"; };
 		5FEFD6D0D5FE1E1CB1726CA6 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
 		604318B576A5FA49A67E10A4 /* ThawHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThawHUD.swift; sourceTree = "<group>"; };
+		607B21E253698186EC9FF541 /* IconSymbols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconSymbols.swift; sourceTree = "<group>"; };
 		611669F5DA712196411BB8AD /* OAuthBroker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthBroker.swift; sourceTree = "<group>"; };
 		612FC052C4830AD422547E50 /* AskAIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskAIView.swift; sourceTree = "<group>"; };
 		615C6D1FFFC788BD983EA13C /* ExtensionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionViews.swift; sourceTree = "<group>"; };
@@ -1172,6 +1174,7 @@
 				61946FF17AE6C83D103230B1 /* EventRows.swift */,
 				913CCBA955C710D7CCD57A62 /* FocusRows.swift */,
 				E0D6B5C0A3552A88F867A00B /* FoundRows.swift */,
+				607B21E253698186EC9FF541 /* IconSymbols.swift */,
 				D4F04691E14C00EFDF762F28 /* IconThumbnails.swift */,
 				07471C2EA57FA7FD58ABB95C /* IconView.swift */,
 				6B395B312CE9AFB208F23F69 /* ItemActions.swift */,
@@ -1635,6 +1638,7 @@
 				4D97246D3977B8B852742EE9 /* HotReload.swift in Sources */,
 				FA8EA9B40FA7FF26B6D03FB3 /* HotkeyRecorder.swift in Sources */,
 				C6498EE31AE4D16010D5A257 /* HotkeyRegistry.swift in Sources */,
+				C95410E3E14E868027AE0A19 /* IconSymbols.swift in Sources */,
 				780F784CE418AF8AC58634B6 /* IconThumbnails.swift in Sources */,
 				42FFD7AD94DBADD232B7E4DB /* IconView.swift in Sources */,
 				3A1E1665F4CCCE6EA9CC5F64 /* IncomingURLRouter.swift in Sources */,

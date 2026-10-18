@@ -41,19 +41,6 @@ struct IconView: View {
         case symbol(String), thumbnail(IconSource), remote(URL), text(String), none
     }
 
-    private static let symbols: [String: String] = [
-        "Globe": "globe", "Star": "star.fill", "Clipboard": "doc.on.clipboard", "Link": "link", "Trash": "trash",
-        "Finder": "folder", "Folder": "folder", "Document": "doc", "Calendar": "calendar", "Clock": "clock",
-        "Person": "person", "Gear": "gearshape", "MagnifyingGlass": "magnifyingglass", "Terminal": "terminal",
-        "Sidebar": "sidebar.right", "ArrowRight": "arrow.right", "Eye": "eye", "Bubble": "bubble.left",
-        "Checkmark": "checkmark", "XMarkCircle": "xmark.circle", "Plus": "plus", "Pencil": "pencil",
-        "Download": "arrow.down.circle", "Upload": "arrow.up.circle", "Bookmark": "bookmark", "Heart": "heart",
-        "Info": "info.circle", "Warning": "exclamationmark.triangle", "Code": "chevron.left.forwardslash.chevron.right",
-        "Window": "macwindow", "AppWindow": "macwindow", "Image": "photo", "Message": "message", "Envelope": "envelope",
-        "ArrowClockwise": "arrow.clockwise", "Circle": "circle", "Dot": "circle.fill", "Lock": "lock", "Key": "key",
-        "Tag": "tag", "Text": "text.alignleft", "List": "list.bullet", "Play": "play.fill", "Pause": "pause.fill",
-    ]
-
     /// What the system has been asked about a symbol name. The probe makes an NSImage, which a row's
     /// every redraw should not repeat, and whether a name exists never changes while the app runs.
     private static let probedSymbols = Mutex<[String: Bool]>([:])
@@ -85,7 +72,7 @@ struct IconView: View {
             let name = String(string.dropFirst(5))
             // Raycast names are CamelCase (ArrowUpCircle); most map onto SF Symbols as arrow.up.circle.
             let dotted = name.replacing(#/([a-z0-9])([A-Z])/#) { "\($0.1).\($0.2)" }.lowercased()
-            let candidates = [Self.symbols[name], dotted, name.lowercased()].compactMap(\.self)
+            let candidates = [IconSymbols.table[name] ?? IconSymbols.number(name), dotted, name.lowercased()].compactMap(\.self)
             let symbol = candidates.first { Self.isValidSymbol($0) }
             return .symbol(symbol ?? "square.dashed")
         }
