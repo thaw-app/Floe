@@ -13,7 +13,9 @@ final class ScriptRows {
     /// What is typed in the search field, which holds a script's arguments after its title.
     var typed: () -> String = { "" }
     /// Counts a run as a use of the script, for the ranking.
-    var recordUse: (String) -> Void = { _ in }
+    var recordUse: (String) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
     /// Asks before a script that declares it needs confirming runs.
     var confirms: (ScriptCommand) -> Bool = { ScriptRows.confirmRun(of: $0) }
     var runScript: @Sendable (ScriptCommand, [String]) async throws -> ShellResult = { try await ScriptRunner.run($0, arguments: $1) }

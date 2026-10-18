@@ -12,7 +12,9 @@ import AppKit
 final class FoundRows {
     var host = RowHost()
     /// Puts text into the search field, ready for the rest to be typed after it.
-    var typeQuery: (String) -> Void = { _ in }
+    var typeQuery: (String) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
     /// Where Return copies to. Tests replace it, so they leave the clipboard alone.
     var pasteboard = NSPasteboard.general
 

@@ -14,7 +14,7 @@ final class ShortcutRows {
     /// The switch in Settings, Privacy. Off, the Shortcuts tool is never started.
     var isOn: () -> Bool = { false }
     /// The list was read again.
-    var listChanged: () -> Void = {}
+    var listChanged: () -> Void = { /* set by LauncherFeatures */ }
     /// The shortcuts and their runs. Nothing is read while the switch is off.
     lazy var library = AppleShortcutLibrary()
 

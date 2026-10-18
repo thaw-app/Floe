@@ -23,5 +23,5 @@ struct SettingsStores {
     let appearance: ThawAppearanceFollower
     let updates: UpdatesManager
     /// Opens the welcome window again.
-    var showWelcome: () -> Void = {}
+    var showWelcome: () -> Void = { /* no welcome window */ }
 }

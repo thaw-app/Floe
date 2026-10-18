@@ -13,27 +13,37 @@ import ApplicationServices
 final class ExtensionRunner: ObservableObject {
     /// What the panel does for a command.
     struct Host {
-        var showPanel: () -> Void = {}
-        var hidePanel: () -> Void = {}
-        var showHUD: (String) -> Void = { _ in }
+        var showPanel: () -> Void = { /* set by the launcher's model */ }
+        var hidePanel: () -> Void = { /* set by the launcher's model */ }
+        var showHUD: (String) -> Void = { _ in
+            // Set by the launcher's model.
+        }
         /// The search field takes the keys again: the command's view is gone.
-        var refocus: () -> Void = {}
+        var refocus: () -> Void = { /* set by the launcher's model */ }
         /// Whether the panel is on screen, so a toast is drawn in the command's footer rather than said as a HUD.
         var isPanelShown: () -> Bool = { false }
         /// Whether the panel is hidden with the command kept for the user to come back to.
         var isWaitingToResume: () -> Bool = { false }
         /// Asks for what a command needs before it can run: its required preferences, or its arguments.
-        var beginSetup: (SetupRequest) -> Void = { _ in }
+        var beginSetup: (SetupRequest) -> Void = { _ in
+            // Set by the launcher's model.
+        }
         /// Running a menu-bar command is choosing whether it has a status item.
-        var toggleMenuBar: (ExtensionCommand) -> Void = { _ in }
+        var toggleMenuBar: (ExtensionCommand) -> Void = { _ in
+            // Set by the launcher's model.
+        }
         /// Hands the run to the panel process and says whether it did. Only the resident hands runs on.
         var runElsewhere: (ExtensionCommand, [String: Any]?) -> Bool = { _, _ in false }
         /// Opens a link or a file, in a named app when there is one.
-        var open: (_ target: String, _ application: String?) -> Void = { _, _ in }
+        var open: (_ target: String, _ application: String?) -> Void = { _, _ in
+            // Set by the launcher's model.
+        }
         /// Opens the command's settings, or asks for the one preference a sign-in needs.
-        var showPreferences: ([String: Any], ExtensionSession) -> Void = { _, _ in }
+        var showPreferences: ([String: Any], ExtensionSession) -> Void = { _, _ in
+            // Set by the launcher's model.
+        }
         /// The extension's manifest changed on disk.
-        var manifestChanged: () -> Void = {}
+        var manifestChanged: () -> Void = { /* set by the launcher's model */ }
     }
 
     @Published private(set) var session: ExtensionSession?

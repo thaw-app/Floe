@@ -11,7 +11,9 @@ import AppKit
 final class SystemRows {
     var host = RowHost()
     /// Plays, pauses or skips the music, for the commands that control it.
-    var controlMusic: (MusicCommand) -> Void = { _ in }
+    var controlMusic: (MusicCommand) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
     /// How a host's connection is opened. Tests replace it, so they open nothing.
     var sshConnector = SSHConnector.system
 

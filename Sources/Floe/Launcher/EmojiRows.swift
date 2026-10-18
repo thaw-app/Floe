@@ -11,7 +11,9 @@ import AppKit
 final class EmojiRows {
     var host = RowHost()
     /// Counts a use, so the emoji comes up sooner next time.
-    var recordUse: (String) -> Void = { _ in }
+    var recordUse: (String) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
     /// Where an emoji is copied to. Tests replace it, so they leave the clipboard alone.
     var pasteboard = NSPasteboard.general
     /// Whether Command-V may be pressed for the user, and pressing it. Tests replace both, so they press nothing.

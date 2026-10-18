@@ -11,7 +11,9 @@ import AppKit
 final class BrewRows {
     var host = RowHost()
     /// Runs a command in the terminal the role says, where it shows what it does and asks for a password.
-    var runInTerminal: (String) -> Void = { _ in }
+    var runInTerminal: (String) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
     /// Where a name is copied to. Tests replace it, so they leave the clipboard alone.
     var pasteboard = NSPasteboard.general
     static func title(for verb: Homebrew.Verb) -> String {

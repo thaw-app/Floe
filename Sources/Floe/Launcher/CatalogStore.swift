@@ -32,7 +32,9 @@ final class CatalogStore: ObservableObject {
     private(set) var sshHosts: [SSHHost] = []
 
     /// Told which part changed, after it is published.
-    var onChange: (Part) -> Void = { _ in }
+    var onChange: (Part) -> Void = { _ in
+        // Set by the launcher's model.
+    }
 
     private let scanner: any CatalogScanning
     private let settings: AppSettings

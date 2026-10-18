@@ -71,8 +71,12 @@ final class ClipboardHistoryStore: ObservableObject {
             directory: FileManager.default.temporaryDirectory,
             sizes: { [:] },
             read: { _ in nil },
-            write: { _, _, _ in },
-            remove: { _ in }
+            write: { _, _, _ in
+                // A detached store writes nothing.
+            },
+            remove: { _ in
+                // Nor removes anything.
+            }
         )
         return ClipboardHistoryStore(files: nowhere, monitorsPasteboard: false)
     }

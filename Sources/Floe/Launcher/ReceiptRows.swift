@@ -12,16 +12,22 @@ import AppKit
 final class ReceiptRows {
     /// What receipts ask of the launcher.
     struct Host {
-        var hidePanel: () -> Void = {}
-        var showHUD: (String) -> Void = { _ in }
+        var hidePanel: () -> Void = { /* set by LauncherFeatures */ }
+        var showHUD: (String) -> Void = { _ in
+            // Set by LauncherFeatures.
+        }
         /// Reads the rows again: an undone receipt shows that it was.
-        var refresh: () -> Void = {}
+        var refresh: () -> Void = { /* set by LauncherFeatures */ }
         /// Shows text in the output window.
-        var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in }
+        var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in
+            // Set by LauncherFeatures.
+        }
         /// Runs a shell command again.
-        var runCommand: (String) -> Void = { _ in }
+        var runCommand: (String) -> Void = { _ in
+            // Set by LauncherFeatures.
+        }
         /// An extension was put back, so the commands are scanned again.
-        var commandsChanged: () -> Void = {}
+        var commandsChanged: () -> Void = { /* set by LauncherFeatures */ }
         /// Whether the user keeps receipts.
         var keepsReceipts: () -> Bool = { true }
         /// Sends a request to the resident, in the panel process. Nil in the resident.

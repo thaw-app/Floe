@@ -214,7 +214,7 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
 
 extension SettingsStores {
     /// The stores of this process, with the way to open the welcome window again.
-    static func live(showWelcome: @escaping () -> Void = {}) -> SettingsStores {
+    static func live(showWelcome: @escaping () -> Void = { /* no welcome window */ }) -> SettingsStores {
         SettingsStores(
             settings: .shared,
             usage: .shared,

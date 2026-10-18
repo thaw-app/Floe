@@ -33,15 +33,23 @@ struct CheckpointEnvironment {
 final class CheckpointRows {
     /// What checkpoints ask of the launcher.
     struct Host {
-        var hidePanel: () -> Void = {}
-        var showHUD: (String) -> Void = { _ in }
+        var hidePanel: () -> Void = { /* set by LauncherFeatures */ }
+        var showHUD: (String) -> Void = { _ in
+            // Set by LauncherFeatures.
+        }
         /// Hides the panel and goes back to the root search.
-        var leave: () -> Void = {}
-        var record: (Receipt) -> Void = { _ in }
+        var leave: () -> Void = { /* set by LauncherFeatures */ }
+        var record: (Receipt) -> Void = { _ in
+            // Set by LauncherFeatures.
+        }
         /// Shows text in the output window.
-        var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in }
+        var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in
+            // Set by LauncherFeatures.
+        }
         /// Opens a link in the browser the role says.
-        var openLink: (URL) -> Void = { _ in }
+        var openLink: (URL) -> Void = { _ in
+            // Set by LauncherFeatures.
+        }
         /// The editor the user chose for text and code, if any.
         var chosenEditor: () -> ResolvedApp? = { nil }
     }

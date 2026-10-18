@@ -32,7 +32,7 @@ enum SharedStores {
 
     /// Reads again the store another process saved. Preferences are read where they are used, so a process
     /// that keeps something made from them passes what to do.
-    static func reload(_ store: LinkStore?, preferences: () -> Void = {}) {
+    static func reload(_ store: LinkStore?, preferences: () -> Void = { /* nothing is made from the preferences */ }) {
         switch store {
         case .snippets: SnippetStore.shared.reload()
         case .quicklinks: QuicklinkStore.shared.reload()

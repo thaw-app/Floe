@@ -21,7 +21,9 @@ struct MusicEnvironment {
 final class MusicRemote {
     var environment = MusicEnvironment()
     /// Says what came of a command.
-    var say: (String) -> Void = { _ in }
+    var say: (String) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
 
     /// Tells the open player what to do and says what came of it. The task is for a test to wait on.
     @discardableResult

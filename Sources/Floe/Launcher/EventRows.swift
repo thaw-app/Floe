@@ -22,7 +22,9 @@ final class EventRows {
     var environment = EventEnvironment()
     var host = RowHost()
     /// Opens a link in the browser the role says.
-    var openLink: (URL) -> Void = { _ in }
+    var openLink: (URL) -> Void = { _ in
+        // Set by LauncherFeatures.
+    }
 
     /// Adds the event and leaves a receipt that can delete it. The task is for a test to wait on.
     @discardableResult
