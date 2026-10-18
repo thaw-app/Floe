@@ -96,9 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settings.$showInDock.removeDuplicates().dropFirst()
             .sink { NSApp.setActivationPolicy($0 ? .regular : .accessory) }
             .store(in: &cancellables)
-        settings.$includeRaycastExtensions.removeDuplicates().dropFirst()
-            .sink { [weak self] _ in DispatchQueue.main.async { self?.model.catalog.reloadCommands() } }
-            .store(in: &cancellables)
+        model.catalog.followRaycastSwitch().store(in: &cancellables)
         // Shortcuts and Spotlight list the commands by name, so they hear about every rescan.
         model.catalog.$allCommands
             .sink { _ in DispatchQueue.main.async { FloeShortcuts.updateAppShortcutParameters() } }

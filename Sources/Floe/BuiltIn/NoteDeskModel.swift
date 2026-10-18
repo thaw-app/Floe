@@ -71,6 +71,11 @@ final class NoteDeskModel: ObservableObject {
         }
     }
 
+    /// A desk dropped without `close()` still ends its saving task.
+    deinit {
+        edits.continuation.finish()
+    }
+
     var folder: URL? {
         if case let .folder(folder, _) = place {
             return folder
@@ -211,6 +216,7 @@ final class NoteDeskModel: ObservableObject {
     /// Leaving the view: nothing typed is lost, and the folder is no longer looked at.
     func close() {
         flush()
+        edits.continuation.finish()
         saving?.cancel()
         saving = nil
         watch?.invalidate()

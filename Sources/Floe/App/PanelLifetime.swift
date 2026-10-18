@@ -23,6 +23,8 @@ nonisolated enum PanelPacket: Codable, Sendable {
     case idle(sequence: Int)
     case shutdown
     case reload, refresh
+    /// Settings changed what the catalog scans: the panel's catalog scans that part again too.
+    case rescan(LinkScan)
     case appearance(String)
     case settings(String, String)
     case openSettings(String?)

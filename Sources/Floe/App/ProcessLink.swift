@@ -124,7 +124,7 @@ enum LinkStore: String {
 }
 
 /// What the launcher scans again when Settings changed it on disk.
-enum LinkScan: String {
+nonisolated enum LinkScan: String, Codable, Sendable {
     case scripts, commands
 }
 

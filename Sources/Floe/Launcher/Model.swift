@@ -219,10 +219,11 @@ final class LauncherModel: ObservableObject {
         }
     }
 
-    /// Executes the selected root result, including routing Settings rows to their requested page.
-    func activate(_ item: RootItem) {
+    /// Executes the selected root result, including routing Settings rows to their requested page. The keys held
+    /// reach the emoji and shell rows, which give them a meaning.
+    func activate(_ item: RootItem, flags: NSEvent.ModifierFlags = []) {
         // An emoji keeps its own count of uses and remembers no query.
-        if features.emoji.open(item, flags: []) {
+        if features.emoji.open(item, flags: flags) {
             return
         }
         if item.isScopeResult {
@@ -241,7 +242,7 @@ final class LauncherModel: ObservableObject {
             usage.recordUse(of: item.id)
         }
         rememberQuery()
-        if openByOwner(item) {
+        if openByOwner(item, flags: flags) {
             return
         }
         switch item {

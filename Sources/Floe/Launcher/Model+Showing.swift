@@ -12,7 +12,7 @@ extension LauncherModel {
     /// stale search data. Called once the panel is on screen, so none of it holds the shortcut up.
     func panelDidShow() {
         pointerRest.rest()
-        catalog.reloadScripts()
+        catalog.reloadScripts(quietly: true)
         catalog.reloadSSHHosts()
         features.shortcuts.reload()
         // A grant made in System Settings with no request from Floe is noticed here.

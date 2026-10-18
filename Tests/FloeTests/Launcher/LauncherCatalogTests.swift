@@ -200,6 +200,25 @@ struct LauncherCatalogTests {
         #expect(!model.results.contains { $0.item.id == "command:sample/planets" })
     }
 
+    @Test func thePartThatAnswersFirstLeavesTheCatalogLoadingWhileAnotherIsStillScanned() async {
+        let scanner = ControlledScanner(apps: [[safari], []], commands: [[planets], [weather]])
+        let model = LauncherModel(scanner: scanner, settings: makeSettings())
+        model.startCatalogLoading()
+        await scanner.openAppScan(at: 0)
+        await scanner.openCommandScan(at: 0)
+        await waitFor("the first load") { !model.catalog.isLoading }
+
+        model.catalog.reloadApps()
+        model.catalog.reloadCommands()
+        await scanner.openAppScan(at: 1)
+        await waitFor("the apps rescanned") { model.catalog.apps.isEmpty }
+        #expect(model.catalog.isLoading, "the commands are still being scanned")
+
+        await scanner.openCommandScan(at: 1)
+        await waitFor("the commands rescanned") { !model.catalog.isLoading }
+        #expect(model.catalog.allCommands.map(\.id) == [weather.id])
+    }
+
     @Test func anOlderRequestCannotOverwriteANewerOne() async {
         let scanner = ControlledScanner(apps: [[safari]], commands: [[planets], [weather]])
         let model = LauncherModel(scanner: scanner, settings: makeSettings())

@@ -115,12 +115,7 @@ extension LauncherModel {
             refusal.refuse()
             return
         }
-        let item = results[selection].item
-        if !flags.isEmpty, openByOwner(item, flags: flags) {
-            // A row whose owner gives Return with a key held a meaning of its own.
-        } else {
-            activate(item)
-        }
+        activate(results[selection].item, flags: flags)
     }
 
     /// The keys of an extension's view, for whichever of its states is on screen. Internal, so the

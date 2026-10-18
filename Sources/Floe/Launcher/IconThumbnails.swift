@@ -83,9 +83,11 @@ final nonisolated class IconThumbnailCache: Sendable {
             clock += 1
             let replaced = entries.updateValue(KeptIcon(image: image, cost: cost, used: clock), forKey: key)
             total += cost - (replaced?.cost ?? 0)
-            while total > budget, let oldest = entries.min(by: { $0.value.used < $1.value.used }) {
-                entries[oldest.key] = nil
-                total -= oldest.value.cost
+            guard total > budget else { return }
+            // One sort however many go: a batch of large previews can push out dozens at once.
+            for (key, icon) in entries.sorted(by: { $0.value.used < $1.value.used }) where total > budget {
+                entries[key] = nil
+                total -= icon.cost
             }
         }
     }

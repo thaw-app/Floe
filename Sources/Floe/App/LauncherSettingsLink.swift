@@ -25,6 +25,7 @@ final class LauncherSettingsLink {
     )
     private var cancellables = Set<AnyCancellable>()
     var onChange: (() -> Void)?
+    var onRescan: ((LinkScan) -> Void)?
 
     /// Gates incoming Settings messages against the process this resident actually launched.
     init(model: LauncherModel, clipboard: ClipboardHistoryStore, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
@@ -145,11 +146,9 @@ final class LauncherSettingsLink {
 
     /// Refreshes the command or script catalog requested by Settings.
     private func rescan(_ scan: LinkScan?) {
-        switch scan {
-        case .scripts: model.catalog.reloadScripts()
-        case .commands: model.catalog.reloadCommands()
-        case nil: break
-        }
+        guard let scan else { return }
+        model.catalog.reload(scan)
+        onRescan?(scan)
     }
 
     /// The things Settings has the launcher do, because what they act on lives here.
@@ -173,6 +172,15 @@ final class LauncherSettingsLink {
             NSApp.terminate(nil)
         default:
             break
+        }
+    }
+}
+
+extension CatalogStore {
+    func reload(_ scan: LinkScan) {
+        switch scan {
+        case .scripts: reloadScripts()
+        case .commands: reloadCommands()
         }
     }
 }

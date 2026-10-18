@@ -119,7 +119,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         channel.send(.ready)
     }
 
-    /// Keeps search-only recency and exchange-rate work out of the long-lived resident.
+    /// Keeps search-only recency and exchange-rate work out of the long-lived resident, and follows the Raycast switch.
     private func followSearchSettings() {
         model.followClipboardRole().store(in: &cancellables)
         settings.$indexesFileNames.removeDuplicates()
@@ -132,6 +132,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         settings.$fetchesExchangeRates.removeDuplicates()
             .sink { ExchangeRateUpdater.shared.set(on: $0) }
             .store(in: &cancellables)
+        model.catalog.followRaycastSwitch().store(in: &cancellables)
     }
 
     /// Applies resident snapshots and records request sequences before performing user work.
@@ -151,9 +152,8 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         case .refresh: model.refresh()
         case .reload:
             SharedStores.reloadAll(settings: settings)
-            model.catalog.reloadCommands()
-            model.catalog.reloadScripts()
             model.refresh()
+        case let .rescan(scan): model.catalog.reload(scan)
         case let .timers(timers):
             model.features.timers.running.mirror(timers)
             model.refresh()

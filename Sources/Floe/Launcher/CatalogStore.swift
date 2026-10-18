@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import Combine
 import Foundation
 
 /// What this Mac has to search and list: apps, extension commands, scripts, System Settings' panes and SSH hosts.
@@ -22,7 +23,8 @@ final class CatalogStore: ObservableObject {
     @Published private(set) var allScripts: [ScriptCommand] = []
     /// Files in the Scripts folder that failed to parse, for the settings pane.
     @Published private(set) var scriptFailures: [ScriptFailure] = []
-    /// True until apps, commands and scripts have each been scanned once, and while one of them is scanned again.
+    /// True until apps, commands and scripts have each been scanned once, and while one of them is scanned again,
+    /// unless that scan was asked for quietly.
     @Published private(set) var isLoading = true
     /// System Settings' panes, found once at launch: they only change with the system.
     private(set) var settingsPanes: [SystemSettingsPane] = []
@@ -38,6 +40,8 @@ final class CatalogStore: ObservableObject {
     private var latest: [Part: Int] = [:]
     /// The parts scanned at least once. The catalog is loading until apps, commands and scripts are.
     private var loaded: Set<Part> = []
+    /// The parts whose newest scan shows as loading and has not answered yet.
+    private var scanning: Set<Part> = []
     private var commandsTask: Task<Void, Never>?
     private var scriptsTask: Task<Void, Never>?
 
@@ -80,8 +84,9 @@ final class CatalogStore: ObservableObject {
         }
     }
 
-    func reloadScripts() {
-        let generation = begin(.scripts)
+    /// Quietly, the search field shows no spinner: the panel rescans the folder each time it opens.
+    func reloadScripts(quietly: Bool = false) {
+        let generation = begin(.scripts, quietly: quietly)
         scriptsTask = Task { @concurrent [weak self, scanner] in
             let scan = await scanner.scanScripts()
             await self?.finish(generation: generation, scripts: scan)
@@ -167,10 +172,15 @@ final class CatalogStore: ObservableObject {
         onChange(.sshHosts)
     }
 
-    /// Starts a request for a part: the catalog is loading until it answers.
-    private func begin(_ part: Part) -> Int {
+    /// Starts a request for a part: unless asked quietly, the catalog is loading until it answers.
+    private func begin(_ part: Part, quietly: Bool = false) -> Int {
         latest[part, default: 0] += 1
-        isLoading = true
+        if quietly {
+            scanning.remove(part)
+        } else {
+            scanning.insert(part)
+        }
+        updateLoading()
         return latest[part, default: 0]
     }
 
@@ -180,9 +190,23 @@ final class CatalogStore: ObservableObject {
 
     private func markLoaded(_ part: Part) {
         loaded.insert(part)
-        let loading = !loaded.isSuperset(of: [.apps, .commands, .scripts])
+        scanning.remove(part)
+        updateLoading()
+    }
+
+    private func updateLoading() {
+        let loading = !loaded.isSuperset(of: [.apps, .commands, .scripts]) || !scanning.isEmpty
         if loading != isLoading {
             isLoading = loading
         }
+    }
+}
+
+extension CatalogStore {
+    /// Scans the commands again when the switch for Raycast's extensions flips, once the change has landed:
+    /// the scan reads the setting when it starts.
+    func followRaycastSwitch() -> AnyCancellable {
+        settings.$includeRaycastExtensions.removeDuplicates().dropFirst()
+            .sink { [weak self] _ in DispatchQueue.main.async { self?.reloadCommands() } }
     }
 }

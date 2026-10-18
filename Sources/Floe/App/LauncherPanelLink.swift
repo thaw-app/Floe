@@ -41,6 +41,7 @@ final class LauncherPanelLink {
         process.onMessage = { [weak self] in self?.receive($0) }
         process.onExit = { [settingsLink] in settingsLink.refreshFromPanel() }
         settingsLink.onChange = { process.send(.reload) }
+        settingsLink.onRescan = { process.send(.rescan($0)) }
         model.features.timers.running.onChange = { [weak self] in
             guard let self else { return }
             process.send(.timers(self.model.features.timers.running.all))

@@ -50,6 +50,7 @@ final class ResolvedApps {
 
     /// A change to one of the choices resolves them again. Only the search needs this; the resident reads them seldom.
     func followChoices() {
+        guard cancellables.isEmpty else { return }
         for change in [
             settings.$terminalApp.mapVoid(), settings.$editorApp.mapVoid(), settings.$browserApp.mapVoid(),
             settings.$clipboardHandler.mapVoid(), settings.$clipboardApp.mapVoid(), settings.$clipboardURL.mapVoid(),

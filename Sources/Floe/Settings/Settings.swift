@@ -326,7 +326,6 @@ final class AppSettings: ObservableObject {
 
     /// How the launcher looks, taken in apart from the rest so neither list grows past reading.
     private func applyAppearance(_ stored: Stored) {
-        // A tint saved before light and dark variants existed becomes the light one.
         launcherTintLight = stored.launcherTintLight ?? launcherTintLight
         launcherTintDark = stored.launcherTintDark ?? launcherTintDark
         launcherTintIsDynamic = stored.launcherTintIsDynamic ?? launcherTintIsDynamic

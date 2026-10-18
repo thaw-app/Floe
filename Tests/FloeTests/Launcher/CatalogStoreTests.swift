@@ -103,6 +103,9 @@ struct CatalogStoreTests {
         #expect(catalog.isLoading, "a rescan is loading until it answers")
         await waitFor("the rescan") { !catalog.isLoading }
         #expect(changed.isEmpty, "the same scripts again change nothing")
+
+        catalog.reloadScripts(quietly: true)
+        #expect(!catalog.isLoading, "the rescan on each panel open shows no spinner")
         withExtendedLifetime(scratch) {}
     }
 }
