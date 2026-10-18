@@ -90,10 +90,25 @@ async function build(entry: string, outdir: string) {
   try {
     return await buildUnchecked(entry, outdir, "cjs");
   } catch (error) {
-    const message = describe(error);
-    const retry = { entities: message.includes("Invalid JSX entity escape"), preferMain: /No matching export in .* for import "default"/.test(message) };
-    return buildAs(entry, outdir, retry.entities || retry.preferMain ? "cjs" : "esm", retry);
+    const retry = retryFor(error);
+    return buildAs(entry, outdir, retry.entities || retry.preferMain || retry.unresolved ? "cjs" : "esm", retry);
   }
+}
+
+// What stopped the first build that Raycast's esbuild goes past. Anything else is retried as a module, for a
+// command with a top-level await.
+function retryFor(error: unknown): Retry {
+  const message = describe(error);
+  // A dependency's require of something that isn't there, such as got's of electron, sits in a branch that never
+  // runs here; esbuild leaves it to fail at run time, if it is ever reached.
+  const unresolved = ((error as AggregateError).errors ?? [])
+    .filter((item) => item?.name === "ResolveMessage" && String(item.position?.file).includes("/node_modules/"))
+    .map((item) => `${item.position.file}\0${item.specifier}`);
+  return {
+    entities: message.includes("Invalid JSX entity escape"),
+    preferMain: /No matching export in .* for import "default"/.test(message),
+    unresolved: unresolved.length > 0 ? new Set(unresolved) : undefined,
+  };
 }
 
 // Bun throws an AggregateError whose useful text is in the individual build messages.
@@ -102,7 +117,7 @@ function describe(error: unknown): string {
 }
 
 // What a second build does differently, after the first stopped where Raycast's esbuild would have gone on.
-type Retry = { entities?: boolean; preferMain?: boolean };
+type Retry = { entities?: boolean; preferMain?: boolean; unresolved?: Set<string> };
 
 async function buildAs(entry: string, outdir: string, format: (typeof formats)[number], retry: Retry = {}) {
   try {
@@ -164,6 +179,10 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
             loader: "js",
             contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${JSON.stringify(args.path)}));`,
           }));
+          if (retry.unresolved) {
+            const unresolved = retry.unresolved;
+            build.onResolve({ filter: /.*/ }, (args) => (unresolved.has(`${args.importer}\0${args.path}`) ? { path: args.path, external: true } : undefined));
+          }
           if (retry.preferMain) {
             build.onResolve({ filter: /^(@[^/]+\/)?[^./@][^/]*$/ }, (args) => {
               const main = commonJSMain(args.path, args.importer);

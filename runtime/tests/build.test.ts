@@ -356,6 +356,26 @@ export default () => ({ attribute: (<a title="as &#xXXXX; or &#x41;" />).props.t
     expect(command()).toBe("cjs x");
   });
 
+  // got requires electron only inside Electron, and node-ssdp a coverage build only when one is asked for.
+  test("a dependency's require of something missing, in a branch that never runs, builds and is left for run time", async () => {
+    makeExtension(
+      {
+        "src/net.ts": 'import got from "got-like";\nexport default () => got();',
+        "node_modules/got-like/package.json": '{ "name": "got-like", "main": "index.js" }',
+        "node_modules/got-like/index.js": 'module.exports = () => (process.versions.electron ? require("electron").net : require.resolve && process.env.COVERAGE ? require("./lib-cov") : "plain");',
+      },
+      "net",
+    );
+    const command = (await import(await bundle(findEntry()))).default;
+
+    expect(command()).toBe("plain");
+  });
+
+  test("a missing import in the extension's own code still stops the build", async () => {
+    makeExtension({ "src/broken.ts": 'import { thing } from "./nowhere";\nexport default () => thing;' }, "broken");
+    await expect(bundle(findEntry())).rejects.toThrow("nowhere");
+  });
+
   // Bun builds these three to its own modules, which drop certificate and proxy settings written for Node.
   test("node-fetch, undici and ws are Floe's stand-ins, whatever the extension installed", async () => {
     makeExtension(
