@@ -41,7 +41,7 @@ enum ViewState {
         var rows: [Row] = []
         for child in view.content {
             if child.type.hasSuffix(".Section") {
-                rows += child.content.filter { $0.type.hasSuffix(".Item") }.map { Row(node: $0, sectionTitle: child.string("title")) }
+                rows += child.content.filter { $0.type.hasSuffix(".Item") }.map { Row(node: $0, sectionTitle: child.string("title"), sectionID: child.id) }
             } else if child.type.hasSuffix(".Item") {
                 rows.append(Row(node: child, sectionTitle: nil))
             }

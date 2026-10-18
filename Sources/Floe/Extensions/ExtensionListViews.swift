@@ -26,8 +26,13 @@ struct ListBody: View {
             }
         } else {
             HStack(spacing: 0) {
-                ListRows(session: session, rows: rows, version: session.rowsVersion, selectedID: selected?.id, compact: view.bool("isShowingDetail"))
-                    .equatable()
+                if let grid = session.gridLayout {
+                    GridRows(session: session, rows: rows, version: session.rowsVersion, selectedID: selected?.id, layout: grid)
+                        .equatable()
+                } else {
+                    ListRows(session: session, rows: rows, version: session.rowsVersion, selectedID: selected?.id, compact: view.bool("isShowingDetail"))
+                        .equatable()
+                }
                 if view.bool("isShowingDetail"), let detail = selected?.node.slot("detail") {
                     Divider()
                     DetailBody(node: detail, assetsPath: session.command.assetsPath)

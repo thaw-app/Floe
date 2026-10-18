@@ -36,6 +36,8 @@ struct IconView: View {
     var size: CGFloat = 18
     /// For an `ImageRenderer`, which draws once: the image is made in that pass instead of in the background.
     var waitsForImage = false
+    /// Off inside a Grid tile, which is the frame itself.
+    var isFramed = true
 
     private enum Resolved {
         case symbol(String), thumbnail(IconSource), remote(URL), text(String), none
@@ -138,7 +140,7 @@ struct IconView: View {
             }
         }
         .frame(width: size, height: size)
-        .background(.quinary, in: squircle)
+        .background(isFramed ? AnyShapeStyle(.quinary) : AnyShapeStyle(.clear), in: squircle)
         .clipShape(squircle)
     }
 

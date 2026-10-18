@@ -277,6 +277,7 @@
 		B696A532D29B23A780638B97 /* FocusRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 913CCBA955C710D7CCD57A62 /* FocusRows.swift */; };
 		B77AB58D7917CE087B1A140C /* SearchViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8BEB17B69D9ECF2DA775BBF /* SearchViews.swift */; };
 		B77C9BC4369A43E4E8BCFFDF /* Model+Notes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0EA4ECB6D97EA3CD01DC029 /* Model+Notes.swift */; };
+		B7B185E1018C8A72B8A9D6F9 /* ExtensionGridViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4442F500A2A3DC833EFC90 /* ExtensionGridViews.swift */; };
 		B8701225E05EEA2FD2F9DB92 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4414ABADC645ACDA3F864887 /* Preferences.swift */; };
 		B9D4485FB474D3F4070A6B78 /* EventRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61946FF17AE6C83D103230B1 /* EventRows.swift */; };
 		BA6D437F5566FB6CFBFB7BF0 /* ClipboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204D867C06D9A7C2C46F9981 /* ClipboardApp.swift */; };
@@ -324,6 +325,7 @@
 		D2E67E63D07094E3AECC0E21 /* DefinitionSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 232B65154B8FCE178F3FC53C /* DefinitionSearch.swift */; };
 		D38CFDE6CB1A7B0702FC79E7 /* MenuBarIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62CED5B91219A28FC90A5B73 /* MenuBarIcon.swift */; };
 		D44042456742E51268343BEA /* WebAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 838202A59776C019564D4C7C /* WebAddress.swift */; };
+		D5AC6BDCE788E5F5B3DFF948 /* GridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 383A84064A80757050F1936D /* GridLayout.swift */; };
 		D5D05D876E2D058B5A83B667 /* MenuBarSearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54BA866B297886E737D4037E /* MenuBarSearchModel.swift */; };
 		D5F5A7B94488E44ED75B78A3 /* FileSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D1677EB1C22495EA2049A1A /* FileSearchView.swift */; };
 		D6845996FECC2C810739800E /* RowSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39773705D994ADCB324EFDCB /* RowSelection.swift */; };
@@ -466,6 +468,7 @@
 		295470717D29F9111384A9BB /* CloudKitSyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncStore.swift; sourceTree = "<group>"; };
 		29F35DCDFDC5103E5DEB5019 /* Calculator+Number.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calculator+Number.swift"; sourceTree = "<group>"; };
 		2A03C3284393A0228D0A522B /* Processes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Processes.swift; sourceTree = "<group>"; };
+		2C4442F500A2A3DC833EFC90 /* ExtensionGridViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionGridViews.swift; sourceTree = "<group>"; };
 		2D1677EB1C22495EA2049A1A /* FileSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchView.swift; sourceTree = "<group>"; };
 		2D6F4E8DCF13BAB295B0E243 /* Calendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calendar.swift; sourceTree = "<group>"; };
 		2E17F7D69F39146CD5157F46 /* FileSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchModel.swift; sourceTree = "<group>"; };
@@ -484,6 +487,7 @@
 		35DAB6F738D66C12AB99B0C1 /* generate-credits.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "generate-credits.py"; sourceTree = "<group>"; };
 		35F8F20630467F0633497F89 /* SettingsSidebarPaneList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSidebarPaneList.swift; sourceTree = "<group>"; };
 		38223C2E13D34EACDB687C2F /* ClipboardPasteboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardPasteboard.swift; sourceTree = "<group>"; };
+		383A84064A80757050F1936D /* GridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridLayout.swift; sourceTree = "<group>"; };
 		39126B19AD0484198EF610C8 /* CommandLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandLauncher.swift; sourceTree = "<group>"; };
 		39773705D994ADCB324EFDCB /* RowSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RowSelection.swift; sourceTree = "<group>"; };
 		39AC0CCEA2091BF04425482E /* TimedCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimedCache.swift; sourceTree = "<group>"; };
@@ -1121,6 +1125,7 @@
 				CC2033FDF332D4135EDF2DEF /* ErrorView.swift */,
 				49F344E4E1A683D2886D89AA /* ExtensionAccess.swift */,
 				1D702951911A2EC642275F11 /* ExtensionCreations.swift */,
+				2C4442F500A2A3DC833EFC90 /* ExtensionGridViews.swift */,
 				A8AEDEB267607D5474C20D6F /* ExtensionListViews.swift */,
 				707E686E00003A43CD0F9C14 /* ExtensionRunner.swift */,
 				CD8A94377EF11E114774E2F4 /* ExtensionStore.swift */,
@@ -1129,6 +1134,7 @@
 				615C6D1FFFC788BD983EA13C /* ExtensionViews.swift */,
 				93CC1FFD5ABAD049CD92E1D3 /* FieldEditorViews.swift */,
 				95D5E9CBA2030703F9BE0381 /* FormViews.swift */,
+				383A84064A80757050F1936D /* GridLayout.swift */,
 				A603A283A239D502A519FFAE /* HostMessageDecoder.swift */,
 				4FA646DF9F19D7ED1E8C4DD0 /* HostRequest.swift */,
 				78E2DD9407CEA946488F4FC2 /* HotReload.swift */,
@@ -1621,6 +1627,7 @@
 				C600E49CB6098283C630DA71 /* ExtensionAccess.swift in Sources */,
 				747084900218D005E77A5CA3 /* ExtensionAccessSection.swift in Sources */,
 				2E3353459AA22721CAEE0E6E /* ExtensionCreations.swift in Sources */,
+				B7B185E1018C8A72B8A9D6F9 /* ExtensionGridViews.swift in Sources */,
 				F79ECEE81B269EF3999DF3DA /* ExtensionListViews.swift in Sources */,
 				DA961FACB1C6D738B8FC46EC /* ExtensionRunner.swift in Sources */,
 				D2B7F5F30C8DE1216477CA51 /* ExtensionSettingsSync.swift in Sources */,
@@ -1646,6 +1653,7 @@
 				4D4FB99AD6D0D2F60B8AF7C5 /* Fuzzy.swift in Sources */,
 				DF73C0EE6FB5C0C83E8EECA6 /* Generators.swift in Sources */,
 				6958B0B9E6D87E2783CFD57A /* GlassSupport.swift in Sources */,
+				D5AC6BDCE788E5F5B3DFF948 /* GridLayout.swift in Sources */,
 				353A52B29E333F36719A0E14 /* HangWatchdog.swift in Sources */,
 				DDE3A35DA6CD07052C65F920 /* Homebrew.swift in Sources */,
 				CCC48A8E36FBE759054E023B /* HostMessageDecoder.swift in Sources */,

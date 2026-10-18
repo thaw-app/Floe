@@ -33,6 +33,19 @@ extension ExtensionSession {
         ViewState.actions(in: actionPanel)
     }
 
+    /// How a Grid lays out the rows on show; nil when the view is no Grid.
+    var gridLayout: GridLayout? {
+        guard let view, view.type == "Grid" else { return nil }
+        return GridLayout(view: view, rows: rows)
+    }
+
+    /// ← and → in a Grid step to the item before or after; false when the view is no Grid or the menu is open.
+    func stepInGrid(by delta: Int) -> Bool {
+        guard !actionMenuOpen, let grid = gridLayout else { return false }
+        selection = grid.moved(from: min(selection, rows.count - 1), across: delta)
+        return true
+    }
+
     var menuEntries: [MenuEntry] {
         ViewState.menuEntries(in: actionPath.last ?? actionPanel, query: actionQuery)
     }

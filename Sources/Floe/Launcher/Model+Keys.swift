@@ -138,6 +138,8 @@ extension LauncherModel {
             return true
         }
         switch event.keyCode {
+        case 123, 124:
+            return session.stepInGrid(by: event.keyCode == 123 ? -1 : 1)
         case 53:
             session.send(["type": "pop"])
         case 33 where flags == .command:
