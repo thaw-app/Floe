@@ -255,6 +255,24 @@ export default async () => ({ windows: typeof setWindows, failure: await listDev
     expect(await command()).toEqual({ windows: "function", failure: "listDevices is part of this extension's Swift code, which Floe can't build yet" });
   });
 
+  // Bun builds these three to its own modules, which drop certificate and proxy settings written for Node.
+  test("node-fetch, undici and ws are Floe's stand-ins, whatever the extension installed", async () => {
+    makeExtension(
+      {
+        "src/net.ts": `import fetch from "node-fetch";
+import { Agent } from "undici";
+import WebSocket from "ws";
+export default () => ({ fetch, Agent, WebSocket });`,
+      },
+      "net",
+    );
+    const parts = (await import(await bundle(findEntry()))).default();
+
+    expect(parts.fetch).toBe(require("../compat/node-fetch.ts"));
+    expect(parts.Agent).toBe(require("../compat/undici.ts").Agent);
+    expect(parts.WebSocket).toBe(require("../compat/ws.ts"));
+  });
+
   // A bundle cached from before was built as an ES module, and one of those fails only when it is imported.
   test("builds again over a bundle cached from before commands were built as CommonJS", async () => {
     makeExtension({ "src/older.ts": "export default () => 1;" }, "older");

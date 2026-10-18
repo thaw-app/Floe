@@ -18,6 +18,7 @@ import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
 import { prepareFolders } from "./folders";
 import { withNodeCause } from "./fetch";
+import { withNodeOptions } from "./compat/network";
 import { useNodeExecPath } from "./node";
 import { lineSplitter } from "./lines";
 import { isRecording, observe } from "./access";
@@ -101,7 +102,7 @@ const launchProps = {
   fallbackText: undefined,
 };
 
-globalThis.fetch = withNodeCause(globalThis.fetch);
+globalThis.fetch = withNodeCause(withNodeOptions(globalThis.fetch));
 useNodeExecPath();
 
 try {

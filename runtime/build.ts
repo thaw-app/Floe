@@ -27,10 +27,22 @@ export async function bundle(entry: string): Promise<string> {
   const started = performance.now();
   const result = await build(entry, outdir);
   if (!result.success) throw new Error(result.logs.map(String).join("\n"));
+  useCompatModules(output);
   fs.writeFileSync(stamp, current);
   // host.ts points console at stderr, so this never lands on the protocol stream.
   console.error(`bundled ${ctx.manifest.name}/${ctx.commandName} in ${Math.round(performance.now() - started)} ms`);
   return output;
+}
+
+// Bun builds these names to its own modules whatever the extension installed, and calls no plugin for them, so the
+// finished bundle is pointed at Floe's stand-ins, which take the Node options Bun's ignore.
+const compatDir = path.join(import.meta.dir, "compat");
+function useCompatModules(output: string) {
+  const code = fs.readFileSync(output, "utf8");
+  const pointed = code.replace(/(require\(|from\s*)"(node-fetch|undici|ws)"/g, (_match, lead: string, name: string) =>
+    `${lead}${JSON.stringify(path.join(compatDir, `${name}.ts`))}`,
+  );
+  if (pointed !== code) fs.writeFileSync(output, pointed);
 }
 
 function readText(file: string): string | undefined {
@@ -68,6 +80,7 @@ export function fingerprint(entry: string): string {
     formats,
     shim: shimPath,
     shimChanged: newestChange(path.join(import.meta.dir, "api")),
+    compat: newestChange(compatDir),
     react: require.resolve("react"),
     bun: Bun.version,
   });
