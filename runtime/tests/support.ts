@@ -49,6 +49,7 @@ export function installRuntime(extensionName: string): { readonly dataPath: stri
   });
   beforeEach(() => {
     received.length = 0;
+    ctx.signInFailure = undefined;
   });
   afterAll(() => {
     setSink();

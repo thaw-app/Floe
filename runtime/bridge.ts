@@ -28,6 +28,8 @@ export const ctx = {
   // environment.supportPath, the extension's alone.
   supportPath: "",
   manifest: { name: "" } as Manifest,
+  // The sign-in that failed last, which says why a render that kept waiting on it gave up.
+  signInFailure: undefined as { error: Error; at: number } | undefined,
 };
 
 type Sink = (line: string) => void;

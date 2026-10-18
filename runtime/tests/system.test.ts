@@ -9,11 +9,13 @@ import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:
 import { Database } from "bun:sqlite";
 import fs from "node:fs";
 import path from "node:path";
+import React from "react";
 import * as api from "../api/index";
 import { isLent } from "../api/oauth";
 import { ctx, handleReply, handleReplyChunk } from "../bridge";
 import { createLocalStorage } from "../local-storage";
-import { installRuntime, sent } from "./support";
+import { installRuntime, resetStage, sent } from "./support";
+import { render } from "../renderer";
 
 const runtime = installRuntime("system-tests");
 
@@ -773,6 +775,8 @@ describe("OAuth while sign-in is parked", () => {
     const message = `Floe signs in to GitLab with the GitLab CLI. Install it, run "glab auth login", and allow it when Floe asks. Or add "API Token" in this extension's preferences.`;
     await expect(gitlab.authorize({ url: "https://example.com" })).rejects.toThrow(message);
     await expect(gitlab.setTokens({ accessToken: "abc" })).rejects.toThrow(message);
+    // Another extension, as far as the sign-in it remembers failing is concerned.
+    ctx.signInFailure = undefined;
     ctx.manifest = { name: "gitlab", preferences: [] };
     const bare = `Floe signs in to GitLab with the GitLab CLI. Install it, run "glab auth login", and allow it when Floe asks.`;
     await expect(gitlab.authorize({ url: "https://example.com" })).rejects.toThrow(new Error(bare));
@@ -787,8 +791,12 @@ describe("OAuth while sign-in is parked", () => {
       commands: [{ name: "main", preferences: [password("apiKey")] }],
     };
     await expect(client.authorize({ url: "https://example.com" })).rejects.toThrow(`Floe can't sign in yet. Add "apiKey" in`);
+    // Another extension, as far as the sign-in it remembers failing is concerned.
+    ctx.signInFailure = undefined;
     ctx.manifest = { name: "notes", preferences: [password("passphrase")] };
     await expect(client.authorize({ url: "https://example.com" })).rejects.toThrow(`Add "passphrase" in`);
+    // Another extension, as far as the sign-in it remembers failing is concerned.
+    ctx.signInFailure = undefined;
     ctx.manifest = { name: "notes", preferences: [{ name: "apiToken", title: "API Token", type: "textfield" }] };
     await expect(client.authorize({ url: "https://example.com" })).rejects.toThrow(`Add "API Token" in`);
   });
@@ -849,6 +857,38 @@ describe("OAuth with sign-in on", () => {
     expect(read).toEqual({ scheme: "floe", id: read.id, providerName: "Notion" });
     expect(read.id).toHaveLength(32);
     expect(second.state).not.toBe(first.state);
+  });
+
+  // withAccessToken drops a rejected sign-in and asks again on React's next try: one cancel started a hundred sign-ins.
+  test("a cancelled sign-in inside use() opens the browser once, and the view says it was cancelled", async () => {
+    const client = new api.OAuth.PKCEClient({ redirectMethod: api.OAuth.RedirectMethod.Web, providerName: "Logbook" });
+    let cached: Promise<string> | null = null;
+    const authorize = () =>
+      (cached ??= client
+        .authorizationRequest({ endpoint: "https://example.com/auth", clientId: "c", scope: "s" })
+        .then((request) => client.authorize(request))
+        .then((answer) => answer.authorizationCode)
+        .catch((error) => {
+          cached = null;
+          throw error;
+        }));
+    function Wrapped() {
+      return React.createElement(api.Detail, { markdown: React.use(authorize()) });
+    }
+    // A root of its own: the view's error ends the root it is in.
+    render(React.createElement(Wrapped));
+    const answered = new Set<number>();
+    for (let round = 0; round < 50; round++) {
+      for (const ask of sent("request").filter((message) => message.method === "oauth.authorize" && !answered.has(message.id))) {
+        answered.add(ask.id);
+        handleReply({ id: ask.id, error: "Sign-in was cancelled." });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2));
+    }
+
+    expect(answered.size).toBe(1);
+    expect(sent("error").map((error) => error.message)).toContain("Sign-in was cancelled.");
+    resetStage();
   });
 
   // Google's installed-app clients, which Gmail and Google Tasks use, return to com.raycast:/oauth.

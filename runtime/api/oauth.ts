@@ -52,6 +52,20 @@ function signInUnavailable(provider?: string) {
   return new Error(`Floe can't sign in${service} yet. ${instead}`);
 }
 
+// React renders a view that suspended on a sign-in again, and withAccessToken starts a new sign-in each time the last
+// one failed: one cancel opened the browser a hundred times. For a moment after a failure, asking again fails with it.
+const failureMemory = 2000;
+function recentFailure(): Error | undefined {
+  const failure = ctx.signInFailure;
+  return failure && Date.now() - failure.at < failureMemory ? failure.error : undefined;
+}
+
+function failed(error: unknown): Error {
+  const failure = error instanceof Error ? error : new Error(String(error));
+  ctx.signInFailure = { error: failure, at: Date.now() };
+  return failure;
+}
+
 export const RedirectMethod = { Web: "web", App: "app", AppURI: "appURI" } as const;
 
 // Temporary: providers only allow Raycast's redirect addresses, so the browser returns through raycast.com.
@@ -229,8 +243,15 @@ export class PKCEClient {
     return this.options.providerId ?? this.options.providerName ?? "";
   }
 
+  // Why a sign-in can't start now: one failed a moment ago, or sign-in is off or can't receive this redirect.
+  private refusal(): Error | undefined {
+    const unavailable = !signInIsOn() || !isReceivable(this.options.redirectMethod);
+    return recentFailure() ?? (unavailable ? failed(signInUnavailable(this.options.providerName)) : undefined);
+  }
+
   async authorizationRequest(options: AuthorizationRequestOptions): Promise<AuthorizationRequest> {
-    if (!signInIsOn() || !isReceivable(this.options.redirectMethod)) throw signInUnavailable(this.options.providerName);
+    const refusal = this.refusal();
+    if (refusal) throw refusal;
     const codeVerifier = randomString(64);
     const codeChallenge = await s256Challenge(codeVerifier);
     const state = stateForFloe(this.options.providerName);
@@ -239,7 +260,16 @@ export class PKCEClient {
   }
 
   async authorize(requestOrOptions: AuthorizationRequest | { url: string }): Promise<{ authorizationCode: string }> {
-    if (!signInIsOn() || !isReceivable(this.options.redirectMethod)) throw signInUnavailable(this.options.providerName);
+    const refusal = this.refusal();
+    if (refusal) throw refusal;
+    try {
+      return await this.authorizeOnce(requestOrOptions);
+    } catch (error) {
+      throw failed(error);
+    }
+  }
+
+  private async authorizeOnce(requestOrOptions: AuthorizationRequest | { url: string }): Promise<{ authorizationCode: string }> {
     const url = requestOrOptions instanceof AuthorizationRequest ? requestOrOptions.toURL() : requestOrOptions.url;
     const state = new URL(url).searchParams.get("state");
     if (!state) throw new Error("OAuth authorization URL has no state");

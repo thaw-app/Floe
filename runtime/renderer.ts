@@ -9,7 +9,7 @@
 import React from "react";
 import Reconciler from "react-reconciler";
 import { ConcurrentRoot, DefaultEventPriority } from "react-reconciler/constants";
-import { send, sendLine } from "./bridge";
+import { ctx, send, sendLine } from "./bridge";
 
 type Sent = { sentRound?: number; sentHead?: string; sentChildren?: Child[] };
 type Instance = Sent & {
@@ -255,7 +255,9 @@ export function toError(error: unknown): Error {
 
 // Fatal errors replace the view with an error screen; the rest show as a failure toast.
 export function reportError(error: unknown, fatal = false) {
-  const err = toError(error);
+  // React gives up on a view that kept waiting with this; when a sign-in just failed, that failure is the reason.
+  const thrown = toError(error);
+  const err = thrown.message.startsWith("An unknown Component is an async Client Component") && ctx.signInFailure ? ctx.signInFailure.error : thrown;
   console.error(err.stack ?? err.message);
   send({ type: "error", message: err.message, stack: err.stack, fatal });
 }
