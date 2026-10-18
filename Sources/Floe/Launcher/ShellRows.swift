@@ -7,7 +7,8 @@
 
 import AppKit
 
-/// What the shell rows reach outside the launcher through: the shell, the output window, the process table, Finder.
+/// What the shell rows reach outside the launcher through: the shell, a terminal, the output window, the clipboard,
+/// the process table, Finder.
 /// One value, so a test stands in for all of it in one place.
 struct ShellEnvironment {
     /// Runs a command in a folder, or the home folder, and answers with the line for the HUD and everything printed.
@@ -27,6 +28,28 @@ struct ShellEnvironment {
     var hasProgram: (String) -> Bool = { ShellCommand.isProgram($0) }
     /// The folder of the Finder window in front.
     var finderFolder: () async throws -> URL = { try await FinderSelection.folder() }
+    var askForAutomation: (_ app: String) -> Void = { SystemCommand.askForAutomation(toControl: $0) }
+    var runInTerminal: (String, ResolvedApp?) throws -> Void = { try ShellCommand.runInTerminal($0, terminal: $1) }
+    var copy: (String) -> Void = { NSPasteboard.general.copy($0) }
+    var reveal: (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
+    /// Asks what to call a command that is being saved, and answers nil when the user cancels.
+    var nameForSaving: (_ command: String) -> String? = { ShellEnvironment.askName(for: $0) }
+    /// Keeps a command as a script command with the given title.
+    var save: (_ command: String, _ title: String) throws -> Void = { _ = try ShellCommand.save($0, as: $1) }
+
+    private static func askName(for command: String) -> String? {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Save this command", bundle: .floe)
+        alert.informativeText = command
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
+        field.placeholderString = String(localized: "Name", bundle: .floe, comment: "A text field's placeholder: the name to give a saved command.")
+        alert.accessoryView = field
+        alert.window.initialFirstResponder = field
+        alert.addButton(withTitle: String(localized: "Save", bundle: .floe))
+        alert.addButton(withTitle: String(localized: "Cancel", bundle: .floe))
+        NSApp.activate()
+        return alert.runModal() == .alertFirstButtonReturn ? field.stringValue : nil
+    }
 }
 
 /// Shell commands, their suggestions and running processes, as the launcher acts on them.
@@ -85,7 +108,7 @@ final class ShellRows {
             return
         }
         do {
-            try ShellCommand.runInTerminal(command, terminal: terminal)
+            try environment.runInTerminal(command, terminal)
             host.record(Receipt(date: Date(), kind: .command, subject: command, detail: String(localized: "Handed to the terminal", bundle: .floe)))
         } catch {
             host.showHUD(error.localizedDescription)
@@ -109,7 +132,7 @@ final class ShellRows {
                 let folder = try await environment.finderFolder()
                 runShellCommand(command, terminal: terminal, showingOutput: true, in: folder)
             } catch SelectionError.automationRefused {
-                SystemCommand.askForAutomation(toControl: "Finder")
+                environment.askForAutomation("Finder")
             } catch {
                 host.showHUD(error.localizedDescription)
             }
@@ -122,7 +145,7 @@ final class ShellRows {
         PanelWork.perform { [weak self, run = environment.run] in
             let finished = await run(command, nil)
             self?.host.record(Receipt(date: Date(), kind: .command, subject: command, detail: finished.line))
-            NSPasteboard.general.copy(finished.output)
+            self?.environment.copy(finished.output)
             self?.host.showHUD(String(localized: "Copied the output", bundle: .floe))
         }
     }
@@ -130,20 +153,10 @@ final class ShellRows {
     /// Asks for a name and keeps the command as a script command, which the search then finds by that name.
     func saveShellCommand(_ command: String) {
         host.hidePanel()
-        let alert = NSAlert()
-        alert.messageText = String(localized: "Save this command", bundle: .floe)
-        alert.informativeText = command
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 24))
-        field.placeholderString = String(localized: "Name", bundle: .floe, comment: "A text field's placeholder: the name to give a saved command.")
-        alert.accessoryView = field
-        alert.window.initialFirstResponder = field
-        alert.addButton(withTitle: String(localized: "Save", bundle: .floe))
-        alert.addButton(withTitle: String(localized: "Cancel", bundle: .floe))
-        NSApp.activate()
-        let title = alert.runModal() == .alertFirstButtonReturn ? field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        let title = environment.nameForSaving(command)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !title.isEmpty else { return }
         do {
-            _ = try ShellCommand.save(command, as: title)
+            try environment.save(command, title)
             host.scriptsChanged()
             host.showHUD(String(localized: "Saved \(title)", bundle: .floe, comment: "Shown briefly after saving. The placeholder is the name the user gave."))
         } catch {
@@ -199,7 +212,7 @@ final class ShellRows {
             },
             nil,
             ItemAction(title: String(localized: "Copy Command", bundle: .floe), symbol: "doc.on.doc") { [weak self] in
-                NSPasteboard.general.copy(command)
+                self?.environment.copy(command)
                 self?.host.showHUD(String(localized: "Copied \(command)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
             },
         ]
@@ -229,11 +242,11 @@ final class ShellRows {
             },
             nil,
             ItemAction(title: String(localized: "Show in Finder", bundle: .floe), symbol: "folder") { [weak self] in
-                NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: process.path)])
+                self?.environment.reveal(URL(fileURLWithPath: process.path))
                 self?.host.hidePanel()
             },
             ItemAction(title: String(localized: "Copy Process ID", bundle: .floe), symbol: "number") { [weak self] in
-                NSPasteboard.general.copy(String(process.pid))
+                self?.environment.copy(String(process.pid))
                 self?.host.showHUD(String(localized: "Copied \(String(process.pid))", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
             },
         ]

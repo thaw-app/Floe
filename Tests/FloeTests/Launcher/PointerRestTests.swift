@@ -7,6 +7,7 @@
 
 import AppKit
 @testable import Floe
+import SwiftUI
 import Testing
 
 struct PointerRestTests {
@@ -54,5 +55,19 @@ struct ReturnRefusalTests {
         model.query = "clipboard zzz"
         #expect(!model.refusal.isShown)
         #expect(model.refusal.count == 2)
+    }
+
+    @Test func aRefusalShakesTheContentItWraps() async {
+        let refusal = ReturnRefusal()
+        let view = NSHostingView(rootView: Text(verbatim: "zzzz").modifier(RefusalShake(refusal: refusal)))
+        view.frame = NSRect(x: 0, y: 0, width: 200, height: 40)
+        view.layoutSubtreeIfNeeded()
+        refusal.refuse()
+        for _ in 0 ..< 20 {
+            view.layoutSubtreeIfNeeded()
+            try? await Task.sleep(for: .milliseconds(20))
+        }
+        #expect(refusal.count == 1)
+        #expect(view.fittingSize.width > 0)
     }
 }

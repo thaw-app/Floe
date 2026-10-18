@@ -10,6 +10,11 @@ import AppKit
 /// The QR code for what was typed after "qr": Return copies the picture.
 final class QRCodeRows {
     var host = RowHost()
+    /// Where the picture is copied to. Tests replace it, so they leave the clipboard alone.
+    var pasteboard = NSPasteboard.general
+    /// Where Save to Downloads writes, and how Quick Look shows a file. Tests replace both, so they touch neither.
+    var downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+    var preview: (URL) -> Void = { QuickLookPresenter.shared.show($0) }
 
     /// Return on a QR code: the picture goes to the clipboard.
     func copyQRCode(for text: String) {
@@ -17,8 +22,8 @@ final class QRCodeRows {
             host.showHUD(String(localized: "That is too long for a QR code", bundle: .floe))
             return
         }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.writeObjects([NSImage(cgImage: image, size: .zero)])
+        pasteboard.clearContents()
+        pasteboard.writeObjects([NSImage(cgImage: image, size: .zero)])
         host.leave()
         host.showHUD(String(localized: "Copied the QR code", bundle: .floe))
     }
@@ -27,10 +32,10 @@ final class QRCodeRows {
         [
             nil,
             ItemAction(title: String(localized: "Quick Look", bundle: .floe, comment: "The name of the macOS feature that previews a file."), symbol: "eye") { [weak self] in
-                self?.writeQRCode(for: text, to: FileManager.default.temporaryDirectory).map { QuickLookPresenter.shared.show($0) }
+                self?.writeQRCode(for: text, to: FileManager.default.temporaryDirectory).map { self?.preview($0) }
             },
             ItemAction(title: String(localized: "Save to Downloads", bundle: .floe), symbol: "arrow.down.circle") { [weak self] in
-                guard let self, let folder = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first,
+                guard let self, let folder = downloads,
                       let file = writeQRCode(for: text, to: folder) else { return }
                 host.leave()
                 host.showHUD(String(localized: "Saved \(file.lastPathComponent)", bundle: .floe, comment: "Shown briefly after saving. The placeholder is the name of the file."))

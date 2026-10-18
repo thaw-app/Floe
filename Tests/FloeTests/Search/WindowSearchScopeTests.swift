@@ -91,6 +91,21 @@ import Testing
         }
     }
 
+    @Test func returnOnAWindowLeavesTheLauncherAndOtherRowsAreLeftToOthers() {
+        let windows = model.features.windows
+        let left = CallLog()
+        windows.host.leave = { left.note("leave") }
+        let row = RootItem.window(.window(OpenWindow(id: "1:0", title: "Inbox", appName: "Mail")))
+        #expect(windows.returnTitle(for: row) == "Switch to Window")
+        #expect(windows.actions(for: row)?.compactMap { $0?.title } == ["Minimize Window", "Close Window"])
+        #expect(windows.open(row, flags: []))
+        #expect(left.all == ["leave"])
+
+        #expect(windows.returnTitle(for: .emojiSearch) == nil)
+        #expect(windows.actions(for: .window(.access)) == nil)
+        #expect(!windows.open(.emojiSearch, flags: []))
+    }
+
     @Test func anActionOnAWindowReadsTheWindowsAgain() async throws {
         let defaults = MemoryDefaults()
         let scans = Mutex(0)

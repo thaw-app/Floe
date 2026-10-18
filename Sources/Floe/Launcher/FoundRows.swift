@@ -13,6 +13,8 @@ final class FoundRows {
     var host = RowHost()
     /// Puts text into the search field, ready for the rest to be typed after it.
     var typeQuery: (String) -> Void = { _ in }
+    /// Where Return copies to. Tests replace it, so they leave the clipboard alone.
+    var pasteboard = NSPasteboard.general
 
     /// Return on an answer: a link opens, anything else goes to the clipboard, a password marked so that
     /// clipboard managers leave it alone.
@@ -22,9 +24,9 @@ final class FoundRows {
             return
         }
         if answer.isSecret {
-            NSPasteboard.general.copySecret(answer.text)
+            pasteboard.copySecret(answer.text)
         } else {
-            NSPasteboard.general.copy(answer.text)
+            pasteboard.copy(answer.text)
         }
         host.showHUD(String(localized: "Copied Answer", bundle: .floe))
         host.leave()
@@ -32,7 +34,7 @@ final class FoundRows {
 
     /// What the dictionary says about the word goes to the clipboard.
     private func copy(_ definition: WordDefinition) {
-        NSPasteboard.general.copy(definition.text)
+        pasteboard.copy(definition.text)
         host.showHUD(String(localized: "Copied \(definition.word)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
         host.leave()
     }
@@ -44,7 +46,7 @@ final class FoundRows {
             host.showHUD(error ?? String(localized: "Nothing to copy yet", bundle: .floe, comment: "Shown when Return is pressed on a calculation that has no answer."))
             return
         }
-        NSPasteboard.general.copy(result)
+        pasteboard.copy(result)
         host.showHUD(String(localized: "Copied \(result)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
         host.leave()
     }

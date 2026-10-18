@@ -38,6 +38,8 @@ final class ExtensionRunner: ObservableObject {
 
     @Published private(set) var session: ExtensionSession?
     var host = Host()
+    /// Where copies go; tests pass a pasteboard of their own.
+    var pasteboard = NSPasteboard.general
 
     /// The last toast said as a HUD, so the same one is not said twice.
     private var toastLine: (session: ObjectIdentifier, id: Int, line: String)?
@@ -79,7 +81,7 @@ final class ExtensionRunner: ObservableObject {
 
     func copyFailure() {
         guard let session, let failure = session.failure else { return }
-        PasteboardContent.write(text: "\(session.command.extensionTitle) › \(session.command.title)\n\(failure.message)\n\n\(failure.details)", html: nil, file: nil)
+        PasteboardContent.write(text: "\(session.command.extensionTitle) › \(session.command.title)\n\(failure.message)\n\n\(failure.details)", html: nil, file: nil, to: pasteboard)
         host.showHUD(String(localized: "Copied error details", bundle: .floe))
     }
 
@@ -182,7 +184,7 @@ final class ExtensionRunner: ObservableObject {
     }
 
     func paste(text: String) {
-        PasteboardContent.write(text: text, html: nil, file: nil)
+        PasteboardContent.write(text: text, html: nil, file: nil, to: pasteboard)
         pasteCopied()
     }
 
@@ -205,7 +207,8 @@ final class ExtensionRunner: ObservableObject {
             text: message["text"] as? String ?? "",
             html: message["html"] as? String,
             file: message["file"] as? String,
-            concealed: concealed ?? (message["concealed"] as? Bool ?? false)
+            concealed: concealed ?? (message["concealed"] as? Bool ?? false),
+            to: pasteboard
         )
     }
 

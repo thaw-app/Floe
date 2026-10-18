@@ -12,6 +12,8 @@ final class BrewRows {
     var host = RowHost()
     /// Runs a command in the terminal the role says, where it shows what it does and asks for a password.
     var runInTerminal: (String) -> Void = { _ in }
+    /// Where a name is copied to. Tests replace it, so they leave the clipboard alone.
+    var pasteboard = NSPasteboard.general
     static func title(for verb: Homebrew.Verb) -> String {
         switch verb {
         case .install: String(localized: "Install in Terminal", bundle: .floe, comment: "A button that runs the command installing a Homebrew package in the terminal.")
@@ -31,7 +33,7 @@ final class BrewRows {
             actions.append(ItemAction(title: Self.title(for: .uninstall), symbol: "trash") { [weak self] in self?.brew(.uninstall, package) })
         }
         actions.append(ItemAction(title: String(localized: "Copy Name", bundle: .floe, comment: "A button that copies the name of the selected thing."), symbol: "doc.on.doc") { [weak self] in
-            NSPasteboard.general.copy(package.name)
+            self?.pasteboard.copy(package.name)
             self?.host.showHUD(String(localized: "Copied \(package.name)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
         })
         return actions
