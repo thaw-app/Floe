@@ -63,6 +63,15 @@ nonisolated struct OAuthBrokerTests {
         #expect(waiter.outcomes.count == 1, "a sign-in is answered once")
     }
 
+    // Google's installed-app clients return to com.raycast:/oauth; Sourcegraph's OAuth app to raycast://oauth.
+    @Test(arguments: ["raycast://oauth", "com.raycast:/oauth"])
+    func aRedirectToRaycastsAppAddressesAnswersTheSignIn(address: String) throws {
+        let waiter = Waiter(name, state: state)
+        let callback = try redirect("package_name=Extension&code=abc&state=\(state)", to: address)
+        broker.complete(url: callback)
+        #expect(waiter.outcomes == [callback.absoluteString])
+    }
+
     @Test func aRedirectThroughRaycastsPageIsMatchedByItsStateAlone() throws {
         let waiter = Waiter(name, state: state)
         let callback = try redirect("code=abc&package_name=Extension&state=\(state)")
@@ -109,6 +118,8 @@ nonisolated struct OAuthBrokerTests {
     @Test(arguments: [
         ("https://oauth", "code=abc&state=STATE&package_name=NAME"),
         ("floe://open", "code=abc&state=STATE&package_name=NAME"),
+        ("raycast://extensions/x", "code=abc&state=STATE&package_name=NAME"),
+        ("com.raycast:/other", "code=abc&state=STATE&package_name=NAME"),
         ("floe://oauth", "code=abc&package_name=NAME"),
         ("floe://oauth", "code=abc&state=other&package_name=NAME"),
     ])

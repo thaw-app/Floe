@@ -851,28 +851,22 @@ describe("OAuth with sign-in on", () => {
     expect(second.state).not.toBe(first.state);
   });
 
-  test("a redirect straight to Raycast cannot be received, so it falls back to the token preference", async () => {
-    ctx.manifest = { name: "calendar", preferences: [{ name: "apiKey", type: "password" }] };
-    const options = { endpoint: "https://example.com/auth", clientId: "c", scope: "s" };
-    for (const redirectMethod of [api.OAuth.RedirectMethod.App, api.OAuth.RedirectMethod.AppURI]) {
-      const client = new api.OAuth.PKCEClient({ redirectMethod, providerName: "Google" });
-      await expect(client.authorizationRequest(options)).rejects.toThrow("Floe can't sign in to Google yet.");
-    }
-    expect(sent("signIn")).toHaveLength(2);
-    expect(sent("request")).toEqual([]);
-  });
+  // Google's installed-app clients, which Gmail and Google Tasks use, return to com.raycast:/oauth.
+  test("an app redirect names Raycast's app address, which the app opens in Floe while the sign-in waits", async () => {
+    ctx.manifest = { name: "gmail" };
+    const options = { endpoint: "https://accounts.google.com/o/oauth2/v2/auth", clientId: "c", scope: "s" };
+    const addresses = { [api.OAuth.RedirectMethod.App]: "raycast://oauth?package_name=Extension", [api.OAuth.RedirectMethod.AppURI]: "com.raycast:/oauth?package_name=Extension" };
+    for (const [redirectMethod, address] of Object.entries(addresses)) {
+      const client = new api.OAuth.PKCEClient({ redirectMethod: redirectMethod as "app", providerName: "Google" });
+      const request = await client.authorizationRequest(options);
+      expect(new URL(request.toURL()).searchParams.get("redirect_uri")).toBe(address);
 
-  test("custom URLs also fall back when the redirect cannot reach Floe", async () => {
-    ctx.manifest = { name: "calendar", preferences: [{ name: "apiKey", type: "password" }] };
-    for (const redirectMethod of [api.OAuth.RedirectMethod.App, api.OAuth.RedirectMethod.AppURI]) {
-      const client = new api.OAuth.PKCEClient({ redirectMethod, providerName: "Google" });
-      const authorized = client.authorize({ url: "https://example.com/auth?state=original" });
-      const message = sent("request").at(-1);
-      if (message) handleReply({ id: message.id, error: "Unexpected browser request" });
-      await expect(authorized).rejects.toThrow("Floe can't sign in to Google yet.");
+      const authorized = client.authorize(request);
+      const ask = sent("request").at(-1);
+      handleReply({ id: ask.id, result: { url: `${address}&code=granted&state=${request.state}` } });
+      expect(await authorized).toEqual({ authorizationCode: "granted" });
     }
-    expect(sent("signIn")).toHaveLength(2);
-    expect(sent("request")).toEqual([]);
+    expect(sent("signIn")).toEqual([]);
   });
 
   test("custom web URLs send and validate the state embedded in the URL", async () => {

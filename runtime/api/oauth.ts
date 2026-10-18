@@ -56,6 +56,12 @@ export const RedirectMethod = { Web: "web", App: "app", AppURI: "appURI" } as co
 
 // Temporary: providers only allow Raycast's redirect addresses, so the browser returns through raycast.com.
 const raycastRedirect = "https://raycast.com/redirect?packageName=Extension";
+// The app addresses an OAuth app may name instead; the app opens them in Floe while the sign-in waits.
+const redirectAddresses: Record<string, string> = {
+  [RedirectMethod.Web]: raycastRedirect,
+  [RedirectMethod.App]: "raycast://oauth?package_name=Extension",
+  [RedirectMethod.AppURI]: "com.raycast:/oauth?package_name=Extension",
+};
 
 // Raycast's redirect page opens the scheme its state names, which is how the result reaches floe://oauth.
 function stateForFloe(provider?: string): string {
@@ -63,9 +69,8 @@ function stateForFloe(provider?: string): string {
   return base64url(new TextEncoder().encode(state));
 }
 
-// The raycast:// and com.raycast:/ redirects go straight to Raycast, so only the web one can be received.
 function isReceivable(method?: string): boolean {
-  return method === undefined || method === RedirectMethod.Web;
+  return method === undefined || Object.hasOwn(redirectAddresses, method);
 }
 
 const unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
@@ -229,7 +234,8 @@ export class PKCEClient {
     const codeVerifier = randomString(64);
     const codeChallenge = await s256Challenge(codeVerifier);
     const state = stateForFloe(this.options.providerName);
-    return new AuthorizationRequest({ ...options, codeVerifier, codeChallenge, state, redirectURI: raycastRedirect });
+    const redirectURI = redirectAddresses[this.options.redirectMethod ?? RedirectMethod.Web];
+    return new AuthorizationRequest({ ...options, codeVerifier, codeChallenge, state, redirectURI });
   }
 
   async authorize(requestOrOptions: AuthorizationRequest | { url: string }): Promise<{ authorizationCode: string }> {

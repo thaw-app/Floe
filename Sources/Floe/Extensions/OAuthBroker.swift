@@ -6,7 +6,8 @@
 //  Licensed under the GNU AGPLv3
 
 // Extension sign-in over OAuth PKCE, with the request built in runtime/api/oauth.ts. Temporary: the browser
-// returns through raycast.com, whose page opens `floe://oauth` because the state names that scheme.
+// returns through raycast.com, whose page opens `floe://oauth` because the state names that scheme. An OAuth app
+// that returns to Raycast's app addresses reaches Floe while it holds them (RedirectSchemeClaim.swift).
 
 import AppKit
 import Foundation
@@ -95,7 +96,10 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         switch request {
         case let .oauthAuthorize(urlString, state, providerName):
             guard let url = URL(string: urlString) else { throw OAuthError.invalidRedirect("Missing or invalid param: url") }
-            guard await notice.allows(provider: providerName) else { throw OAuthError.cancelled }
+            // The notice is about raycast.com, which a sign-in returning to an app address never passes through.
+            if RedirectSchemeClaim.scheme(returningFrom: url) == nil {
+                guard await notice.allows(provider: providerName) else { throw OAuthError.cancelled }
+            }
             let callback = try await authorize(extensionName: extensionName, url: url, state: state)
             return ["url": callback]
         case let .oauthGetTokens(providerId):
@@ -116,6 +120,15 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// minutes passing fails it instead.
     func authorize(extensionName: String, url: URL, state: String) async throws -> String {
         let say = say.withLock { $0 }
+        let scheme = RedirectSchemeClaim.scheme(returningFrom: url)
+        if let scheme {
+            await RedirectSchemeClaim.shared.claim(scheme)
+        }
+        defer {
+            if let scheme {
+                Task { @MainActor in await RedirectSchemeClaim.shared.release(scheme) }
+            }
+        }
         await MainActor.run { Browsers.openFromFloe(url, say: say) }
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
@@ -186,7 +199,7 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Answers the waiting sign-in whose state the callback carries; anything else is ignored.
     /// Raycast's page names every extension "Extension", so the state alone says whose sign-in it is.
     func complete(url: URL) {
-        guard url.scheme == "floe", url.host == "oauth",
+        guard Self.isCallback(url),
               let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
               let state = items.first(where: { $0.name == "state" })?.value
         else { return }
@@ -198,7 +211,16 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         entry.resume(.success(url.absoluteString))
     }
 
-    // MARK: Token storage
+    /// `floe://oauth` from Raycast's page, or one of the app return addresses an extension's OAuth app names.
+    static func isCallback(_ url: URL) -> Bool {
+        switch url.scheme?.lowercased() {
+        case "floe", "raycast": url.host?.lowercased() == "oauth"
+        case "com.raycast": url.host == nil && url.path.lowercased() == "/oauth"
+        default: false
+        }
+    }
+
+        // MARK: Token storage
 
     private func tokenAccount(extensionName: String, providerId: String) -> String {
         "\(extensionName)/oauth/\(providerId)"

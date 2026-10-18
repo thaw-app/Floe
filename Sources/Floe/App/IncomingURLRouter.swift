@@ -43,6 +43,8 @@ final class IncomingURLRouter: NSObject {
         // Thaw's answer comes back through the handler, so the follower asks only once it is in place.
         if followsAppearance {
             ThawAppearanceFollower.shared.start()
+            // The resident starting: a sign-in cut short by a crash may still hold Raycast's return addresses.
+            Task { await RedirectSchemeClaim.shared.restoreAfterCrash() }
         }
     }
 
@@ -54,8 +56,19 @@ final class IncomingURLRouter: NSObject {
         route(url)
     }
 
-    /// Thaw's appearance answer and, unless sign-in is parked, the browser's return. Any other link does nothing.
+    /// Thaw's appearance answer and, unless sign-in is parked, the browser's return. Any other link does nothing,
+    /// but a Raycast link that is not a sign-in's return goes on to Raycast.
     func route(_ url: URL) {
+        if let scheme = url.scheme?.lowercased(), RedirectSchemeClaim.schemes.contains(scheme) {
+            if OAuthBroker.isCallback(url) {
+                if !oauthIsParked {
+                    (forwardOAuth ?? oauth)(url)
+                }
+            } else {
+                Self.openInRaycast(url)
+            }
+            return
+        }
         guard url.scheme?.lowercased() == "floe" else { return }
         switch url.host?.lowercased() {
         case ThawAppearanceFollower.callbackHost:
@@ -65,5 +78,10 @@ final class IncomingURLRouter: NSObject {
         default:
             break
         }
+    }
+
+    private static func openInRaycast(_ url: URL) {
+        guard let raycast = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.raycast.macos") else { return }
+        NSWorkspace.shared.open([url], withApplicationAt: raycast, configuration: NSWorkspace.OpenConfiguration())
     }
 }

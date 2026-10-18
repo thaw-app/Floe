@@ -28,6 +28,15 @@
 				<string>floe</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.thaw.floe.oauth-return</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>raycast</string>
+				<string>com.raycast</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>

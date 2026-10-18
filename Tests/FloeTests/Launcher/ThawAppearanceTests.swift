@@ -582,6 +582,14 @@ struct IncomingURLRouterTests {
         #expect(received.oauth.count == 1)
     }
 
+    @Test func aSignInsReturnToRaycastsAppAddressesReachesTheBroker() throws {
+        let received = Received()
+        try router(oauthIsParked: false, received).route(#require(URL(string: "raycast://oauth?package_name=Extension&state=a")))
+        try router(oauthIsParked: false, received).route(#require(URL(string: "com.raycast:/oauth?package_name=Extension&state=a")))
+        try router(oauthIsParked: false, received).route(#require(URL(string: "raycast://extensions/someone/thing")))
+        #expect(received.oauth.count == 2, "any other Raycast link goes on to Raycast")
+    }
+
     @Test func theAppRegistersTheFloeScheme() throws {
         let plist = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Resources/Info.plist")
@@ -589,6 +597,7 @@ struct IncomingURLRouterTests {
         let types = try #require(info["CFBundleURLTypes"] as? [[String: Any]])
         #expect(types.first?["CFBundleURLName"] as? String == "org.thaw.floe")
         #expect(types.first?["CFBundleURLSchemes"] as? [String] == ["floe"])
+        #expect(types.last?["CFBundleURLSchemes"] as? [String] == ["raycast", "com.raycast"], "the return addresses extensions' OAuth apps name")
     }
 }
 
