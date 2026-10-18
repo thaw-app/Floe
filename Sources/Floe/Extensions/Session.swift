@@ -263,42 +263,12 @@ final class ExtensionSession: ObservableObject {
         send(["type": "ping"])
     }
 
-    // MARK: Derived view state
-
-    var screen: Node? {
-        ViewState.screen(in: root)
-    }
-
-    var view: Node? {
-        ViewState.view(in: root)
-    }
-
-    var isList: Bool {
-        ViewState.isList(view)
-    }
-
     /// A render that kept every row leaves `rows` alone, and with it the views that draw them.
     private func recomputeRows() {
         let next = ViewState.rows(of: view, searchText: searchText)
         guard next != rows else { return }
         rows = next
         rowsVersion += 1
-    }
-
-    var selectedRow: Row? {
-        ViewState.selectedRow(rows, selection: selection)
-    }
-
-    var actionPanel: Node? {
-        ViewState.actionPanel(view: view, selectedRow: selectedRow)
-    }
-
-    var actions: [Node] {
-        ViewState.actions(in: actionPanel)
-    }
-
-    var menuEntries: [MenuEntry] {
-        ViewState.menuEntries(in: actionPath.last ?? actionPanel, query: actionQuery)
     }
 
     /// Keeps the open submenus only while they still exist, and as this render has them: the path
