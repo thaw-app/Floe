@@ -18,6 +18,7 @@ import { bundle, findEntry } from "./build";
 import { flushCaches } from "./cache";
 import { prepareFolders } from "./folders";
 import { withNodeCause } from "./fetch";
+import { useNodeExecPath } from "./node";
 import { lineSplitter } from "./lines";
 import { isRecording, observe } from "./access";
 
@@ -101,6 +102,7 @@ const launchProps = {
 };
 
 globalThis.fetch = withNodeCause(globalThis.fetch);
+useNodeExecPath();
 
 try {
   const entry = await bundle(findEntry());
