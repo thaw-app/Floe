@@ -118,8 +118,10 @@ try {
   // A CommonJS bundle (what Raycast installs) arrives as { default: module.exports }, whose own default is the command.
   const exported = module.default;
   const Command = typeof exported === "object" && exported !== null && "default" in exported ? exported.default : exported;
-  if (typeof Command !== "function" && !commandDrewItself()) throw new Error("command has no default export");
-  if (typeof Command !== "function") {
+  // memo() and forwardRef() make components that are objects; Raydoom exports memo(Command).
+  const isComponent = typeof Command === "function" || (typeof Command === "object" && Command !== null && "$$typeof" in Command);
+  if (!isComponent && !commandDrewItself()) throw new Error("command has no default export");
+  if (!isComponent) {
     // It drew its view itself, the way commands did before they exported one. Nothing is left to mount.
   } else if (ctx.commandMode === "menu-bar") {
     // No NavigationRoot here; the process stays alive so menu item onAction events can be dispatched.
