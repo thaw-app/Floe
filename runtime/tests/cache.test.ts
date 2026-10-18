@@ -40,6 +40,11 @@ test("storageDirectory is a folder holding the caches alone, outside supportPath
     expect(cache.storageDirectory.startsWith(support.supportPath)).toBe(false);
 });
 
+test("the class says where caches live and how much each one holds, as Raycast's does", () => {
+    expect(Cache.DEFAULT_CAPACITY).toBe(10 * 1024 * 1024);
+    expect(Cache.STORAGE_DIRECTORY_NAME).toBe("cache");
+});
+
 describe("lru", () => {
     test("get promotes, has does not", () => {
         const capacity = bytes("one") + bytes("two") + bytes("three") + bytes("four");

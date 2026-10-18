@@ -46,7 +46,7 @@ export const cachePersistence = {
 
 /// Every namespace's snapshot, in a folder of its own: an extension may delete Cache.storageDirectory outright.
 function cacheDirectory(): string {
-    const directory = path.join(ctx.dataPath, "cache");
+    const directory = path.join(ctx.dataPath, Cache.STORAGE_DIRECTORY_NAME);
     fs.mkdirSync(directory, { recursive: true });
     return directory;
 }
@@ -92,6 +92,15 @@ export class Cache {
         // Another instance over the same file may have changes that are not on disk yet.
         flushCaches();
         this.restore();
+    }
+
+    // Raycast's own: the folder the caches live in, under the data folder, and the size each one gets.
+    static get STORAGE_DIRECTORY_NAME() {
+        return "cache";
+    }
+
+    static get DEFAULT_CAPACITY() {
+        return defaultCapacity;
     }
 
     get storageDirectory() {
