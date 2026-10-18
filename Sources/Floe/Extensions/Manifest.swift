@@ -137,6 +137,9 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
     var owner: String?
     /// The manifest's subtitle, which the command can replace while it runs (see CommandSubtitles).
     var subtitle: String?
+    /// The extension's own icon and description, for its page in Settings; a command's icon may be its own.
+    var extensionIcon: String?
+    var extensionDescription: String?
 
     var id: String {
         "\(extensionName)/\(name)"
@@ -155,6 +158,7 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
         let owner: String?
         let author: ManifestAuthor?
         let title: String?
+        let description: String?
         let icon: String?
         let keywords: Lossy<String>?
         let platforms: Lossy<String>?
@@ -213,7 +217,9 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
                 keywords: (command.keywords?.elements ?? []) + (manifest.keywords?.elements ?? []),
                 isDisabledByDefault: command.disabledByDefault ?? false,
                 owner: manifest.owner ?? manifest.author?.name,
-                subtitle: command.subtitle.flatMap { $0.isEmpty ? nil : $0 }
+                subtitle: command.subtitle.flatMap { $0.isEmpty ? nil : $0 },
+                extensionIcon: custom ?? manifest.icon,
+                extensionDescription: manifest.description.flatMap { $0.isEmpty ? nil : $0 }
             )
         }
     }

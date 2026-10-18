@@ -9,7 +9,7 @@ import AppKit
 import SwiftUI
 import ThawUI
 
-/// The settings page of one extension: its switch and icon, its preferences, and a line for each command.
+/// The settings page of one extension: its icon and name, its preferences, and a line for each command.
 struct ExtensionSettingsView: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
@@ -24,40 +24,13 @@ struct ExtensionSettingsView: View {
     var body: some View {
         if let first = commands.first {
             Form {
+                ExtensionHeader(command: first)
+                if !first.extensionPreferences.isEmpty {
+                    ThawSection("Preferences") {
+                        PreferencesEditor(fields: first.extensionPreferences, extensionName: first.extensionName, command: nil)
+                    }
+                }
                 ThawSection {
-                    Toggle(isOn: Binding(
-                        get: { !settings.disabledExtensions.contains(first.extensionName) },
-                        set: { enabled in
-                            if enabled {
-                                settings.disabledExtensions.remove(first.extensionName)
-                            } else {
-                                settings.disabledExtensions.insert(first.extensionName)
-                            }
-                        }
-                    )) {
-                        HStack(spacing: ThawSpacing.compact) {
-                            Text("Enabled")
-                            if first.source == .raycast {
-                                ThawBadge("Raycast")
-                            }
-                        }
-                        if !settings.disabledExtensions.contains(first.extensionName) {
-                            Text("Commands on: \(commands.count { settings.isEnabled($0) }) of \(commands.count)", comment: "Both placeholders are numbers: how many of an extension's commands are switched on, and how many it has.")
-                        }
-                        Text((first.extensionDir.path as NSString).abbreviatingWithTildeInPath)
-                    }
-                    LabeledContent("Icon") {
-                        HStack(spacing: ThawSpacing.compact) {
-                            IconView(value: first.icon ?? "icon:Terminal", assetsPath: first.assetsPath, size: 18)
-                            Button("Choose Image…") { choosingIcon = true }
-                            if CustomIcon.path(for: first.extensionName) != nil {
-                                Button("Use Its Own") {
-                                    CustomIcon.remove(for: first.extensionName)
-                                    extensions.onInstalled()
-                                }
-                            }
-                        }
-                    }
                     ExtensionAISourcePicker(settings: settings, extensionName: first.extensionName)
                     ForEach(LentProvider.lent(to: first.extensionName, in: settings.lentSignIns), id: \.self) { provider in
                         LabeledContent {
@@ -66,18 +39,6 @@ struct ExtensionSettingsView: View {
                             Text("\(provider.name) sign-in", comment: "The placeholder is a service, such as GitHub.")
                             Text("This extension uses the sign-in of the \(provider.toolName) on this Mac.", comment: "The placeholder is the name of a command line tool, such as GitHub CLI.")
                         }
-                    }
-                }
-                if !first.extensionPreferences.isEmpty {
-                    ThawSection("Preferences") {
-                        PreferencesEditor(fields: first.extensionPreferences, extensionName: first.extensionName, command: nil)
-                    }
-                }
-                ExtensionAccessSection(extensionName: first.extensionName, records: settings.recordsExtensionAccess, store: access)
-                // A checkout's samples stay: they are files of the repository.
-                if ExtensionStore.canRemove(first.extensionDir) {
-                    ThawSection {
-                        Button("Remove Extension…", role: .destructive) { confirmingRemoval = true }
                     }
                 }
                 ThawSection("Commands") {
@@ -94,8 +55,10 @@ struct ExtensionSettingsView: View {
                         }
                     }
                 }
+                ExtensionAccessSection(extensionName: first.extensionName, records: settings.recordsExtensionAccess, store: access)
             }
             .formStyle(.grouped)
+            .toolbar { toolbar(for: first) }
             .settingsSearchAnchorScroll()
             // The importer and what it does with a picture follow Thaw's picker for its menu bar icon.
             .fileImporter(isPresented: $choosingIcon, allowedContentTypes: [.image]) { result in
@@ -139,6 +102,79 @@ struct ExtensionSettingsView: View {
     }
 }
 
+extension ExtensionSettingsView {
+    private func isEnabled(_ name: String) -> Binding<Bool> {
+        Binding(
+            get: { !settings.disabledExtensions.contains(name) },
+            set: { enabled in
+                if enabled {
+                    settings.disabledExtensions.remove(name)
+                } else {
+                    settings.disabledExtensions.insert(name)
+                }
+            }
+        )
+    }
+
+    /// The extension's switch and what else is done to it as a whole, where Raycast has them.
+    @ToolbarContentBuilder
+    private func toolbar(for first: ExtensionCommand) -> some ToolbarContent {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Menu {
+                Button("Choose Icon…") { choosingIcon = true }
+                if CustomIcon.path(for: first.extensionName) != nil {
+                    Button("Use Its Own Icon") {
+                        CustomIcon.remove(for: first.extensionName)
+                        extensions.onInstalled()
+                    }
+                }
+                Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([first.extensionDir]) }
+                // A checkout's samples stay: they are files of the repository.
+                if ExtensionStore.canRemove(first.extensionDir) {
+                    Divider()
+                    Button("Remove Extension…", role: .destructive) { confirmingRemoval = true }
+                }
+            } label: {
+                Label("More", systemImage: "ellipsis")
+            }
+            .menuIndicator(.hidden)
+            Toggle("Enabled", isOn: isEnabled(first.extensionName))
+                .toggleStyle(.switch)
+                .help("An extension that is off is left out of the search, and its hotkeys, menu bar items and Shortcuts do not run.")
+        }
+    }
+}
+
+/// The extension's icon, name and what it does, at the top of its page as Raycast shows them.
+private struct ExtensionHeader: View {
+    let command: ExtensionCommand
+
+    var body: some View {
+        // A header with no rows, so the form draws no card behind it.
+        Section {
+            EmptyView()
+        } header: {
+            VStack(spacing: ThawSpacing.compact) {
+                IconView(value: command.extensionIcon ?? command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 64)
+                HStack(spacing: ThawSpacing.compact) {
+                    Text(command.extensionTitle)
+                        .font(.largeTitle.weight(.bold))
+                    if command.source == .raycast {
+                        ThawBadge("Raycast")
+                    }
+                }
+                if let description = command.extensionDescription {
+                    Text(description)
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
 /// One command of an extension on one line: what it is, the alias and hotkey it answers to, and whether it is on.
 struct CommandSettingsRow: View {
     @ObservedObject var settings: AppSettings
@@ -159,11 +195,11 @@ struct CommandSettingsRow: View {
                     get: { settings.aliases[command.id] ?? "" },
                     set: { settings.aliases[command.id] = $0.isEmpty ? nil : $0 }
                 ),
-                prompt: Text("Alias")
+                prompt: Text("Add Alias")
             )
             .labelsHidden()
-            .textFieldStyle(.roundedBorder)
-            .frame(width: 90)
+            .textFieldStyle(.plain)
+            .frame(width: 80)
             HotkeyRecorder(
                 keyCombination: Binding(get: { settings.commandHotkeys[command.id] }, set: { settings.commandHotkeys[command.id] = $0 }),
                 onRecordingChange: { settings.isRecordingHotkey = $0 },

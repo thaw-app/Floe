@@ -619,6 +619,9 @@
     "Add %@ to the menu bar?" : {
       "comment" : "The title of a question asked after installing an extension. The placeholder is the extension's name."
     },
+    "Add Alias" : {
+
+    },
     "Add Event" : {
 
     },
@@ -746,6 +749,9 @@
 
     },
     "An OpenAI-compatible API" : {
+
+    },
+    "An extension that is off is left out of the search, and its hotkeys, menu bar items and Shortcuts do not run." : {
 
     },
     "An extension that signs in through the browser uses Raycast’s sign-in service for now: the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary: Floe’s own sign-in service is planned to replace it." : {
@@ -1085,7 +1091,7 @@
     "Choose Floe for Clipboard in Settings → General to keep copies here." : {
 
     },
-    "Choose Image…" : {
+    "Choose Icon…" : {
 
     },
     "Choose a clipboard app in Settings" : {
@@ -1171,17 +1177,6 @@
     },
     "Commands" : {
       "comment" : "The name of a settings page."
-    },
-    "Commands on: %lld of %lld" : {
-      "comment" : "Both placeholders are numbers: how many of an extension's commands are switched on, and how many it has.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Commands on: %1$lld of %2$lld"
-          }
-        }
-      }
     },
     "Commit" : {
       "comment" : "A label before the source code revision this app was built from."
@@ -2108,9 +2103,6 @@
     "How long a closed launcher keeps the command you had open." : {
 
     },
-    "Icon" : {
-
-    },
     "Image" : {
       "comment" : "A copied picture."
     },
@@ -2468,6 +2460,9 @@
     },
     "Modified" : {
       "comment" : "A label before the date a file was last changed."
+    },
+    "More" : {
+
     },
     "More about %@" : {
       "comment" : "The placeholder is the name of this app."
@@ -4460,7 +4455,7 @@
     "Uppercase" : {
       "comment" : "The kind of a result, shown beside its title."
     },
-    "Use Its Own" : {
+    "Use Its Own Icon" : {
 
     },
     "Use as Microphone" : {
