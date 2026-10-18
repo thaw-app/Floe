@@ -317,6 +317,16 @@ describe("search bar dropdown", () => {
     expect(changes).toEqual(["venus", "earth"]);
   });
 
+  // The Verge names its first item by title in defaultValue; Raycast starts on the first item, not on "Top".
+  test("a defaultValue that no item has starts on the first item", async () => {
+    const changes: string[] = [];
+    const tree = await showScreen(
+      h(List, { searchBarAccessory: h(List.Dropdown, { defaultValue: "Mercury", onChange: (value: string) => changes.push(value) }, ...planetItems) }),
+    );
+    expect(dropdownOf(tree, "List.Dropdown").props.value).toBe("mercury");
+    expect(changes).toEqual(["mercury"]);
+  });
+
   test("does not call onChange on mount when there is nothing to select", async () => {
     const changes: string[] = [];
     await showScreen(h(List, { searchBarAccessory: h(List.Dropdown, { onChange: (value: string) => changes.push(value) }, "not an item") }));

@@ -91,15 +91,21 @@ const metadata = (prefix: string) =>
   });
 
 // Raycast calls a search bar dropdown's onChange once on mount with the initial value; extensions rely on it.
-function firstDropdownValue(children: React.ReactNode): string | undefined {
+function dropdownValues(children: React.ReactNode, found: string[] = []): string[] {
   for (const child of React.Children.toArray(children)) {
     if (!React.isValidElement(child)) continue;
     const props = child.props as Props;
-    if (props.value !== undefined && props.title !== undefined) return props.value;
-    const nested = firstDropdownValue(props.children);
-    if (nested !== undefined) return nested;
+    if (props.value !== undefined && props.title !== undefined) found.push(props.value);
+    else dropdownValues(props.children, found);
   }
-  return undefined;
+  return found;
+}
+
+// A stored or default value that no item has, as The Verge's defaultValue "Top" for an item whose value is a URL,
+// starts on the first item, as in Raycast. With no items yet there is nothing to check it against.
+function startingDropdownValue(candidate: string | undefined, children: React.ReactNode): string | undefined {
+  const values = dropdownValues(children);
+  return candidate !== undefined && (values.length === 0 || values.includes(candidate)) ? candidate : values[0];
 }
 const dropdownStore = () => path.join(ctx.dataPath, "dropdown-values.json");
 const dropdown = (prefix: string) => {
@@ -109,9 +115,7 @@ const dropdown = (prefix: string) => {
     const [value, setValue] = useState<string | undefined>(
       () =>
         props.value ??
-        (props.storeValue ? readJSON(dropdownStore())[storeKey] : undefined) ??
-        props.defaultValue ??
-        firstDropdownValue(props.children),
+        startingDropdownValue((props.storeValue ? readJSON(dropdownStore())[storeKey] : undefined) ?? props.defaultValue, props.children),
     );
     useEffect(() => {
       if (value !== undefined) props.onChange?.(value);
