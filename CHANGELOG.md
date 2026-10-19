@@ -21,7 +21,7 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [0.1.0] - 2026-10-11
+## [0.1.0] - 2026-10-19
 
 **macOS 26 and later · Build 1**
 
@@ -38,10 +38,10 @@ After you install:
 
 #### Search
 
-- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too. Two apps with the same name each get their own row. Scattered letters match, and the ones that matched show in a stronger weight.
+- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too, and so are Finder and the apps in macOS's CoreServices folder, such as Archive Utility. Two apps with the same name each get their own row. Scattered letters match, and the ones that matched show in a stronger weight.
 - **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search, Search Menu Bar Items, Search Menu Items, Floating Note and the system commands take an alias and a hotkey too, in Settings > Commands. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `menu wifi`, `tabs invoice`.
-- **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions.
+- **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions. A `file://` address opens its file or folder too.
 - **`keywords` or `?` lists every word the search answers to**, each with an example and what it does: `remind call mom tomorrow at 5pm`, `timer 10 minutes tea`. Type more to narrow the list. Return puts the keyword in the search for you to finish. What is switched off is left out.
 
 #### Results and actions
@@ -90,7 +90,8 @@ After you install:
 
 #### Extensions
 - **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
-- **An Extension Store page** browses, installs and updates extensions. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **An Extension Store page** browses, installs and updates extensions. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6), with its look reworked by @unsecretised in [#16](https://github.com/thaw-app/Floe/pull/16).
+- **An extension's page in the store** shows its screenshots, its categories, how many commands it has and whether it needs setup before it runs. Each command is listed with how it runs and the arguments it takes. Click a screenshot to see it larger.
 - **Lists, details, forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
 - **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch. A fresh install offers to add ready menu bar commands that are not already enabled. Commands needing preferences show setup guidance instead.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
@@ -134,7 +135,7 @@ After you install:
 - **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > Commands. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder, in memory and in a file on this Mac, and answers from those: scattered letters match, at each key, and files you opened lately come first. Later launches read the file and only what changed since; switching it off deletes the file. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **Search Menu Items lists the commands in the menus of the app in front**, submenus included, with the menus each one is in and its shortcut. Type part of a name to narrow them, and Return runs the command in that app. Commands that are greyed out are left out. `menus export` does the same from the search. It needs Accessibility. The menus are read with CMD-Z's menu scanner, by Toni Förster.
-- **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6). Quit Floe is one of them. By @unsecretised in [#19](https://github.com/thaw-app/Floe/pull/19).
 
 #### Your own apps
 - **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. The editor can be one that runs in your terminal: Helix, Neovim, Vim, Emacs and others on your Mac are offered by name. Open With sends one link to another browser.
@@ -166,6 +167,7 @@ After you install:
 - **The search field is rounded, a capsule or square.** It can also float as its own piece of glass, with the results in a second piece below it.
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
 - **A welcome at first launch** asks for Accessibility, which the launcher needs, and offers Calendar, Reminders and Contacts, which you can leave for later. A short tour follows. If a later version needs a permission you have not answered, that step comes back by itself.
+- **The Settings sidebar groups the pages.** General, Appearance and Privacy come first. Search holds Commands, Applications, Quicklinks and Snippets, and Connections holds AI, Sync and the Extension Store. Each extension has a page of its own, and About comes last.
 - **Search the settings** from the top of the Settings window's sidebar.
 - **Export your settings to one file** and import them on another Mac.
 - **Launch at login, and updates.** Floe asks once whether it may check for updates, and whether to install them by itself. Settings chooses between the Stable and the Beta channel.
@@ -193,7 +195,7 @@ After you install:
 - @lylythechosenone wrote the calculator ([#7](https://github.com/thaw-app/Floe/pull/7)) and its superscripts, tested Floe and suggested features.
 - HiroMike on Discord tested Floe and sent feedback.
 - dor4a on Discord tested Floe and asked whether commands could have a key of their own, such as ⌘E for emoji or ⇧⌘V for the clipboard. Emoji, Clipboard History, File Search and the system commands take a hotkey now.
-- @unsecretised reported the first bugs, in the Settings window ([#3](https://github.com/thaw-app/Floe/issues/3)).
+- @unsecretised reported the first bugs, in the Settings window ([#3](https://github.com/thaw-app/Floe/issues/3)), reworked the Extension Store page ([#16](https://github.com/thaw-app/Floe/pull/16)) and added Quit Floe to the search ([#19](https://github.com/thaw-app/Floe/pull/19)).
 
 ### Acknowledgements
 
