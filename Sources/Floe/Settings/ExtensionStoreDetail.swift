@@ -89,7 +89,7 @@ private struct StoreDetailHeader: View {
                 StoreIcon(store: store, url: details?.iconURL, size: 64)
                 VStack(alignment: .leading, spacing: 3) {
                     Text(details?.title ?? name)
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.title2.bold())
                         .lineLimit(2)
                     if let author = details?.author, !author.isEmpty {
                         Text(author)

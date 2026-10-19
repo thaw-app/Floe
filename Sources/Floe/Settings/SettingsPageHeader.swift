@@ -32,7 +32,7 @@ struct SettingsPageHeader<Accessory: View>: View {
 
     /// Large enough to name the page at a glance, as the Mac's own settings windows do.
     private static var titleFont: Font {
-        .system(size: 26, weight: .bold)
+        .title.bold()
     }
 
     init(@ViewBuilder accessory: () -> Accessory) {
