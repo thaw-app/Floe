@@ -25,7 +25,9 @@ final class MenuItemSearchScope: SearchScope {
     private var entries: [AppMenuItem] = []
     private var scanned: (target: MenuTarget, at: Date)?
     /// The read in flight and the newest search waiting on it: typing while it runs starts no second walk.
-    private var pending: (target: MenuTarget, query: String, continuation: AsyncStream<[RootItem]>.Continuation)?
+    /// Numbered, so an older read of the same app that ends late is not taken for it.
+    private var pending: (read: Int, target: MenuTarget, query: String, continuation: AsyncStream<[RootItem]>.Continuation)?
+    private var reads = 0
 
     init(
         isTrusted: @escaping () -> Bool = { MenuBarExtras.isTrusted },
@@ -55,21 +57,23 @@ final class MenuItemSearchScope: SearchScope {
             return nil
         }
         let (stream, continuation) = AsyncStream<[RootItem]>.makeStream()
-        let reading = pending?.target == target
+        let joined = pending.flatMap { $0.target == target ? $0.read : nil }
         pending?.continuation.finish()
-        pending = (target, text, continuation)
-        if !reading {
-            read(target)
+        let read = joined ?? reads + 1
+        reads = read
+        pending = (read, target, text, continuation)
+        if joined == nil {
+            self.read(target, number: read)
         }
         return stream
     }
 
-    private func read(_ target: MenuTarget) {
+    private func read(_ target: MenuTarget, number: Int) {
         let scan = scan
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let found = scan(target.pid)
             DispatchQueue.main.async { [weak self] in
-                guard let self, let pending, pending.target == target else { return }
+                guard let self, let pending, pending.read == number else { return }
                 entries = found
                 scanned = (target, now())
                 pending.continuation.yield(Self.rows(found, query: pending.query, target: target))

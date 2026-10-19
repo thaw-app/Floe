@@ -212,24 +212,58 @@ private nonisolated enum Menus {
         #expect(scans.all == ["4242", "4343"])
     }
 
-    @Test func typingWhileTheMenusAreReadWaitsForThatReadAndShowsTheNewestQuery() async {
+    @Test func typingWhileTheMenusAreReadWaitsForThatReadAndShowsTheNewestQuery() async throws {
         let scans = CallLog()
         let scope = scope(scans: scans)
-        let first = SearchContext(query: "menus")
-        let second = SearchContext(query: "menus copy")
-        let older = scope.updates(for: "", context: first)
-        let newer = scope.updates(for: "copy", context: second)
+        let older = try #require(scope.updates(for: "", context: SearchContext(query: "menus")))
+        let newer = try #require(scope.updates(for: "copy", context: SearchContext(query: "menus copy")))
         var olderRows: [RootItem] = []
-        for await batch in older ?? AsyncStream { $0.finish() } {
+        for await batch in older {
             olderRows = batch
         }
         var newerRows: [RootItem] = []
-        for await batch in newer ?? AsyncStream { $0.finish() } {
+        for await batch in newer {
             newerRows = batch
         }
         #expect(olderRows.isEmpty, "the older search is over")
         #expect(newerRows.map(\.title) == ["Copy"])
         #expect(scans.all == ["4242"])
+    }
+
+    @Test func anOlderReadOfTheSameAppThatEndsLateNeitherShowsItsMenusNorEndsTheNewerRead() async throws {
+        let older = DispatchSemaphore(value: 0)
+        let newer = DispatchSemaphore(value: 0)
+        let previewReads = Mutex(0)
+        var front = Menus.preview
+        let scope = MenuItemSearchScope(isTrusted: { true }, frontApp: { front }, scan: { pid in
+            guard pid == Menus.preview.pid else { return Menus.items }
+            let read = previewReads.withLock { count in
+                count += 1
+                return count
+            }
+            if read == 1 {
+                older.wait()
+                return [Menus.items[0]]
+            }
+            newer.wait()
+            return Menus.items
+        })
+        let context = SearchContext(query: "menus")
+        _ = try #require(scope.updates(for: "", context: context))
+        front = Menus.mail
+        _ = try #require(scope.updates(for: "", context: context))
+        front = Menus.preview
+        let latest = try #require(scope.updates(for: "", context: context))
+
+        older.signal()
+        try await Task.sleep(for: .milliseconds(100))
+        await withCheckedContinuation { done in DispatchQueue.main.async { done.resume() } }
+        newer.signal()
+        var rows: [RootItem] = []
+        for await batch in latest {
+            rows = batch
+        }
+        #expect(rows.count == 5, "the newer read's menus, not the older read's one item")
     }
 
     @Test func withoutAccessibilityOneRowSaysSo() {
