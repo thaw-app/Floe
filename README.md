@@ -186,7 +186,7 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 
 ### Settings, privacy and sync
 
-- Search the settings from the toolbar.
+- Search the settings from the top of the sidebar.
 - See every permission and everything Floe contacts on the Privacy page, and turn sources, search history and receipts on or off there.
 - Export and import settings as one file.
 - Launch at login.

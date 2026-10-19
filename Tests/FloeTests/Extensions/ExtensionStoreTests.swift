@@ -277,6 +277,9 @@ struct ExtensionStoreTests {
         #expect(!details.needsSetup, "a preference that is not required asks for nothing")
         #expect(ExtensionStore.parseDetails(name: "a", manifest: ["preferences": [["name": "key", "required": true]]]).needsSetup)
         #expect(ExtensionStore.parseDetails(name: "a", manifest: ["commands": [["name": "run", "preferences": [["name": "key", "required": true]]]]]).needsSetup, "a command's own preference counts")
+        #expect(!ExtensionStore.parseDetails(name: "a", manifest: ["preferences": [["name": "units", "required": true, "default": "metric"]]]).needsSetup, "a default fills it in")
+        #expect(!ExtensionStore.parseDetails(name: "a", manifest: ["preferences": [["name": "on", "required": true, "type": "checkbox"]]]).needsSetup, "a checkbox always has a value")
+        #expect(ExtensionStore.parseDetails(name: "a", manifest: ["preferences": [["name": "key", "required": true, "default": ""]]]).needsSetup, "an empty default fills in nothing")
         #expect(ExtensionStore.parseDetails(name: "a", manifest: ["categories": "Web"]).categories.isEmpty)
     }
 

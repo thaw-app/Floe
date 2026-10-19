@@ -166,7 +166,7 @@ After you install:
 - **The search field is rounded, a capsule or square.** It can also float as its own piece of glass, with the results in a second piece below it.
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
 - **A welcome at first launch** asks for Accessibility, which the launcher needs, and offers Calendar, Reminders and Contacts, which you can leave for later. A short tour follows. If a later version needs a permission you have not answered, that step comes back by itself.
-- **Search the settings** from the toolbar of the Settings window.
+- **Search the settings** from the top of the Settings window's sidebar.
 - **Export your settings to one file** and import them on another Mac.
 - **Launch at login, and updates.** Floe asks once whether it may check for updates, and whether to install them by itself. Settings chooses between the Stable and the Beta channel.
 - **What's New and detailed logging.** What's New, in About, shows these notes in the app. Detailed logging is off by default and writes to `~/Library/Logs/Floe`. It never logs what you type or ask.

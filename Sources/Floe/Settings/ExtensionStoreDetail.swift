@@ -24,7 +24,7 @@ struct StoreDetail: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                StoreDetailHeader(store: store, name: name, details: details, updateAvailable: updateAvailable)
+                StoreDetailHeader(store: store, name: name, details: details, updateAvailable: $updateAvailable)
                 if let description = details?.description, !description.isEmpty {
                     Text(description)
                         .textSelection(.enabled)
@@ -75,7 +75,7 @@ private struct StoreDetailHeader: View {
     @ObservedObject var store: ExtensionStore
     let name: String
     let details: StoreDetails?
-    let updateAvailable: Bool
+    @Binding var updateAvailable: Bool
     @Environment(\.openURL) private var openURL
 
     private var githubURL: URL? {
@@ -128,7 +128,10 @@ private struct StoreDetailHeader: View {
                 .buttonStyle(.borderedProminent)
             } else if updateAvailable {
                 Button("Update") {
-                    Task { await store.update(name) }
+                    Task {
+                        await store.update(name)
+                        updateAvailable = await store.hasUpdate(name)
+                    }
                 }
                 .buttonStyle(.borderedProminent)
             }

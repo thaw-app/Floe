@@ -164,8 +164,13 @@ extension ExtensionStore {
         return details
     }
 
+    /// A required preference still empty with nothing stored, as the runtime decides it before a command runs.
     private static nonisolated func hasRequiredPreference(_ owner: [String: Any]) -> Bool {
-        (owner["preferences"] as? [[String: Any]] ?? []).contains { $0["required"] as? Bool == true }
+        guard let list = owner["preferences"] as? [[String: Any]],
+              let data = try? JSONSerialization.data(withJSONObject: list),
+              let fields = try? JSONDecoder().decode(Lossy<FieldSpec>.self, from: data).elements else { return false }
+        let defaults = PreferenceResolver.resolve(extensionFields: fields, commandFields: [], commandName: "", stored: [:]) { _ in nil }
+        return !PreferenceResolver.missingRequired(fields, values: defaults).isEmpty
     }
 
     static nonisolated func iconURL(for name: String, icon: Any?) -> URL? {

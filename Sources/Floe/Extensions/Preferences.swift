@@ -61,7 +61,7 @@ extension FieldSpec {
 }
 
 /// Works out the values `getPreferenceValues()` returns, given where each value is kept.
-enum PreferenceResolver {
+nonisolated enum PreferenceResolver {
     /// Command preferences are stored under "command/name" so two commands can reuse a name.
     static func storageKey(_ field: FieldSpec, commandName: String?) -> String {
         commandName.map { "\($0)/\(field.name)" } ?? field.name
