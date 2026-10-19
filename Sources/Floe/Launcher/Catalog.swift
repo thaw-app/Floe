@@ -86,7 +86,7 @@ nonisolated extension AppEntry {
     /// The system, local and user Applications folders.
     static let roots: [String] = FileManager.default
         .urls(for: .applicationDirectory, in: [.localDomainMask, .systemDomainMask, .userDomainMask])
-        .map(\.path)
+        .map(\.path) + ["/System/Library/CoreServices"]
 
     /// Where applications are looked for: each Applications folder and the folders directly inside it, which is
     /// where a browser keeps the web apps it installs ("Helium Apps"). Nothing deeper, and never inside a bundle.

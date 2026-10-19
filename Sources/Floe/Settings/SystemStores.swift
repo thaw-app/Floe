@@ -128,7 +128,7 @@ enum PreferenceStore {
 enum InstalledApps {
     static func list() -> [AppPickerValue.App] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let folders = ["/Applications", "/Applications/Utilities", "/System/Applications", "/System/Applications/Utilities", "\(home)/Applications"]
+        let folders = ["/Applications", "/Applications/Utilities", "/System/Applications", "/System/Applications/Utilities", "\(home)/Applications", "/System/Library/CoreServices/Applications"]
         return folders.flatMap { folder -> [AppPickerValue.App] in
             let names = (try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []
             return names.filter { $0.hasSuffix(".app") }.map { name in
