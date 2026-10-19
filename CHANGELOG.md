@@ -115,7 +115,7 @@ After you install:
 #### Built in
 - **Snippets with text expansion, and quicklinks** with fallback searches. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
 - **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy, and shows the day the rates are from. Powers are drawn as real superscripts, and `pi` is π. By @lylythechosenone in [#7](https://github.com/thaw-app/Floe/pull/7).
-- **The calculator reads sums the way people type them.** `200 + 10%` is 220, `100 f to c` converts a temperature, `5 ft 10 in to cm` is 177.8 cm and `today + 3 days` is a date.
+- **The calculator reads sums the way people type them.** `200 + 10%` is 220, `100 f to c` converts a temperature, `5 ft 10 in to cm` is 177.8 cm and `today + 3 days` is a date. `today` on its own shows the date.
 - **`define tide` shows what the dictionary says about a word.** The answer comes from the dictionaries on your Mac, the ones switched on in the Dictionary app, so nothing is sent anywhere. Return opens the word in Dictionary, and the Actions menu copies the definition.
 - **`windows` lists your open windows**, and text after it narrows them by title or app. Return switches to one, out of the Dock if it is minimized. The Actions menu minimizes or closes it. It shows titles, not thumbnails, and needs Accessibility.
 - **Tab on an application lists the recently used files that open in it**, and so does `recent preview`. Spotlight says which files you used in the last 30 days, and macOS says which app opens each. It is not the app's own Open Recent list, which Floe may not read.

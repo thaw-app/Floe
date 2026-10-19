@@ -821,6 +821,7 @@ struct CalculatorTests {
     @Test(arguments: [
         ("today + 3 days", "Friday, 9 October 2026"), ("tomorrow + 1 day", "Thursday, 8 October 2026"),
         ("yesterday - 1 week", "Monday, 28 September 2026"), ("Today + 30 days", "Thursday, 5 November 2026"),
+        ("today", "Tuesday, 6 October 2026"), ("Tomorrow ", "Wednesday, 7 October 2026"), ("yesterday", "Monday, 5 October 2026"),
     ])
     func todayIsTheDayItIs(typed: String, answer: String) throws {
         let noon = try #require(Calendar(identifier: .gregorian).date(from: DateComponents(year: 2026, month: 10, day: 6, hour: 12)))

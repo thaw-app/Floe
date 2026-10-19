@@ -57,10 +57,13 @@ extension Calculator {
             "arcsin", "arccos", "arctan", "arcsinh", "arccosh", "arctanh", "ln", "log", "log2", "log10",
             "abs", "floor", "ceil", "round",
         ]
-        for prefix in mathPrefixes {
-            if lower == prefix || lower.hasPrefix(prefix + "(") || lower.hasPrefix(prefix + " ") {
-                return true
-            }
+        if mathPrefixes.contains(where: { lower == $0 || lower.hasPrefix($0 + "(") || lower.hasPrefix($0 + " ") }) {
+            return true
+        }
+
+        // A day on its own answers with its date
+        if ["today", "tomorrow", "yesterday"].contains(lower.trimmingCharacters(in: .whitespaces)) {
+            return true
         }
 
         // A conversion keyword anywhere, which also covers one the query ends on: "10 W to"
