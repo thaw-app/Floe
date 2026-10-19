@@ -231,39 +231,74 @@ private nonisolated enum Menus {
     }
 
     @Test func anOlderReadOfTheSameAppThatEndsLateNeitherShowsItsMenusNorEndsTheNewerRead() async throws {
-        let older = DispatchSemaphore(value: 0)
-        let newer = DispatchSemaphore(value: 0)
+        // Each Preview read waits for its own go, and the test hears when each read has been handed back.
+        let olderStarted = DispatchSemaphore(value: 0)
+        let olderGo = DispatchSemaphore(value: 0)
+        let newerGo = DispatchSemaphore(value: 0)
         let previewReads = Mutex(0)
+        let (handled, handledOne) = AsyncStream<Void>.makeStream()
         var front = Menus.preview
-        let scope = MenuItemSearchScope(isTrusted: { true }, frontApp: { front }, scan: { pid in
-            guard pid == Menus.preview.pid else { return Menus.items }
-            let read = previewReads.withLock { count in
-                count += 1
-                return count
-            }
-            if read == 1 {
-                older.wait()
+        let scope = MenuItemSearchScope(
+            isTrusted: { true },
+            frontApp: { front },
+            scan: { pid in
+                guard pid == Menus.preview.pid else { return Menus.items }
+                let read = previewReads.withLock { count in
+                    count += 1
+                    return count
+                }
+                guard read == 1 else {
+                    newerGo.wait()
+                    return Menus.items
+                }
+                olderStarted.signal()
+                olderGo.wait()
                 return [Menus.items[0]]
+            },
+            onMain: { work in
+                DispatchQueue.main.async {
+                    work()
+                    handledOne.yield()
+                }
             }
-            newer.wait()
-            return Menus.items
-        })
+        )
+        var handledReads = handled.makeAsyncIterator()
         let context = SearchContext(query: "menus")
         _ = try #require(scope.updates(for: "", context: context))
+        await withCheckedContinuation { started in
+            DispatchQueue.global().async {
+                olderStarted.wait()
+                started.resume()
+            }
+        }
         front = Menus.mail
         _ = try #require(scope.updates(for: "", context: context))
         front = Menus.preview
         let latest = try #require(scope.updates(for: "", context: context))
 
-        older.signal()
-        try await Task.sleep(for: .milliseconds(100))
-        await withCheckedContinuation { done in DispatchQueue.main.async { done.resume() } }
-        newer.signal()
+        olderGo.signal()
+        // Mail's read and the older Preview read, in whichever order they end.
+        _ = await handledReads.next()
+        _ = await handledReads.next()
+        newerGo.signal()
         var rows: [RootItem] = []
         for await batch in latest {
             rows = batch
         }
         #expect(rows.count == 5, "the newer read's menus, not the older read's one item")
+    }
+
+    @Test func menusReadForAnAppThatIsNoLongerInFrontAreNotShown() async throws {
+        var front = Menus.preview
+        let scope = MenuItemSearchScope(isTrusted: { true }, frontApp: { front }, scan: { _ in Menus.items })
+        let updates = try #require(scope.updates(for: "", context: SearchContext(query: "menus")))
+        front = Menus.mail
+        var rows: [RootItem] = []
+        for await batch in updates {
+            rows = batch
+        }
+        #expect(rows.isEmpty)
+        #expect(scope.results(for: "", context: SearchContext(query: "menus")).isEmpty)
     }
 
     @Test func withoutAccessibilityOneRowSaysSo() {

@@ -21,6 +21,8 @@ final class MenuItemSearchScope: SearchScope {
     private let frontApp: () -> MenuTarget?
     private let scan: @Sendable (pid_t) -> [AppMenuItem]
     private let now: () -> Date
+    /// Hands a finished read to the main thread; a test wraps it to know when a read was taken or dropped.
+    private let onMain: @Sendable (@escaping @MainActor @Sendable () -> Void) -> Void
     /// The last read, and whose menus it read, shown at once while the next one runs.
     private var entries: [AppMenuItem] = []
     private var scanned: (target: MenuTarget, at: Date)?
@@ -33,12 +35,14 @@ final class MenuItemSearchScope: SearchScope {
         isTrusted: @escaping () -> Bool = { MenuBarExtras.isTrusted },
         frontApp: @escaping () -> MenuTarget? = { MenuItems.frontApp() },
         scan: @escaping @Sendable (pid_t) -> [AppMenuItem] = MenuSearchScanner.entries,
-        now: @escaping () -> Date = Date.init
+        now: @escaping () -> Date = Date.init,
+        onMain: @escaping @Sendable (@escaping @MainActor @Sendable () -> Void) -> Void = { DispatchQueue.main.async(execute: $0) }
     ) {
         self.isTrusted = isTrusted
         self.frontApp = frontApp
         self.scan = scan
         self.now = now
+        self.onMain = onMain
     }
 
     func text(in context: SearchContext) -> String? {
@@ -70,10 +74,17 @@ final class MenuItemSearchScope: SearchScope {
 
     private func read(_ target: MenuTarget, number: Int) {
         let scan = scan
+        let onMain = onMain
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let found = scan(target.pid)
-            DispatchQueue.main.async { [weak self] in
+            onMain { [weak self] in
                 guard let self, let pending, pending.read == number else { return }
+                // Another app came to the front while this one's menus were read: they are not its commands.
+                guard frontApp() == target else {
+                    pending.continuation.finish()
+                    self.pending = nil
+                    return
+                }
                 entries = found
                 scanned = (target, now())
                 pending.continuation.yield(Self.rows(found, query: pending.query, target: target))
