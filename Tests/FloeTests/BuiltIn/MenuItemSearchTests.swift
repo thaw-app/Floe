@@ -212,6 +212,26 @@ private nonisolated enum Menus {
         #expect(scans.all == ["4242", "4343"])
     }
 
+    @Test func typingWhileTheMenusAreReadWaitsForThatReadAndShowsTheNewestQuery() async {
+        let scans = CallLog()
+        let scope = scope(scans: scans)
+        let first = SearchContext(query: "menus")
+        let second = SearchContext(query: "menus copy")
+        let older = scope.updates(for: "", context: first)
+        let newer = scope.updates(for: "copy", context: second)
+        var olderRows: [RootItem] = []
+        for await batch in older ?? AsyncStream { $0.finish() } {
+            olderRows = batch
+        }
+        var newerRows: [RootItem] = []
+        for await batch in newer ?? AsyncStream { $0.finish() } {
+            newerRows = batch
+        }
+        #expect(olderRows.isEmpty, "the older search is over")
+        #expect(newerRows.map(\.title) == ["Copy"])
+        #expect(scans.all == ["4242"])
+    }
+
     @Test func withoutAccessibilityOneRowSaysSo() {
         let scope = scope(trusted: false)
         let context = SearchContext(query: "menus")

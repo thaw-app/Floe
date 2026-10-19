@@ -11,6 +11,7 @@
 //  Adapted for Floe from CMD-Z's MenuSearchScanner.swift: the shortcut keeps the virtual key and is shown
 //  with Floe's key labels instead of SF Symbol names, the matching against a key event is left out, and
 //  finding an item by its title or position is a function of its own, so it can be tested without Accessibility.
+//  The walk reads each submenu's children once.
 //  MenuEntry is called AppMenuItem here, since Floe has a MenuEntry of its own.
 
 import ApplicationServices
@@ -110,7 +111,7 @@ nonisolated enum MenuSearchScanner {
                 continue
             }
             let title = normalizeTitle(raw)
-            walk(item, path: [title], indices: [index], deadline: deadline, into: &result)
+            walk(flattenedChildren(of: item), path: [title], indices: [index], deadline: deadline, into: &result)
         }
         return result
     }
@@ -160,16 +161,15 @@ nonisolated enum MenuSearchScanner {
 
     // MARK: - Walk
 
+    /// Each submenu's children are read once: every read is a round trip to the app.
     private static func walk(
-        _ element: AXUIElement,
+        _ children: [AXUIElement],
         path: [String],
         indices: [Int],
         deadline: Date,
         into entries: inout [AppMenuItem]
     ) {
         guard Date() < deadline else { return }
-
-        let children = flattenedChildren(of: element)
 
         for (childIndex, child) in children.enumerated() {
             guard Date() < deadline else { return }
@@ -189,7 +189,7 @@ nonisolated enum MenuSearchScanner {
                     ))
                 }
             } else {
-                walk(child, path: path + [title], indices: indices + [childIndex], deadline: deadline, into: &entries)
+                walk(nested, path: path + [title], indices: indices + [childIndex], deadline: deadline, into: &entries)
             }
         }
     }

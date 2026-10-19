@@ -24,6 +24,8 @@ final class MenuItemSearchScope: SearchScope {
     /// The last read, and whose menus it read, shown at once while the next one runs.
     private var entries: [AppMenuItem] = []
     private var scanned: (target: MenuTarget, at: Date)?
+    /// The read in flight and the newest search waiting on it: typing while it runs starts no second walk.
+    private var pending: (target: MenuTarget, query: String, continuation: AsyncStream<[RootItem]>.Continuation)?
 
     init(
         isTrusted: @escaping () -> Bool = { MenuBarExtras.isTrusted },
@@ -52,20 +54,29 @@ final class MenuItemSearchScope: SearchScope {
         if let scanned, scanned.target == target, now().timeIntervalSince(scanned.at) < Self.scanLifetime {
             return nil
         }
-        let scan = scan
         let (stream, continuation) = AsyncStream<[RootItem]>.makeStream()
+        let reading = pending?.target == target
+        pending?.continuation.finish()
+        pending = (target, text, continuation)
+        if !reading {
+            read(target)
+        }
+        return stream
+    }
+
+    private func read(_ target: MenuTarget) {
+        let scan = scan
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let found = scan(target.pid)
             DispatchQueue.main.async { [weak self] in
-                if let self {
-                    entries = found
-                    scanned = (target, now())
-                    continuation.yield(Self.rows(found, query: text, target: target))
-                }
-                continuation.finish()
+                guard let self, let pending, pending.target == target else { return }
+                entries = found
+                scanned = (target, now())
+                pending.continuation.yield(Self.rows(found, query: pending.query, target: target))
+                pending.continuation.finish()
+                self.pending = nil
             }
         }
-        return stream
     }
 
     nonisolated static func rows(_ entries: [AppMenuItem], query: String, target: MenuTarget) -> [RootItem] {

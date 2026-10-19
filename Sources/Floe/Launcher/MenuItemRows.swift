@@ -31,7 +31,7 @@ final class MenuItemRows {
             host.leave()
             choose(entry, target)
         case .access:
-            MenuBarExtras.requestAccess()
+            AppPermissions.shared.accessibility.performRequest()
         }
     }
 }
