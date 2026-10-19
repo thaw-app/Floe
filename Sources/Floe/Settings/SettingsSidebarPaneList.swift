@@ -43,7 +43,7 @@ struct SettingsSidebarPaneList: View {
         }
     }
 
-    /// General, Commands and Applications first, then each extension, About last, as in Thaw.
+    /// Floe's own pages first, then each extension, About last, as in Thaw.
     private var rows: [Row] {
         let extensions = catalog.allCommands
             .uniqued(on: \.extensionName)
@@ -62,6 +62,8 @@ struct SettingsSidebarPaneList: View {
             Row(page: .general, title: SearchPaneLabel.general.title, symbol: "gearshape", icon: nil, assetsPath: ""),
             Row(page: .commands, title: SearchPaneLabel.commands.title, symbol: "command", icon: nil, assetsPath: ""),
             Row(page: .applications, title: SearchPaneLabel.applications.title, symbol: "square.grid.2x2", icon: nil, assetsPath: ""),
+            Row(page: .ai, title: SearchPaneLabel.ai.title, symbol: AskAI.symbol, icon: nil, assetsPath: ""),
+            Row(page: .sync, title: SearchPaneLabel.sync.title, symbol: "arrow.triangle.2.circlepath", icon: nil, assetsPath: ""),
             Row(page: .quicklinks, title: SearchPaneLabel.quicklinks.title, symbol: "link", icon: nil, assetsPath: ""),
             Row(page: .snippets, title: SearchPaneLabel.snippets.title, symbol: "text.quote", icon: nil, assetsPath: ""),
             Row(page: .extensionStore, title: SearchPaneLabel.extensionStore.title, symbol: "bag", icon: nil, assetsPath: ""),

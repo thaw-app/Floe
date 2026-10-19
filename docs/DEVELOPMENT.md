@@ -28,8 +28,8 @@ The Run scheme has two disabled environment variables: `FLOE_AUTORUN` opens a co
 
 ## Settings
 
-⌘, in the panel, "Floe Settings" in search, or the menu bar icon. General has the launcher hotkey, launch at login
-and whether to include Raycast's installed extensions. Each extension has an on/off switch, its preferences, and
+⌘, in the panel, "Floe Settings" in search, or the menu bar icon. General has the launcher hotkey and launch at login;
+Commands has whether to include Raycast's installed extensions. Each extension has an on/off switch, its preferences, and
 per-command aliases and hotkeys. Password preferences are kept in the Keychain; a build run from Xcode is
 signed ad hoc, so macOS asks again after each rebuild, which `devrun.sh` avoids.
 
@@ -187,7 +187,7 @@ The aim is code where no feature reaches into another. Each part knows only what
     a tool with a timeout.
   - `AI.ask` is answered by a one-shot run of a command line tool (`TextGeneration.swift`: `claude`, `codex`,
     `opencode` or `pi`, each with no tools of its own) or by a streamed request to an OpenAI-compatible API
-    (`ChatCompletionStream.swift`). Settings › General › AI picks between them; the choice and the request an
+    (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice and the request an
     extension makes are in `Extensions/HostRequest.swift`, and which tool answers is in `AI/AITool.swift`.
   - `ToolTextStream.swift` reads a tool's JSON lines as they are printed. What a line means is in
     `ClaudeTextStream.swift`, `OpencodeTextStream.swift` and `PiTextStream.swift`, beside each tool's arguments.
@@ -383,7 +383,7 @@ ignore that key, and without it a Debug build refuses to check.
 
 ## Settings sync
 
-Off by default; the switch is in Settings › General. `Sources/Floe/Sync` is the engine and names no type of Floe's:
+Off by default; the switch is in Settings › Sync. `Sources/Floe/Sync` is the engine and names no type of Floe's:
 `SyncRecord.swift` (a record and the merge, with no store or clock in it), `SyncStore.swift` (the store's protocol,
 its limits and how a record is written into it), `SyncAvailability.swift` (which store the build is signed for),
 `UbiquitousSyncStore.swift` (iCloud's key-value store), the CloudKit store described below, `MemorySyncStore.swift`

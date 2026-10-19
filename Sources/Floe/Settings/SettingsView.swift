@@ -61,11 +61,16 @@ struct SettingsView: View {
     private var pane: some View {
         switch selection.page {
         case .general:
-            GeneralSettingsView(catalog: catalog, settings: settings, updates: stores.updates, sync: stores.sync, showWelcome: stores.showWelcome)
+            GeneralSettingsView(settings: settings, updates: stores.updates, showWelcome: stores.showWelcome)
         case .commands:
             CommandsSettingsView(catalog: catalog, settings: settings)
         case .applications:
             ApplicationSettingsView(catalog: catalog, settings: settings)
+        case .ai:
+            Form { AISettingsSection(settings: settings) }
+                .formStyle(.grouped)
+        case .sync:
+            SyncSettingsView(catalog: catalog, settings: settings, sync: stores.sync)
         case .quicklinks:
             QuicklinksSettingsPage(store: stores.quicklinks)
         case .snippets:
@@ -77,7 +82,7 @@ struct SettingsView: View {
         case .privacy:
             PrivacySettingsPane(settings: settings, stores: stores)
         case .about:
-            AboutSettingsPane(updatesManager: stores.updates)
+            AboutSettingsPane(updatesManager: stores.updates, settings: settings)
         case let .extensionPage(name):
             ExtensionSettingsView(
                 catalog: catalog,
@@ -98,6 +103,8 @@ struct SettingsView: View {
         case .general: SearchPaneLabel.general.title
         case .commands: SearchPaneLabel.commands.title
         case .applications: SearchPaneLabel.applications.title
+        case .ai: SearchPaneLabel.ai.title
+        case .sync: SearchPaneLabel.sync.title
         case .quicklinks: SearchPaneLabel.quicklinks.title
         case .snippets: SearchPaneLabel.snippets.title
         case .extensionStore: SearchPaneLabel.extensionStore.title
@@ -112,9 +119,11 @@ struct SettingsView: View {
     private var subtitle: String {
         guard !search.isSearching else { return "" }
         switch selection.page {
-        case .general: return String(localized: "Startup, preferred apps, AI and sync", bundle: .floe)
+        case .general: return String(localized: "Hotkey, startup, updates and the welcome tour", bundle: .floe)
         case .commands: return String(localized: "Built-in, shell, script and menu bar commands", bundle: .floe)
-        case .applications: return String(localized: "Aliases and hotkeys for apps", bundle: .floe)
+        case .applications: return String(localized: "Preferred apps, and aliases and hotkeys for apps", bundle: .floe)
+        case .ai: return String(localized: "What answers Ask AI and extensions", bundle: .floe)
+        case .sync: return String(localized: "iCloud sync and settings files", bundle: .floe)
         case .quicklinks: return String(localized: "Keywords and fallbacks for web search", bundle: .floe)
         case .snippets: return String(localized: "Text you paste or type by keyword", bundle: .floe)
         case .extensionStore: return String(localized: "Install extensions from the Raycast store", bundle: .floe)
@@ -133,69 +142,9 @@ struct SettingsView: View {
 }
 
 struct GeneralSettingsView: View {
-    let catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     let updates: UpdatesManager
-    let sync: SettingsSyncStatus
     let showWelcome: () -> Void
-
-    private func exportSettings() {
-        let panel = NSSavePanel()
-        panel.nameFieldStringValue = "Floe Settings.json"
-        panel.allowedContentTypes = [.json]
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            let archive = try SettingsTransfer.Archive(
-                settings: settings.exportedJSON(),
-                preferences: PreferenceStore.allStoredValues(),
-                secretKeys: PreferenceStore.secretKeys(for: catalog.allCommands)
-            )
-            try SettingsTransfer.encode(archive).write(to: url, options: .atomic)
-        } catch {
-            Self.show(error)
-        }
-    }
-
-    private func importSettings() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.json]
-        panel.allowsMultipleSelection = false
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        do {
-            let archive = try SettingsTransfer.decode(Data(contentsOf: url))
-            let detail = String(localized: "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports.", bundle: .floe)
-            guard Confirm.destructive(String(localized: "Replace your settings?", bundle: .floe), detail: detail, button: String(localized: "Replace", bundle: .floe, comment: "The button that replaces the settings with the ones in a file.")) else { return }
-            try settings.importJSON(archive.settings)
-            for (name, values) in archive.preferences {
-                PreferenceStore.merge(values, extensionName: name)
-            }
-            let summary = SettingsTransfer.summary(of: archive) { Keychain.read(account: "\($0)/\($1)") != nil }
-            let done = NSAlert()
-            done.messageText = String(localized: "Settings imported", bundle: .floe)
-            var lines = [
-                String(
-                    localized: "\(summary.aliases) aliases, \(summary.hotkeys) hotkeys, \(summary.favorites) favorites, preferences for \(summary.extensions) extensions.",
-                    bundle: .floe,
-                    comment: "What a settings file brought in. Each placeholder is a count."
-                ),
-            ]
-            if !summary.missingSecrets.isEmpty {
-                let names = summary.missingSecrets.joined(separator: "\n")
-                lines.append(String(localized: "Enter these again:\n\(names)", bundle: .floe, comment: "The placeholder is a list of password fields, one on each line."))
-            }
-            done.informativeText = lines.joined(separator: "\n\n")
-            done.runModal()
-        } catch {
-            Self.show(error)
-        }
-    }
-
-    private static func show(_ error: Error) {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "Couldn't transfer settings", bundle: .floe)
-        alert.informativeText = error.localizedDescription
-        alert.runModal()
-    }
 
     var body: some View {
         Form {
@@ -220,22 +169,7 @@ struct GeneralSettingsView: View {
                     Text("How long a closed launcher keeps the command you had open.")
                 }
             }
-            PreferredAppsSettingsSection(settings: settings)
-            AISettingsSection(settings: settings)
-            SyncSettingsSection(settings: settings, sync: sync)
-            ThawSection("Your Settings") {
-                LabeledContent {
-                    HStack {
-                        Button("Export…") { exportSettings() }
-                        Button("Import…") { importSettings() }
-                    }
-                } label: {
-                    Text("Settings file")
-                    Text("Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out.")
-                }
-            }
             WelcomeSettingsSection(showWelcome: showWelcome)
-            DiagnosticsSettingsSection(settings: settings)
         }
         .formStyle(.grouped)
     }

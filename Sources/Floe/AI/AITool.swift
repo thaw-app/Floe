@@ -93,7 +93,7 @@ nonisolated enum AIEngine {
     /// Why there is no tool to ask, for the person who asked. A chosen tool that is missing is never replaced by another.
     static func missingMessage(for setup: Setup) -> String {
         guard let tool = setup.tool else { return missingMessage }
-        return String(localized: "AI is set to answer with \(tool.command), which is not installed. Install it and sign in, or choose another tool under Settings › General › AI.", bundle: .floe, comment: "The placeholder is the name of a command line tool such as claude.")
+        return String(localized: "AI is set to answer with \(tool.command), which is not installed. Install it and sign in, or choose another tool under Settings › AI.", bundle: .floe, comment: "The placeholder is the name of a command line tool such as claude.")
     }
 
     /// Whether extensions should be told AI is there. The tools are looked up on the PATH known so far.

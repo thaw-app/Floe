@@ -19,7 +19,7 @@ The gaps as they stand. The [roadmap](../README.md#roadmap) says which come next
 ## Sync
 
 - **Nothing syncs until a release is signed for iCloud.** [Development](DEVELOPMENT.md#settings-sync) has the steps.
-- **Sync is off until you switch it on** in Settings > General.
+- **Sync is off until you switch it on** in Settings > Sync.
 - Script commands do not sync.
 - What does sync, in the main: aliases, hotkeys, favorites, hidden results, appearance, snippets and quicklinks. Extension settings sync while "Include extension settings" is on. [Development](DEVELOPMENT.md#settings-sync) has the full list, and what stays on each Mac.
 - Passwords go through iCloud Keychain, by a separate switch that is off until you choose it.

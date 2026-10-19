@@ -58,7 +58,7 @@ struct AIToolTests {
         let others: (String) -> URL? = { $0 == tool.command ? nil : URL(fileURLWithPath: "/tools/\($0)") }
         #expect(AIEngine.resolve(model: nil, setup: AIEngine.Setup(tool: tool), which: others) == nil)
         let message = AIEngine.missingMessage(for: AIEngine.Setup(tool: tool))
-        #expect(message == "AI is set to answer with \(tool.command), which is not installed. Install it and sign in, or choose another tool under Settings › General › AI.")
+        #expect(message == "AI is set to answer with \(tool.command), which is not installed. Install it and sign in, or choose another tool under Settings › AI.")
     }
 
     @Test func withNothingInstalledAutomaticSaysWhatToInstall() {

@@ -407,8 +407,8 @@ struct ClipboardAppTests {
     // MARK: Settings
 
     @Test func theSettingsSearchFindsTheRoleAndClearing() {
-        let entries = SearchIndex.generalEntries.filter { SearchIndex.clipboardEntries.map(\.id).contains($0.id) }
-        #expect(entries.map(\.id) == ["general.clipboardApp", "general.clearClipboardHistory"])
+        let entries = SearchIndex.applicationsEntries.filter { SearchIndex.clipboardEntries.map(\.id).contains($0.id) }
+        #expect(entries.map(\.id) == ["applications.clipboardApp", "applications.clearClipboardHistory"])
         #expect(entries.map(\.section) == ["Preferred Apps", "Preferred Apps"])
         #expect(entries.first?.title == AppRole.clipboard.title)
         #expect(entries.first?.descriptionText == AppRole.clipboard.detail)

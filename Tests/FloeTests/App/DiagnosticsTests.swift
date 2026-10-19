@@ -28,7 +28,7 @@ struct DiagnosticsTests {
     }
 
     @Test func theSettingsSearchFindsTheSwitch() {
-        let entry = SearchIndex.generalEntries.first { $0.id.hasSuffix("diagnosticLogging") }
+        let entry = SearchIndex.aboutEntries.first { $0.id.hasSuffix("diagnosticLogging") }
         #expect(entry?.section == "Diagnostics")
     }
 }

@@ -44,8 +44,8 @@
     "%@ can check for updates automatically. You can also check manually from the menu bar or Settings › About." : {
       "comment" : "The placeholder is the name of this app."
     },
-    "%@ can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under General." : {
-      "comment" : "The placeholder is the names of one or more commands. General is the name of a settings page."
+    "%@ can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under Commands." : {
+      "comment" : "The placeholder is the names of one or more commands. Commands is the name of a settings page."
     },
     "%@ could not be run." : {
       "comment" : "The placeholder is the name of the command that could not run."
@@ -527,7 +527,7 @@
 
     },
     "AI" : {
-      "comment" : "The heading over the settings for artificial intelligence.\nThe kind of a result, shown beside its title. Short for artificial intelligence."
+      "comment" : "The heading over the settings for artificial intelligence.\nThe kind of a result, shown beside its title. Short for artificial intelligence.\nThe name of a settings page."
     },
     "AI can't answer yet. %@ is not installed. Install it and sign in, or choose another tool." : {
       "comment" : "The placeholder is the name of a command line tool such as claude."
@@ -556,10 +556,10 @@
     "AI can't answer yet. It needs an address that starts with http:// or https://." : {
 
     },
-    "AI is set to answer with %@, which is not installed. Install it and sign in, or choose another tool under Settings › General › AI." : {
+    "AI is set to answer with %@, which is not installed. Install it and sign in, or choose another tool under Settings › AI." : {
       "comment" : "The placeholder is the name of a command line tool such as claude."
     },
-    "AI is set to use an API, but its address, model or key is missing. Fill them in under Settings › General › AI." : {
+    "AI is set to use an API, but its address, model or key is missing. Fill them in under Settings › AI." : {
 
     },
     "AI needs a command line tool to answer: claude, codex, opencode or pi, installed and signed in." : {
@@ -711,12 +711,6 @@
     },
     "Alias" : {
       "comment" : "A short name typed in the search to find a command."
-    },
-    "Aliases and hotkeys for apps" : {
-
-    },
-    "Aliases and hotkeys for apps." : {
-
     },
     "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports." : {
 
@@ -1091,7 +1085,7 @@
     "Choose Command" : {
       "comment" : "A button that runs the selected command of an app's menus."
     },
-    "Choose Floe for Clipboard in Settings → General to keep copies here." : {
+    "Choose Floe for Clipboard in Settings → Applications to keep copies here." : {
 
     },
     "Choose Icon…" : {
@@ -2091,7 +2085,7 @@
     "Hidden from Search" : {
 
     },
-    "Hidden from search. Settings › General brings it back." : {
+    "Hidden from search. Settings › Commands brings it back." : {
 
     },
     "Hide" : {
@@ -2111,6 +2105,9 @@
     },
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
+    },
+    "Hotkey, startup, updates and the welcome tour" : {
+
     },
     "How Floe works" : {
 
@@ -2398,7 +2395,7 @@
     "Make a QR code to copy or save" : {
 
     },
-    "Make a Shortcut that sets your Focus, then name it in Settings › General" : {
+    "Make a Shortcut that sets your Focus, then name it in Settings › Commands" : {
       "comment" : "Shortcut is what Apple's Shortcuts app makes. Focus is the macOS feature that silences notifications."
     },
     "Make a new UUID" : {
@@ -3050,6 +3047,12 @@
     "Preferred Apps" : {
 
     },
+    "Preferred apps, and aliases and hotkeys for apps" : {
+
+    },
+    "Preferred apps, and aliases and hotkeys for apps." : {
+
+    },
     "Prefix" : {
 
     },
@@ -3128,7 +3131,7 @@
     "Questions go to the %@ tool, which sends them to the service it is signed in to, on your account there." : {
       "comment" : "The placeholder is the name of a command line tool."
     },
-    "Questions go to the address set in General, once it is filled in." : {
+    "Questions go to the address set on the AI page, once it is filled in." : {
 
     },
     "Questions go to the server on this Mac at %@. Nothing leaves the machine." : {
@@ -3872,9 +3875,6 @@
         }
       }
     },
-    "Startup, preferred apps, AI and sync" : {
-
-    },
     "Status" : {
 
     },
@@ -3942,6 +3942,9 @@
     },
     "Symbol" : {
       "comment" : "The icon of a quicklink."
+    },
+    "Sync" : {
+      "comment" : "The name of a settings page."
     },
     "Sync is off." : {
 
@@ -4074,7 +4077,7 @@
     "The API returned status %lld." : {
       "comment" : "The placeholder is an HTTP status number such as 500."
     },
-    "The API set up in General" : {
+    "The API set up on the AI page" : {
 
     },
     "The Extension Store lists and downloads extensions from GitHub, and their packages from the npm registry." : {
@@ -4104,10 +4107,10 @@
     "The command failed with exit code %d." : {
       "comment" : "The placeholder is the number a command ended with."
     },
-    "The command line tool set in General is not installed, so no question is sent." : {
+    "The command line tool set on the AI page is not installed, so no question is sent." : {
 
     },
-    "The command line tool set up in General" : {
+    "The command line tool set up on the AI page" : {
 
     },
     "The command's input could not be prepared." : {
@@ -4197,7 +4200,7 @@
     "The search field is its own piece of glass, and the results are a second piece below it." : {
 
     },
-    "The source chosen in General" : {
+    "The source chosen on the AI page" : {
 
     },
     "The system command failed." : {
@@ -4602,6 +4605,12 @@
     "What It Has Reached" : {
 
     },
+    "What answers Ask AI and extensions" : {
+
+    },
+    "What answers Ask AI and extensions." : {
+
+    },
     "What’s New" : {
 
     },
@@ -4685,6 +4694,9 @@
     },
     "ai, api, model, gpt, openai, opencode, pi" : {
       "comment" : "Words that find the Model setting in the settings search, separated by commas."
+    },
+    "ai, ask ai, artificial intelligence, assistant, llm" : {
+      "comment" : "Words that find the AI page in the settings search, separated by commas."
     },
     "ai, ask, claude, codex, opencode, pi, openai, openrouter, z.ai, apple intelligence, ollama, lm studio, local, model, llm, assistant, provider" : {
       "comment" : "Words that find the Answer AI requests with setting in the settings search, separated by commas."
@@ -4932,6 +4944,12 @@
     "iCloud copy" : {
 
     },
+    "iCloud sync and settings files" : {
+
+    },
+    "iCloud sync and settings files." : {
+
+    },
     "keyboard shortcuts, input sources, dictation, text replacements" : {
       "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
     },
@@ -4998,7 +5016,7 @@
     "opencode stopped before finishing." : {
       "comment" : "The word opencode is the name of a command and stays as written."
     },
-    "opencode tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
+    "opencode tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › AI." : {
       "comment" : "The word opencode is the name of a command and stays as written."
     },
     "party, celebrate, celebration, tada, congrats" : {
@@ -5016,7 +5034,7 @@
     "pi stopped before finishing." : {
       "comment" : "The word pi is the name of a command and stays as written."
     },
-    "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI." : {
+    "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › AI." : {
       "comment" : "The word pi is the name of a command and stays as written."
     },
     "play, pause, resume, stop music, music, spotify" : {
@@ -5145,6 +5163,9 @@
     "sync, icloud, cloud, macs, devices, backup, share, remove" : {
       "comment" : "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
     },
+    "sync, icloud, export, import, backup" : {
+      "comment" : "Words that find the Sync page in the settings search, separated by commas."
+    },
     "sync, icloud, extensions, extension preferences, extension settings, macs" : {
       "comment" : "Words that find the Include extension settings setting in the settings search, separated by commas."
     },
@@ -5253,7 +5274,7 @@
     "wifi, wireless, internet" : {
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
     },
-    "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI." : {
+    "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › AI." : {
 
     },
     "“contact” and a name finds people in your Contacts. macOS asks first, and only once you type that word and a name. Nothing is saved." : {

@@ -359,12 +359,12 @@ struct BrowserTests {
     // MARK: Settings
 
     @Test func theSettingsSearchFindsTheBrowserRole() {
-        let entries = SearchIndex.generalEntries.filter { $0.id == "general.browserApp" }
+        let entries = SearchIndex.applicationsEntries.filter { $0.id == "applications.browserApp" }
         #expect(entries.count == 1)
         #expect(entries.first?.title == "Browser")
         #expect(entries.first?.section == "Preferred Apps")
         #expect(entries.first?.descriptionText == AppRole.browser.detail)
         #expect(entries.first?.keywords.contains("default browser") == true)
-        #expect(SearchIndex.staticEntries.filter { $0.id == "general.browserApp" }.count == 1)
+        #expect(SearchIndex.staticEntries.filter { $0.id == "applications.browserApp" }.count == 1)
     }
 }

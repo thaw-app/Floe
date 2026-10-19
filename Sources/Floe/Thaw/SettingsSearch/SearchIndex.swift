@@ -92,7 +92,8 @@ enum SearchIndex {
     ///
     /// Resolved once, since search reads it per keystroke. A pane adds its controls by declaring
     /// a static list in an extension of SearchIndex and appending it here.
-    static let staticEntries: [SearchEntry] = paneEntries + appearanceEntries + privacyEntries + generalEntries + commandsEntries + quicklinksEntries
+    static let staticEntries: [SearchEntry] = paneEntries + appearanceEntries + privacyEntries + generalEntries + applicationsEntries + aiEntries + syncEntries
+        + aboutEntries + commandsEntries + quicklinksEntries
 
     /// Returns the entries that belong to the given pane.
     static func entries(for pane: SettingsPage, in entries: [SearchEntry] = staticEntries) -> [SearchEntry] {

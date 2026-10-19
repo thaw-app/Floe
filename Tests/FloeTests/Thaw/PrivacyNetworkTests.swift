@@ -13,7 +13,7 @@ struct PrivacyNetworkTests {
         #expect(PrivacyNetwork.aiLine(source: .api, baseURL: "https://openrouter.ai/api/v1") == "Questions go to openrouter.ai, with your key, and nowhere else.")
         #expect(PrivacyNetwork.aiLine(source: .api, baseURL: "").contains("api.openai.com"), "an empty address is OpenAI's")
         #expect(PrivacyNetwork.aiLine(source: .tools, baseURL: "", tool: "opencode") == "Questions go to the opencode tool, which sends them to the service it is signed in to, on your account there.")
-        #expect(PrivacyNetwork.aiLine(source: .tools, baseURL: "") == "The command line tool set in General is not installed, so no question is sent.")
+        #expect(PrivacyNetwork.aiLine(source: .tools, baseURL: "") == "The command line tool set on the AI page is not installed, so no question is sent.")
         #expect(PrivacyNetwork.aiLine(source: .api, baseURL: "https://api.z.ai/api/paas/v4", tool: "claude") == "Questions go to api.z.ai, with your key, and nowhere else.", "a tool is not named when the API answers")
     }
 
@@ -23,7 +23,7 @@ struct PrivacyNetworkTests {
     }
 
     @Test func anAddressThatIsNotOneClaimsNoDestination() {
-        #expect(PrivacyNetwork.aiLine(source: .api, baseURL: "nonsense") == "Questions go to the address set in General, once it is filled in.")
+        #expect(PrivacyNetwork.aiLine(source: .api, baseURL: "nonsense") == "Questions go to the address set on the AI page, once it is filled in.")
     }
 
     @Test func aBuildWithoutUpdatesSaysNothingAboutThem() {

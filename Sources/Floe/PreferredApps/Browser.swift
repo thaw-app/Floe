@@ -150,9 +150,10 @@ extension View {
 }
 
 extension SearchIndex {
-    /// The browser role's picker on the General page.
+    /// The browser role's picker on the Applications page.
     static let browserEntries: [SearchEntry] = [
-        .general(
+        .on(
+            .applications,
             "browserApp",
             AppRole.browser.title,
             description: AppRole.browser.detail,

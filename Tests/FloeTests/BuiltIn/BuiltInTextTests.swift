@@ -191,7 +191,7 @@ struct BuiltInTextTests {
         #expect(AIToolOption.problem(chosen: nil) == "AI can't answer yet. Install claude, codex, opencode or pi and sign in.")
         #expect(AIToolOption.problem(chosen: .codex) == "AI can't answer yet. codex is not installed. Install it and sign in, or choose another tool.")
         #expect(AIEngine.missingMessage(for: AIEngine.Setup(tool: .opencode))
-            == "AI is set to answer with opencode, which is not installed. Install it and sign in, or choose another tool under Settings › General › AI.")
+            == "AI is set to answer with opencode, which is not installed. Install it and sign in, or choose another tool under Settings › AI.")
         #expect(AskAI.source(for: .tools, tool: Self.awkward)?.line == "The \(Self.awkward) tool, on your account")
     }
 

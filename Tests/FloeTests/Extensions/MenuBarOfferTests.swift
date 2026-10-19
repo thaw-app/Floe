@@ -34,7 +34,7 @@ struct MenuBarOfferTests {
         #expect(offer.ready.map(\.id) == ["floe-test-player/now", "floe-test-player/mini"])
         #expect(offer.needingSetup.isEmpty)
         #expect(offer.title == "Add Player to the menu bar?")
-        #expect(offer.message == "Now Playing and Mini Player can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under General.")
+        #expect(offer.message == "Now Playing and Mini Player can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under Commands.")
     }
 
     @Test func aCommandAlreadyInTheMenuBarIsNotOfferedAgain() throws {

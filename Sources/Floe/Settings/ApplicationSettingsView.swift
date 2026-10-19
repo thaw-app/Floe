@@ -9,8 +9,8 @@ import AppKit
 import SwiftUI
 import ThawUI
 
-/// Aliases and hotkeys for apps. A row is plain text so the page stays cheap with hundreds of apps;
-/// the editing controls exist only in the row that was clicked.
+/// The apps Floe opens things in, then aliases and hotkeys for each app. A row is plain text so the
+/// page stays cheap with hundreds of apps; the editing controls exist only in the row that was clicked.
 struct ApplicationSettingsView: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
@@ -20,6 +20,7 @@ struct ApplicationSettingsView: View {
     var body: some View {
         let apps = catalog.apps.filter { filter.isEmpty || $0.name.localizedCaseInsensitiveContains(filter) }
         Form {
+            PreferredAppsSettingsSection(settings: settings)
             ThawSection {
                 // In the pane, not the toolbar: the toolbar's field searches the settings.
                 HStack(spacing: ThawSpacing.compact) {

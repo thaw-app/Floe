@@ -62,6 +62,7 @@
 		243117E3A867C7CFE1D20BA2 /* Model+MenuItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7CB90934B672E8A7BED861 /* Model+MenuItems.swift */; };
 		25A049D41E02F7598E0F6274 /* RootIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50746E1270F4F6E9EC534ECE /* RootIcon.swift */; };
 		262D8DD7401E445EF144217D /* ProcessLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE0AE17795FC335EFF92ADDD /* ProcessLink.swift */; };
+		263A3BD731D00757F3BD27DB /* SyncSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12DB115D3714A1A3D1C7C3D6 /* SyncSettingsView.swift */; };
 		26CEA7744F41F11AC6042A31 /* BackgroundScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26FC03A029A34D38B9446379 /* BackgroundScheduler.swift */; };
 		274767D215F2E177AF2E97D5 /* Credits.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8BC098F6B0847921A77F6BF /* Credits.swift */; };
 		276D91CBF8BAE04BEABCC6E7 /* AskAIModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AE33AA2FB7B98AC273FD8B6 /* AskAIModel.swift */; };
@@ -433,6 +434,7 @@
 		10293FC6F3B888A56C80C673 /* RecentDocuments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentDocuments.swift; sourceTree = "<group>"; };
 		1228F1169E5862099F0424C5 /* WindowRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowRows.swift; sourceTree = "<group>"; };
 		12590EA11A0CFF4478B99322 /* SettingsMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMerge.swift; sourceTree = "<group>"; };
+		12DB115D3714A1A3D1C7C3D6 /* SyncSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSettingsView.swift; sourceTree = "<group>"; };
 		13D930183FBABDD9AA57D1BD /* DiagnosticsSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsSettingsSection.swift; sourceTree = "<group>"; };
 		14FFA50DDBDCCFF1EFF81911 /* Calculator+Query.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calculator+Query.swift"; sourceTree = "<group>"; };
 		15BDEE94D408295874A7461E /* ThawHUDPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThawHUDPlacement.swift; sourceTree = "<group>"; };
@@ -1120,6 +1122,7 @@
 				D9E988DE65E609D0E3B8F836 /* ShellCommandsSettingsSection.swift */,
 				4F0249DC6940E1049818D55E /* SnippetsSettingsPage.swift */,
 				F309AEDF8D21B519596790F8 /* SyncSettingsSection.swift */,
+				12DB115D3714A1A3D1C7C3D6 /* SyncSettingsView.swift */,
 				3C178B96CB145E8FEA3F3778 /* SystemStores.swift */,
 				48B2AC0720E49E53A9E3E6C6 /* ThawSupportNotice.swift */,
 				4F9E804FCFAE9C367F19FF6F /* WelcomeSettingsSection.swift */,
@@ -1903,6 +1906,7 @@
 				0A74E23C8016AE1FB4354509 /* SyncEngine.swift in Sources */,
 				99BEFA324285975C6C22D63D /* SyncRecord.swift in Sources */,
 				D9AF2C50FA77188325D33F47 /* SyncSettingsSection.swift in Sources */,
+				263A3BD731D00757F3BD27DB /* SyncSettingsView.swift in Sources */,
 				683D3B45D36E08EF16A3CF8C /* SyncStore.swift in Sources */,
 				A1D15AAC45FDE80BED5CE0C1 /* SystemCommands.swift in Sources */,
 				9691207E579805E7F46B802C /* SystemFacts.swift in Sources */,

@@ -54,7 +54,7 @@ nonisolated enum PiTextStream {
             let blocks = reply["content"] as? [[String: Any]] ?? []
             return .result(blocks.filter { $0["type"] as? String == "text" }.compactMap { $0["text"] as? String }.joined())
         case "tool_execution_start":
-            return .stop(String(localized: "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI.", bundle: .floe, comment: "The word pi is the name of a command and stays as written."))
+            return .stop(String(localized: "pi tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › AI.", bundle: .floe, comment: "The word pi is the name of a command and stays as written."))
         default:
             return nil
         }

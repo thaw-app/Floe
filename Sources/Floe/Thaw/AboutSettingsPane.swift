@@ -10,7 +10,7 @@
 //  Ported to Floe from Thaw 3. What's New and Credits open in ReadingWindow, since Floe's settings
 //  are a process of their own without Thaw's window scenes. The "more" menu and the footer keep the
 //  destinations Floe has, and the updates card shows only in a build that can update (see
-//  UpdatesManager.isAvailable).
+//  UpdatesManager.isAvailable). Floe's Diagnostics section closes the page.
 
 import AppKit
 import SwiftUI
@@ -53,13 +53,14 @@ nonisolated enum AppInfo {
 
 /// The About page: who Floe is and which build this is, then one card for
 /// updates, then news and help actions. Project links and copyright form a
-/// quiet footer.
+/// quiet footer, and the switch for the log file sits under it.
 struct AboutSettingsPane: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
 
     @Bindable var updatesManager: UpdatesManager
+    let settings: AppSettings
 
     private static let iconSize: CGFloat = 96
 
@@ -80,6 +81,7 @@ struct AboutSettingsPane: View {
                 }
                 actions
                 footer
+                DiagnosticsSettingsForm(settings: settings)
             }
             .frame(maxWidth: 400)
             .padding(.horizontal, 24)
@@ -98,9 +100,7 @@ struct AboutSettingsPane: View {
         .onChange(of: colorScheme, initial: true) {
             applicationIcon = Self.currentApplicationIcon()
         }
-        .onDisappear {
-            copyFeedbackTask?.cancel()
-        }
+        .onDisappear { copyFeedbackTask?.cancel() }
     }
 
     // MARK: Identity

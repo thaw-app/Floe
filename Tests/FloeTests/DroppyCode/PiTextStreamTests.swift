@@ -107,7 +107,7 @@ struct PiTextStreamTests {
             return
         }
         #expect(message.contains("pi tried to use a tool"))
-        #expect(message.contains("Settings › General › AI"))
+        #expect(message.contains("Settings › AI"))
     }
 
     @Test func anAnswerAfterRefusalsIsTheAnswer() {

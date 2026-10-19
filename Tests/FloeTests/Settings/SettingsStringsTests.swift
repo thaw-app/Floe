@@ -38,7 +38,7 @@ struct SettingsStringsTests {
     }
 
     @Test func theKeywordsOfAnEntryAreTheTermsOfItsList() throws {
-        let browser = try #require(SearchIndex.staticEntries.first { $0.id == "general.browserApp" })
+        let browser = try #require(SearchIndex.staticEntries.first { $0.id == "applications.browserApp" })
         #expect(browser.keywords == ["browser", "web browser", "default browser", "web", "links", "web address", "quicklink", "preferred app", "default app"])
         let about = try #require(SearchIndex.staticEntries.first { $0.id == "pane.about" })
         #expect(about.keywords.count == 15)
@@ -48,15 +48,15 @@ struct SettingsStringsTests {
 
     @Test func theIdsAreTheOnesTheWindowKnows() {
         #expect(SearchIndex.staticEntries.map(\.id) == [
-            "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.quicklinks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
+            "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.ai", "pane.sync", "pane.quicklinks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
             "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.separatesSearchField", "appearance.glassEffect",
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
             "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
             "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.checkForUpdates", "general.popToRootDelay",
-            "general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp", "general.clearClipboardHistory",
-            "general.aiSource", "general.aiTool", "general.aiAddress", "general.aiModel", "general.aiKey",
-            "general.syncsWithICloud", "general.syncsExtensionSettings", "general.syncsPasswords", "general.transferSettings", "general.diagnosticLogging",
+            "applications.terminalApp", "applications.editorApp", "applications.browserApp", "applications.notesApp", "applications.clipboardApp", "applications.clearClipboardHistory",
+            "ai.aiSource", "ai.aiTool", "ai.aiAddress", "ai.aiModel", "ai.aiKey",
+            "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "about.diagnosticLogging",
             "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.thawSupport",
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
             "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",

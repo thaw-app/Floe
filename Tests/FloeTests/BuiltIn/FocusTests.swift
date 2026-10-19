@@ -227,7 +227,7 @@ struct FocusTests {
         #expect(model.primaryActionTitle(for: row) == "Open Shortcuts")
         model.activate(row)
         #expect(stand.opened == ["/System/Applications/Shortcuts.app"])
-        #expect(said == ["Make a Shortcut that sets your Focus, then name it in Settings › General"])
+        #expect(said == ["Make a Shortcut that sets your Focus, then name it in Settings › Commands"])
         #expect(stand.runs.isEmpty)
 
         model.query = "toggle focus"

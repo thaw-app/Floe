@@ -76,6 +76,8 @@ nonisolated enum SettingsPage: Hashable {
     case general
     case commands
     case applications
+    case ai
+    case sync
     case quicklinks
     case snippets
     case extensionStore
@@ -89,6 +91,8 @@ nonisolated enum SettingsPage: Hashable {
         "general": .general,
         "commands": .commands,
         "applications": .applications,
+        "ai": .ai,
+        "sync": .sync,
         "quicklinks": .quicklinks,
         "snippets": .snippets,
         "store": .extensionStore,

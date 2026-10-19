@@ -81,7 +81,7 @@ final class AskAIModel: ObservableObject {
     /// Bumped per request, so text from one that was replaced or left is dropped.
     private var generation = 0
 
-    /// How Ask AI is answered: by the source chosen in General, as an extension's `AI.ask` is.
+    /// How Ask AI is answered: by the source chosen on the AI page, as an extension's `AI.ask` is.
     static let live: Request = { conversation, emit in
         let (choice, localOnly) = await MainActor.run { (AIAnswer.configured(), AppSettings.shared.aiOnThisMacOnly) }
         return try await AIAnswer.answer(conversation, model: nil, choice: choice, localOnly: localOnly, emit: emit)

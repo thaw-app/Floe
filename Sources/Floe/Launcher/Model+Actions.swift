@@ -135,7 +135,7 @@ extension LauncherModel {
         guard Self.canBeHidden(item) else { return }
         settings.hiddenResults[item.id] = item.title
         settings.favorites.removeAll { $0 == item.id }
-        panelHost.showHUD(String(localized: "Hidden from search. Settings › General brings it back.", bundle: .floe))
+        panelHost.showHUD(String(localized: "Hidden from search. Settings › Commands brings it back.", bundle: .floe))
         refresh()
     }
 

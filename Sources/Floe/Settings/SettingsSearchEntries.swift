@@ -11,6 +11,8 @@ extension SearchPaneLabel {
     static let general = SearchPaneLabel(title: String(localized: "General", bundle: .floe, comment: "The name of a settings page."), symbol: "gearshape")
     static let commands = SearchPaneLabel(title: String(localized: "Commands", bundle: .floe, comment: "The name of a settings page."), symbol: "command")
     static let applications = SearchPaneLabel(title: String(localized: "Applications", bundle: .floe, comment: "The name of a settings page."), symbol: "square.grid.2x2")
+    static let ai = SearchPaneLabel(title: String(localized: "AI", bundle: .floe, comment: "The name of a settings page."), symbol: AskAI.symbol)
+    static let sync = SearchPaneLabel(title: String(localized: "Sync", bundle: .floe, comment: "The name of a settings page."), symbol: "arrow.triangle.2.circlepath")
     static let quicklinks = SearchPaneLabel(title: String(localized: "Quicklinks", bundle: .floe, comment: "The name of a settings page."), symbol: "link")
     static let snippets = SearchPaneLabel(title: String(localized: "Snippets", bundle: .floe, comment: "The name of a settings page."), symbol: "text.quote")
     static let extensionStore = SearchPaneLabel(title: String(localized: "Extension Store", bundle: .floe, comment: "The name of a settings page."), symbol: "bag")
@@ -23,6 +25,8 @@ extension SearchPane {
     static let general = SearchPane(page: .general, label: .general)
     static let commands = SearchPane(page: .commands, label: .commands)
     static let applications = SearchPane(page: .applications, label: .applications)
+    static let ai = SearchPane(page: .ai, label: .ai)
+    static let sync = SearchPane(page: .sync, label: .sync)
     static let quicklinks = SearchPane(page: .quicklinks, label: .quicklinks)
     static let snippets = SearchPane(page: .snippets, label: .snippets)
     static let extensionStore = SearchPane(page: .extensionStore, label: .extensionStore)
@@ -39,8 +43,9 @@ extension String {
 }
 
 extension SearchEntry {
-    /// An entry on the Appearance pane.
-    static func appearance(
+    /// An entry on one of Floe's own panes. Its id starts with the pane's, so it names where the control is.
+    static func on(
+        _ pane: SearchPane,
         _ id: String,
         _ title: String,
         description: String? = nil,
@@ -48,49 +53,28 @@ extension SearchEntry {
         keywords: [String]
     ) -> SearchEntry {
         SearchEntry(
-            id: "appearance.\(id)",
+            id: "\(pane.page.id).\(id)",
             title: title,
             descriptionText: description,
-            pane: .appearance,
+            pane: pane,
             section: section,
             keywords: keywords
         )
+    }
+
+    /// An entry on the Appearance pane.
+    static func appearance(_ id: String, _ title: String, description: String? = nil, section: String? = nil, keywords: [String]) -> SearchEntry {
+        on(.appearance, id, title, description: description, section: section, keywords: keywords)
     }
 
     /// An entry on the Quicklinks pane.
-    static func quicklinks(
-        _ id: String,
-        _ title: String,
-        description: String? = nil,
-        section: String? = nil,
-        keywords: [String]
-    ) -> SearchEntry {
-        SearchEntry(
-            id: "quicklinks.\(id)",
-            title: title,
-            descriptionText: description,
-            pane: .quicklinks,
-            section: section,
-            keywords: keywords
-        )
+    static func quicklinks(_ id: String, _ title: String, description: String? = nil, section: String? = nil, keywords: [String]) -> SearchEntry {
+        on(.quicklinks, id, title, description: description, section: section, keywords: keywords)
     }
 
     /// An entry on the General pane.
-    static func general(
-        _ id: String,
-        _ title: String,
-        description: String? = nil,
-        section: String? = nil,
-        keywords: [String]
-    ) -> SearchEntry {
-        SearchEntry(
-            id: "general.\(id)",
-            title: title,
-            descriptionText: description,
-            pane: .general,
-            section: section,
-            keywords: keywords
-        )
+    static func general(_ id: String, _ title: String, description: String? = nil, section: String? = nil, keywords: [String]) -> SearchEntry {
+        on(.general, id, title, description: description, section: section, keywords: keywords)
     }
 }
 
@@ -101,8 +85,7 @@ extension SearchEntry {
 /// that gains a control adds an entry to its list here; a new pane adds a list and appends it
 /// to SearchIndex.staticEntries.
 extension SearchIndex {
-    /// The panes themselves, so typing a pane's name finds it. Applications and About have no
-    /// entries beyond these: one is a list of apps with its own filter, the other has no settings.
+    /// The panes themselves, so typing a pane's name finds it.
     static let paneEntries: [SearchEntry] = [
         SearchEntry(
             id: "pane.appearance",
@@ -139,12 +122,34 @@ extension SearchIndex {
         SearchEntry(
             id: "pane.applications",
             title: String(localized: "Applications", bundle: .floe, comment: "The name of a settings page."),
-            descriptionText: String(localized: "Aliases and hotkeys for apps.", bundle: .floe),
+            descriptionText: String(localized: "Preferred apps, and aliases and hotkeys for apps.", bundle: .floe),
             pane: .applications,
             keywords: String(
                 localized: "apps, alias, hotkey, shortcut, keyboard, filter",
                 bundle: .floe,
                 comment: "Words that find the Applications page in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        SearchEntry(
+            id: "pane.ai",
+            title: String(localized: "AI", bundle: .floe, comment: "The name of a settings page."),
+            descriptionText: String(localized: "What answers Ask AI and extensions.", bundle: .floe),
+            pane: .ai,
+            keywords: String(
+                localized: "ai, ask ai, artificial intelligence, assistant, llm",
+                bundle: .floe,
+                comment: "Words that find the AI page in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        SearchEntry(
+            id: "pane.sync",
+            title: String(localized: "Sync", bundle: .floe, comment: "The name of a settings page."),
+            descriptionText: String(localized: "iCloud sync and settings files.", bundle: .floe),
+            pane: .sync,
+            keywords: String(
+                localized: "sync, icloud, export, import, backup",
+                bundle: .floe,
+                comment: "Words that find the Sync page in the settings search, separated by commas."
             ).searchTerms
         ),
         SearchEntry(
@@ -530,7 +535,12 @@ extension SearchIndex {
                 comment: "Words that find the Return to root search setting in the settings search, separated by commas."
             ).searchTerms
         ),
-        .general(
+    ]
+
+    /// Preferred Apps leads the Applications pane; the list of apps under it has its own filter.
+    static let applicationsEntries: [SearchEntry] = [
+        .on(
+            .applications,
             "terminalApp",
             AppRole.terminal.title,
             description: AppRole.terminal.detail,
@@ -541,7 +551,8 @@ extension SearchIndex {
                 comment: "Words that find the Terminal setting in the settings search, separated by commas."
             ).searchTerms
         ),
-        .general(
+        .on(
+            .applications,
             "editorApp",
             AppRole.editor.title,
             description: AppRole.editor.detail,
@@ -553,7 +564,8 @@ extension SearchIndex {
             ).searchTerms
         ),
     ] + browserEntries + [
-        .general(
+        .on(
+            .applications,
             "notesApp",
             AppRole.notes.title,
             description: AppRole.notes.detail,
@@ -564,115 +576,7 @@ extension SearchIndex {
                 comment: "Words that find the Notes setting in the settings search, separated by commas."
             ).searchTerms
         ),
-    ] + clipboardEntries + [
-        .general(
-            "aiSource",
-            String(localized: "Answer AI requests with", bundle: .floe),
-            description: String(localized: "Extensions that ask AI a question get their answer from here.", bundle: .floe),
-            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
-            keywords: String(
-                localized: "ai, ask, claude, codex, opencode, pi, openai, openrouter, z.ai, apple intelligence, ollama, lm studio, local, model, llm, assistant, provider",
-                bundle: .floe,
-                comment: "Words that find the Answer AI requests with setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "aiTool",
-            String(localized: "Tool", bundle: .floe, comment: "A command line program that answers AI requests."),
-            description: String(localized: "Automatic uses the first one installed: claude, codex, opencode, then pi. Accounts and keys stay in the tool.", bundle: .floe),
-            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
-            keywords: String(
-                localized: "ai, command line, cli, terminal, agent, claude, codex, opencode, pi, automatic",
-                bundle: .floe,
-                comment: "Words that find the Tool setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "aiAddress",
-            String(localized: "Address", bundle: .floe, comment: "The web address of an AI service."),
-            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
-            keywords: String(
-                localized: "ai, api, base url, endpoint, openai, openrouter, z.ai, server, host, service",
-                bundle: .floe,
-                comment: "Words that find the Address setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "aiModel",
-            String(localized: "Model", bundle: .floe, comment: "The AI model that answers."),
-            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
-            keywords: String(
-                localized: "ai, api, model, gpt, openai, opencode, pi",
-                bundle: .floe,
-                comment: "Words that find the Model setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "aiKey",
-            String(localized: "API key", bundle: .floe),
-            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
-            keywords: String(
-                localized: "ai, api, key, token, secret, keychain, openai",
-                bundle: .floe,
-                comment: "Words that find the API key setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "syncsWithICloud",
-            String(localized: "Sync settings with iCloud", bundle: .floe),
-            description: String(localized: "Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out.", bundle: .floe),
-            section: String(localized: "iCloud", bundle: .floe),
-            keywords: String(
-                localized: "sync, icloud, cloud, macs, devices, backup, share, remove",
-                bundle: .floe,
-                comment: "Words that find the Sync settings with iCloud setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "syncsExtensionSettings",
-            String(localized: "Include extension settings", bundle: .floe),
-            description: String(localized: "Preferences of your extensions sync too, except passwords, files, folders and chosen apps.", bundle: .floe),
-            section: String(localized: "iCloud", bundle: .floe),
-            keywords: String(
-                localized: "sync, icloud, extensions, extension preferences, extension settings, macs",
-                bundle: .floe,
-                comment: "Words that find the Include extension settings setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "syncsPasswords",
-            String(localized: "Sync passwords with iCloud Keychain", bundle: .floe),
-            description: String(localized: "Extension passwords and API keys are kept in iCloud Keychain, which has its own switch in System Settings.", bundle: .floe),
-            section: String(localized: "iCloud", bundle: .floe),
-            keywords: String(
-                localized: "passwords, keychain, icloud keychain, api key, secrets, tokens, sync, remove",
-                bundle: .floe,
-                comment: "Words that find the Sync passwords with iCloud Keychain setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "transferSettings",
-            String(localized: "Export or import settings", bundle: .floe),
-            description: String(localized: "Moves aliases, hotkeys, favorites, appearance and extension preferences to another Mac.", bundle: .floe),
-            section: String(localized: "Your Settings", bundle: .floe),
-            keywords: String(
-                localized: "export, import, backup, transfer, move, file, restore",
-                bundle: .floe,
-                comment: "Words that find the Export or import settings setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .general(
-            "diagnosticLogging",
-            String(localized: "Detailed logging", bundle: .floe),
-            description: String(localized: "Writes a log for troubleshooting to ~/Library/Logs/Floe.", bundle: .floe),
-            section: String(localized: "Diagnostics", bundle: .floe, comment: "The heading over the logging settings."),
-            keywords: String(
-                localized: "log, logs, logging, diagnostics, debug, troubleshoot, slow, report",
-                bundle: .floe,
-                comment: "Words that find the Detailed logging setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-    ]
+    ] + clipboardEntries
 
     static let quicklinksEntries: [SearchEntry] = [
         .quicklinks(

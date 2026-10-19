@@ -153,7 +153,8 @@ extension AppSettings {
 extension SearchIndex {
     /// The clipboard role's picker, and Clear History under it.
     static let clipboardEntries: [SearchEntry] = [
-        .general(
+        .on(
+            .applications,
             "clipboardApp",
             AppRole.clipboard.title,
             description: AppRole.clipboard.detail,
@@ -164,7 +165,8 @@ extension SearchIndex {
                 comment: "Words that find the Clipboard app setting in the settings search, separated by commas."
             ).searchTerms
         ),
-        .general(
+        .on(
+            .applications,
             "clearClipboardHistory",
             String(localized: "Clear clipboard history", bundle: .floe),
             description: String(localized: "Removes every copy except pinned ones.", bundle: .floe),

@@ -138,8 +138,8 @@ After you install:
 
 #### Your own apps
 - **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. The editor can be one that runs in your terminal: Helix, Neovim, Vim, Emacs and others on your Mac are offered by name. Open With sends one link to another browser.
-- **Clipboard history.** Floe keeps the text, links, images and files you copy, up to 300 of them, and text keeps its formatting. Return pastes one, and pinned copies survive Clear. A copy a password manager marks private is left out. Choose Off for Clipboard in Settings > General to stop saving copies.
-- **Browse Notes.** With a folder of notes chosen as the notes app, such as an Obsidian or Octarine vault, Browse Notes lists its notes in the panel, shows the selected one as Markdown and lets you write it. Command-N makes a note named by what you typed, Command-E starts and ends writing, and Command-O opens the note in its app. Floe keeps no copy: it reads and writes the files, says at the bottom which app they are kept in, and picks up what that app writes. A note changed elsewhere while you wrote is not overwritten; yours is saved beside it. It takes a hotkey in Settings > General.
+- **Clipboard history.** Floe keeps the text, links, images and files you copy, up to 300 of them, and text keeps its formatting. Return pastes one, and pinned copies survive Clear. A copy a password manager marks private is left out. Choose Off for Clipboard in Settings > Applications to stop saving copies.
+- **Browse Notes.** With a folder of notes chosen as the notes app, such as an Obsidian or Octarine vault, Browse Notes lists its notes in the panel, shows the selected one as Markdown and lets you write it. Command-N makes a note named by what you typed, Command-E starts and ends writing, and Command-O opens the note in its app. Floe keeps no copy: it reads and writes the files, says at the bottom which app they are kept in, and picks up what that app writes. A note changed elsewhere while you wrote is not overwritten; yours is saved beside it. It takes a hotkey in Settings > Commands.
 - **A preferred clipboard app.** Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies.
 - **SSH hosts.** The hosts in `~/.ssh/config` are in the search, and `ssh` and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.
 - **Apple Shortcuts**, once turned on in Settings > Privacy. Return runs one in the background. If it fails, Floe shows the reason Shortcuts gave.
@@ -174,7 +174,7 @@ After you install:
 - **Three actions in Apple's Shortcuts app:** Open Floe, Run Command and Search Menu Bar Items. Siri runs them too.
 
 #### Sync
-- **Settings sync with iCloud**, off until you switch it on in Settings > General. Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are the same on your Macs, and the newest change wins.
+- **Settings sync with iCloud**, off until you switch it on in Settings > Sync. Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are the same on your Macs, and the newest change wins.
 - **Passwords through iCloud Keychain**, a second switch that is off until you choose it. Extension passwords and API keys become iCloud Keychain items; off copies them back to this Mac and leaves them in iCloud Keychain.
 - **Some things stay on each Mac:** folders, permissions, AI settings, an extension's files, folders and chosen apps, sign-ins and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
 

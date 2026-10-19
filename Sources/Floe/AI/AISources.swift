@@ -55,7 +55,7 @@ nonisolated struct AISources: Sendable {
 
 nonisolated extension AIAnswer {
     static let localOnlyMessage = String(
-        localized: "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › General › AI.",
+        localized: "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › AI.",
         bundle: .floe
     )
 

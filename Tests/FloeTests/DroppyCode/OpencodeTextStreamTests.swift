@@ -102,7 +102,7 @@ struct OpencodeTextStreamTests {
             return
         }
         #expect(message.contains("opencode tried to use a tool"))
-        #expect(message.contains("Settings › General › AI"))
+        #expect(message.contains("Settings › AI"))
     }
 
     // MARK: A run, against a script that prints what the tool printed

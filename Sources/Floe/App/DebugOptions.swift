@@ -47,7 +47,7 @@ struct DebugOptions: ParsableCommand {
     @Flag(help: .hidden)
     var panel = false
 
-    @Option(help: ArgumentHelp("With --settings, the page to open: general, applications, quicklinks, snippets, store, appearance, privacy or about.", valueName: "page"))
+    @Option(help: ArgumentHelp("With --settings, the page to open: general, commands, applications, ai, sync, quicklinks, snippets, store, appearance, privacy or about.", valueName: "page"))
     var page: String?
 
     @Option(name: .customLong("extension"), help: ArgumentHelp("With --settings, the extension whose page to open.", valueName: "name"))

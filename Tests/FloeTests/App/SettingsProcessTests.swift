@@ -70,11 +70,12 @@ struct SettingsModeTests {
     }
 
     @Test func everyPageHasANameThatReadsBack() {
-        let pages: [SettingsPage] = [.general, .applications, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about, .extensionPage("kill-process")]
+        let pages: [SettingsPage] = [.general, .commands, .applications, .ai, .sync, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about, .extensionPage("kill-process")]
         for page in pages {
             #expect(SettingsPage(id: page.id) == page)
         }
         #expect(Set(pages.map(\.id)).count == pages.count)
+        #expect(SettingsPage(id: "ai") == .ai && SettingsPage(id: "sync") == .sync, "the new pages open by name")
         #expect(SettingsPage(id: "") == nil)
         #expect(SettingsPage(id: "extension:") == nil)
     }

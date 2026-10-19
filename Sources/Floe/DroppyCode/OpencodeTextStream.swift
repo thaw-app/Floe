@@ -62,7 +62,7 @@ nonisolated enum OpencodeTextStream {
         guard let message = (try? JSONSerialization.jsonObject(with: Data(line.utf8))) as? [String: Any] else { return nil }
         let part = message["part"] as? [String: Any]
         if part?["type"] as? String == "tool" {
-            return .stop(String(localized: "opencode tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › General › AI.", bundle: .floe, comment: "The word opencode is the name of a command and stays as written."))
+            return .stop(String(localized: "opencode tried to use a tool, which Floe does not allow, so it was stopped. Choose another tool under Settings › AI.", bundle: .floe, comment: "The word opencode is the name of a command and stays as written."))
         }
         switch message["type"] as? String {
         case "text":

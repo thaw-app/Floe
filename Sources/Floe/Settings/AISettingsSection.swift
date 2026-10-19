@@ -8,7 +8,7 @@
 import SwiftUI
 import ThawUI
 
-/// General's AI section: what answers an extension's `AI.ask`.
+/// The AI page's section: what answers an extension's `AI.ask`.
 struct AISettingsSection: View {
     @ObservedObject var settings: AppSettings
     @State private var apiKey: String
@@ -122,4 +122,67 @@ struct AISettingsSection: View {
             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
         }
     }
+}
+
+extension SearchIndex {
+    /// The AI page's controls, for the settings search.
+    static let aiEntries: [SearchEntry] = [
+        .on(
+            .ai,
+            "aiSource",
+            String(localized: "Answer AI requests with", bundle: .floe),
+            description: String(localized: "Extensions that ask AI a question get their answer from here.", bundle: .floe),
+            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
+            keywords: String(
+                localized: "ai, ask, claude, codex, opencode, pi, openai, openrouter, z.ai, apple intelligence, ollama, lm studio, local, model, llm, assistant, provider",
+                bundle: .floe,
+                comment: "Words that find the Answer AI requests with setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .on(
+            .ai,
+            "aiTool",
+            String(localized: "Tool", bundle: .floe, comment: "A command line program that answers AI requests."),
+            description: String(localized: "Automatic uses the first one installed: claude, codex, opencode, then pi. Accounts and keys stay in the tool.", bundle: .floe),
+            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
+            keywords: String(
+                localized: "ai, command line, cli, terminal, agent, claude, codex, opencode, pi, automatic",
+                bundle: .floe,
+                comment: "Words that find the Tool setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .on(
+            .ai,
+            "aiAddress",
+            String(localized: "Address", bundle: .floe, comment: "The web address of an AI service."),
+            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
+            keywords: String(
+                localized: "ai, api, base url, endpoint, openai, openrouter, z.ai, server, host, service",
+                bundle: .floe,
+                comment: "Words that find the Address setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .on(
+            .ai,
+            "aiModel",
+            String(localized: "Model", bundle: .floe, comment: "The AI model that answers."),
+            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
+            keywords: String(
+                localized: "ai, api, model, gpt, openai, opencode, pi",
+                bundle: .floe,
+                comment: "Words that find the Model setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .on(
+            .ai,
+            "aiKey",
+            String(localized: "API key", bundle: .floe),
+            section: String(localized: "AI", bundle: .floe, comment: "The heading over the settings for artificial intelligence."),
+            keywords: String(
+                localized: "ai, api, key, token, secret, keychain, openai",
+                bundle: .floe,
+                comment: "Words that find the API key setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+    ]
 }

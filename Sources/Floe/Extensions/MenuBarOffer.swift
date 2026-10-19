@@ -41,7 +41,7 @@ nonisolated struct MenuBarOffer: Identifiable, Equatable {
     var message: String {
         let later = String(localized: "Set \(extensionTitle)'s preferences on its page before adding \(Self.list(needingSetup)).", bundle: .floe, comment: "The first placeholder is an extension's name, the second the names of one or more of its commands.")
         guard !ready.isEmpty else { return later }
-        let now = String(localized: "\(Self.list(ready)) can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under General.", bundle: .floe, comment: "The placeholder is the names of one or more commands. General is the name of a settings page.")
+        let now = String(localized: "\(Self.list(ready)) can show in the menu bar. Floe adds a menu bar command only when you ask, and you can change this later under Commands.", bundle: .floe, comment: "The placeholder is the names of one or more commands. Commands is the name of a settings page.")
         return needingSetup.isEmpty ? now : now + " " + later
     }
 

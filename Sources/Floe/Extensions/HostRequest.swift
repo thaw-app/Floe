@@ -334,9 +334,9 @@ nonisolated struct AIEndpoint: Equatable, Sendable {
     }
 }
 
-/// The choice in Settings › General › AI, read where a request is answered.
+/// The choice in Settings › AI, read where a request is answered.
 nonisolated enum AIAnswer {
-    static let incompleteMessage = String(localized: "AI is set to use an API, but its address, model or key is missing. Fill them in under Settings › General › AI.", bundle: .floe)
+    static let incompleteMessage = String(localized: "AI is set to use an API, but its address, model or key is missing. Fill them in under Settings › AI.", bundle: .floe)
 
     enum Choice: Equatable {
         case tools

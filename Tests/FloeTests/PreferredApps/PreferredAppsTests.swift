@@ -151,9 +151,9 @@ struct PreferredAppsTests {
     }
 
     @Test func theSettingsSearchFindsEveryRoleUnderPreferredApps() {
-        let entries = SearchIndex.generalEntries.filter { $0.section == "Preferred Apps" }.dropLast()
-        #expect(entries.map(\.id) == ["general.terminalApp", "general.editorApp", "general.browserApp", "general.notesApp", "general.clipboardApp"])
-        #expect(SearchIndex.generalEntries.last { $0.section == "Preferred Apps" }?.id == "general.clearClipboardHistory", "clearing sits under the clipboard's picker")
+        let entries = SearchIndex.applicationsEntries.filter { $0.section == "Preferred Apps" }.dropLast()
+        #expect(entries.map(\.id) == ["applications.terminalApp", "applications.editorApp", "applications.browserApp", "applications.notesApp", "applications.clipboardApp"])
+        #expect(SearchIndex.applicationsEntries.last { $0.section == "Preferred Apps" }?.id == "applications.clearClipboardHistory", "clearing sits under the clipboard's picker")
         #expect(entries.map(\.title) == AppRole.allCases.map(\.title))
         #expect(entries.map(\.descriptionText) == AppRole.allCases.map(\.detail))
     }

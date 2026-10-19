@@ -8,7 +8,7 @@
 import SwiftUI
 import ThawUI
 
-/// General's section for settings sync: the switch, how it is doing, and the way to delete iCloud's copy.
+/// The Sync page's section for iCloud: the switch, how it is doing, and the way to delete iCloud's copy.
 struct SyncSettingsSection: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var sync: SettingsSyncStatus

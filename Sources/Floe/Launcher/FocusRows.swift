@@ -19,7 +19,7 @@ final class FocusRows {
     func setFocus(_ request: FocusRequest, shortcut: String) -> Task<Void, Never>? {
         guard !shortcut.isEmpty else {
             host.reach(FocusRequest.shortcutsApp)
-            host.showHUD(String(localized: "Make a Shortcut that sets your Focus, then name it in Settings › General", bundle: .floe, comment: "Shortcut is what Apple's Shortcuts app makes. Focus is the macOS feature that silences notifications."))
+            host.showHUD(String(localized: "Make a Shortcut that sets your Focus, then name it in Settings › Commands", bundle: .floe, comment: "Shortcut is what Apple's Shortcuts app makes. Focus is the macOS feature that silences notifications."))
             return nil
         }
         host.leave()

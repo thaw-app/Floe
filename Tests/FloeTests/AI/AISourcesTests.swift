@@ -119,7 +119,7 @@ struct AISourcesTests {
         }
         #expect(missing == AIEngine.missingMessage(for: AIEngine.Setup(tool: chosen)))
         #expect(missing?.contains("\(chosen.command), which is not installed") == true)
-        #expect(missing?.contains("Settings › General › AI") == true, "the message says where to change it")
+        #expect(missing?.contains("Settings › AI") == true, "the message says where to change it")
         #expect(ran.withLock { $0 }.isEmpty, "no other tool was run")
 
         let failing = await message {
@@ -205,7 +205,7 @@ struct AISourcesTests {
     @Test func theRefusalSaysTheSwitchIsOnAndWhereItIs() {
         #expect(AIAnswer.localOnlyMessage.contains("Only use AI that runs on this Mac"))
         #expect(AIAnswer.localOnlyMessage.contains("Settings › Privacy"))
-        #expect(AIAnswer.localOnlyMessage.contains("Settings › General › AI"))
+        #expect(AIAnswer.localOnlyMessage.contains("Settings › AI"))
         #expect(AIAnswer.refusal(for: .tools, localOnly: false) == nil)
         #expect(AIAnswer.refusal(for: .appleIntelligence, localOnly: true) == nil)
     }

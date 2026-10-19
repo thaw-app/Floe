@@ -8,7 +8,7 @@
 import SwiftUI
 import ThawUI
 
-/// Settings → General: the switch for the log file, and the way to it.
+/// Settings → About: the switch for the log file, and the way to it.
 struct DiagnosticsSettingsSection: View {
     @ObservedObject var settings: AppSettings
     @State private var logFileName: String?
@@ -32,4 +32,38 @@ struct DiagnosticsSettingsSection: View {
             logFileName = (DiagnosticLogger.shared.currentLogFile ?? DiagnosticLogger.shared.latestLogFile)?.lastPathComponent
         }
     }
+}
+
+/// The section on the About page, which is no form: a form of its own, sized to the section so the
+/// page's scroll view does the scrolling.
+struct DiagnosticsSettingsForm: View {
+    @ObservedObject var settings: AppSettings
+
+    var body: some View {
+        Form {
+            DiagnosticsSettingsSection(settings: settings)
+        }
+        .formStyle(.grouped)
+        .scrollDisabled(true)
+        .scrollContentBackground(.hidden)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+extension SearchIndex {
+    /// The log switch on the About page, for the settings search.
+    static let aboutEntries: [SearchEntry] = [
+        .on(
+            .about,
+            "diagnosticLogging",
+            String(localized: "Detailed logging", bundle: .floe),
+            description: String(localized: "Writes a log for troubleshooting to ~/Library/Logs/Floe.", bundle: .floe),
+            section: String(localized: "Diagnostics", bundle: .floe, comment: "The heading over the logging settings."),
+            keywords: String(
+                localized: "log, logs, logging, diagnostics, debug, troubleshoot, slow, report",
+                bundle: .floe,
+                comment: "Words that find the Detailed logging setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+    ]
 }

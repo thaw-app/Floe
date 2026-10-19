@@ -204,7 +204,7 @@ enum PrivacyNetwork {
         return URL(string: configuration.feedURL)?.host
     }
 
-    /// Where a question goes, for the source chosen in General; `tool` is the command line tool that would answer, if any.
+    /// Where a question goes, for the source chosen on the AI page; `tool` is the command line tool that would answer, if any.
     /// With `onThisMacOnly`, a source that is not on this Mac is said to be refused.
     static func aiLine(source: AISource, baseURL: String, tool: String? = nil, onThisMacOnly: Bool = false) -> String {
         switch source {
@@ -214,13 +214,13 @@ enum PrivacyNetwork {
             }
             return String(localized: "The \(tool) tool is chosen, which sends questions to its service. While the switch below is on, Floe does not ask it.", bundle: .floe, comment: "The placeholder is the name of a command line tool.")
         case .tools:
-            guard let tool else { return String(localized: "The command line tool set in General is not installed, so no question is sent.", bundle: .floe) }
+            guard let tool else { return String(localized: "The command line tool set on the AI page is not installed, so no question is sent.", bundle: .floe) }
             return String(localized: "Questions go to the \(tool) tool, which sends them to the service it is signed in to, on your account there.", bundle: .floe, comment: "The placeholder is the name of a command line tool.")
         case .appleIntelligence:
             return String(localized: "Questions are answered by Apple Intelligence on this Mac. Nothing is sent anywhere.", bundle: .floe)
         case .api:
             let url = AIEndpoint.chatURL(baseURL: baseURL)
-            guard let host = url?.host else { return String(localized: "Questions go to the address set in General, once it is filled in.", bundle: .floe) }
+            guard let host = url?.host else { return String(localized: "Questions go to the address set on the AI page, once it is filled in.", bundle: .floe) }
             let isOnThisMac = AIEndpoint.isOnThisMac(url)
             if onThisMacOnly, !isOnThisMac {
                 return String(localized: "\(host) is chosen, which is not on this Mac. While the switch below is on, Floe refuses to ask it, so no question is sent.", bundle: .floe, comment: "The placeholder is the address of a server.")

@@ -134,6 +134,8 @@ struct SearchIndexTests {
             case .general: #expect(entry.paneLabel == .general)
             case .commands: #expect(entry.paneLabel == .commands)
             case .applications: #expect(entry.paneLabel == .applications)
+            case .ai: #expect(entry.paneLabel == .ai)
+            case .sync: #expect(entry.paneLabel == .sync)
             case .appearance: #expect(entry.paneLabel == .appearance)
             case .quicklinks: #expect(entry.paneLabel == .quicklinks)
             case .snippets: #expect(entry.paneLabel == .snippets)
@@ -145,7 +147,7 @@ struct SearchIndexTests {
         }
     }
 
-    @Test(arguments: [SettingsPage.general, .commands, .applications, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about])
+    @Test(arguments: [SettingsPage.general, .commands, .applications, .ai, .sync, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about])
     func everyPaneOfFloeCanBeFoundByName(pane: SettingsPage) {
         #expect(SearchIndex.paneEntries.contains { $0.pane == pane })
     }
@@ -243,6 +245,12 @@ struct SearchModelTests {
         ("release notes", "pane.about"),
         ("changelog", "pane.about"),
         ("general", "pane.general"),
+        ("sync", "pane.sync"),
+        ("terminal", "applications.terminalApp"),
+        ("api key", "ai.aiKey"),
+        ("icloud", "sync.syncsWithICloud"),
+        ("export", "sync.transferSettings"),
+        ("detailed logging", "about.diagnosticLogging"),
     ])
     func aSettingIsTheFirstResultForItsOwnWords(query: String, id: String) {
         let model = SearchModel()
@@ -358,6 +366,22 @@ struct SettingsSearchNavigationTests {
         SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
         #expect(selection.page == .general)
         #expect(search.requestedAnchor == nil)
+    }
+
+    @Test(arguments: [
+        ("applications.browserApp", SettingsPage.applications),
+        ("ai.aiSource", .ai),
+        ("sync.syncsWithICloud", .sync),
+        ("sync.transferSettings", .sync),
+        ("about.diagnosticLogging", .about),
+    ])
+    func aSettingMovedOutOfGeneralOpensItsNewPage(id: String, page: SettingsPage) throws {
+        let selection = SettingsSelection()
+        let search = SearchModel()
+        let entry = try #require(SearchIndex.staticEntries.first { $0.id == id })
+        SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
+        #expect(selection.page == page)
+        #expect(SearchIndex.entries(for: .general).allSatisfy { $0.section == "Floe" || $0.section == nil }, "General keeps only Floe's own section")
     }
 
     @Test func aSidebarJumpEndsTheSearchAndDropsThePendingScroll() {

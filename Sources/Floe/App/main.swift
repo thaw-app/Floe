@@ -305,7 +305,7 @@ if options.benchSettings {
     let search = SearchModel()
     window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search))
     window.orderFrontRegardless()
-    let pages: [(String, SettingsPage)] = [("general", .general), ("applications", .applications), ("privacy", .privacy), ("about", .about), ("extension", .extensionPage("kill-process"))]
+    let pages: [(String, SettingsPage)] = [("general", .general), ("applications", .applications), ("ai", .ai), ("sync", .sync), ("privacy", .privacy), ("about", .about), ("extension", .extensionPage("kill-process"))]
     for (name, page) in pages {
         let start = Date()
         selection.page = page
@@ -319,7 +319,7 @@ if options.benchSettings {
         }
     }
     runSettingsSearchBench(search: search, window: window)
-    // General's AI section sits below the fold, so each of its states is drawn on its own, on scratch settings that are never saved.
+    // The AI page shows one state at a time, so each is drawn on its own, on scratch settings that are never saved.
     if let directory = ProcessInfo.processInfo.environment["FLOE_BENCH_DUMP"], let scratch = UserDefaults(suiteName: "floe.bench.ai") {
         // Name, source, the API's model and key, the tool chosen by name, and the API's service.
         let states: [(String, AISource, String, String?, AITool?, AIService)] = [
