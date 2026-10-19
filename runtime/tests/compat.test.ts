@@ -24,7 +24,8 @@ beforeAll(() => {
   folder = makeTempDir("tls");
   const key = path.join(folder, "key.pem");
   const cert = path.join(folder, "cert.pem");
-  Bun.spawnSync(["openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes", "-keyout", key, "-out", cert, "-days", "1", "-subj", "/CN=localhost"]);
+  const made = Bun.spawnSync(["openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes", "-keyout", key, "-out", cert, "-days", "1", "-subj", "/CN=localhost"]);
+  if (made.exitCode !== 0) throw new Error(`openssl could not make the test certificate: ${made.stderr.toString()}`);
   secure = Bun.serve({
     port: 0,
     tls: { key: Bun.file(key), cert: Bun.file(cert) },

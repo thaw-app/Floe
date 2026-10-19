@@ -878,17 +878,20 @@ describe("OAuth with sign-in on", () => {
     // A root of its own: the view's error ends the root it is in.
     render(React.createElement(Wrapped));
     const answered = new Set<number>();
-    for (let round = 0; round < 50; round++) {
-      for (const ask of sent("request").filter((message) => message.method === "oauth.authorize" && !answered.has(message.id))) {
-        answered.add(ask.id);
-        handleReply({ id: ask.id, error: "Sign-in was cancelled." });
+    try {
+      for (let round = 0; round < 50; round++) {
+        for (const ask of sent("request").filter((message) => message.method === "oauth.authorize" && !answered.has(message.id))) {
+          answered.add(ask.id);
+          handleReply({ id: ask.id, error: "Sign-in was cancelled." });
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2));
       }
-      await new Promise((resolve) => setTimeout(resolve, 2));
-    }
 
-    expect(answered.size).toBe(1);
-    expect(sent("error").map((error) => error.message)).toContain("Sign-in was cancelled.");
-    resetStage();
+      expect(answered.size).toBe(1);
+      expect(sent("error").map((error) => error.message)).toContain("Sign-in was cancelled.");
+    } finally {
+      resetStage();
+    }
   });
 
   // Google's installed-app clients, which Gmail and Google Tasks use, return to com.raycast:/oauth.

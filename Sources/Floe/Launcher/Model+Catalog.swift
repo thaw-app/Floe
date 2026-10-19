@@ -33,10 +33,10 @@ extension LauncherModel {
         refresh()
     }
 
-    /// True when a command can run unattended: no missing required preferences or arguments.
-    func canRunUnattended(_ command: ExtensionCommand) -> Bool {
+    /// True when a command can run unattended: no missing required preferences, and every required argument given.
+    func canRunUnattended(_ command: ExtensionCommand, arguments: [String: Any] = [:]) -> Bool {
         PreferenceStore.missingRequired(for: command).isEmpty
-            && command.arguments.allSatisfy { !$0.required }
+            && command.arguments.allSatisfy { !$0.required || arguments[$0.name] != nil }
     }
 
     /// Starts the first scans. Called after the panel and its subscriptions exist, so what they publish is heard.

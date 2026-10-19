@@ -366,7 +366,8 @@ extension ExtensionSession {
         if actionMenuOpen {
             actionSelection = ViewState.clamp(actionSelection + delta, count: menuEntries.count)
         } else if let grid = gridLayout {
-            selection = grid.moved(from: min(selection, rows.count - 1), lines: delta)
+            guard !rows.isEmpty else { return }
+            selection = grid.moved(from: max(0, min(selection, rows.count - 1)), lines: delta)
         } else {
             selection = ViewState.clamp(min(selection, rows.count - 1) + delta, count: rows.count)
         }

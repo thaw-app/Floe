@@ -155,7 +155,8 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: org.thaw.floe
             CFBundleURLSchemes: [floe]
-          # The return addresses extensions' OAuth apps name; Floe takes them only while a sign-in waits.
+          # The return addresses extensions' OAuth apps name. Floe claims them while a sign-in waits; any other
+          # raycast link it receives goes on to Raycast, or nowhere when Raycast isn't installed.
           - CFBundleURLName: org.thaw.floe.oauth-return
             CFBundleURLSchemes: [raycast, com.raycast]
         # AI.ask can be pointed at a model server on this Mac or the local network (Ollama, LM Studio),

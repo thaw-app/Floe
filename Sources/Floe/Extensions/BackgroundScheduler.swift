@@ -81,6 +81,7 @@ import Foundation
 
     /// `launchCommand` with the background type: a menu-bar command refreshes, a no-view one runs once.
     func launch(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]?) {
+        guard model.canRunUnattended(command, arguments: arguments) else { return }
         if command.mode == "menu-bar" {
             menuBarCommands.refresh(command)
         } else if command.mode == "no-view" {
@@ -108,6 +109,7 @@ import Foundation
                 break
             }
         }
+        session.answer = ExtensionRunner.answer(withHistory: model.runner.host.clipboardHistory)
         runs[command.id] = session
         session.start()
         DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self, weak session] in
