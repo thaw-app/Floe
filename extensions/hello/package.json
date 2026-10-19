@@ -26,7 +26,17 @@
       "name": "greet",
       "title": "Greet",
       "description": "Uses the required preference",
-      "mode": "view"
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "greeting",
+          "title": "Greeting",
+          "description": "How the Greet command says hello",
+          "type": "textfield",
+          "required": true,
+          "placeholder": "Hello"
+        }
+      ]
     },
     {
       "name": "echo",
@@ -74,14 +84,6 @@
     }
   ],
   "preferences": [
-    {
-      "name": "greeting",
-      "title": "Greeting",
-      "description": "How the Greet command says hello",
-      "type": "textfield",
-      "required": true,
-      "placeholder": "Hello"
-    },
     {
       "name": "token",
       "title": "API Token",
