@@ -144,6 +144,7 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 - Keep a clipboard history: text with its formatting, links, images and files. Return pastes one, and copies marked private by a password manager are left out.
 - Or choose a clipboard manager, and Clipboard History opens it. Floe then saves no copies.
 - Browse Notes reads and writes the notes of a folder you chose, such as an Obsidian vault, in the panel. They are shown as Markdown, the files stay where your notes app keeps them, and the view says which app that is.
+- Floating Note keeps one note in a window above other apps, on every Space. It reads and writes the notes of your folder, or of a Floe folder in Apple Notes. With Antinote or another app, it holds one scratch note until you send it there.
 
 ### Notes
 

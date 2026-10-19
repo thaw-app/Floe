@@ -21,6 +21,8 @@ struct PanelHost {
     }
     /// Pops the Actions menu of the search that is on screen: root, files or menu bar items.
     var showActions: () -> Void = { /* no panel */ }
+    /// Opens the floating note's window, or brings it forward. Set only where the panel is drawn.
+    var showFloatingNote: () -> Void = { /* no window */ }
     /// Set only in the resident, which hands what the panel shows to the panel process.
     var presentInPanelProcess: ((PanelRequest) -> Void)?
     /// Set only in the panel process, which hands what the resident owns to the resident.

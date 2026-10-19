@@ -198,6 +198,7 @@ final class LauncherFeatures {
         system.host = host
         system.controlMusic = { [music] in _ = music.controlMusic($0) }
         notes.host = host
+        notes.openFloatingNote = { model?.openFloatingNote() }
         found.host = host
         found.typeQuery = {
             model?.query = $0

@@ -158,14 +158,18 @@ enum Notes {
             end tell
             """
         }
-        let html = text
+        return "tell application \"Notes\" to make new note with properties {body:\(AppleScript.literal(appleNotesHTML(text)))}"
+    }
+
+    /// Plain text as the HTML a note's body is: escaped, and a `<div>` a line, with `<br>` keeping an empty line open.
+    nonisolated static func appleNotesHTML(_ text: String) -> String {
+        text
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
             .replacingOccurrences(of: ">", with: "&gt;")
-            .split(separator: "\n", omittingEmptySubsequences: false)
+            .split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
             .map { "<div>\($0.isEmpty ? "<br>" : String($0))</div>" }
             .joined()
-        return "tell application \"Notes\" to make new note with properties {body:\(AppleScript.literal(html))}"
     }
 
     /// Hands the note over and answers with the line for the HUD, or nil when the app came forward
@@ -330,9 +334,7 @@ enum NoteFiles {
             // No receipts kept.
         }
     ) -> String? {
-        let folder = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, isDirectory: true)
-        var isFolder: ObjCBool = false
-        guard !path.isEmpty, FileManager.default.fileExists(atPath: folder.path, isDirectory: &isFolder), isFolder.boolValue else {
+        guard let folder = NoteDesk.folder(at: path) else {
             return String(localized: "Choose a folder for your notes in Settings", bundle: .floe)
         }
         do {

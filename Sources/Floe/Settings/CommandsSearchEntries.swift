@@ -63,6 +63,17 @@ extension SearchIndex {
             ).searchTerms
         ),
         .commands(
+            "floatingNoteHotkey",
+            String(localized: "Floating Note", bundle: .floe, comment: "The command, and the window, that keep a note on top of other apps."),
+            description: String(localized: "Keep a note on top of other apps, stored in the notes app you chose.", bundle: .floe),
+            section: String(localized: "Built-in Commands", bundle: .floe),
+            keywords: String(
+                localized: "hotkey, shortcut, keyboard, alias, floating note, sticky note, scratch pad, notes, window on top",
+                bundle: .floe,
+                comment: "Words that find the Floating Note setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .commands(
             "emojiSkinTone",
             String(localized: "Emoji skin tone", bundle: .floe),
             section: String(localized: "Built-in Commands", bundle: .floe),

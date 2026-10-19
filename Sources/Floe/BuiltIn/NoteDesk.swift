@@ -29,6 +29,16 @@ nonisolated enum NoteDesk {
     /// A file larger than this is not read into the panel.
     static let largestNote = 1024 * 1024
 
+    /// The folder a notes setting names, with a leading tilde read as home. Nil when the setting is empty or
+    /// names no folder, which every view that reads the notes treats as "choose one in Settings".
+    static func folder(at path: String) -> URL? {
+        guard !path.isEmpty else { return nil }
+        let folder = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, isDirectory: true)
+        var isFolder: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: folder.path, isDirectory: &isFolder), isFolder.boolValue else { return nil }
+        return folder
+    }
+
     /// The app that keeps a folder as its own, by the folder it leaves in it. Nil for a plain folder.
     static func owner(of folder: URL, home: URL = FileManager.default.homeDirectoryForCurrentUser) -> String? {
         var place = folder.standardizedFileURL

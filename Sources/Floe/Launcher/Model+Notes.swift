@@ -28,6 +28,13 @@ extension LauncherModel {
         focusToken += 1
     }
 
+    /// The floating note is a window of its own: the launcher goes, and the note stays over the app the user was in.
+    func openFloatingNote() {
+        panelHost.hidePanel()
+        reset()
+        panelHost.showFloatingNote()
+    }
+
     /// Saves what is being written before the view goes.
     func closeNoteDesk() {
         noteDesk?.close()

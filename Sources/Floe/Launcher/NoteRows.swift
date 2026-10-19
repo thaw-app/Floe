@@ -7,9 +7,11 @@
 
 import AppKit
 
-/// Notes typed in the search, handed to the app the user chose.
+/// Notes typed in the search, handed to the app the user chose, and the floating note.
 final class NoteRows {
     var host = RowHost()
+    /// Opens the floating note's window.
+    var openFloatingNote: () -> Void = { /* set by LauncherFeatures */ }
     private let settings: AppSettings
 
     init(settings: AppSettings) {
@@ -31,9 +33,15 @@ extension NoteRows: RowOwner {
     }
 
     func open(_ item: RootItem, flags _: NSEvent.ModifierFlags) -> Bool {
-        guard case let .note(action, text) = item else { return false }
-        host.leave()
-        write(action, text: text)
+        switch item {
+        case .floatingNote:
+            openFloatingNote()
+        case let .note(action, text):
+            host.leave()
+            write(action, text: text)
+        default:
+            return false
+        }
         return true
     }
 }

@@ -1417,6 +1417,9 @@
     "Couldn't turn Wi-Fi on" : {
 
     },
+    "Couldn’t open the notes: %@" : {
+      "comment" : "The placeholder is the reason the system gave."
+    },
     "Couldn’t save the note: %@" : {
       "comment" : "The placeholder is the reason the system gave."
     },
@@ -1825,6 +1828,9 @@
     "Finds the shortcuts you made in the Shortcuts app by name and runs the one you pick. Floe asks the Shortcuts command line tool for the names each time the launcher opens. The list stays on this Mac and is not saved. Type “shortcuts” and a space to see them all." : {
       "comment" : "“shortcuts” is a word the user types. It is a command and stays in English."
     },
+    "Floating Note" : {
+      "comment" : "The command, and the window, that keep a note on top of other apps."
+    },
     "Floe" : {
       "comment" : "Floe is the name of this app."
     },
@@ -1909,6 +1915,9 @@
     },
     "Floe needs permission to control %@." : {
       "comment" : "The placeholder is the name of an app, or of two."
+    },
+    "Floe needs permission to control Notes. Your text stays here until it can save." : {
+      "comment" : "Notes is Apple's notes app."
     },
     "Floe needs permission to list %@'s tabs" : {
       "comment" : "The placeholder is the name of a browser."
@@ -2189,6 +2198,9 @@
     "Keep %@ up to date?" : {
       "comment" : "The placeholder is the name of this app."
     },
+    "Keep a note on top of other apps, stored in the notes app you chose." : {
+
+    },
     "Keep receipts" : {
 
     },
@@ -2206,11 +2218,17 @@
         }
       }
     },
+    "Kept in Notes, in the folder %@" : {
+      "comment" : "Where the notes on screen are stored. Notes is Apple's notes app; the placeholder is a folder's name."
+    },
     "Kept in the Keychain" : {
 
     },
     "Kept in the folder %@" : {
       "comment" : "Where the notes on screen are stored. The placeholder is a folder's name."
+    },
+    "Kept on this Mac until you send it to %@" : {
+      "comment" : "Where the scratch note is stored. The placeholder is the name of an app."
     },
     "Keyboard (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -2544,6 +2562,9 @@
     "New Note" : {
 
     },
+    "New Note (⌘N)" : {
+      "comment" : "A tooltip on the button that makes a new note."
+    },
     "New Note “%@”" : {
       "comment" : "The placeholder is the text of the note."
     },
@@ -2646,6 +2667,9 @@
     "No note has that name" : {
 
     },
+    "No notes here yet" : {
+
+    },
     "No notes in this folder yet" : {
 
     },
@@ -2744,6 +2768,12 @@
     },
     "Notes" : {
       "comment" : "The kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one."
+    },
+    "Notes didn’t answer" : {
+      "comment" : "Notes is Apple's notes app."
+    },
+    "Notes made no note" : {
+      "comment" : "Notes is Apple's notes app."
     },
     "Nothing copied yet" : {
 
@@ -3477,6 +3507,9 @@
     "Saved to Notes" : {
       "comment" : "Notes is Apple's notes app."
     },
+    "Scratch Note" : {
+      "comment" : "The name of the one note the floating note keeps when the notes app cannot be read back."
+    },
     "Screen Saver (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -3575,6 +3608,9 @@
     "Search menu items…" : {
 
     },
+    "Search notes" : {
+      "comment" : "The label of the field that filters the list of notes."
+    },
     "Search notes, or name a new one…" : {
 
     },
@@ -3619,6 +3655,9 @@
     },
     "Select an extension to see its details." : {
 
+    },
+    "Send to %@" : {
+      "comment" : "A button that hands the note to the notes app and clears it. The placeholder is the name of an app."
     },
     "Separate light and dark tints" : {
 
@@ -3911,6 +3950,9 @@
     },
     "Swap Shown and Hidden Items" : {
 
+    },
+    "Switch Note (⌘P)" : {
+      "comment" : "A tooltip on the note's name, which opens the list of notes."
     },
     "Switch to Tab" : {
 
@@ -4900,6 +4942,9 @@
     },
     "hotkey, shortcut, keyboard, alias, emoji, clipboard, file search, system commands, lock, sleep, play, pause" : {
       "comment" : "Words that find the hotkeys and aliases of Floe's own commands in the settings search, separated by commas."
+    },
+    "hotkey, shortcut, keyboard, alias, floating note, sticky note, scratch pad, notes, window on top" : {
+      "comment" : "Words that find the Floating Note setting in the settings search, separated by commas."
     },
     "hotkey, shortcut, keyboard, alias, menu bar, status items, icons" : {
       "comment" : "Words that find the Search Menu Bar Items setting in the settings search, separated by commas."

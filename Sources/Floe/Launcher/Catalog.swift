@@ -47,6 +47,8 @@ nonisolated enum Paths {
     static let data = support.appendingPathComponent("Data")
     /// Raycast-compatible script commands.
     static let scripts = support.appendingPathComponent("Scripts")
+    /// The floating note's one note, for a notes app Floe can only send text to.
+    static let scratchNote = support.appendingPathComponent("Scratch Note.md")
 
     /// Creates the support folders. Earlier builds kept per-extension data in "extensions", which on a
     /// case-insensitive volume is the same folder as "Extensions", so that data moves to "Data" first.

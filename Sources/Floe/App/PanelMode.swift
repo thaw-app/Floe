@@ -45,6 +45,8 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
     private let clipboard: ClipboardHistoryStore
     private let settings = AppSettings.shared
     private lazy var onboarding = OnboardingWindowController(settings: settings, permissions: .shared)
+    /// The floating note lives here, beside the launcher: a visible window keeps this process from going idle.
+    private lazy var floatingNote = FloatingNoteWindowController(settings: settings) { [weak self] in self?.model.record($0) }
     private var panel: LauncherPanel?
     private var keyMonitor: Any?
     private var appWatcher: AppFolderWatcher?
@@ -80,6 +82,7 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
             },
             residentRequests: { [channel] in channel.send($0) }
         )
+        model.panelHost.showFloatingNote = { [weak self] in self?.floatingNote.show() }
         CommandLauncher.shared = .panel(model: model) { [channel] in channel.send($0) }
         model.canAskAI = AskAI.availabilityCheck { AIAnswer.isAvailable }
         model.typing.window = 0.03
@@ -303,7 +306,8 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         }
         model.runner.session?.forceStop()
         CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
-        channel.drain { exit(0) }
+        // The floating note's last edits are saved before the process goes.
+        floatingNote.finish { [channel] in channel.drain { exit(0) } }
     }
 
     /// Asks the resident to open Settings on its remembered page after hiding the launcher.
@@ -315,7 +319,10 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
     @objc private func openAbout() {
         hide(); channel.send(.openSettings(SettingsPage.about.id))
     }
+}
 
+/// Quitting and the Dock are the resident's to answer, so this process hands both on.
+extension PanelAppDelegate {
     /// Quitting from a foreground menu quits the whole application, not just this child.
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
         channel.send(.quit)

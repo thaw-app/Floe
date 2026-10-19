@@ -56,9 +56,7 @@ final class NoteDeskModel: ObservableObject {
         self.record = record
         self.open = open
         self.list = list
-        let folder = URL(fileURLWithPath: (path as NSString).expandingTildeInPath, isDirectory: true)
-        var isFolder: ObjCBool = false
-        if app == .folder, !path.isEmpty, FileManager.default.fileExists(atPath: folder.path, isDirectory: &isFolder), isFolder.boolValue {
+        if app == .folder, let folder = NoteDesk.folder(at: path) {
             place = .folder(folder, owner: NoteDesk.owner(of: folder))
         } else {
             place = .elsewhere(app == .folder ? "" : app.title)
