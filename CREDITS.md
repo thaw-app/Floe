@@ -18,6 +18,8 @@ language, join the project there.
 - [Barometer](https://github.com/mackid1993/Barometer): Barometer by mackid1993. Floe reads the battery, the memory in use and the network address with its system sources, cut down for a row in the search. GPL-3.0.
 - [Audio Priority Bar](https://github.com/camguillory/Audio-Priority-Bar): Audio Priority Bar by Camille Guillory, originally by tobi. Floe lists the sound devices, makes one the default and reads the battery of Bluetooth headphones with its sources, cut down for a list in the search. MIT.
 - [CMD-Z](https://github.com/stonerl/CMD-Z): CMD-Z by Toni Förster. Floe reads the menus of the app in front and chooses a command in them with its menu scanner. MIT.
+- [Simple Icons](https://simpleicons.org): The marks of the AI services and tools in the welcome tour. Each mark belongs to its owner. CC0-1.0.
+- [Lobe Icons](https://github.com/lobehub/lobe-icons): The mark of Z.ai in the welcome tour. MIT.
 - [CompactSlider](https://github.com/buh/CompactSlider) `2.1.0`: Used by ThawUI. MIT.
 - [Sparkle](https://sparkle-project.org) `2.10.0`: Checks for updates and installs them. MIT.
 - [swift-subprocess](https://github.com/swiftlang/swift-subprocess) `1.0.0`: Starts and stops the process an extension runs in. Apache-2.0.
@@ -37,4 +39,4 @@ language, join the project there.
 - [react-reconciler](https://react.dev) `^0.34.0`: Turns what an extension renders into Floe's views. MIT.
 - [Raycast extensions](https://github.com/raycast/extensions): The API Floe implements; each extension keeps its own license.
 
-Raycast is a trademark of Raycast Technologies Inc. Floe is not affiliated with Raycast.
+Raycast is a trademark of Raycast Technologies Inc. Floe is not affiliated with Raycast. The marks of the AI services belong to their owners; Apple Intelligence is a trademark of Apple Inc.

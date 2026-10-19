@@ -126,6 +126,8 @@ targets:
           barometer: https://github.com/mackid1993/Barometer
           audioPriorityBar: https://github.com/camguillory/Audio-Priority-Bar
           cmdz: https://github.com/stonerl/CMD-Z
+          simpleIcons: https://simpleicons.org
+          lobeIcons: https://github.com/lobehub/lobe-icons
           sponsor: https://github.com/sponsors/diazdesandi
           discord: https://discord.gg/KDfWjWDnR4
           translate: https://crowdin.com/project/floe

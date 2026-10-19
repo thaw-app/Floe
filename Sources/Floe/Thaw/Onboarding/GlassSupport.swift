@@ -7,7 +7,7 @@
 //
 //  Floe changes © 2026 René Jiménez, under the same license.
 //
-//  Ported to Floe from Thaw 3: the icon bubble heads the tour cards instead of a mock menu bar.
+//  Ported to Floe from Thaw 3: the window background only; the tour draws its own icon tiles.
 
 import AppKit
 import SwiftUI
@@ -42,24 +42,5 @@ struct VisualEffectBackground: NSViewRepresentable {
             window.isOpaque = false
             window.backgroundColor = .clear
         }
-    }
-}
-
-/// A plain monochrome SF Symbol in a fixed square.
-struct GlassIconBubble: View {
-    let symbol: String
-    var size: CGFloat = 30
-    var tint: Color = .primary
-
-    var body: some View {
-        // Resizable, not font-sized: a font symbol centers its line box, so
-        // the glyph sits high. Scaling its own bounds centers the ink.
-        Image(systemName: symbol)
-            .resizable()
-            .scaledToFit()
-            .fontWeight(.medium)
-            .foregroundStyle(tint.opacity(0.75))
-            .frame(width: size * 0.46, height: size * 0.46)
-            .frame(width: size, height: size)
     }
 }

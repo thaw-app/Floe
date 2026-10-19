@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		004BED0D1E2A34499BBE5893 /* PiTextStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2226F96023626B3975D533C2 /* PiTextStream.swift */; };
+		00B66635E7C8511590133490 /* OnboardingTourTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30B041C33CDBFFE9B87E9B89 /* OnboardingTourTile.swift */; };
 		0214D1658AFF0A195F3C0604 /* ThawHUDPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BDEE94D408295874A7461E /* ThawHUDPlacement.swift */; };
 		0284C1D4664682D4DA46FFF9 /* QRCodeRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1BC40BEE768748F7B61C338 /* QRCodeRows.swift */; };
 		032B04028211B1932FD13B7E /* Model+Modes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C79EAD93A4B7A60D278A13D /* Model+Modes.swift */; };
@@ -500,6 +501,7 @@
 		2F43BC73615163FC9EA2009B /* ShellAliases.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellAliases.swift; sourceTree = "<group>"; };
 		2F94F4CB7297C9286F2C8A2D /* AskAIModel+Panel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AskAIModel+Panel.swift"; sourceTree = "<group>"; };
 		3093D2F53465270315B2B310 /* ExtensionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionSettingsView.swift; sourceTree = "<group>"; };
+		30B041C33CDBFFE9B87E9B89 /* OnboardingTourTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingTourTile.swift; sourceTree = "<group>"; };
 		30B7F201C3069FA974E88002 /* ViewState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewState.swift; sourceTree = "<group>"; };
 		3100D60F947CCED23DE9323E /* SettingsSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSyncService.swift; sourceTree = "<group>"; };
 		31D54FF1A21ED74AD3CB719E /* EarlierIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarlierIdentifier.swift; sourceTree = "<group>"; };
@@ -1128,6 +1130,7 @@
 				5254060A4A42F0A46B71A696 /* Keychain.swift */,
 				BC2AEB5197FF57C9C7404E34 /* LaunchAtLoginToggle.swift */,
 				C0D0CD81D8D94FE9134AF130 /* MenuBarCommandsSettingsSection.swift */,
+				30B041C33CDBFFE9B87E9B89 /* OnboardingTourTile.swift */,
 				0740127A73E231F715377D0B /* OnboardingTourView.swift */,
 				1BF8D4B47628BB959BFF6E65 /* QuicklinksSettingsPage.swift */,
 				15C58F7C4EE16D5BE5631A37 /* ReadingWindow.swift */,
@@ -1817,6 +1820,7 @@
 				9EC589D757037EEF9F8A11F5 /* OnboardingPermissionsView.swift in Sources */,
 				361E83BBF8F979512CD7AEF3 /* OnboardingSequencer.swift in Sources */,
 				96E0F00BEAD73C551BA4AB87 /* OnboardingStepIndicator.swift in Sources */,
+				00B66635E7C8511590133490 /* OnboardingTourTile.swift in Sources */,
 				FB2DD95541D3352157D47754 /* OnboardingTourView.swift in Sources */,
 				05DE26C5F339D6E008D554CE /* OnboardingView.swift in Sources */,
 				9D1C2DFE4C7BEEC36CAC45E6 /* OnboardingWelcomeView.swift in Sources */,

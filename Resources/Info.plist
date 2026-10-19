@@ -58,6 +58,8 @@
 		<string>https://gitlab.com/droppyformac1/droppy-code</string>
 		<key>fend</key>
 		<string>https://github.com/printfn/fend</string>
+		<key>lobeIcons</key>
+		<string>https://github.com/lobehub/lobe-icons</string>
 		<key>nucleo</key>
 		<string>https://github.com/helix-editor/nucleo</string>
 		<key>raycastExtensions</key>
@@ -68,6 +70,8 @@
 		<string>https://react.dev</string>
 		<key>repository</key>
 		<string>https://github.com/thaw-app/Floe</string>
+		<key>simpleIcons</key>
+		<string>https://simpleicons.org</string>
 		<key>sparkle</key>
 		<string>https://sparkle-project.org</string>
 		<key>sponsor</key>

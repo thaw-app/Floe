@@ -874,6 +874,9 @@
     "Ask" : {
       "comment" : "A verb on a button: send the question to AI."
     },
+    "Ask AI" : {
+
+    },
     "Ask AI a question" : {
 
     },
@@ -1075,6 +1078,9 @@
     },
     "Checkpoint" : {
       "comment" : "The kind of a result, shown beside its title. A checkpoint is a saved set of files, tabs and a note."
+    },
+    "Checkpoints" : {
+      "comment" : "A tile of the welcome tour."
     },
     "Choose" : {
       "comment" : "A verb on a button: pick the selected line."
@@ -1800,9 +1806,6 @@
     "Find a command in the menus of the app in front and choose it." : {
 
     },
-    "Find a menu bar item by name and open its menu. This is the one feature that needs Accessibility." : {
-
-    },
     "Find a person in Contacts" : {
       "comment" : "Contacts is the name of Apple's app."
     },
@@ -2462,6 +2465,9 @@
     "Menu Items" : {
 
     },
+    "Menus and windows" : {
+      "comment" : "A tile of the welcome tour."
+    },
     "Message" : {
       "comment" : "A verb on a button: write the person a message.\nThe kind of a result, shown beside its title. Here a row that opens a message draft."
     },
@@ -2772,7 +2778,7 @@
       "comment" : "The heading of a note in the release notes."
     },
     "Notes" : {
-      "comment" : "The kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one."
+      "comment" : "A tile of the welcome tour.\nThe kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one."
     },
     "Notes didn’t answer" : {
       "comment" : "Notes is Apple's notes app."
@@ -3622,8 +3628,8 @@
     "Search settings" : {
       "comment" : "The placeholder of the search field in the settings sidebar."
     },
-    "Search the menu bar" : {
-
+    "Search the menu bar and the menus of the app in front, and switch windows. These need Accessibility." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Search the menus of %@…" : {
       "comment" : "The placeholder is the name of an app."
@@ -3728,6 +3734,9 @@
     },
     "Shell Commands" : {
 
+    },
+    "Shell commands" : {
+      "comment" : "A tile of the welcome tour."
     },
     "Shell history" : {
 
@@ -3952,6 +3961,9 @@
     },
     "Suggestions" : {
       "comment" : "A section title above results Floe suggests."
+    },
+    "Sums, units and dates: `200 + 10%`, `today + 3 days`." : {
+      "comment" : "A tile of the welcome tour. The parts in backticks are typed as they are; translate only the units and words that people type in your language."
     },
     "Support Floe" : {
 
@@ -4474,7 +4486,7 @@
     "Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal." : {
 
     },
-    "Type to find an app or a command, then press Return." : {
+    "Type to find an app or a command, then press Return. Type ? to see every keyword." : {
 
     },
     "Type “note” and then your text in the search to send it there." : {
@@ -4702,8 +4714,23 @@
     "Your iCloud storage is full. Changes made on this Mac are not uploaded." : {
 
     },
+    "Your last 300 copies. Return pastes one." : {
+      "comment" : "A tile of the welcome tour."
+    },
     "Your notes are kept in %@" : {
 
+    },
+    "`>` and a command runs it. ⌘Return opens your terminal." : {
+      "comment" : "A tile of the welcome tour."
+    },
+    "`ask` and a question, answered by the AI you choose." : {
+      "comment" : "A tile of the welcome tour. ask is the keyword typed in the search."
+    },
+    "`note` writes to your notes app. Floating Note stays on top." : {
+      "comment" : "A tile of the welcome tour. note is the keyword typed in the search."
+    },
+    "`pause` saves your tabs and Finder selection to resume later." : {
+      "comment" : "A tile of the welcome tour. pause is the keyword typed in the search."
     },
     "a note" : {
       "comment" : "What a checkpoint holds when it has no files and no tabs."
