@@ -29,18 +29,17 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             SettingsSidebarPaneList(catalog: catalog, settings: settings, selection: selection)
-                .navigationSplitViewColumnWidth(min: SettingsSidebarPaneList.listWidth, ideal: SettingsSidebarPaneList.listWidth, max: 250)
+                // A fixed width: the pages' names fit it, and a wider sidebar only narrows the page.
+                .navigationSplitViewColumnWidth(SettingsSidebarPaneList.listWidth)
         } detail: {
             detail
-                // The system toolbar is the pane header: it names the pane and
-                // stays put while the form scrolls under it.
-                // Named here from the selection, not by each pane: a pane's own title only arrived once the pane was built.
-                .navigationTitle(title)
-                .navigationSubtitle(subtitle)
+                // Each page heads itself with this (see SettingsPageHeader). Named here from the
+                // selection, not by each pane: a pane's own title only arrived once the pane was built.
+                .environment(\.settingsPageHeading, SettingsPageHeading(title: title))
                 // Fill the detail column so the Form's scrollbar sits on the
                 // window's trailing edge.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                // Content fades under the glass toolbar instead of stopping at a hard band.
+                // Content fades under the titlebar instead of stopping at a hard band.
                 .scrollEdgeEffectStyle(.soft, for: .top)
         }
         .settingsSearchField(search)
@@ -67,8 +66,11 @@ struct SettingsView: View {
         case .applications:
             ApplicationSettingsView(catalog: catalog, settings: settings)
         case .ai:
-            Form { AISettingsSection(settings: settings) }
-                .formStyle(.grouped)
+            Form {
+                SettingsPageHeader()
+                AISettingsSection(settings: settings)
+            }
+            .formStyle(.grouped)
         case .sync:
             SyncSettingsView(catalog: catalog, settings: settings, sync: stores.sync)
         case .quicklinks:
@@ -96,7 +98,7 @@ struct SettingsView: View {
         }
     }
 
-    /// The pane's name in the toolbar, the one its sidebar row has. Search results name themselves.
+    /// The pane's name over its content, the one its sidebar row has.
     private var title: String {
         guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
         return switch selection.page {
@@ -114,31 +116,6 @@ struct SettingsView: View {
         case let .extensionPage(name): catalog.allCommands.first { $0.extensionName == name }?.extensionTitle ?? name
         }
     }
-
-    /// What the pane holds, under its name in the toolbar; for an extension, where it comes from.
-    private var subtitle: String {
-        guard !search.isSearching else { return "" }
-        switch selection.page {
-        case .general: return String(localized: "Hotkey, startup, updates and the welcome tour", bundle: .floe)
-        case .commands: return String(localized: "Built-in, shell, script and menu bar commands", bundle: .floe)
-        case .applications: return String(localized: "Preferred apps, and aliases and hotkeys for apps", bundle: .floe)
-        case .ai: return String(localized: "What answers Ask AI and extensions", bundle: .floe)
-        case .sync: return String(localized: "iCloud sync and settings files", bundle: .floe)
-        case .quicklinks: return String(localized: "Keywords and fallbacks for web search", bundle: .floe)
-        case .snippets: return String(localized: "Text you paste or type by keyword", bundle: .floe)
-        case .extensionStore: return String(localized: "Install extensions from the Raycast store", bundle: .floe)
-        case .appearance: return String(localized: "Tint, border and shadow for the launcher", bundle: .floe)
-        case .privacy: return String(localized: "Permissions and what Floe contacts", bundle: .floe)
-        case .about: return String(localized: "Version, updates and credits", bundle: .floe)
-        case let .extensionPage(name):
-            guard let command = catalog.allCommands.first(where: { $0.extensionName == name }) else { return "" }
-            let count = catalog.allCommands.filter { $0.extensionName == name }.count
-            // The catalog holds the singular of both as a plural variation.
-            return command.source == .raycast
-                ? String(localized: "From Raycast · \(count) commands", bundle: .floe, comment: "The placeholder is how many commands an extension has.")
-                : String(localized: "\(count) commands", bundle: .floe, comment: "The placeholder is how many commands an extension has.")
-        }
-    }
 }
 
 struct GeneralSettingsView: View {
@@ -148,6 +125,7 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
+            SettingsPageHeader()
             ThawSection("Floe") {
                 HotkeyRecorder(
                     keyCombination: $settings.toggleHotkey,

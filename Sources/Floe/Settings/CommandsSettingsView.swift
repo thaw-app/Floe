@@ -33,6 +33,7 @@ struct CommandsSettingsView: View {
 
     var body: some View {
         Form {
+            SettingsPageHeader()
             BuiltInCommandsSection(settings: settings)
             ShellCommandsSettingsSection(settings: settings)
             ThawSection("Extensions") {

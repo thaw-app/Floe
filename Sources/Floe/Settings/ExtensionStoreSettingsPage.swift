@@ -15,10 +15,16 @@ struct ExtensionStoreSettingsPage: View {
     /// changes, not on every pass of the view, where a row's own state would ask for it again.
     @State private var matched: [StoreListing] = []
     @State private var selection: String?
+    /// The field and the grid line up; a row's text, inside its highlight, then lines up with the page's title.
+    private static let inset = SettingsPageHeading.leadingMargin - 8
     private let columns = [GridItem(.adaptive(minimum: 160, maximum: 220), spacing: 12, alignment: .top)]
 
     var body: some View {
         VStack(spacing: 0) {
+            // Over the list and the details rather than in either, which scroll on their own.
+            SettingsPageHeader()
+                .padding(.horizontal, SettingsPageHeading.leadingMargin)
+                .padding(.top, SettingsPageHeading.topMargin)
             content
             Divider()
             Text("Extensions come from Raycast's open source repository. Some need Raycast features Floe doesn't have yet.")
@@ -87,9 +93,10 @@ struct ExtensionStoreSettingsPage: View {
             let filtered = matched
             HStack(spacing: 0) {
                 VStack(spacing: 0) {
-                    TextField("Search extensions", text: $query)
-                        .textFieldStyle(.roundedBorder)
-                        .padding(10)
+                    // Named for the store, so it is not taken for the settings search in the sidebar.
+                    SettingsFilterField(prompt: "Search Raycast extensions", text: $query)
+                        .padding(.horizontal, Self.inset)
+                        .padding(.vertical, 10)
                     ScrollView {
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(filtered, id: \.name) { listing in
@@ -109,7 +116,7 @@ struct ExtensionStoreSettingsPage: View {
                                     }
                             }
                         }
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, Self.inset)
                     }
                     .overlay {
                         if filtered.isEmpty, !query.isEmpty {

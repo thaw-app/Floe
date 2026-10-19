@@ -92,6 +92,7 @@ struct AppearanceSettingsPane: View {
     var body: some View {
         let look = settings.launcherLook(for: colorScheme)
         return Form {
+            SettingsPageHeader()
             ThawSection("Preview") {
                 LauncherAppearancePreview(
                     glass: look.glass,

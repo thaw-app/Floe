@@ -19,6 +19,7 @@ struct QuicklinksSettingsPage: View {
 
     var body: some View {
         Form {
+            SettingsPageHeader()
             ThawSection(header: { Text("Quicklinks") }, content: {
                 ForEach(store.links) { link in
                     HStack(spacing: ThawSpacing.row) {

@@ -9,7 +9,8 @@
 //
 //  Thaw 3's settings search views (Settings/Search/SearchViews.swift), plus the parts of its
 //  Settings/SettingsView.swift that host them: the search field with its ⌘F shortcut and the
-//  results that take over the detail column. The scroll to a chosen result is Floe's.
+//  results that take over the detail column. The scroll to a chosen result, the field's
+//  place above the sidebar, and the page header over the results are Floe's.
 
 import SwiftUI
 import ThawUI
@@ -26,9 +27,14 @@ private struct SettingsSearchField: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            // In the toolbar, as in Thaw: the one search field the window has. The Applications
-            // pane filters its list with a field of its own, inside the pane.
-            .searchable(text: $search.searchText, isPresented: $isSearchPresented, placement: .toolbar, prompt: "Search")
+            // At the top of the sidebar, since the window has no toolbar. Applications and the
+            // Extension Store filter their own lists with fields of their own.
+            .searchable(
+                text: $search.searchText,
+                isPresented: $isSearchPresented,
+                placement: .sidebar,
+                prompt: Text(String(localized: "Search settings", bundle: .floe, comment: "The placeholder of the search field in the settings sidebar."))
+            )
             .background {
                 // ⌘F from anywhere in the window lands in the field.
                 Button("Find") {
@@ -81,31 +87,28 @@ struct SettingsSearchResults: View {
     let entries: () -> [SearchEntry]
 
     var body: some View {
-        Group {
-            if search.displayedGroups.isEmpty {
-                SearchEmptyView(query: search.searchText)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                VStack(alignment: .leading, spacing: 0) {
-                    // A count makes a long list read as bounded, and tells the
-                    // reader whether narrowing the query is worth it.
-                    // The catalog holds the singular as a plural variation, which only a String reads from Floe's bundle.
-                    Text(String(localized: "\(search.resultCount) results", bundle: .floe, comment: "The placeholder is how many settings a search found."))
-                        .font(ThawType.detail.weight(.medium))
-                        .foregroundStyle(ThawInk.supporting)
-                        .padding(.horizontal, ThawSpacing.section)
-                        .padding(.vertical, ThawSpacing.compact)
-                        .accessibilityAddTraits(.updatesFrequently)
-
-                    SearchResultsList(groups: search.displayedGroups) { entry in
-                        SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
-                    }
-                    .padding(.horizontal, ThawSpacing.compact)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        SearchResultsList(groups: search.displayedGroups) { entry in
+            SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
+        } header: {
+            SettingsPageHeader()
+            if !search.displayedGroups.isEmpty {
+                // A count makes a long list read as bounded, and tells the
+                // reader whether narrowing the query is worth it.
+                // The catalog holds the singular as a plural variation, which only a String reads from Floe's bundle.
+                Text(String(localized: "\(search.resultCount) results", bundle: .floe, comment: "The placeholder is how many settings a search found."))
+                    .font(ThawType.detail.weight(.medium))
+                    .foregroundStyle(ThawInk.supporting)
+                    .padding(.bottom, ThawSpacing.compact)
+                    .accessibilityAddTraits(.updatesFrequently)
             }
         }
-        .navigationTitle("Search")
+        .padding(.horizontal, ThawSpacing.compact)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .overlay {
+            if search.displayedGroups.isEmpty {
+                SearchEmptyView(query: search.searchText)
+            }
+        }
         // The index is built here, when a search begins, so showing a pane never builds it.
         .onAppear { search.setEntries(entries()) }
     }
@@ -113,14 +116,21 @@ struct SettingsSearchResults: View {
 
 // MARK: - SearchResultsList
 
-/// Scrollable, grouped search results for the settings window.
-struct SearchResultsList: View {
+/// Scrollable, grouped search results for the settings window, under a header that scrolls with them.
+struct SearchResultsList<Header: View>: View {
     let groups: [SearchGroup]
     let onSelect: (SearchEntry) -> Void
+    @ViewBuilder let header: Header
 
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 0) {
+                    header
+                }
+                // Where a form puts its page header, less the list's own margins.
+                .padding(.horizontal, SettingsPageHeading.leadingMargin - ThawSpacing.compact - ThawSpacing.row)
+                .padding(.top, SettingsPageHeading.topMargin)
                 ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
                     if index > 0 {
                         Divider()

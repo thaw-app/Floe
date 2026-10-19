@@ -36,6 +36,7 @@ struct PrivacySettingsPane: View {
 
     var body: some View {
         Form {
+            SettingsPageHeader()
             // Footer-only section: the one placement where a pill renders without the form's card around it.
             ThawSection {
                 EmptyView()

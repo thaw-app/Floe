@@ -20,9 +20,10 @@ struct ApplicationSettingsView: View {
     var body: some View {
         let apps = catalog.apps.filter { filter.isEmpty || $0.name.localizedCaseInsensitiveContains(filter) }
         Form {
+            SettingsPageHeader()
             PreferredAppsSettingsSection(settings: settings)
             ThawSection {
-                // In the pane, not the toolbar: the toolbar's field searches the settings.
+                // In the pane: the sidebar's field searches the settings.
                 HStack(spacing: ThawSpacing.compact) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)

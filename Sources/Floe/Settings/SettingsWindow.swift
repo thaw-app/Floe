@@ -17,7 +17,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// Called once the window has closed.
     var onClose: () -> Void = { /* set by the settings process */ }
 
-    /// Room for the sidebar, a readable pane and the toolbar's search field.
+    /// Room for the sidebar with its search field and a readable pane.
     private static let minimumSize = NSSize(width: 720, height: 460)
 
     init(catalog: CatalogStore, stores: SettingsStores) {
@@ -38,16 +38,19 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
+            // Kept for the Window menu and VoiceOver; the titlebar shows no title, each page names itself.
             window.title = String(localized: "Floe Settings", bundle: .floe)
-            window.toolbarStyle = .unified
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
             window.isReleasedWhenClosed = false
             window.contentMinSize = Self.minimumSize
             // As Thaw's windows: not a workspace, so the green button zooms, and nothing worth restoring.
             window.collectionBehavior.formUnion([.moveToActiveSpace, .fullScreenNone])
             window.isRestorable = false
             let content = NSHostingView(rootView: SettingsView(catalog: catalog, stores: stores, selection: selection).openingLinksInTheChosenBrowser())
-            // The panes name the window and fill its toolbar: title, subtitle and the search field.
-            content.sceneBridgingOptions = [.title, .toolbars]
+            // Nothing bridged, so the window has no toolbar and each page names itself. Removing the
+            // toolbar's items in SwiftUI instead shrinks the sidebar to 144 points.
+            content.sceneBridgingOptions = []
             window.contentView = content
             window.center()
             window.delegate = self

@@ -302,6 +302,7 @@
     },
     "%lld commands" : {
       "comment" : "The placeholder is how many commands an extension has.",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -961,9 +962,6 @@
     "Built-in Commands" : {
 
     },
-    "Built-in, shell, script and menu bar commands" : {
-
-    },
     "Built-in, shell, script and menu bar commands, and where extensions come from." : {
 
     },
@@ -1198,6 +1196,9 @@
     },
     "Connected" : {
       "comment" : "A badge saying Floe is connected to the Thaw app."
+    },
+    "Connections" : {
+      "comment" : "A heading in the settings sidebar, over the AI, Sync and Extension Store pages."
     },
     "Contact" : {
       "comment" : "The kind of a result, shown beside its title. Here a person from Contacts."
@@ -1726,7 +1727,7 @@
 
     },
     "Extensions" : {
-      "comment" : "The heading over the settings for extensions."
+      "comment" : "A heading in the settings sidebar, over the installed extensions.\nThe heading over the settings for extensions."
     },
     "Extensions Folder" : {
 
@@ -1995,6 +1996,7 @@
     },
     "From Raycast · %lld commands" : {
       "comment" : "The placeholder is how many commands an extension has.",
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -2106,9 +2108,6 @@
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
     },
-    "Hotkey, startup, updates and the welcome tour" : {
-
-    },
     "How Floe works" : {
 
     },
@@ -2146,9 +2145,6 @@
       "comment" : "A button that installs an extension."
     },
     "Install Thaw and its actions appear in the search." : {
-
-    },
-    "Install extensions from the Raycast store" : {
 
     },
     "Install in Terminal" : {
@@ -2233,9 +2229,6 @@
     },
     "Keywords" : {
       "comment" : "A section title. Keywords are the words the search answers to, such as remind or timer."
-    },
-    "Keywords and fallbacks for web search" : {
-
     },
     "Keywords and fallbacks for web search." : {
 
@@ -3002,9 +2995,6 @@
     "Permissions" : {
       "comment" : "What the app is allowed to do on this Mac."
     },
-    "Permissions and what Floe contacts" : {
-
-    },
     "Permissions and what Floe contacts." : {
 
     },
@@ -3045,9 +3035,6 @@
 
     },
     "Preferred Apps" : {
-
-    },
-    "Preferred apps, and aliases and hotkeys for apps" : {
 
     },
     "Preferred apps, and aliases and hotkeys for apps." : {
@@ -3181,9 +3168,6 @@
     },
     "Rates of %@" : {
       "comment" : "A label under a converted amount of money. The placeholder is a date as the bank writes it, such as 2026-10-07."
-    },
-    "Raycast" : {
-
     },
     "Raycast Extension Store" : {
 
@@ -3564,6 +3548,9 @@
     "Search Menu Items" : {
       "comment" : "The command that lists the commands in the menus of the app in front."
     },
+    "Search Raycast extensions" : {
+
+    },
     "Search Sources" : {
 
     },
@@ -3574,9 +3561,6 @@
 
     },
     "Search clipboard history…" : {
-
-    },
-    "Search extensions" : {
 
     },
     "Search field shape" : {
@@ -3593,6 +3577,9 @@
     },
     "Search notes, or name a new one…" : {
 
+    },
+    "Search settings" : {
+      "comment" : "The placeholder of the search field in the settings sidebar."
     },
     "Search the menu bar" : {
 
@@ -3985,9 +3972,6 @@
     "Text" : {
       "comment" : "A kind of copied thing."
     },
-    "Text you paste or type by keyword" : {
-
-    },
     "Text you paste or type by keyword." : {
 
     },
@@ -4281,9 +4265,6 @@
     "Tint color" : {
 
     },
-    "Tint, border and shadow for the launcher" : {
-
-    },
     "Tint, border and shadow for the launcher panel." : {
 
     },
@@ -4539,9 +4520,6 @@
     "Version" : {
       "comment" : "A label before the version number of this app."
     },
-    "Version, updates and credits" : {
-
-    },
     "View on GitHub" : {
 
     },
@@ -4603,9 +4581,6 @@
 
     },
     "What It Has Reached" : {
-
-    },
-    "What answers Ask AI and extensions" : {
 
     },
     "What answers Ask AI and extensions." : {
@@ -4942,9 +4917,6 @@
 
     },
     "iCloud copy" : {
-
-    },
-    "iCloud sync and settings files" : {
 
     },
     "iCloud sync and settings files." : {

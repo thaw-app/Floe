@@ -10,7 +10,8 @@
 //  Ported to Floe from Thaw 3. What's New and Credits open in ReadingWindow, since Floe's settings
 //  are a process of their own without Thaw's window scenes. The "more" menu and the footer keep the
 //  destinations Floe has, and the updates card shows only in a build that can update (see
-//  UpdatesManager.isAvailable). Floe's Diagnostics section closes the page.
+//  UpdatesManager.isAvailable). Floe's Diagnostics section closes the page, and the page opens with
+//  the header every Floe settings page has.
 
 import AppKit
 import SwiftUI
@@ -74,21 +75,20 @@ struct AboutSettingsPane: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                identity
-                if updatesManager.isAvailable {
-                    updates
+            SettingsPageColumn {
+                VStack(spacing: 24) {
+                    identity
+                    if updatesManager.isAvailable {
+                        updates
+                    }
+                    actions
+                    footer
+                    DiagnosticsSettingsForm(settings: settings)
                 }
-                actions
-                footer
-                DiagnosticsSettingsForm(settings: settings)
+                .frame(maxWidth: 400)
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: 400)
-            .padding(.horizontal, 24)
-            .padding(.vertical, 40)
-            .frame(maxWidth: .infinity)
         }
-        .defaultScrollAnchor(.center, for: .alignment)
         .scrollContentBackground(.hidden)
         .scrollEdgeEffectStyle(.soft, for: .top)
         // The sidebar's behind-window material, so About reads as one surface

@@ -5,120 +5,139 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-import AppKit
 import SwiftUI
 import ThawUI
 
-/// Thaw 3's settings sidebar: a standard source list, so selection, keyboard and VoiceOver
-/// come from AppKit rather than from hand-drawn rows.
+/// The settings sidebar: plain symbols, small uppercase headings between the groups, and a soft gray
+/// fill on the selected row.
+///
+/// Rows of its own, not a List: a List draws its own selection over this one, and its Sections crash
+/// AppKit on macOS 27.0 and 27.2. Once the sidebar has focus, the arrow keys move as in a list.
 struct SettingsSidebarPaneList: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     @ObservedObject var selection: SettingsSelection
 
-    static let listWidth: CGFloat = 210
+    static let listWidth: CGFloat = 220
 
-    /// Width of the icon column, so labels line up whatever each symbol's
-    /// own width is.
-    private static let iconColumn: CGFloat = 22
-
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(SearchModel.self) private var search
 
-    /// The accent, deepened in dark mode so a light one such as yellow keeps
-    /// its contrast against the selected label.
-    private var accent: Color {
-        colorScheme == .dark ? Color.accentColor.mix(with: .black, by: 0.4) : Color.accentColor
+    private var rows: [SettingsSidebarRow] {
+        SettingsSidebarRows.rows(commands: catalog.allCommands, disabledExtensions: settings.disabledExtensions)
     }
 
-    private nonisolated struct Row: Identifiable {
-        let page: SettingsPage
-        let title: String
-        let symbol: String?
-        let icon: String?
-        let assetsPath: String
-        var isDimmed = false
-        var id: SettingsPage {
-            page
-        }
-    }
-
-    /// Floe's own pages first, then each extension, About last, as in Thaw.
-    private var rows: [Row] {
-        let extensions = catalog.allCommands
-            .uniqued(on: \.extensionName)
-            .sorted { $0.extensionTitle.localizedCaseInsensitiveCompare($1.extensionTitle) == .orderedAscending }
-            .map { command in
-                Row(
-                    page: .extensionPage(command.extensionName),
-                    title: command.extensionTitle,
-                    symbol: nil,
-                    icon: command.icon ?? "icon:Terminal",
-                    assetsPath: command.assetsPath,
-                    isDimmed: settings.disabledExtensions.contains(command.extensionName)
-                )
-            }
-        return [
-            Row(page: .general, title: SearchPaneLabel.general.title, symbol: "gearshape", icon: nil, assetsPath: ""),
-            Row(page: .commands, title: SearchPaneLabel.commands.title, symbol: "command", icon: nil, assetsPath: ""),
-            Row(page: .applications, title: SearchPaneLabel.applications.title, symbol: "square.grid.2x2", icon: nil, assetsPath: ""),
-            Row(page: .ai, title: SearchPaneLabel.ai.title, symbol: AskAI.symbol, icon: nil, assetsPath: ""),
-            Row(page: .sync, title: SearchPaneLabel.sync.title, symbol: "arrow.triangle.2.circlepath", icon: nil, assetsPath: ""),
-            Row(page: .quicklinks, title: SearchPaneLabel.quicklinks.title, symbol: "link", icon: nil, assetsPath: ""),
-            Row(page: .snippets, title: SearchPaneLabel.snippets.title, symbol: "text.quote", icon: nil, assetsPath: ""),
-            Row(page: .extensionStore, title: SearchPaneLabel.extensionStore.title, symbol: "bag", icon: nil, assetsPath: ""),
-            Row(page: .appearance, title: SearchPaneLabel.appearance.title, symbol: "paintbrush", icon: nil, assetsPath: ""),
-            Row(page: .privacy, title: SearchPaneLabel.privacy.title, symbol: "hand.raised", icon: nil, assetsPath: ""),
-        ] + extensions + [
-            Row(page: .about, title: SearchPaneLabel.about.title, symbol: "cube", icon: nil, assetsPath: ""),
-        ]
+    /// No row is selected during a search, so a click on any row, the current pane's included, ends it.
+    private var selectedPage: SettingsPage? {
+        search.isSearching ? nil : selection.page
     }
 
     var body: some View {
-        // No Sections: an outline-backed list crashes AppKit on macOS 27.0 and 27.2
-        // (freed row view in sizeLastColumnToFit).
-        // No row is selected during a search, so a click on any row, the current pane's included, ends it.
-        List(selection: Binding(
-            get: { search.isSearching ? nil : selection.page },
-            set: {
-                if let page = $0 {
-                    SettingsSearchNavigation.selectSidebarPane(page, selection: selection, search: search)
-                }
-            }
-        )) {
-            ForEach(rows) { row in
-                Label {
-                    Text(row.title)
-                        .font(ThawType.detail.weight(.medium))
-                        .foregroundStyle(row.isDimmed ? Color.secondary : Color.primary)
-                        .lineLimit(1)
-                } icon: {
-                    Group {
-                        if let symbol = row.symbol {
-                            Image(systemName: symbol)
-                                .font(ThawType.symbol.weight(.medium))
-                                .foregroundStyle(Color.secondary)
-                        } else {
-                            IconView(value: row.icon, assetsPath: row.assetsPath, size: 16)
-                                .opacity(row.isDimmed ? 0.5 : 1)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: ThawSpacing.hairline) {
+                    ForEach(rows) { row in
+                        switch row {
+                        case let .heading(title):
+                            SettingsSidebarHeading(title: title)
+                        case let .page(page):
+                            SettingsSidebarPageRow(row: page, isSelected: page.page == selectedPage) {
+                                SettingsSearchNavigation.selectSidebarPane(page.page, selection: selection, search: search)
+                            }
                         }
                     }
-                    .frame(width: Self.iconColumn)
                 }
-                // Only the selection fill carries the accent. Applied per row,
-                // where the sidebar reads it.
-                .listItemTint(row.page == selection.page && !search.isSearching ? .preferred(accent) : .monochrome)
-                .tag(row.page)
+                .padding(.horizontal, ThawSpacing.row)
+                .padding(.vertical, ThawSpacing.base)
+            }
+            // A page chosen by the arrow keys, a search result or the launcher stays in sight.
+            // A page's row has the page's id.
+            .onChange(of: selection.page) { proxy.scrollTo(selection.page.id) }
+        }
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        .focusable()
+        .focusEffectDisabled()
+        .onMoveCommand { direction in
+            switch direction {
+            case .up: move(by: -1)
+            case .down: move(by: 1)
+            default: break
             }
         }
-        .listStyle(.sidebar)
-        // The selection fill uses the same deepened accent.
-        .tint(accent)
-        // Medium rows whatever the system's sidebar size: at Large the labels
-        // and symbols crowd a settings window this narrow.
-        .environment(\.sidebarRowSize, .medium)
-        .scrollContentBackground(.hidden)
-        .contentMargins(.horizontal, ThawSpacing.base, for: .scrollContent)
-        .scrollEdgeEffectStyle(.soft, for: .top)
+    }
+
+    /// Selects the page above or below the selected one, past the headings.
+    private func move(by offset: Int) {
+        let pages = rows.compactMap(\.page)
+        guard let current = pages.firstIndex(of: selection.page) else { return }
+        let next = current + offset
+        guard pages.indices.contains(next) else { return }
+        SettingsSearchNavigation.selectSidebarPane(pages[next], selection: selection, search: search)
+    }
+}
+
+/// The small uppercase name over a group of pages.
+private struct SettingsSidebarHeading: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.system(size: 11, weight: .semibold))
+            .textCase(.uppercase)
+            .foregroundStyle(.secondary)
+            // Room above each group, so the groups read apart.
+            .padding(.top, ThawSpacing.gutter)
+            .padding(.bottom, ThawSpacing.tight)
+            .padding(.leading, ThawSpacing.row)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// A page's row: its symbol, or an extension's own icon at the symbol's size, and its name, on a
+/// light gray fill with a faint edge when selected. The fill is the same whether the window is
+/// key or not, and the label keeps its own color on it.
+private struct SettingsSidebarPageRow: View {
+    let row: SettingsSidebarPage
+    let isSelected: Bool
+    let select: () -> Void
+
+    /// The box the icons share, so the names line up; an extension's icon is a little smaller
+    /// than it, to weigh the same as a symbol.
+    private static let iconBox: CGFloat = 18
+    private static let height: CGFloat = 32
+    private static let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+
+    var body: some View {
+        Button(action: select) {
+            Label {
+                Text(row.label.title)
+                    .font(ThawType.body)
+                    .foregroundStyle(row.isDimmed ? Color.secondary : Color.primary)
+                    .lineLimit(1)
+            } icon: {
+                Group {
+                    if let symbol = row.label.symbol {
+                        Image(systemName: symbol)
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        IconView(value: row.label.icon, assetsPath: row.label.assetsPath, size: 16)
+                            .opacity(row.isDimmed ? 0.5 : 1)
+                    }
+                }
+                .frame(width: Self.iconBox, height: Self.iconBox)
+            }
+            .padding(.horizontal, ThawSpacing.row)
+            .frame(maxWidth: .infinity, minHeight: Self.height, alignment: .leading)
+            .background {
+                if isSelected {
+                    Self.shape
+                        .fill(Color.primary.opacity(0.1))
+                        .overlay(Self.shape.strokeBorder(Color.primary.opacity(0.08), lineWidth: 1))
+                }
+            }
+            .contentShape(Self.shape)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

@@ -9,7 +9,7 @@ import AppKit
 import SwiftUI
 import ThawUI
 
-/// The settings page of one extension: its icon and name, its preferences, and a line for each command.
+/// The settings page of one extension: its name, icon and what it does, its preferences, and a line for each command.
 struct ExtensionSettingsView: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
@@ -24,6 +24,7 @@ struct ExtensionSettingsView: View {
     var body: some View {
         if let first = commands.first {
             Form {
+                SettingsPageHeader { controls(for: first) }
                 ExtensionHeader(command: first)
                 if !first.extensionPreferences.isEmpty {
                     ThawSection("Preferences") {
@@ -58,7 +59,6 @@ struct ExtensionSettingsView: View {
                 ExtensionAccessSection(extensionName: first.extensionName, records: settings.recordsExtensionAccess, store: access)
             }
             .formStyle(.grouped)
-            .toolbar { toolbar(for: first) }
             .settingsSearchAnchorScroll()
             // The importer and what it does with a picture follow Thaw's picker for its menu bar icon.
             .fileImporter(isPresented: $choosingIcon, allowedContentTypes: [.image]) { result in
@@ -116,10 +116,9 @@ extension ExtensionSettingsView {
         )
     }
 
-    /// The extension's switch and what else is done to it as a whole, where Raycast has them.
-    @ToolbarContentBuilder
-    private func toolbar(for first: ExtensionCommand) -> some ToolbarContent {
-        ToolbarItemGroup(placement: .primaryAction) {
+    /// The extension's switch and what else is done to it as a whole, beside the page's name.
+    private func controls(for first: ExtensionCommand) -> some View {
+        HStack(spacing: ThawSpacing.inset) {
             Menu {
                 Button("Choose Icon…") { choosingIcon = true }
                 if CustomIcon.path(for: first.extensionName) != nil {
@@ -136,16 +135,20 @@ extension ExtensionSettingsView {
                 }
             } label: {
                 Label("More", systemImage: "ellipsis")
+                    .labelStyle(.iconOnly)
             }
             .menuIndicator(.hidden)
+            .fixedSize()
             Toggle("Enabled", isOn: isEnabled(first.extensionName))
                 .toggleStyle(.switch)
+                .labelsHidden()
                 .help("An extension that is off is left out of the search, and its hotkeys, menu bar items and Shortcuts do not run.")
         }
     }
 }
 
-/// The extension's icon, name and what it does, at the top of its page as Raycast shows them.
+/// The extension's icon and what it does, under the page's name. The name, and whether it came
+/// from Raycast, are in the page header above.
 private struct ExtensionHeader: View {
     let command: ExtensionCommand
 
@@ -154,23 +157,18 @@ private struct ExtensionHeader: View {
         Section {
             EmptyView()
         } header: {
-            VStack(spacing: ThawSpacing.compact) {
-                IconView(value: command.extensionIcon ?? command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 64)
-                HStack(spacing: ThawSpacing.compact) {
-                    Text(command.extensionTitle)
-                        .font(.largeTitle.weight(.bold))
-                    if command.source == .raycast {
-                        ThawBadge("Raycast")
-                    }
-                }
+            HStack(spacing: ThawSpacing.inset) {
+                IconView(value: command.extensionIcon ?? command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 40)
                 if let description = command.extensionDescription {
                     Text(description)
-                        .font(.body)
+                        .font(ThawType.body)
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+                        .textCase(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, ThawSpacing.base)
         }
     }
 }
