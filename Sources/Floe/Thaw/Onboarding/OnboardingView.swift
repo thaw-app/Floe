@@ -14,10 +14,10 @@
 import SwiftUI
 import ThawUI
 
-/// Shared dimensions, sized for the access step: two permission cards side by side.
+/// Shared dimensions, sized for the tour's four rows of tiles.
 enum ThawOnboardingWindowMetrics {
-    static let width: CGFloat = 720
-    static let height: CGFloat = 540
+    static let width: CGFloat = 840
+    static let height: CGFloat = 720
 }
 
 /// Ask for access after explaining its benefits; earlier screens need no grants and cannot fail for missing permissions.

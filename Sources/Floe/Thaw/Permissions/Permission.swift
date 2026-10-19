@@ -59,6 +59,9 @@ class Permission: Identifiable {
 
     let details: [String]
 
+    /// One line for a card in the welcome, where the details would not fit.
+    let summary: String
+
     /// Whether menu bar search needs this permission. Floe itself runs without any of them.
     let isRequired: Bool
 
@@ -117,6 +120,7 @@ class Permission: Identifiable {
         iconName: String,
         iconColor: Color,
         details: [String],
+        summary: String? = nil,
         isRequired: Bool,
         settingsURL: URL?,
         check: @escaping () -> Bool,
@@ -130,6 +134,7 @@ class Permission: Identifiable {
         self.iconName = iconName
         self.iconColor = iconColor
         self.details = details
+        self.summary = summary ?? details.first ?? ""
         self.isRequired = isRequired
         self.settingsURL = settingsURL
         self.check = check
@@ -268,7 +273,9 @@ final class AccessibilityPermission: Permission {
             details: [
                 String(localized: "Find the items in your menu bar and read their names.", bundle: .floe),
                 String(localized: "Open an item's menu when you pick it in the search.", bundle: .floe),
+                String(localized: "Search the menus of the app in front, and switch windows.", bundle: .floe),
             ],
+            summary: String(localized: "Search the menu bar and app menus, and switch windows.", bundle: .floe, comment: "One line on a permission card in the welcome."),
             isRequired: true,
             // Ungranted AX trust checks always report prompted, so this URL is only for explicit Settings choices and return checks.
             settingsURL: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"),

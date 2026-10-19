@@ -166,7 +166,7 @@ After you install:
 - **A compact layout** shows only the search bar until you type.
 - **The search field is rounded, a capsule or square.** It can also float as its own piece of glass, with the results in a second piece below it.
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
-- **A welcome at first launch** asks for Accessibility, which the launcher needs, and offers Calendar, Reminders and Contacts, which you can leave for later. A short tour follows. If a later version needs a permission you have not answered, that step comes back by itself.
+- **A welcome at first launch** gives a short tour, then shows each permission on a card with what it switches on: Accessibility, Screen Recording, your Desktop, Documents and Downloads folders, notifications, Calendar, Reminders and Contacts. Each one asks only when you press its button, and all can wait until later. If a later version needs a permission you have not answered, that step comes back by itself.
 - **The Settings sidebar groups the pages.** General, Appearance and Privacy come first. Search holds Commands, Applications, Quicklinks and Snippets, and Connections holds AI, Sync and the Extension Store. Each extension has a page of its own, and About comes last.
 - **Search the settings** from the top of the Settings window's sidebar.
 - **Export your settings to one file** and import them on another Mac.

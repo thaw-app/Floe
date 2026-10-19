@@ -8,7 +8,7 @@
 //  Floe changes © 2026 René Jiménez, under the same license.
 //
 //  Ported to Floe from Thaw 3: its button never waits for a grant, because Floe works without any,
-//  and the permissions are rows in one panel instead of Thaw's cards, which have no room for four.
+//  and the cards sit in two rows, the Mac's permissions over your data's, with one line each.
 
 import AppKit
 import SwiftUI
@@ -37,30 +37,31 @@ struct ThawPermissionsView: View {
     private var continueTitle: String {
         switch permissions.permissionsState {
         case .hasAll: finishTitle
-        case .missing: String(localized: "Continue Without Menu Bar Search", bundle: .floe)
+        case .missing: String(localized: "Continue Without Accessibility", bundle: .floe, comment: "The button that leaves the permission step while Accessibility is not granted.")
         }
     }
 
     var body: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: ThawSpacing.inset) {
             header
+                .padding(.top, ThawSpacing.section)
 
-            VStack(spacing: 0) {
-                ForEach(permissions.allPermissions) { permission in
-                    if permission !== permissions.allPermissions.first {
-                        Divider().padding(.leading, 50)
-                    }
-                    OnboardingPermissionRow(permission: permission)
-                }
+            VStack(spacing: ThawSpacing.gutter) {
+                cardRow(Array(permissions.allPermissions.prefix(Self.firstRowCount)))
+                cardRow(Array(permissions.allPermissions.dropFirst(Self.firstRowCount)))
             }
-            .thawGlass(.panel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
-            .padding(.horizontal, 30)
+            .padding(.horizontal, ThawSpacing.section)
 
             privacyPanel
 
             Spacer(minLength: 0)
 
-            VStack(spacing: 12) {
+            HStack(spacing: ThawSpacing.gutter) {
+                Text("You can grant any of these later in Settings, under Privacy.")
+                    .font(ThawType.caption)
+                    .foregroundStyle(.secondary)
+                    .opacity(permissions.hasEveryPermission ? 0 : 1)
+                Spacer()
                 Button {
                     // Preflight only: continuing must never raise a prompt.
                     permissions.refreshPermissionsState()
@@ -68,22 +69,14 @@ struct ThawPermissionsView: View {
                 } label: {
                     Text(verbatim: continueTitle)
                         .font(ThawType.heading)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 36)
+                        .frame(minWidth: 140, minHeight: 34)
                 }
                 .buttonStyle(.glassProminent)
                 .keyboardShortcut(.defaultAction)
-
-                Text("You can grant any of these later in Settings, under Privacy.")
-                    .font(ThawType.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .opacity(permissions.hasEveryPermission ? 0 : 1)
             }
-            .padding(.horizontal, 30)
-            .padding(.bottom, 24)
+            .padding(.horizontal, ThawSpacing.section)
+            .padding(.bottom, 14)
         }
-        .padding(.top, 40)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(VisualEffectBackground())
         .onAppear {
@@ -96,13 +89,25 @@ struct ThawPermissionsView: View {
         }
     }
 
+    /// Accessibility and the other permissions of the Mac itself; Calendar, Reminders and Contacts follow.
+    private static let firstRowCount = 4
+
+    private func cardRow(_ row: [Permission]) -> some View {
+        HStack(alignment: .top, spacing: ThawSpacing.gutter) {
+            ForEach(row) { permission in
+                OnboardingPermissionCard(permission: permission)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
     private var header: some View {
         VStack(spacing: 7) {
             Text("Allow access")
                 .font(ThawType.display)
                 .multilineTextAlignment(.center)
 
-            Text("Each one switches on the feature named under it. The launcher and your extensions work without any of them.")
+            Text("Each card says what its permission switches on. The launcher and your extensions work without any of them.")
                 .font(ThawType.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -114,16 +119,16 @@ struct ThawPermissionsView: View {
     }
 
     private var privacyPanel: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(spacing: 18) {
             privacyFact("No analytics or usage tracking")
             privacyFact("Permission checks stay on your Mac")
-            privacyFact("Open source under the AGPL, so you can read how it works")
+            privacyFact("Open source under the AGPL")
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .thawGlass(.panel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
-        .padding(.horizontal, 30)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
+        .onboardingCard()
+        .padding(.horizontal, ThawSpacing.section)
     }
 
     private func privacyFact(_ text: LocalizedStringKey) -> some View {
@@ -141,37 +146,28 @@ struct ThawPermissionsView: View {
     }
 }
 
-private struct OnboardingPermissionRow: View {
+/// One permission as a card: its name, one line on what it switches on, and the button that asks for it.
+private struct OnboardingPermissionCard: View {
     let permission: Permission
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: permission.iconName)
-                .font(ThawType.display)
-                .foregroundStyle(permission.iconColor)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
-                    Text(permission.title)
-                        .font(ThawType.heading)
-                    if !permission.isRequired {
-                        ThawBadge("Optional")
-                    }
-                }
-                Text(verbatim: permission.details.joined(separator: " "))
-                    .font(ThawType.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: ThawSpacing.compact) {
+                OnboardingIconTile(symbol: permission.iconName, tint: permission.iconColor)
+                Text(permission.title)
+                    .font(ThawType.heading)
+                    .lineLimit(1)
             }
-
-            Spacer(minLength: 12)
-
-            PermissionStatusControl(permission: permission)
-                .buttonStyle(.glass)
+            Text((try? AttributedString(markdown: permission.summary)) ?? AttributedString(permission.summary))
+                .font(ThawType.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            PermissionStatusControl(permission: permission, layout: .filled)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onboardingCard()
         .thawAnimation(ThawMotion.settle, value: permission.hasPermission)
     }
 }

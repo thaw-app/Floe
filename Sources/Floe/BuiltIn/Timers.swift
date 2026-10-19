@@ -129,6 +129,14 @@ enum TimerAlerts {
 
     private static let presenter = Presenter()
 
+    /// macOS's last answer about notifications. Reading it takes a moment, so a check takes this and reads again.
+    private(set) static var status: UNAuthorizationStatus = .notDetermined
+
+    static func refreshStatus() {
+        guard Bundle.main.bundleIdentifier != nil else { return }
+        Task { status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus }
+    }
+
     /// Whether Floe may post notifications. macOS asks the user the first time.
     static func requestAccess() async -> Bool {
         // Run outside its app bundle, as a development build is, Floe has no notifications to ask for.

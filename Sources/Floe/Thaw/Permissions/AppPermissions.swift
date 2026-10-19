@@ -30,7 +30,7 @@ final class AppPermissions {
     /// The permission for Accessibility features.
     let accessibility: Permission
 
-    /// The optional ones, each for one feature: Calendar, Reminders and Contacts.
+    /// The optional ones, each for one feature: Screen Recording, the home folders, notifications, Calendar, Reminders and Contacts.
     let others: [Permission]
     private let decisions: PermissionDecisions?
 
@@ -68,7 +68,7 @@ final class AppPermissions {
     init(accessibility: Permission? = nil, others: [Permission]? = nil, decisions: PermissionDecisions? = nil) {
         self.decisions = decisions
         self.accessibility = accessibility ?? AccessibilityPermission()
-        self.others = others ?? DataPermissions.system
+        self.others = others ?? FeaturePermissions.system + DataPermissions.system
         self.updatePermissionsState()
         // Permission is @Observable, so changes arrive via onChange.
         for permission in allPermissions {

@@ -309,10 +309,10 @@ struct AppPermissionsTests {
         let permissions = AppPermissions()
         #expect(permissions.accessibility.title == "Accessibility")
         #expect(permissions.accessibility.isRequired)
-        #expect(permissions.others.map(\.title) == ["Calendar", "Reminders", "Contacts"])
+        #expect(permissions.others.map(\.title) == ["Screen Recording", "Folders", "Notifications", "Calendar", "Reminders", "Contacts"])
         #expect(permissions.others.allSatisfy { !$0.isRequired })
-        #expect(permissions.allPermissions.map(\.key) == ["accessibility", "calendar", "reminders", "contacts"])
-        #expect(permissions.allPermissions.allSatisfy { !$0.details.isEmpty })
+        #expect(permissions.allPermissions.map(\.key) == ["accessibility", "screenRecording", "folders", "notifications", "calendar", "reminders", "contacts"])
+        #expect(permissions.allPermissions.allSatisfy { !$0.details.isEmpty && !$0.summary.isEmpty })
         permissions.stopAllChecks()
     }
 }

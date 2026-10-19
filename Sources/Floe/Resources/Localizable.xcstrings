@@ -526,6 +526,12 @@
     "A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place." : {
 
     },
+    "A timer posts a notification with a sound when it ends." : {
+
+    },
+    "A timer tells you when it ends." : {
+      "comment" : "One line on a permission card in the welcome."
+    },
     "AI" : {
       "comment" : "The heading over the settings for artificial intelligence.\nThe kind of a result, shown beside its title. Short for artificial intelligence.\nThe name of a settings page."
     },
@@ -664,6 +670,9 @@
     "Add to Menu Bar" : {
 
     },
+    "Add to Notes" : {
+      "comment" : "A result row in a demo of the welcome tour."
+    },
     "Added a line to the note %@" : {
       "comment" : "A receipt. The placeholder is the name of a note's file, such as 2026-10-08."
     },
@@ -711,6 +720,9 @@
     },
     "Alias" : {
       "comment" : "A short name typed in the search to find a command."
+    },
+    "Aliases, hotkeys and settings, the same on all your Macs." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports." : {
 
@@ -1079,9 +1091,6 @@
     "Checkpoint" : {
       "comment" : "The kind of a result, shown beside its title. A checkpoint is a saved set of files, tabs and a note."
     },
-    "Checkpoints" : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Choose" : {
       "comment" : "A verb on a button: pick the selected line."
     },
@@ -1220,8 +1229,8 @@
     "Continue" : {
       "comment" : "The button that goes to the next step of the welcome window."
     },
-    "Continue Without Menu Bar Search" : {
-
+    "Continue Without Accessibility" : {
+      "comment" : "The button that leaves the permission step while Accessibility is not granted."
     },
     "Contribute" : {
       "comment" : "A button that opens the project page for people who want to help."
@@ -1339,6 +1348,12 @@
     },
     "Copy Text from Screen" : {
       "comment" : "A command that reads the text in a part of the screen and copies it."
+    },
+    "Copy Text from Screen reads the text or the QR code in the part of the screen you drag over." : {
+
+    },
+    "Copy the text or QR code in part of the screen." : {
+      "comment" : "One line on a permission card in the welcome."
     },
     "Copy the version, build and commit for a bug report" : {
 
@@ -1536,6 +1551,9 @@
         }
       }
     },
+    "Desktop, Documents and Downloads, for fast file search. macOS asks per folder." : {
+      "comment" : "One line on a permission card in the welcome."
+    },
     "Detail" : {
       "comment" : "A label before a line that describes a copied thing, such as its length."
     },
@@ -1578,6 +1596,9 @@
         }
       }
     },
+    "Docs" : {
+      "comment" : "A result row in a demo of the welcome tour: a quicklink."
+    },
     "Done" : {
       "comment" : "A button that ends writing a note.\nSaid after a command finished and printed nothing.\nThe button that closes the welcome window."
     },
@@ -1611,10 +1632,10 @@
     "Dynamic Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
     },
-    "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {
+    "Each card says what its permission switches on. The launcher and your extensions work without any of them." : {
 
     },
-    "Each one switches on the feature named under it. The launcher and your extensions work without any of them." : {
+    "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {
 
     },
     "Earlier commands, programs and paths appear under the command, and Tab finishes the selected one. Your shell history is read, not kept." : {
@@ -1770,6 +1791,9 @@
     "Fast file search" : {
 
     },
+    "Fast file search finds the files in Desktop, Documents and Downloads by name. macOS asks for each folder." : {
+
+    },
     "Favorite" : {
       "comment" : "A verb on a button: add the selected result to the favorites."
     },
@@ -1790,6 +1814,9 @@
     },
     "Files" : {
       "comment" : "Files on this Mac, as a source of search results.\nThe kind of a result, shown beside its title."
+    },
+    "Files open in your editor and links in your browser." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Files you open will show up here." : {
 
@@ -1963,6 +1990,9 @@
     "Focus for %@" : {
       "comment" : "The title of the row that turns a Focus on for a while. The placeholder is how long, such as 1 hr."
     },
+    "Folders" : {
+      "comment" : "The title of a permission: access to the Desktop, Documents and Downloads folders."
+    },
     "Follow Thaw's Appearance" : {
 
     },
@@ -2121,9 +2151,6 @@
     },
     "Hotkey" : {
       "comment" : "A column heading over keyboard shortcuts."
-    },
-    "How Floe works" : {
-
     },
     "How long a closed launcher keeps the command you had open." : {
 
@@ -2810,6 +2837,9 @@
     "Nothing to translate" : {
 
     },
+    "Notifications" : {
+      "comment" : "The macOS permission named Notifications."
+    },
     "Notifications (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2953,7 +2983,7 @@
     "Open source" : {
 
     },
-    "Open source under the AGPL, so you can read how it works" : {
+    "Open source under the AGPL" : {
 
     },
     "Open the launcher from an app to search its menus." : {
@@ -3175,7 +3205,7 @@
       "comment" : "Quick Look is the macOS preview. The placeholder is the name of a file."
     },
     "Quicklink" : {
-      "comment" : "The heading of the form that edits one quicklink.\nThe kind of a result, shown beside its title. A quicklink is a saved link or search."
+      "comment" : "A result row in a demo of the welcome tour.\nThe heading of the form that edits one quicklink.\nThe kind of a result, shown beside its title. A quicklink is a saved link or search."
     },
     "Quicklinks" : {
       "comment" : "The name of a settings page."
@@ -3521,6 +3551,9 @@
     "Scratch Note" : {
       "comment" : "The name of the one note the floating note keeps when the notes app cannot be read back."
     },
+    "Screen Recording" : {
+      "comment" : "The macOS permission named Screen Recording."
+    },
     "Screen Saver (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -3628,11 +3661,17 @@
     "Search settings" : {
       "comment" : "The placeholder of the search field in the settings sidebar."
     },
+    "Search the menu bar and app menus, and switch windows." : {
+      "comment" : "One line on a permission card in the welcome."
+    },
     "Search the menu bar and the menus of the app in front, and switch windows. These need Accessibility." : {
       "comment" : "A tile of the welcome tour."
     },
     "Search the menus of %@…" : {
       "comment" : "The placeholder is the name of an app."
+    },
+    "Search the menus of the app in front, and switch windows." : {
+
     },
     "Search what you copied" : {
 
@@ -3838,7 +3877,7 @@
       "comment" : "The kind of a result, shown beside its title. A snippet is a saved piece of text."
     },
     "Snippets" : {
-      "comment" : "The name of a settings page."
+      "comment" : "A tile of the welcome tour.\nThe name of a settings page."
     },
     "Software Update (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -3962,8 +4001,8 @@
     "Suggestions" : {
       "comment" : "A section title above results Floe suggests."
     },
-    "Sums, units and dates: `200 + 10%`, `today + 3 days`." : {
-      "comment" : "A tile of the welcome tour. The parts in backticks are typed as they are; translate only the units and words that people type in your language."
+    "Sums, units and dates as you type them." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Support Floe" : {
 
@@ -4034,6 +4073,9 @@
     "Text" : {
       "comment" : "A kind of copied thing."
     },
+    "Text that expands as you type, and quicklinks you open by name." : {
+      "comment" : "A tile of the welcome tour."
+    },
     "Text you paste or type by keyword." : {
 
     },
@@ -4075,6 +4117,9 @@
     },
     "Thaw isn't installed" : {
 
+    },
+    "Thaw's actions are in the search, and Floe can follow its look." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Thaw's actions are in the search: type “thaw” to see them." : {
       "comment" : "The word in quotation marks is typed as it is and stays in English."
@@ -4474,6 +4519,9 @@
     "Turn on Apple Intelligence in System Settings to use it here." : {
 
     },
+    "Type ? in the search to see every keyword." : {
+
+    },
     "Type Keyword" : {
       "comment" : "A button that puts the selected keyword into the search field, for the user to go on typing."
     },
@@ -4484,9 +4532,6 @@
 
     },
     "Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal." : {
-
-    },
-    "Type to find an app or a command, then press Return. Type ? to see every keyword." : {
 
     },
     "Type “note” and then your text in the search to send it there." : {
@@ -4648,6 +4693,9 @@
     "Welcome window" : {
 
     },
+    "What Floe does" : {
+
+    },
     "What It Has Reached" : {
 
     },
@@ -4680,6 +4728,9 @@
     },
     "Window" : {
       "comment" : "The kind of a result, shown beside its title. Here an open window of an app.\nThe title of the Window menu in the menu bar."
+    },
+    "Works with Thaw" : {
+      "comment" : "A tile of the welcome tour."
     },
     "Write" : {
       "comment" : "A verb on a button: start changing the note on screen."
@@ -4717,20 +4768,29 @@
     "Your last 300 copies. Return pastes one." : {
       "comment" : "A tile of the welcome tour."
     },
+    "Your next events in the search, and `event` adds one." : {
+      "comment" : "One line on a permission card in the welcome. event is a command the user types and stays in English."
+    },
     "Your notes are kept in %@" : {
 
+    },
+    "Your own apps" : {
+      "comment" : "A tile of the welcome tour."
     },
     "`>` and a command runs it. ⌘Return opens your terminal." : {
       "comment" : "A tile of the welcome tour."
     },
-    "`ask` and a question, answered by the AI you choose." : {
+    "`ask` and a question, answered by a tool you are signed in to, Apple Intelligence or an API. A switch keeps it all on your Mac." : {
       "comment" : "A tile of the welcome tour. ask is the keyword typed in the search."
+    },
+    "`contact` and a name finds a person." : {
+      "comment" : "One line on a permission card in the welcome. contact is a command the user types and stays in English."
     },
     "`note` writes to your notes app. Floating Note stays on top." : {
       "comment" : "A tile of the welcome tour. note is the keyword typed in the search."
     },
-    "`pause` saves your tabs and Finder selection to resume later." : {
-      "comment" : "A tile of the welcome tour. pause is the keyword typed in the search."
+    "`remind` and a sentence adds a reminder." : {
+      "comment" : "One line on a permission card in the welcome. remind is a command the user types and stays in English."
     },
     "a note" : {
       "comment" : "What a checkpoint holds when it has no files and no tabs."
@@ -5004,6 +5064,9 @@
     },
     "iCloud copy" : {
 
+    },
+    "iCloud sync" : {
+      "comment" : "A tile of the welcome tour."
     },
     "iCloud sync and settings files." : {
 
