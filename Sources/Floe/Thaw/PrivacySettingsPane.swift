@@ -143,7 +143,7 @@ struct PrivacySettingsPane: View {
                 if let host = PrivacyNetwork.updateHost {
                     row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started. The switch is in General.", bundle: .floe, comment: "The placeholder is the address of a server."))
                 }
-                row("Extension Store", String(localized: "The Extension Store lists and downloads extensions from GitHub, and their packages from the npm registry.", bundle: .floe))
+                row("Extension Store", PrivacyNetwork.extensionStoreLine)
                 row("Extension sign-in", String(localized: "An extension that signs in through the browser uses Raycast’s sign-in service for now: the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary: Floe’s own sign-in service is planned to replace it.", bundle: .floe, comment: "Raycast is another app's name."))
                 row("AI", PrivacyNetwork.aiLine(source: settings.aiSource, baseURL: settings.aiBaseURL, tool: AskAI.configuredTool(settings), onThisMacOnly: settings.aiOnThisMacOnly))
                 row("Follow-up questions", String(localized: "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it.", bundle: .floe, comment: "Ask AI is the name of the feature that answers a question in the launcher."))
@@ -198,6 +198,11 @@ extension PrivacyNetwork {
 
 /// What the Privacy pane says about the network, kept out of the view so it can be checked.
 enum PrivacyNetwork {
+    /// What the store asks of GitHub and npm. Screenshots are asked for only when an extension's details are opened.
+    static var extensionStoreLine: String {
+        String(localized: "The Extension Store lists and downloads extensions from GitHub, with the screenshots of the one you open, and their packages from the npm registry.", bundle: .floe)
+    }
+
     /// Where update checks go; nil in a build that has no updates, which then says nothing about them.
     static var updateHost: String? {
         let configuration = UpdateConfiguration(info: Bundle.main.infoDictionary)

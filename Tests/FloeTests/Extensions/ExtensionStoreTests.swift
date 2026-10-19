@@ -191,12 +191,15 @@ struct ExtensionStoreTests {
         #expect(store.error == nil)
     }
 
-    /// Stands in for GitHub: counts what is asked for and answers a manifest or an icon's bytes.
+    /// Stands in for GitHub: counts what is asked for and answers a manifest, a screenshot listing or an icon's bytes.
     private actor Repository {
         private(set) var asked: [URL] = []
 
         func read(_ url: URL) -> Data {
             asked.append(url)
+            if url.host == "api.github.com" {
+                return Data(#"[{"name":"pass-1.png","type":"file"}]"#.utf8)
+            }
             return url.lastPathComponent == "package.json" ? Data(#"{"title":"Proton Pass","icon":"icon.png"}"#.utf8) : Data("icon".utf8)
         }
     }
@@ -262,6 +265,63 @@ struct ExtensionStoreTests {
         #expect(await repository.asked.count == 1, "the file is found, not fetched again")
         let installed = URL(fileURLWithPath: "/tmp/floe-installed/assets/icon.png")
         #expect(store.knownIconFile(for: installed) == installed.path, "an installed copy's icon is its own file")
+    }
+
+    @Test func theDetailsCarryCategoriesAndWhetherSetupIsNeeded() {
+        let details = ExtensionStore.parseDetails(name: "weather-test-not-installed", manifest: [
+            "categories": ["Productivity", "Web"],
+            "preferences": [["name": "units", "required": false]],
+            "commands": [["name": "forecast"]],
+        ])
+        #expect(details.categories == ["Productivity", "Web"])
+        #expect(!details.needsSetup, "a preference that is not required asks for nothing")
+        #expect(ExtensionStore.parseDetails(name: "a", manifest: ["preferences": [["name": "key", "required": true]]]).needsSetup)
+        #expect(ExtensionStore.parseDetails(name: "a", manifest: ["commands": [["name": "run", "preferences": [["name": "key", "required": true]]]]]).needsSetup, "a command's own preference counts")
+        #expect(ExtensionStore.parseDetails(name: "a", manifest: ["categories": "Web"]).categories.isEmpty)
+    }
+
+    @Test func aCommandCarriesItsOwnIconAndItsArguments() {
+        let details = ExtensionStore.parseDetails(name: "weather-test-not-installed", manifest: [
+            "icon": "icon.png",
+            "commands": [
+                ["name": "forecast", "icon": "forecast.png", "arguments": [["name": "city", "placeholder": "City"], ["name": "days"], ["placeholder": "Nameless"]]],
+                ["name": "refresh"],
+            ],
+        ])
+        let forecast = details.commands[0]
+        #expect(forecast.iconURL?.absoluteString == "https://raw.githubusercontent.com/raycast/extensions/main/extensions/weather-test-not-installed/assets/forecast.png")
+        #expect(forecast.arguments == [StoreArgument(name: "city", placeholder: "City"), StoreArgument(name: "days", placeholder: nil)])
+        #expect(details.commands[1].iconURL == nil, "a command without an icon shows the extension's")
+        #expect(details.commands[1].arguments.isEmpty)
+    }
+
+    @Test func theScreenshotsAreTheListingsImagesByName() {
+        let listing = Data(#"""
+        [{"name":"weather-10.png","type":"file"},{"name":"weather-2.PNG","type":"file"},{"name":"notes.md","type":"file"},
+         {"name":"raw","type":"dir"},{"name":"weather 1.jpg","type":"file"}]
+        """#.utf8)
+        let base = "https://raw.githubusercontent.com/raycast/extensions/main/extensions/weather/metadata/"
+        #expect(ExtensionStore.screenshotURLs(name: "weather", listing: listing).map(\.absoluteString) == [
+            base + "weather%201.jpg", base + "weather-2.PNG", base + "weather-10.png",
+        ])
+        #expect(ExtensionStore.screenshotURLs(name: "weather", listing: Data(#"{"message":"Not Found"}"#.utf8)).isEmpty)
+        #expect(ExtensionStore.screenshotURLs(name: "weather", listing: Data("not json".utf8)).isEmpty)
+    }
+
+    @MainActor @Test func theScreenshotsAreListedOnceASession() async {
+        let repository = Repository()
+        let store = ExtensionStore { await repository.read($0) }
+        async let first = store.screenshots(for: "proton-pass")
+        async let second = store.screenshots(for: "proton-pass")
+        let found = await [first, second]
+        #expect(found.map { $0.map(\.lastPathComponent) } == [["pass-1.png"], ["pass-1.png"]])
+        #expect(await store.screenshots(for: "proton-pass").count == 1)
+        #expect(await repository.asked.map(\.absoluteString) == ["https://api.github.com/repos/raycast/extensions/contents/extensions/proton-pass/metadata"])
+    }
+
+    @MainActor @Test func aListingThatFailsShowsNoScreenshots() async {
+        let store = ExtensionStore { _ in throw URLError(.notConnectedToInternet) }
+        #expect(await store.screenshots(for: "proton-pass").isEmpty)
     }
 
     private func found(_ query: String, in names: [String] = ["1password", "pass", "proton-mail", "proton-pass", "spotify-player"]) -> [String] {

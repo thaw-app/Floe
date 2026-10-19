@@ -302,7 +302,6 @@
     },
     "%lld commands" : {
       "comment" : "The placeholder is how many commands an extension has.",
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "variations" : {
@@ -907,6 +906,9 @@
     },
     "Back" : {
       "comment" : "A button that returns to the search."
+    },
+    "Background" : {
+      "comment" : "A command that runs without a window of its own."
     },
     "Base" : {
       "comment" : "A label on the calculator result that says what kind of calculation it is."
@@ -2446,7 +2448,7 @@
       "comment" : "The kind of a result, shown beside its title."
     },
     "Menu Bar" : {
-      "comment" : "The heading over every menu bar item.\nThe kind of a result, shown beside its title."
+      "comment" : "A command that shows in the menu bar.\nThe heading over every menu bar item.\nThe kind of a result, shown beside its title."
     },
     "Menu Bar Commands" : {
 
@@ -2537,6 +2539,9 @@
     },
     "Name the language: translate to german good morning" : {
       "comment" : "The words after the colon are typed as they are and stay in English."
+    },
+    "Needs setup" : {
+      "comment" : "A tag on an extension with a setting that must be filled in before it runs."
     },
     "Neither Spotify nor Music is open" : {
       "comment" : "Spotify and Music are the names of two apps."
@@ -3775,6 +3780,9 @@
     "Show in Finder" : {
 
     },
+    "Show larger" : {
+
+    },
     "Show the Floe launcher." : {
 
     },
@@ -4106,7 +4114,7 @@
     "The API set up on the AI page" : {
 
     },
-    "The Extension Store lists and downloads extensions from GitHub, and their packages from the npm registry." : {
+    "The Extension Store lists and downloads extensions from GitHub, with the screenshots of the one you open, and their packages from the npm registry." : {
 
     },
     "The Finder isn't frontmost, so there is no Finder selection to read." : {
@@ -4517,6 +4525,9 @@
     "Update" : {
       "comment" : "A button that updates an extension to its newest version."
     },
+    "Update available" : {
+      "comment" : "A tag on an installed extension that has a newer version."
+    },
     "Update channel" : {
 
     },
@@ -4561,6 +4572,9 @@
     },
     "Version" : {
       "comment" : "A label before the version number of this app."
+    },
+    "View" : {
+      "comment" : "A command that opens its own view in the launcher."
     },
     "View on GitHub" : {
 

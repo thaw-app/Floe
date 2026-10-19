@@ -37,7 +37,7 @@ extension ExtensionStore {
         return parsed
     }
 
-    /// Where an icon is on this Mac: an installed copy's own file, or one fetched once and kept in the temporary folder.
+    /// Where an icon or a screenshot is on this Mac: an installed copy's own file, or one fetched once and kept in the temporary folder.
     func iconFile(for url: URL) async -> String? {
         if let known = knownIconFile(for: url) {
             return known
@@ -62,6 +62,47 @@ extension ExtensionStore {
     /// An icon's file when no waiting is needed for it, so a row that comes back draws it in the same pass.
     func knownIconFile(for url: URL) -> String? {
         url.isFileURL ? url.path : iconFiles[url]
+    }
+
+    /// The addresses of an extension's screenshots, listed once a session. Empty when GitHub cannot be asked,
+    /// so a pane without them shows no strip and asks again only in the next session.
+    func screenshots(for name: String) async -> [URL] {
+        if let cached = screenshotsCache[name] {
+            return cached
+        }
+        if let running = screenshotTasks[name] {
+            return await running.value
+        }
+        guard let url = URL(string: "\(Self.repoAPI)/contents/extensions/\(name)/metadata") else { return [] }
+        let fetch = fetch
+        let task = Task { await Self.loadScreenshots(name: name, from: url, fetch: fetch) }
+        screenshotTasks[name] = task
+        let found = await task.value
+        screenshotTasks[name] = nil
+        screenshotsCache[name] = found
+        return found
+    }
+
+    @concurrent
+    private static nonisolated func loadScreenshots(name: String, from url: URL, fetch: @Sendable (URL) async throws -> Data) async -> [URL] {
+        guard let data = try? await fetch(url) else { return [] }
+        return screenshotURLs(name: name, listing: data)
+    }
+
+    /// The images in GitHub's listing of the metadata folder, by name, read from the same place as the icons.
+    /// Anything that is not a list of files lists nothing.
+    static nonisolated func screenshotURLs(name: String, listing: Data) -> [URL] {
+        let images: Set = ["png", "jpg", "jpeg", "gif", "webp"]
+        let entries = (try? JSONSerialization.jsonObject(with: listing)) as? [[String: Any]] ?? []
+        return entries
+            .filter { $0["type"] as? String == "file" }
+            .compactMap { $0["name"] as? String }
+            .filter { images.contains(($0 as NSString).pathExtension.lowercased()) }
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+            .compactMap { file in
+                let encoded = file.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? file
+                return URL(string: "\(rawBase)/\(name)/metadata/\(encoded)")
+            }
     }
 
     /// Reads and parses a manifest off the main thread.
@@ -100,17 +141,31 @@ extension ExtensionStore {
             return nil
         }()
         let iconURL = iconURL(for: name, icon: manifest["icon"])
-        let commands = (manifest["commands"] as? [[String: Any]] ?? []).compactMap { command -> StoreCommand? in
-            guard let commandName = command["name"] as? String, ExtensionCommand.runsOnMac(command["platforms"] as? [String]) else { return nil }
+        let forMac = (manifest["commands"] as? [[String: Any]] ?? []).filter { ExtensionCommand.runsOnMac($0["platforms"] as? [String]) }
+        let commands = forMac.compactMap { command -> StoreCommand? in
+            guard let commandName = command["name"] as? String else { return nil }
+            let arguments = (command["arguments"] as? [[String: Any]] ?? []).compactMap { argument -> StoreArgument? in
+                guard let argumentName = argument["name"] as? String else { return nil }
+                return StoreArgument(name: argumentName, placeholder: argument["placeholder"] as? String)
+            }
             return StoreCommand(
                 name: commandName,
                 title: command["title"] as? String ?? commandName,
                 description: command["description"] as? String,
-                mode: command["mode"] as? String ?? "view"
+                mode: command["mode"] as? String ?? "view",
+                iconURL: Self.iconURL(for: name, icon: command["icon"]),
+                arguments: arguments
             )
         }
-        let runsOnMac = ExtensionCommand.runsOnMac(manifest["platforms"] as? [String])
-        return StoreDetails(name: name, title: title, description: description, author: author, iconURL: iconURL, commands: commands, runsOnMac: runsOnMac)
+        var details = StoreDetails(name: name, title: title, description: description, author: author, iconURL: iconURL, commands: commands)
+        details.runsOnMac = ExtensionCommand.runsOnMac(manifest["platforms"] as? [String])
+        details.categories = manifest["categories"] as? [String] ?? []
+        details.needsSetup = hasRequiredPreference(manifest) || forMac.contains(where: hasRequiredPreference)
+        return details
+    }
+
+    private static nonisolated func hasRequiredPreference(_ owner: [String: Any]) -> Bool {
+        (owner["preferences"] as? [[String: Any]] ?? []).contains { $0["required"] as? Bool == true }
     }
 
     static nonisolated func iconURL(for name: String, icon: Any?) -> URL? {

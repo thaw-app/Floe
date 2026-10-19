@@ -49,9 +49,18 @@ struct StoreCommand: Identifiable, Hashable {
     let title: String
     let description: String?
     let mode: String
+    /// The command's own icon; nil when it uses the extension's.
+    var iconURL: URL?
+    var arguments: [StoreArgument] = []
     var id: String {
         name
     }
+}
+
+/// A value a command asks for as it is typed, shown by its placeholder when it has one.
+struct StoreArgument: Hashable {
+    let name: String
+    let placeholder: String?
 }
 
 struct StoreDetails: Hashable {
@@ -63,6 +72,9 @@ struct StoreDetails: Hashable {
     let commands: [StoreCommand]
     /// False when the manifest lists platforms and the Mac is not one of them.
     var runsOnMac = true
+    var categories: [String] = []
+    /// True when the extension or one of its commands has a preference that must be filled in before it runs.
+    var needsSetup = false
 }
 
 @MainActor
@@ -81,6 +93,8 @@ final class ExtensionStore: ObservableObject {
     var detailsTasks: [String: Task<StoreDetails?, Never>] = [:]
     var iconTasks: [URL: Task<String?, Never>] = [:]
     var iconFiles: [URL: String] = [:]
+    var screenshotsCache: [String: [URL]] = [:]
+    var screenshotTasks: [String: Task<[URL], Never>] = [:]
     private var latestShaCache: [String: String] = [:]
     /// Reads one file of the repository. Tests answer for themselves.
     let fetch: @Sendable (URL) async throws -> Data
@@ -92,7 +106,7 @@ final class ExtensionStore: ObservableObject {
     init(
         catalog: [String] = [],
         iconFolder: URL = FileManager.default.temporaryDirectory.appendingPathComponent("floe-store-icons", isDirectory: true),
-        fetch: @escaping @Sendable (URL) async throws -> Data = { try await URLSession.shared.data(from: $0).0 }
+        fetch: @escaping @Sendable (URL) async throws -> Data = ExtensionStore.download
     ) {
         self.catalog = catalog.map(StoreListing.init(name:))
         self.iconFolder = iconFolder
@@ -104,7 +118,7 @@ final class ExtensionStore: ObservableObject {
     private static let catalogFileName = "store-catalog.json"
     static let recordFileName = ".floe-store.json"
     private static let cacheLifetime: TimeInterval = 24 * 3600
-    private static let repoAPI = "https://api.github.com/repos/raycast/extensions"
+    static nonisolated let repoAPI = "https://api.github.com/repos/raycast/extensions"
     static nonisolated let rawBase = "https://raw.githubusercontent.com/raycast/extensions/main/extensions"
 
     private var catalogURL: URL {
@@ -290,7 +304,19 @@ final class ExtensionStore: ObservableObject {
 
     // MARK: - Catalog fetching
 
-    private static func apiRequest(url: URL) -> URLRequest {
+    /// Reads one address, with GitHub's API headers when it is the API. An answer that is not a success
+    /// is an error, so a missing file is never taken for its contents.
+    @concurrent
+    static nonisolated func download(_ url: URL) async throws -> Data {
+        let request = url.host == "api.github.com" ? apiRequest(url: url) : URLRequest(url: url)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        if let status = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(status) {
+            throw URLError(.badServerResponse)
+        }
+        return data
+    }
+
+    static nonisolated func apiRequest(url: URL) -> URLRequest {
         var request = URLRequest(url: url)
         request.setValue("Floe", forHTTPHeaderField: "User-Agent")
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")

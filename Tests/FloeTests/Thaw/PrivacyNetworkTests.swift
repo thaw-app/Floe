@@ -26,6 +26,13 @@ struct PrivacyNetworkTests {
         #expect(PrivacyNetwork.aiLine(source: .api, baseURL: "nonsense") == "Questions go to the address set on the AI page, once it is filled in.")
     }
 
+    @Test func theStoreLineNamesWhatItAsksGitHubFor() {
+        let line = PrivacyNetwork.extensionStoreLine
+        #expect(line.contains("GitHub"))
+        #expect(line.contains("screenshots"), "opening an extension's details asks GitHub for its screenshots")
+        #expect(line.contains("npm registry"))
+    }
+
     @Test func aBuildWithoutUpdatesSaysNothingAboutThem() {
         // Under `swift test` the bundle has no feed, so the Updates rows are left out.
         #expect(PrivacyNetwork.updateHost == nil)
