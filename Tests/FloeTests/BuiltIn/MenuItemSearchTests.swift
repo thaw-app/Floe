@@ -174,11 +174,12 @@ private nonisolated enum Menus {
 }
 
 @MainActor struct MenuItemSearchScopeTests {
+    /// The clock stands still, so a slow run never outlives the last read's lifetime.
     private func scope(trusted: Bool = true, front: @escaping () -> MenuTarget? = { Menus.preview }, scans: CallLog = CallLog()) -> MenuItemSearchScope {
         MenuItemSearchScope(isTrusted: { trusted }, frontApp: front, scan: { pid in
             scans.note("\(pid)")
             return Menus.items
-        })
+        }, now: { Date(timeIntervalSinceReferenceDate: 0) })
     }
 
     private func rows(_ scope: MenuItemSearchScope, _ query: String) async -> [RootItem] {
