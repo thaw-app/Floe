@@ -16,6 +16,11 @@ import Testing
 struct CalculatorTests {
     private let calculator = Calculator()
 
+    @Test func aFileAddressIsAPlaceAndNotASum() {
+        #expect(calculator.evaluatePreview("file:///Users/me/x%20y.txt") == nil)
+        #expect(calculator.evaluatePreview("file://localhost/Users/me/Downloads/") == nil)
+    }
+
     @Test func everyOperatorIsSpacedWhenOneReplacementChangesTheLength() {
         // A pass that makes the string longer must not hide the operators after it from the passes behind:
         // the range each pass reads is the string as the pass before it left it.

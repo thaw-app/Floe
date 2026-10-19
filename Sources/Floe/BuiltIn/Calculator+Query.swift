@@ -15,8 +15,8 @@ extension Calculator {
     func looksLikeCalculatorQuery(_ query: String) -> Bool {
         let lower = query.lowercased()
 
-        // Paths starting with / or ~ are file locations, not calculations
-        if query.hasPrefix("/") || query.hasPrefix("~") {
+        // Paths starting with / or ~, and file:// addresses, are file locations, not calculations
+        if query.hasPrefix("/") || query.hasPrefix("~") || lower.hasPrefix("file:") {
             return false
         }
 

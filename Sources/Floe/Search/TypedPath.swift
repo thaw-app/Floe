@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// A path typed into the search in full: `/Applications`, `~/Downloads`, `~`.
+/// A path typed into the search in full: `/Applications`, `~/Downloads`, `~`, or a `file://` address.
 nonisolated enum TypedPath {
     enum Kind: Sendable {
         case file, folder
@@ -24,6 +24,8 @@ nonisolated enum TypedPath {
             absolute = home + text.dropFirst()
         } else if text.hasPrefix("/") {
             absolute = text
+        } else if let path = fileAddressPath(text) {
+            absolute = path
         } else {
             return nil
         }
@@ -36,6 +38,16 @@ nonisolated enum TypedPath {
             }
         }
         return "/" + parts.joined(separator: "/")
+    }
+
+    /// The path of `file:///Users/me/My%20File.pdf` as it is on disk. Only this Mac's files: a host other than
+    /// localhost names another machine.
+    static func fileAddressPath(_ text: String) -> String? {
+        guard text.lowercased().hasPrefix("file://"), let url = URL(string: text), url.isFileURL,
+              [nil, "", "localhost"].contains(url.host(percentEncoded: false)?.lowercased())
+        else { return nil }
+        let path = url.path(percentEncoded: false)
+        return path.hasPrefix("/") ? path : nil
     }
 
     /// The row for a typed path, as the file search would make it; nil when nothing is there.

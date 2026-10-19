@@ -20,7 +20,7 @@ struct TypedLocationSearchProvider: SearchProvider, Sendable {
 
     private func item(for context: SearchContext) -> RootItem? {
         let text = context.trimmed
-        let found: RootItem? = if text.hasPrefix("/") || text.hasPrefix("~") {
+        let found: RootItem? = if text.hasPrefix("/") || text.hasPrefix("~") || TypedPath.fileAddressPath(text) != nil {
             TypedPath.file(for: text, home: home(), kind: kind).map(RootItem.file)
         } else {
             WebAddress(typed: text).map(RootItem.webAddress)

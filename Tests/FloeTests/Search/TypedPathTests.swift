@@ -27,12 +27,13 @@ struct TypedPathTests {
         ("//usr///bin//", "/usr/bin"),
         ("/Applications/Visual Studio Code.app", "/Applications/Visual Studio Code.app"),
         ("  ~/My Files/a b.txt  ", "/Users/someone/My Files/a b.txt"),
+        ("file:///Applications", "/Applications"),
     ])
     func aPathIsMadeAbsoluteFromItsTextAlone(typed: String, path: String) {
         #expect(TypedPath.standardized(typed, home: Self.home) == path)
     }
 
-    @Test(arguments: ["", " ", "Downloads", "Downloads/x.txt", "./x", "../x", "notes.txt", "~someone", "~someone/x", "a/~", "safari", "file:///Applications"])
+    @Test(arguments: ["", " ", "Downloads", "Downloads/x.txt", "./x", "../x", "notes.txt", "~someone", "~someone/x", "a/~", "safari", "file://server/Applications"])
     func aRelativePathOrAFileNameIsNotAPath(typed: String) {
         #expect(TypedPath.standardized(typed, home: Self.home) == nil)
         #expect(TypedPath.file(for: typed, home: Self.home) { _ in .file } == nil)

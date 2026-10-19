@@ -103,15 +103,24 @@ nonisolated extension AppEntry {
         }
     }
 
-    static func scan(in folders: [String] = folders()) -> [AppEntry] {
-        let found = folders.flatMap { folder -> [AppEntry] in
+    /// Apps of macOS's own outside the Applications folders, which Spotlight offers too: Finder, and the
+    /// folder of Archive Utility, Keychain Access and Ticket Viewer. The rest of CoreServices runs in the background.
+    static let systemFolders = ["/System/Library/CoreServices/Applications"]
+    static let systemApps = ["/System/Library/CoreServices/Finder.app"]
+
+    static func scan() -> [AppEntry] {
+        scan(in: folders() + systemFolders, apps: systemApps)
+    }
+
+    static func scan(in folders: [String], apps: [String] = []) -> [AppEntry] {
+        let inFolders = folders.flatMap { folder -> [URL] in
             let entries = (try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []
-            return entries.filter { $0.hasSuffix(".app") }.map { entry in
-                let url = URL(fileURLWithPath: folder).appendingPathComponent(entry)
-                let shown = FileManager.default.displayName(atPath: url.path)
-                // Only a trailing ".app" goes: one in the middle of a name is part of it, as "Foo.app Maker" keeps.
-                return AppEntry(name: shown.hasSuffix(".app") ? String(shown.dropLast(4)) : shown, url: url)
-            }
+            return entries.filter { $0.hasSuffix(".app") }.map { URL(fileURLWithPath: folder).appendingPathComponent($0) }
+        }
+        let found = (inFolders + apps.filter { FileManager.default.fileExists(atPath: $0) }.map { URL(fileURLWithPath: $0) }).map { url in
+            let shown = FileManager.default.displayName(atPath: url.path)
+            // Only a trailing ".app" goes: one in the middle of a name is part of it, as "Foo.app Maker" keeps.
+            return AppEntry(name: shown.hasSuffix(".app") ? String(shown.dropLast(4)) : shown, url: url)
         }
         return distinct(found).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }

@@ -51,6 +51,12 @@ struct TypedLocationSearchProviderTests {
 
     // MARK: The rows
 
+    @Test(arguments: ["file://server/Users/someone/Downloads", "file:Downloads", "file://"])
+    func aFileAddressOfAnotherMachineOrWithoutAPathOpensNothing(text: String) {
+        #expect(TypedPath.fileAddressPath(text) == nil)
+        #expect(provider.contribution(for: context(text)).pinned.isEmpty)
+    }
+
     @Test func theRootSearchAsksTheProviderOnce() {
         #expect(RootSearch.providers.count { $0 is TypedLocationSearchProvider } == 1)
     }
@@ -77,6 +83,8 @@ struct TypedLocationSearchProviderTests {
         ("~", "/Users/someone", "someone", "Users"),
         ("~/Documents/../x y.txt", "/Users/someone/x y.txt", "x y.txt", "someone"),
         ("/Users/someone/x y.txt", "/Users/someone/x y.txt", "x y.txt", "someone"),
+        ("file:///Users/someone/x%20y.txt", "/Users/someone/x y.txt", "x y.txt", "someone"),
+        ("file://localhost/Users/someone/Downloads/", "/Users/someone/Downloads", "Downloads", "someone"),
     ])
     func aPathLeadsWithTheFileRowForIt(typed: String, path: String, title: String, label: String) throws {
         let contribution = provider.contribution(for: context(typed))

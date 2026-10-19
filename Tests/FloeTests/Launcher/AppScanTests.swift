@@ -37,6 +37,20 @@ struct AppScanTests {
         #expect(found.first { $0.name == "PairDrop" }?.url.path.hasSuffix("Helium Apps.localized/PairDrop.app") == true)
     }
 
+    @Test func anAppNamedOnItsOwnIsFoundWhenItIsThere() throws {
+        let root = try applications(["Finder.app", "Archive Utility.app"])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let finder = root.appendingPathComponent("Finder.app").path
+        let found = AppEntry.scan(in: [], apps: [finder, root.appendingPathComponent("Gone.app").path])
+        #expect(found.map(\.name) == ["Finder"])
+    }
+
+    @Test func finderAndArchiveUtilityAreAmongTheApps() {
+        let names = Set(AppEntry.scan().map(\.name))
+        #expect(names.contains("Finder"))
+        #expect(names.contains("Archive Utility"))
+    }
+
     @Test func twoAppsOfOneNameAreBothKeptAndTheSameAppTwiceIsOne() {
         let notes = AppEntry(name: "Notes", url: URL(fileURLWithPath: "/System/Applications/Notes.app"))
         let webNotes = AppEntry(name: "Notes", url: URL(fileURLWithPath: "/Users/me/Applications/Helium Apps.localized/Notes.app"))
