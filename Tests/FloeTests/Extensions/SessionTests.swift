@@ -551,7 +551,7 @@ struct ExtensionSessionTests {
             "PATH": "/opt/homebrew/bin", "FLOE_PREFERENCES": #"{"unit":"metric"}"#, "FLOE_AI": "1", "FLOE_LAUNCH_TYPE": "userInitiated",
             "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1",
         ])
-        let background = ExtensionSession.hostVariables(base, preferences: nil, hasAI: false, launchType: "background")
+        let background = ExtensionSession.hostVariables(base, preferences: nil, hasAI: false, launch: ("background", nil))
         #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1"])
     }
 

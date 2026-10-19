@@ -13,7 +13,10 @@ type Settings = { tls?: TLS; proxy?: string };
 type Init = RequestInit & { agent?: unknown; dispatcher?: object; tls?: TLS; proxy?: string };
 
 /// What each undici Agent or ProxyAgent was made with: Bun's keep none of it.
-export const dispatchers = new WeakMap<object, Settings>();
+const dispatchers = new WeakMap<object, Settings>();
+export function rememberDispatcher(dispatcher: object, settings: Settings) {
+  dispatchers.set(dispatcher, settings);
+}
 let globalDispatcher: object | undefined;
 
 export function setGlobalDispatcher(dispatcher: object | undefined) {
@@ -35,18 +38,22 @@ export function pickTLS(source: unknown): TLS | undefined {
 function agentSettings(agent: unknown): Settings {
   if (typeof agent !== "object" || agent === null) return {};
   const { options, proxy } = agent as { options?: unknown; proxy?: unknown };
-  return { tls: pickTLS(options), proxy: proxy ? String(proxy) : undefined };
+  return { tls: pickTLS(options), proxy: addressOf(proxy) };
 }
 
-function urlOf(input: unknown): string {
-  if (input instanceof Request) return input.url;
-  return String(input);
+// A proxy or request address, given as text or as a URL.
+export function addressOf(value: unknown): string | undefined {
+  if (typeof value === "string") return value;
+  if (value instanceof URL) return value.href;
+  if (value instanceof Request) return value.url;
+  return undefined;
 }
+
 
 /// The init Bun understands for the one an extension wrote for Node.
 export function bunInit(input: unknown, init: Init | undefined): Init | undefined {
   const dispatcher = init?.dispatcher ?? globalDispatcher;
-  const agent = typeof init?.agent === "function" ? (init.agent as (url: URL) => unknown)(new URL(urlOf(input))) : init?.agent;
+  const agent = typeof init?.agent === "function" ? (init.agent as (url: URL) => unknown)(new URL(addressOf(input) ?? "")) : init?.agent;
   if (!agent && !dispatcher && !isFormData(init?.body)) return init;
   const settings = { ...agentSettings(agent), ...(dispatcher ? dispatchers.get(dispatcher) : undefined) };
   const translated: Init = { ...init };

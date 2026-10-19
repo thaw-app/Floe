@@ -79,7 +79,7 @@ struct CommandLauncherTests {
     }
 
     @Test func theContextReachesTheHostAsJSON() throws {
-        let variables = ExtensionSession.hostVariables([:], preferences: nil, hasAI: false, launchContext: ["draft": 7])
+        let variables = ExtensionSession.hostVariables([:], preferences: nil, hasAI: false, launch: ("userInitiated", ["draft": 7]))
         #expect(variables["FLOE_LAUNCH_CONTEXT"] == #"{"draft":7}"#)
         #expect(ExtensionSession.hostVariables([:], preferences: nil, hasAI: false)["FLOE_LAUNCH_CONTEXT"] == nil)
     }

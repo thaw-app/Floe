@@ -41,7 +41,7 @@ const compatDir = path.join(import.meta.dir, "compat");
 function useCompatModules(output: string) {
   const code = fs.readFileSync(output, "utf8");
   const pointed = code.replace(/(require\(|from\s*)"(node-fetch|undici|ws)"/g, (_match, lead: string, name: string) =>
-    `${lead}${JSON.stringify(path.join(compatDir, `${name}.ts`))}`,
+    lead + JSON.stringify(path.join(compatDir, name + ".ts")),
   );
   if (pointed !== code) fs.writeFileSync(output, pointed);
 }
@@ -115,7 +115,7 @@ function retryFor(error: unknown): Retry {
 
 // Bun throws an AggregateError whose useful text is in the individual build messages.
 function describe(error: unknown): string {
-  return (error as AggregateError).errors?.map(String).join("\n") || String(error);
+  return (error as AggregateError).errors?.map(String).join("\n") || String(error as Error);
 }
 
 // What a second build does differently, after the first stopped where Raycast's esbuild would have gone on.
@@ -133,7 +133,7 @@ async function buildAs(entry: string, outdir: string, format: (typeof formats)[n
 // Bun stops. Only attribute values written name="…" are touched, since the same letters in code are code.
 function escapeUnreadableEntities(source: string): string {
   return source.replace(/(\s[\w:-]+=")([^"]*)"/g, (_match, lead: string, value: string) =>
-    `${lead}${value.replace(/&#(?!(?:x[0-9a-fA-F]+|[0-9]+);)/g, "&amp;#")}"`,
+    `${lead}${value.replace(/&#(?!(?:x[0-9a-fA-F]+|\d+);)/g, "&amp;#")}"`,
   );
 }
 
@@ -246,12 +246,14 @@ function splitLast(text: string, separator: string): [string, string] {
 // An extension's swift: package is built on the first call and run per call (native.ts). Raycast builds rust: code
 // for Windows alone and its macOS stub rejects every call, so commands that call it only on Windows run here too.
 export function nativeStub(specifier: string, importer: string, importerSource: string): string {
-  const quoted = specifier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const imports = new RegExp(`import\\s+(?:type\\s+)?(?:[\\w$]+\\s*,\\s*)?\\{([^}]*)\\}\\s*from\\s*["']${quoted}["']`, "g");
+  const quoted = specifier.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  const imports = new RegExp(String.raw`import\s+(?:type\s+)?(?:[\w$]+\s*,\s*)?\{([^}]*)\}\s*from\s*["']${quoted}["']`, "g");
   const names = new Set<string>();
   for (const match of importerSource.matchAll(imports)) {
     for (const part of match[1].split(",")) {
-      const name = part.trim().split(/\s+as\s+/)[0];
+      // "a as b" imports a; "type a" imports nothing that runs.
+      const [name, next] = part.trim().split(/\s+/);
+      if (name === "type" && next && next !== "as") continue;
       if (/^[\w$]+$/.test(name)) names.add(name);
     }
   }

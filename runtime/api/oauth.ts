@@ -61,7 +61,7 @@ function recentFailure(): Error | undefined {
 }
 
 function failed(error: unknown): Error {
-  const failure = error instanceof Error ? error : new Error(String(error));
+  const failure = error instanceof Error ? error : new Error(`Sign-in failed: ${JSON.stringify(error)}`);
   ctx.signInFailure = { error: failure, at: Date.now() };
   return failure;
 }

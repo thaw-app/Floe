@@ -17,7 +17,7 @@ export const BrowserExtension = {
   async getContent(options: ContentOptions = {}): Promise<string> {
     const format = options.format ?? "markdown";
     const javascript = `(${pageContent.toString()})(${JSON.stringify(format)}, ${JSON.stringify(options.cssSelector ?? null)})`;
-    const answer = JSON.parse(String(await request("browser.script", { javascript, tabId: options.tabId }))) as { content?: string };
+    const answer = JSON.parse((await request("browser.script", { javascript, tabId: options.tabId })) as string) as { content?: string };
     if (answer.content === undefined) throw new Error(`No element on the page matches "${options.cssSelector}"`);
     return answer.content;
   },
@@ -30,20 +30,20 @@ export function pageContent(format: string, selector: string | null): string {
   if (!root) return JSON.stringify({});
   if (format === "html") return JSON.stringify({ content: (selector ? root : doc.documentElement).outerHTML });
   if (format === "text") return JSON.stringify({ content: root.innerText });
-  const skipped = ["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "SVG", "HEAD", "IFRAME", "CANVAS", "BUTTON", "SELECT", "INPUT"];
-  const blocks = ["P", "DIV", "SECTION", "ARTICLE", "HEADER", "FOOTER", "MAIN", "ASIDE", "NAV", "FIGURE", "TABLE", "FORM", "DL", "DD", "DT"];
+  const skipped = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "SVG", "HEAD", "IFRAME", "CANVAS", "BUTTON", "SELECT", "INPUT"]);
+  const blocks = new Set(["P", "DIV", "SECTION", "ARTICLE", "HEADER", "FOOTER", "MAIN", "ASIDE", "NAV", "FIGURE", "TABLE", "FORM", "DL", "DD", "DT"]);
   const walk = (node: any, depth: number, pre: boolean): string => {
     if (node.nodeType === 3) return pre ? node.textContent : node.textContent.replace(/\s+/g, " ");
     if (node.nodeType !== 1) return "";
     const tag: string = node.tagName.toUpperCase();
-    if (skipped.includes(tag) || node.hidden || node.getAttribute("aria-hidden") === "true") return "";
+    if (skipped.has(tag) || node.hidden || node.getAttribute("aria-hidden") === "true") return "";
     const inner = (nextDepth = depth, nextPre = pre) => Array.from(node.childNodes as any[], (child) => walk(child, nextDepth, nextPre)).join("");
     const wrapped = (mark: string) => {
       const text = inner().trim();
       return text ? `${mark}${text}${mark}` : "";
     };
     if (/^H[1-6]$/.test(tag)) return `\n\n${"#".repeat(Number(tag[1]))} ${inner().trim()}\n\n`;
-    if (blocks.includes(tag)) return `\n\n${inner()}\n\n`;
+    if (blocks.has(tag)) return `\n\n${inner()}\n\n`;
     switch (tag) {
       case "BR":
         return "\n";
@@ -77,13 +77,15 @@ export function pageContent(format: string, selector: string | null): string {
         return `\n\n${lines.join("\n")}\n\n`;
       }
       case "BLOCKQUOTE":
-        return `\n\n${inner().trim().split("\n").map((line) => `> ${line}`).join("\n")}\n\n`;
+        const quoted = inner().trim().split("\n").map((line) => "> " + line);
+        return `\n\n${quoted.join("\n")}\n\n`;
       case "TR":
         return `\n${Array.from(node.children as any[], (cell) => walk(cell, depth, pre).trim()).join(" | ")}\n`;
       default:
         return inner();
     }
   };
-  const markdown = walk(root, 0, false).replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  const lines = walk(root, 0, false).split("\n").map((line) => line.trimEnd());
+  const markdown = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   return JSON.stringify({ content: markdown });
 }

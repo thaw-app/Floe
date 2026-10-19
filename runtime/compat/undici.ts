@@ -12,7 +12,7 @@ const network = require("./network");
 class Agent extends builtin.Agent {
   constructor(options?: { connect?: unknown }) {
     super(options);
-    network.dispatchers.set(this, { tls: network.pickTLS(options?.connect) });
+    network.rememberDispatcher(this, { tls: network.pickTLS(options?.connect) });
   }
 }
 
@@ -20,7 +20,7 @@ class ProxyAgent extends builtin.ProxyAgent {
   constructor(options: string | URL | { uri?: string | URL; requestTls?: unknown }) {
     super(options);
     const uri = typeof options === "string" || options instanceof URL ? options : options?.uri;
-    network.dispatchers.set(this, { proxy: uri ? String(uri) : undefined, tls: network.pickTLS(typeof options === "object" && !(options instanceof URL) ? options.requestTls : undefined) });
+    network.rememberDispatcher(this, { proxy: network.addressOf(uri), tls: network.pickTLS(typeof options === "object" && !(options instanceof URL) ? options.requestTls : undefined) });
   }
 }
 
