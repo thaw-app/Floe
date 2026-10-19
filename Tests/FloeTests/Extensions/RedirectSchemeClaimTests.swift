@@ -15,6 +15,7 @@ struct RedirectSchemeClaimTests {
     private final class Table {
         var handlers: [String: URL] = [:]
         var changes: [String] = []
+        var refusesRaycast = false
     }
 
     private let floe = URL(fileURLWithPath: "/Applications/Floe.app")
@@ -27,6 +28,7 @@ struct RedirectSchemeClaimTests {
         let handlers = RedirectSchemeClaim.Handlers(
             current: { table.handlers[$0] },
             set: { app, scheme in
+                if table.refusesRaycast, app.lastPathComponent == "Raycast.app" { throw CocoaError(.fileWriteNoPermission) }
                 table.handlers[scheme] = app
                 table.changes.append("\(scheme) → \(app.lastPathComponent)")
             }
@@ -70,5 +72,18 @@ struct RedirectSchemeClaimTests {
         #expect(table.handlers["raycast"] == raycast)
         await claim().restoreAfterCrash()
         #expect(table.changes.count == 2, "given back once")
+    }
+
+    @Test func aHandlerThatCantBeSetBackIsTriedAgainOnTheNextStart() async {
+        table.handlers["raycast"] = raycast
+        table.refusesRaycast = true
+        let claim = claim()
+        await claim.claim("raycast")
+        await claim.release("raycast")
+        #expect(table.handlers["raycast"] == floe)
+
+        table.refusesRaycast = false
+        await claim.restoreAfterCrash()
+        #expect(table.handlers["raycast"] == raycast)
     }
 }

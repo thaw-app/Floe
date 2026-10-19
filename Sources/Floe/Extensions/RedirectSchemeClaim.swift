@@ -63,9 +63,10 @@ final class RedirectSchemeClaim {
 
     private func giveBack(_ schemes: [String]) async {
         var previous = defaults.dictionary(forKey: Self.defaultsKey) as? [String: String] ?? [:]
+        // A handler that can't be set back stays saved, so the next release or start tries again.
         for scheme in schemes {
-            guard let path = previous.removeValue(forKey: scheme) else { continue }
-            try? await handlers.set(URL(fileURLWithPath: path), scheme)
+            guard let path = previous[scheme], (try? await handlers.set(URL(fileURLWithPath: path), scheme)) != nil else { continue }
+            previous[scheme] = nil
         }
         defaults.set(previous.isEmpty ? nil : previous, forKey: Self.defaultsKey)
     }

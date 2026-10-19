@@ -76,9 +76,10 @@ export function pageContent(format: string, selector: string | null): string {
         });
         return `\n\n${lines.join("\n")}\n\n`;
       }
-      case "BLOCKQUOTE":
+      case "BLOCKQUOTE": {
         const quoted = inner().trim().split("\n").map((line) => "> " + line);
         return `\n\n${quoted.join("\n")}\n\n`;
+      }
       case "TR":
         return `\n${Array.from(node.children as any[], (cell) => walk(cell, depth, pre).trim()).join(" | ")}\n`;
       default:
