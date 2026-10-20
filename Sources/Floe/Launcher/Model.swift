@@ -96,7 +96,10 @@ final class LauncherModel: ObservableObject {
     /// The optional sources, and the rows they found for the ordinary search on screen.
     private let sources: [any SearchSource]
     private let sourceSearch = SourceSearch()
+    /// What the providers answered for the ordinary search on screen, which rows found later join.
+    var rootAnswer: RootSearchAnswer?
     lazy var definitionSearch = DefinitionSearch()
+    lazy var calculatorSearch = CalculatorSearch()
 
     let settings: AppSettings
     let isResident: Bool
@@ -168,16 +171,23 @@ final class LauncherModel: ObservableObject {
             selection = 0
             // The list is shown at once; a source's rows join it when they arrive.
             sourceSearch.search(context, sources: enabled) { [weak self] in self?.showSourceRows() }
-            definitionSearch.search(context) { [weak self] in self?.showDefinitionRows() }
+            definitionSearch.search(context) { [weak self] in self?.showLateAnswers() }
+            calculatorSearch.search(context) { [weak self] in self?.showLateAnswers() }
             context.definition = definitionSearch.definition
+            context.calculation = calculatorSearch.row
+            // No spinner for the calculator: its answer is almost always a moment away.
             isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
-            results = RootSearch.results(for: context, sources: sourceSearch.rows)
+            let answer = RootSearchAnswer(for: context)
+            rootAnswer = answer
+            results = answer.results(sources: sourceSearch.rows)
             return
         }
         // A refresh that is not a new query, such as a rescan or a favorite, leaves a running scope alone.
         guard match.query != activeScope?.query else { return }
         sourceSearch.cancel()
         definitionSearch.cancel()
+        calculatorSearch.cancel()
+        rootAnswer = nil
         activeScope = match
         selection = 0
         results = match.rows(match.scope.results(for: match.text, context: context))
@@ -195,11 +205,13 @@ final class LauncherModel: ObservableObject {
         selection = selected.flatMap { id in rows.firstIndex { $0.id == id } } ?? min(selection, max(rows.count - 1, 0))
     }
 
-    /// A source's rows arrived below the ranked ones. The selection stays on the row it was on.
+    /// A source's rows arrived below the ranked ones, or a late answer above them. The providers are not asked
+    /// again, and the selection stays on the row it was on.
     func showSourceRows() {
+        guard let rootAnswer else { return }
         let selected = selectedRootItem?.id
         isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
-        results = RootSearch.results(for: searchContext(), sources: sourceSearch.rows)
+        results = rootAnswer.results(sources: sourceSearch.rows)
         selection = selected.flatMap { id in results.firstIndex { $0.id == id } } ?? min(selection, max(results.count - 1, 0))
     }
 
@@ -220,70 +232,6 @@ final class LauncherModel: ObservableObject {
             } else {
                 runner.run(command)
             }
-        }
-    }
-
-    /// Executes the selected root result, including routing Settings rows to their requested page. The keys held
-    /// reach the emoji and shell rows, which give them a meaning.
-    func activate(_ item: RootItem, flags: NSEvent.ModifierFlags = []) {
-        // An emoji keeps its own count of uses and remembers no query.
-        if features.emoji.open(item, flags: flags) {
-            return
-        }
-        if item.isScopeResult {
-            // Found just now and gone next time: opening one records no frecency entry.
-            (scopeResultOpener ?? openScopeResult)(item)
-            return
-        }
-        if case let .askAI(question) = item {
-            // Nothing about a question is kept: no usage record either.
-            openAskAI(question)
-            return
-        }
-        if case .searchFiles = item {
-            // A transient row for the query text: opening it records no frecency entry.
-        } else {
-            usage.recordUse(of: item.id)
-        }
-        rememberQuery()
-        if openByOwner(item, flags: flags) {
-            return
-        }
-        switch item {
-        case let .app(app):
-            NSWorkspace.shared.openWithoutWaiting(app.url)
-            panelHost.hidePanel()
-            reset()
-        case let .command(command):
-            runner.run(command)
-        case .menuBarSearch:
-            openMenuBarSearch()
-        case .emojiSearch:
-            query = EmojiSearchProvider.prefix
-            focusToken += 1
-        case .clipboardHistory, .clipboardApp:
-            openClipboardHistory()
-        case .fileSearch:
-            openFileSearch(with: query)
-        case let .searchFiles(searchQuery):
-            openFileSearch(with: searchQuery)
-        case .noteDesk:
-            openNoteDesk()
-        case .settings, .extensionStore:
-            panelHost.hidePanel()
-            panelHost.openSettings(item.settingsPage)
-        case let .quicklink(link, queryText, _, _):
-            if let destination = url(for: link, query: queryText) {
-                openLink(destination)
-            }
-            panelHost.hidePanel()
-            reset()
-        case let .finderSelection(role, app):
-            openFinderSelection(in: role, app: app)
-        case let .snippet(snippet):
-            runner.paste(text: SnippetStore.shared.expanded(snippet))
-        default:
-            break
         }
     }
 

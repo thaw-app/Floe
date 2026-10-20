@@ -54,7 +54,7 @@ final class FileSearch: ObservableObject {
     }
 
     func search(_ query: String) {
-        guard Self.asksIndex(query, state: index.state) else {
+        guard Self.asksIndex(query, isOn: index.isOn) else {
             queries.continuation.yield((round, query))
             return
         }
@@ -78,8 +78,8 @@ final class FileSearch: ObservableObject {
 
     /// Whether a query goes to Floe's index first. The recent files of an empty query are Spotlight's to know:
     /// the index holds names and no dates.
-    static nonisolated func asksIndex(_ query: String, state: FileIndexService.State) -> Bool {
-        state != .off && !query.trimmingCharacters(in: .whitespaces).isEmpty
+    static nonisolated func asksIndex(_ query: String, isOn: Bool) -> Bool {
+        isOn && !query.trimmingCharacters(in: .whitespaces).isEmpty
     }
 
     @concurrent

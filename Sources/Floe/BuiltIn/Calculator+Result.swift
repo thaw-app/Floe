@@ -10,7 +10,7 @@ import FendCore
 import Foundation
 import SwiftUI
 
-extension Calculator {
+nonisolated extension Calculator {
     /// The result as the text Return copies: fend's answer with a sign for "approx.", units as Floe writes them,
     /// and the base below the line when the answer is in another one.
     static func formatResult(spans: [FendSpan], query: String? = nil) -> String {

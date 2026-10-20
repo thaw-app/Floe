@@ -14,6 +14,8 @@ struct SearchContext {
     let trimmed: String
     /// The dictionary entry already read off the main thread for this query, if any.
     var definition: WordDefinition?
+    /// The calculator's row, worked out off the main thread (see `CalculatorSearch`).
+    var calculation: CalculatorRow?
     var favorites: [String] = []
     /// Results the user took out of the search, by `RootItem.id`.
     var hidden: Set<String> = []

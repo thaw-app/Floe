@@ -20,8 +20,10 @@ struct TypedLocationSearchProviderTests {
         kind: { ["/Users/someone/Downloads": .folder, "/Users/someone": .folder, "/Users/someone/x y.txt": .file][$0] }
     )
 
+    /// With the calculator's answer, as the launcher has it once the answer arrived.
     private func context(_ query: String, _ configure: (inout SearchContext) -> Void = { _ in }) -> SearchContext {
         var context = SearchContext(query: query)
+        context.calculation = Calculator.shared.evaluatePreview(query).map { CalculatorRow(expression: query, preview: $0) }
         context.apps = [safari]
         context.quicklinks = [github, google]
         context.canAskAI = true
@@ -240,7 +242,7 @@ struct TypedLocationSearchProviderTests {
         #expect(model.results.allSatisfy { !$0.item.isScopeResult })
     }
 
-    @Test func theLauncherLeavesTheOrdinaryQueriesAlone() {
+    @Test func theLauncherLeavesTheOrdinaryQueriesAlone() async {
         let model = makeModel()
         for query in ["safari", "1.5*2", "notes.txt", "1.2.3", "a@b.com"] {
             model.query = query
@@ -249,6 +251,7 @@ struct TypedLocationSearchProviderTests {
         model.query = "safari"
         #expect(model.results.first?.id == "app:/Applications/Safari.app")
         model.query = "1.5*2"
+        await model.calculatorSearch.settled()
         #expect(model.results.first?.id == "calculator")
     }
 }

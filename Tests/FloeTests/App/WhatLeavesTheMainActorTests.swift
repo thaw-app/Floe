@@ -80,6 +80,18 @@ struct WhatLeavesTheMainActorTests {
         #expect(log.onMain == ["apps": false, "commands": false, "scripts": false])
     }
 
+    // MARK: The search and the notes
+
+    @Test func theCalculatorWorksOffTheMainThread() async {
+        let search = CalculatorSearch { [log] _ in
+            log.note("calculation")
+            return nil
+        }
+        search.search(SearchContext(query: "2+2")) { /* nothing is drawn here */ }
+        await search.settled()
+        #expect(log.onMain == ["calculation": false])
+    }
+
     // MARK: Tools and scripts
 
     @Test func aTerminalsScriptRunsOffTheMainThread() async {

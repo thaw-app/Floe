@@ -135,6 +135,7 @@ struct FileIndexServiceTests {
         let fixture = try IndexFixture(files: ["invoice.pdf"])
         let service = FileIndexService(environment: fixture.environment)
         #expect(service.state == .off)
+        #expect(!service.isOn)
         #expect(service.files(matching: "invoice") == nil)
         service.set(on: false)
         #expect(fixture.stopped == 0)
@@ -145,6 +146,7 @@ struct FileIndexServiceTests {
         let service = FileIndexService(environment: fixture.environment)
         service.set(on: true)
         #expect(service.state != .off)
+        #expect(service.isOn, "on while it is still walking")
         await service.settled()
         guard case let .ready(names, bytes) = service.state else {
             Issue.record("the walk is done, so the index is ready")
@@ -500,12 +502,10 @@ struct FileSearchIndexTests {
     }
 
     @Test func onlyATypedQueryIsAskedOfTheIndex() {
-        let ready = FileIndexService.State.ready(names: 1, bytes: 1)
-        #expect(FileSearch.asksIndex("inv", state: ready))
-        #expect(FileSearch.asksIndex("inv", state: .building), "asked, and Spotlight answers when the index says it is not built")
-        #expect(!FileSearch.asksIndex("inv", state: .off))
-        #expect(!FileSearch.asksIndex("", state: ready), "the recent files come from Spotlight")
-        #expect(!FileSearch.asksIndex("  ", state: ready))
+        #expect(FileSearch.asksIndex("inv", isOn: true), "asked, and Spotlight answers when the index says it is not built")
+        #expect(!FileSearch.asksIndex("inv", isOn: false))
+        #expect(!FileSearch.asksIndex("", isOn: true), "the recent files come from Spotlight")
+        #expect(!FileSearch.asksIndex("  ", isOn: true))
     }
 
     @Test func theFileSearchShowsWhatTheIndexFindsAtEachKey() async throws {

@@ -19,7 +19,7 @@ extension LauncherModel {
         menuBarSearch.warm()
         ExchangeRateUpdater.shared.refreshIfStale()
         features.checkpoints.reload()
-        if FileIndexService.shared.state != .off {
+        if FileIndexService.shared.isOn {
             RecentFileUse.shared.refreshIfStale()
         }
     }

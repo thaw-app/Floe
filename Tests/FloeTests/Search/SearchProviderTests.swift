@@ -17,8 +17,10 @@ struct SearchProviderTests {
         needsConfirmation: false, icon: nil, arguments: []
     )
 
+    /// With the calculator's answer, as the launcher has it once the answer arrived.
     private func context(_ query: String, _ configure: (inout SearchContext) -> Void = { _ in }) -> SearchContext {
         var context = SearchContext(query: query)
+        context.calculation = Calculator.shared.evaluatePreview(query).map { CalculatorRow(expression: query, preview: $0) }
         configure(&context)
         return context
     }
@@ -98,6 +100,7 @@ struct SearchProviderTests {
         #expect(contribution.pinned.first?.section == "Calculator")
         #expect(CalculatorSearchProvider().contribution(for: context("safari")).pinned.isEmpty)
         #expect(CalculatorSearchProvider().contribution(for: context("")).pinned.isEmpty)
+        #expect(CalculatorSearchProvider().contribution(for: SearchContext(query: "2+2")).pinned.isEmpty, "the answer is the calculator search's to give")
     }
 
     @Test func aNoteKeywordWithTextPinsTheNoteItWouldMake() {
@@ -152,6 +155,28 @@ struct SearchProviderTests {
         func contribution(for _: SearchContext) -> SearchContribution {
             fixed
         }
+    }
+
+    /// Counts how often it is asked.
+    private final class Counted: SearchProvider {
+        private(set) var asked = 0
+
+        func contribution(for _: SearchContext) -> SearchContribution {
+            asked += 1
+            return SearchContribution(ranked: [Fixture.app("2+2 Tool")])
+        }
+    }
+
+    @Test func rowsThatArriveLaterJoinWithoutAskingTheProvidersAgain() throws {
+        let counted = Counted()
+        var answer = RootSearchAnswer(for: SearchContext(query: "2+2"), providers: [counted, CalculatorSearchProvider()])
+        let file = RootResult(item: .searchFiles("2+2"), section: "Files")
+        #expect(answer.results().map(\.id) == ["app:/Applications/2+2 Tool.app"])
+        #expect(answer.results(sources: [file]).map(\.id) == ["app:/Applications/2+2 Tool.app", "files-for:2+2"])
+        let preview = try #require(Calculator.shared.evaluatePreview("2+2"))
+        answer.update(definition: nil, calculation: CalculatorRow(expression: "2+2", preview: preview))
+        #expect(answer.results(sources: [file]).map(\.id) == ["calculator", "app:/Applications/2+2 Tool.app", "files-for:2+2"])
+        #expect(counted.asked == 1, "only the providers that wait on a late answer are asked again")
     }
 
     @Test func theMergePutsSectionedRowsFirstThenPinnedThenRankedThenAppended() {

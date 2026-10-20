@@ -10,7 +10,7 @@ import FendCore
 import Foundation
 import SwiftUI
 
-extension Calculator {
+nonisolated extension Calculator {
     /// Determines if a query should activate the calculator UI.
     func looksLikeCalculatorQuery(_ query: String) -> Bool {
         let lower = query.lowercased()

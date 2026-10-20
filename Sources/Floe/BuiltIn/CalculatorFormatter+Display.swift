@@ -8,7 +8,7 @@
 import FendCore
 import SwiftUI
 
-extension CalculatorFormatter {
+nonisolated extension CalculatorFormatter {
     private struct FormattedSegment {
         let text: String
         let isSuperscript: Bool

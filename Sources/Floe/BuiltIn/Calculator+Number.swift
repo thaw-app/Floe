@@ -10,7 +10,7 @@ import FendCore
 import Foundation
 import SwiftUI
 
-extension Calculator {
+nonisolated extension Calculator {
     /// Formats an arbitrary decimal string to at most `maxDigits` significant digits, switching to scientific notation if needed.
     static func formatNumber(_ numStr: String, maxDigits: Int = 16, sciNotDigits: Int = 10) -> (String, Bool) {
         // fend hands a complex number, a fraction or a number in another base over as one piece.

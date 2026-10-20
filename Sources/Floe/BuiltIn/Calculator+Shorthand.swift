@@ -8,7 +8,7 @@
 import Foundation
 
 /// What people type that fend reads differently, or not at all, rewritten into what fend does read.
-extension Calculator {
+nonisolated extension Calculator {
     func withShorthandExpanded(_ query: String) -> String {
         var s = withDatesNamed(query)
         s = Self.withTemperatureLetters(s)

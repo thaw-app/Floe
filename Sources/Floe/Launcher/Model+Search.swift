@@ -8,9 +8,10 @@
 import Foundation
 
 extension LauncherModel {
-    /// An untouched selection follows the new pinned answer; an explicitly selected row stays selected.
-    func showDefinitionRows() {
+    /// An untouched selection follows the new pinned answer, the dictionary's or the calculator's; an explicitly selected row stays selected.
+    func showLateAnswers() {
         let followsFirst = selection == 0
+        rootAnswer?.update(definition: definitionSearch.definition, calculation: calculatorSearch.row)
         showSourceRows()
         if followsFirst {
             selection = 0
@@ -21,6 +22,7 @@ extension LauncherModel {
     func searchContext() -> SearchContext {
         var context = SearchContext(query: query)
         context.definition = definitionSearch.definition
+        context.calculation = calculatorSearch.row
         context.favorites = settings.favorites
         context.hidden = Set(settings.hiddenResults.keys)
         context.emojiSkinTone = settings.emojiSkinTone

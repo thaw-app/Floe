@@ -10,7 +10,7 @@ import FendCore
 import Foundation
 import SwiftUI
 
-extension CalculatorFormatter {
+nonisolated extension CalculatorFormatter {
     /// Formats a plain string representation of an expression or calculation result.
     static func formatString(_ text: String, locale: Locale = .current, convertExponentsToUnicode: Bool = true) -> String {
         var s = text.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -10,7 +10,7 @@ import FendCore
 import Foundation
 import SwiftUI
 
-extension CalculatorFormatter {
+nonisolated extension CalculatorFormatter {
     /// Determines if a radicand string is simple (e.g. single number or identifier) and does not need outer parentheses.
     private static func isSimpleRadicand(_ s: String) -> Bool {
         let trimmed = s.trimmingCharacters(in: .whitespaces)

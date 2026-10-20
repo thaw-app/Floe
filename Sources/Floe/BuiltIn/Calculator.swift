@@ -11,7 +11,7 @@ import Foundation
 import SwiftUI
 
 /// Represents the preview state of a calculation query.
-struct CalculationPreview: Equatable {
+nonisolated struct CalculationPreview: Equatable, Sendable {
     let result: String
     let spans: [FendSpan]
     let attributedResult: AttributedString
@@ -35,7 +35,7 @@ struct CalculationPreview: Equatable {
 }
 
 /// Wraps FendContext to provide mathematical and unit conversion evaluations.
-final class Calculator: @unchecked Sendable {
+final nonisolated class Calculator: @unchecked Sendable {
     static let shared = Calculator()
 
     private let lock = NSLock()

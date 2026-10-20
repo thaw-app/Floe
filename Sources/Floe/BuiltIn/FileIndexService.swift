@@ -29,7 +29,7 @@ final nonisolated class FileIndexService: Sendable {
         var watch: @Sendable (String, UInt64?, @escaping @Sendable ([FileIndexChange], UInt64) -> Void) -> (@Sendable () -> Void) = FileIndexEvents.watch
         /// Where the index is kept between launches. Nil keeps it in memory only, and every launch walks the folder.
         var saved: URL?
-        /// The foreground copy may read the cache, but only the resident writes or removes it.
+        /// Off for a copy that reads the saved cache but must leave it alone, as a test's does.
         var writesCache = true
         /// What numbers the folder's events: a saved index is only picked up on the same one.
         var volume: @Sendable (String) -> String? = FileIndexEvents.volume(of:)
@@ -91,6 +91,12 @@ final nonisolated class FileIndexService: Sendable {
         running.withLock { $0?.stop() }
     }
 
+    /// Whether the index is switched on, built or not. Asked as a query is typed: unlike `state`, it measures nothing.
+    var isOn: Bool {
+        running.withLock { $0 != nil }
+    }
+
+    /// What Settings shows. Counting the bytes walks the whole index, so the search asks `isOn` instead.
     var state: State {
         running.withLock { running in
             guard let running else { return .off }

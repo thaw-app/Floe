@@ -10,7 +10,7 @@ import FendCore
 import Foundation
 import SwiftUI
 
-extension CalculatorFormatter {
+nonisolated extension CalculatorFormatter {
     /// How a piece of a result is coloured when it is drawn.
     enum Tone {
         case figure, quiet, unmarked
@@ -204,7 +204,7 @@ extension CalculatorFormatter {
     }
 }
 
-private extension CalculatorFormatter.ResultStyle {
+private nonisolated extension CalculatorFormatter.ResultStyle {
     var isDrawn: Bool {
         if case .drawn = self {
             return true
