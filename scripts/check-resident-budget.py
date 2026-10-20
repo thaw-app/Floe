@@ -25,12 +25,15 @@ BUILD_PRODUCTS = {
 }
 
 
+# The order the benchmark prints its measurements in.
+STAGES = ["cold", "after-menu"] + [f"{state}-{cycle}" for cycle in (1, 2, 3) for state in ("shown", "dismissed")] + ["trimmed", "settled"]
+
+
 def within_budget(output, limit):
     """Require every lifecycle stage in order and a successful native verdict."""
     rows = re.findall(r"^RESIDENT (cold|after-menu|shown-[123]|dismissed-[123]|trimmed|settled) (\d+\.\d+) MiB", output, re.M | re.ASCII)
-    stages = ["cold", "after-menu"] + [f"{state}-{cycle}" for cycle in (1, 2, 3) for state in ("shown", "dismissed")] + ["trimmed", "settled"]
     return (
-        [stage for stage, _ in rows] == stages
+        [stage for stage, _ in rows] == STAGES
         and all(float(value) <= limit for _, value in rows)
         and "RESIDENT PASS" in output.splitlines()
     )

@@ -16,7 +16,7 @@ class ResidentBudgetTests(unittest.TestCase):
     def report(value="29.99"):
         return "\n".join(
             f"RESIDENT {stage} {value} MiB limit=30.0"
-            for stage in ["cold", "after-menu", "dismissed-1", "dismissed-2", "dismissed-3", "settled"]
+            for stage in budget.STAGES
         ) + "\nRESIDENT PASS\n"
 
     def test_cli_rejects_arbitrary_executables_before_running_anything(self):
@@ -68,7 +68,7 @@ class ResidentBudgetTests(unittest.TestCase):
         self.assertFalse(budget.within_budget(self.report("30.01"), 30))
 
     def test_cannot_pass_without_menu_traversal_settling_or_all_three_exits(self):
-        for stage in ["cold", "after-menu", "dismissed-1", "dismissed-2", "dismissed-3", "settled"]:
+        for stage in budget.STAGES:
             with self.subTest(stage=stage):
                 truncated = "\n".join(
                     line for line in self.report().splitlines()
