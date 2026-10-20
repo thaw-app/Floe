@@ -635,7 +635,6 @@
 		7094C172B1424B0A25778204 /* RootItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootItem.swift; sourceTree = "<group>"; };
 		70B21D1572BEDAB065D80604 /* AnswerSearchProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerSearchProviders.swift; sourceTree = "<group>"; };
 		70CF65BDA95BF501847A21BE /* SystemSettingsPanes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemSettingsPanes.swift; sourceTree = "<group>"; };
-		7163BA6AE970029FD8E9A54B /* test_resident_budget.cpython-314.pyc */ = {isa = PBXFileReference; path = "test_resident_budget.cpython-314.pyc"; sourceTree = "<group>"; };
 		7260AC2AC549209C7987C006 /* Session+Process.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Session+Process.swift"; sourceTree = "<group>"; };
 		7261A057D0134CE20B9298CD /* RedirectSchemeClaim.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedirectSchemeClaim.swift; sourceTree = "<group>"; };
 		728DBFD5129A4F82B5C9DE49 /* LauncherPanelAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherPanelAppearance.swift; sourceTree = "<group>"; };
@@ -643,7 +642,6 @@
 		73B1ED3FE0FCC105F40CCBC2 /* SearchFieldShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFieldShape.swift; sourceTree = "<group>"; };
 		78D37EBDD2D6EF547319287E /* ThawUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ThawUI; path = Vendor/ThawUI; sourceTree = SOURCE_ROOT; };
 		78E2DD9407CEA946488F4FC2 /* HotReload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotReload.swift; sourceTree = "<group>"; };
-		79C71921A6C302F04F610821 /* check-resident-budget.cpython-314.pyc */ = {isa = PBXFileReference; path = "check-resident-budget.cpython-314.pyc"; sourceTree = "<group>"; };
 		79F677180E72D99949B2F7FB /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
 		7AE33AA2FB7B98AC273FD8B6 /* AskAIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskAIModel.swift; sourceTree = "<group>"; };
 		7B51B0E39DFF60B021A02923 /* CalendarEvents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEvents.swift; sourceTree = "<group>"; };
@@ -961,7 +959,6 @@
 		1B5786F7E20B373B8DB766B1 /* scripts */ = {
 			isa = PBXGroup;
 			children = (
-				E1480FFDE525F4FAB4D52DE8 /* __pycache__ */,
 				54EEF3939C9ABBD6C00B0DC4 /* tests */,
 				D56EF7580052CE64737A4D6C /* build-fend.sh */,
 				C586F4E26A762CE879BEE71B /* check-budget.sh */,
@@ -1102,7 +1099,6 @@
 		54EEF3939C9ABBD6C00B0DC4 /* tests */ = {
 			isa = PBXGroup;
 			children = (
-				6B02FC60E6E712FF707CB4FF /* __pycache__ */,
 				9DA846FA48A5E143E47E2091 /* test_devrun.py */,
 				A0F9B89CC001024923433189 /* test_resident_budget.py */,
 			);
@@ -1145,14 +1141,6 @@
 				838202A59776C019564D4C7C /* WebAddress.swift */,
 			);
 			path = Search;
-			sourceTree = "<group>";
-		};
-		6B02FC60E6E712FF707CB4FF /* __pycache__ */ = {
-			isa = PBXGroup;
-			children = (
-				7163BA6AE970029FD8E9A54B /* test_resident_budget.cpython-314.pyc */,
-			);
-			path = __pycache__;
 			sourceTree = "<group>";
 		};
 		6B942B1258CCEA93E33E843A /* Permissions */ = {
@@ -1501,14 +1489,6 @@
 				5AED14490D55CBAE59DEB0A8 /* WindowSearchScope.swift */,
 			);
 			path = SearchProviders;
-			sourceTree = "<group>";
-		};
-		E1480FFDE525F4FAB4D52DE8 /* __pycache__ */ = {
-			isa = PBXGroup;
-			children = (
-				79C71921A6C302F04F610821 /* check-resident-budget.cpython-314.pyc */,
-			);
-			path = __pycache__;
 			sourceTree = "<group>";
 		};
 		EB650AC0979AED891183308B /* AI */ = {

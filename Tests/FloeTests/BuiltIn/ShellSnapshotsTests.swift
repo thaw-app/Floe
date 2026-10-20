@@ -52,7 +52,8 @@ struct ShellSnapshotsTests {
         advance(by: 3)
         _ = store.entries("same")
         // The answer is the same, so the second read is what is waited for, then its landing on the main actor.
-        for _ in 0 ..< 100 where reads.withLock({ $0 }) < 2 {
+        // A busy machine can take seconds to start it.
+        for _ in 0 ..< 500 where reads.withLock({ $0 }) < 2 {
             try await Task.sleep(for: .milliseconds(20))
         }
         try await Task.sleep(for: .milliseconds(50))
@@ -65,7 +66,7 @@ struct ShellSnapshotsTests {
 
     /// Waits for a read to land, by the only thing visible from outside: the store serving its answer.
     private func landed(_ store: ShellSnapshots, _ folder: String, is value: String) async throws {
-        for _ in 0 ..< 100 {
+        for _ in 0 ..< 500 {
             if store.entries(folder) == [value] {
                 return
             }

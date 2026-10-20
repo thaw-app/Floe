@@ -64,6 +64,8 @@ targets:
         excludes: [node_modules]
       - path: scripts
         buildPhase: none
+        # A Python run that is not given -B leaves its byte code here.
+        excludes: ["**/__pycache__"]
       - path: project.yml
         buildPhase: none
     dependencies:
