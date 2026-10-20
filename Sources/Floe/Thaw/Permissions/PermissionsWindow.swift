@@ -42,22 +42,21 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         permissions.refreshPermissionsState()
         let stage = OnboardingSequencer.stage(
             hasSeenOnboarding: settings.hasSeenOnboarding,
-            allPermissionsGranted: permissions.hasEveryPermission,
             hasUnanswered: permissions.hasUnanswered,
             replayRequested: replayRequested
         )
         switch stage {
-        case let .onboarding(skipsAccessStep):
-            present(skipsAccessStep: skipsAccessStep, isReplay: replayRequested)
+        case .onboarding:
+            present(isReplay: replayRequested)
         case .access:
-            present(skipsAccessStep: false, isReplay: false, startsAtAccess: true)
+            present(isReplay: false, startsAtAccess: true)
         case .none:
             return false
         }
         return true
     }
 
-    private func present(skipsAccessStep: Bool, isReplay: Bool, startsAtAccess: Bool = false) {
+    private func present(isReplay: Bool, startsAtAccess: Bool = false) {
         window?.close()
         let size = NSSize(width: ThawOnboardingWindowMetrics.width, height: ThawOnboardingWindowMetrics.height)
         // Resizable so the window can grow with Larger Text instead of clipping it.
@@ -74,7 +73,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
-        let view = ThawOnboardingView(settings: settings, permissions: permissions, skipsAccessStep: skipsAccessStep, isReplay: isReplay, startsAtAccess: startsAtAccess) { [weak self] in
+        let view = ThawOnboardingView(settings: settings, permissions: permissions, isReplay: isReplay, startsAtAccess: startsAtAccess) { [weak self] in
             self?.finish(opensLauncher: !isReplay)
         }
         .frame(minWidth: size.width, idealWidth: size.width, minHeight: size.height, idealHeight: size.height)

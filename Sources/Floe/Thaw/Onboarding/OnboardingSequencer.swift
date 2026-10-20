@@ -18,9 +18,9 @@
 enum OnboardingSequencer {
     /// What the onboarding window renders.
     enum Stage: Equatable, Sendable {
-        /// The full onboarding sequence. skipsAccessStep is true when every
-        /// grant is already in place.
-        case onboarding(skipsAccessStep: Bool)
+        /// The full onboarding sequence, the access step included even when every grant is in place: it shows
+        /// what each permission switches on, and which are already granted.
+        case onboarding
 
         /// The access step alone: the welcome was seen, and a permission is neither granted nor declined.
         case access
@@ -33,20 +33,17 @@ enum OnboardingSequencer {
     ///
     /// - Parameters:
     ///   - hasSeenOnboarding: Whether the user has finished or skipped the tour once.
-    ///   - allPermissionsGranted: Whether every grant is in place
-    ///     right now, never a persisted value.
     ///   - hasUnanswered: Whether a permission is neither granted nor declined: one a new version
     ///     added, or one that was held and is gone.
     ///   - replayRequested: true when the user asked to see onboarding
     ///     again from Settings, which wins over the stored flag.
     static func stage(
         hasSeenOnboarding: Bool,
-        allPermissionsGranted: Bool,
         hasUnanswered: Bool = false,
         replayRequested: Bool = false
     ) -> Stage {
         if replayRequested || !hasSeenOnboarding {
-            return .onboarding(skipsAccessStep: allPermissionsGranted)
+            return .onboarding
         }
         return hasUnanswered ? .access : .none
     }
@@ -75,19 +72,19 @@ enum OnboardingStep: Equatable, Sendable {
     }
 
     /// The step after this one, or nil when this one ends the flow.
-    func next(skipsAccessStep: Bool) -> OnboardingStep? {
+    var next: OnboardingStep? {
         switch self {
         case .welcome: .tour
-        case .tour: skipsAccessStep ? nil : .access
+        case .tour: .access
         case .access: nil
         }
     }
 
-    /// Hide numbering on welcome and when the tour is the only step, since "1 of 1" conveys no progress.
-    func progress(skipsAccessStep: Bool) -> Progress? {
+    /// The welcome is not numbered: the steps it leads to are.
+    var progress: Progress? {
         switch self {
         case .welcome: nil
-        case .tour: skipsAccessStep ? nil : Progress(step: 1, total: 2)
+        case .tour: Progress(step: 1, total: 2)
         case .access: Progress(step: 2, total: 2)
         }
     }

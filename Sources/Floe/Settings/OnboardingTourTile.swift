@@ -23,7 +23,7 @@ enum TourDemo {
 enum AIMark {
     static let all = ["claude", "openai", "apple-intelligence", "opencode", "pi", "ollama", "lmstudio", "openrouter", "zai"]
 
-    /// The resources' own bundle: `Bundle.floe` is the language inside it, which holds only the strings.
+    // The resources' own bundle: `Bundle.floe` is the language inside it, which holds only the strings.
     #if SWIFT_PACKAGE
         private static let bundle = Bundle.module
     #else
@@ -208,7 +208,8 @@ private struct TourDemoContent: View {
             track(progress: max(0, min((phase - 0.45) / 0.45, 1)))
             Image(systemName: "desktopcomputer")
         }
-        .font(.system(size: 22))
+        // Sized to fit a tile one column wide: the tracks give way before the computers do.
+        .font(.system(size: 18))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -225,7 +226,8 @@ private struct TourDemoContent: View {
             }
             .frame(maxHeight: .infinity)
         }
-        .frame(width: 28, height: 10)
+        .frame(minWidth: 12, maxWidth: 28)
+        .frame(height: 10)
     }
 
     private func search(query: String, rows: [TourRow]) -> some View {

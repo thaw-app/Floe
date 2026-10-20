@@ -16,8 +16,8 @@ import ThawUI
 
 /// Shared dimensions, sized for the tour's four rows of tiles.
 enum ThawOnboardingWindowMetrics {
-    static let width: CGFloat = 840
-    static let height: CGFloat = 720
+    static let width: CGFloat = 760
+    static let height: CGFloat = 600
 }
 
 /// Ask for access after explaining its benefits; earlier screens need no grants and cannot fail for missing permissions.
@@ -28,20 +28,17 @@ struct ThawOnboardingView: View {
 
     private let settings: AppSettings
     private let permissions: AppPermissions
-    private let skipsAccessStep: Bool
     private let isReplay: Bool
     private let startsAtAccess: Bool
     private let onFinish: () -> Void
 
     /// - Parameters:
-    ///   - skipsAccessStep: Ends at the tour when permissions are already granted, avoiding a redundant request.
     ///   - isReplay: The user reopened the flow from Settings, so its last button closes it instead of opening Floe.
     ///   - startsAtAccess: Shows the access step alone, for a grant that went missing after the welcome was seen.
     ///   - onFinish: Called once when the user finishes or skips the flow.
-    init(settings: AppSettings, permissions: AppPermissions, skipsAccessStep: Bool, isReplay: Bool = false, startsAtAccess: Bool = false, onFinish: @escaping () -> Void) {
+    init(settings: AppSettings, permissions: AppPermissions, isReplay: Bool = false, startsAtAccess: Bool = false, onFinish: @escaping () -> Void) {
         self.settings = settings
         self.permissions = permissions
-        self.skipsAccessStep = skipsAccessStep
         self.isReplay = isReplay
         self.startsAtAccess = startsAtAccess
         _step = State(initialValue: startsAtAccess ? .access : .welcome)
@@ -55,7 +52,7 @@ struct ThawOnboardingView: View {
     }
 
     private func advance() {
-        if let next = step.next(skipsAccessStep: skipsAccessStep) {
+        if let next = step.next {
             step = next
         } else {
             onFinish()
@@ -69,7 +66,7 @@ struct ThawOnboardingView: View {
                 OnboardingWelcomeView(onContinue: advance, onSkip: onFinish)
                     .transition(.opacity)
             case .tour:
-                OnboardingTourView(settings: settings, continueTitle: skipsAccessStep ? finishTitle : String(localized: "Continue", bundle: .floe, comment: "The button that goes to the next step of the welcome window."), onContinue: advance)
+                OnboardingTourView(settings: settings, continueTitle: String(localized: "Continue", bundle: .floe, comment: "The button that goes to the next step of the welcome window."), onContinue: advance)
                     .transition(.opacity)
             case .access:
                 ThawPermissionsView(permissions: permissions, finishTitle: finishTitle, onContinue: advance)
@@ -77,7 +74,7 @@ struct ThawOnboardingView: View {
             }
         }
         .overlay(alignment: .top) {
-            if !startsAtAccess, let progress = step.progress(skipsAccessStep: skipsAccessStep) {
+            if !startsAtAccess, let progress = step.progress {
                 OnboardingStepIndicator(step: progress.step, total: progress.total)
                     .padding(.top, ThawSpacing.inset)
                     .transition(.opacity)

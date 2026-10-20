@@ -2783,6 +2783,12 @@
     "No shortcuts match" : {
 
     },
+    "No sign-up" : {
+
+    },
+    "No sign-up and no account" : {
+
+    },
     "No snippets yet." : {
 
     },
@@ -2850,6 +2856,9 @@
 
     },
     "Nothing has been recorded for this extension yet." : {
+
+    },
+    "Nothing is asked until you click Grant Access" : {
 
     },
     "Nothing is listening on that port" : {
@@ -2946,6 +2955,9 @@
     },
     "Open Floe" : {
 
+    },
+    "Open Floe from its menu bar icon, or set a hotkey." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Open Floe's search of the menu bar's items." : {
 
@@ -3516,6 +3528,9 @@
     "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse." : {
 
     },
+    "Runs Raycast extensions, yours included." : {
+      "comment" : "A tile of the welcome tour."
+    },
     "Runs on this Mac. Nothing is sent anywhere." : {
 
     },
@@ -3679,6 +3694,9 @@
     "Search menu items…" : {
 
     },
+    "Search menus and windows. Uses Accessibility." : {
+      "comment" : "A tile of the welcome tour."
+    },
     "Search notes, or name a new one…" : {
 
     },
@@ -3761,6 +3779,9 @@
     },
     "Set a link for your clipboard app in Settings" : {
 
+    },
+    "Settings and aliases, the same on every Mac." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Settings file" : {
 
@@ -4097,6 +4118,9 @@
     "Text" : {
       "comment" : "A kind of copied thing."
     },
+    "Text that expands as you type, and quicklinks." : {
+      "comment" : "A tile of the welcome tour."
+    },
     "Text you paste or type by keyword." : {
 
     },
@@ -4144,6 +4168,9 @@
     },
     "Thaw's actions are in the search: type “thaw” to see them. The ones that change a Thaw setting need Automation turned on in Thaw." : {
       "comment" : "The word in quotation marks is typed as it is and stays in English."
+    },
+    "Thaw's actions in the search, and its look." : {
+      "comment" : "A tile of the welcome tour."
     },
     "Thaw's background follows the wallpaper, which the launcher cannot copy, so it is left out." : {
 
@@ -4534,6 +4561,9 @@
     "Turn a Focus on for a while" : {
       "comment" : "Focus is the macOS feature that silences notifications."
     },
+    "Turn any off later in System Settings" : {
+
+    },
     "Turn on Apple Intelligence in System Settings to use it here." : {
 
     },
@@ -4794,6 +4824,12 @@
     },
     "Your own apps" : {
       "comment" : "A tile of the welcome tour."
+    },
+    "`>` and a command runs it in your shell." : {
+      "comment" : "A tile of the welcome tour."
+    },
+    "`ask` and a question. It can stay on your Mac." : {
+      "comment" : "A tile of the welcome tour. ask is the keyword typed in the search."
     },
     "`contact` and a name finds a person." : {
       "comment" : "One line on a permission card in the welcome. contact is a command the user types and stays in English."
@@ -5443,59 +5479,11 @@
     "Actions" : {
       "comment" : "The label beside the shortcut that opens the menu of things to do with the selected result."
     },
-    "Aliases, hotkeys and settings, the same on all your Macs." : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "Every permission is optional" : {
-
-    },
-    "Floe runs the extensions in its own folder and the ones you have installed in Raycast." : {
-
-    },
-    "Menus and windows" : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "No analytics or usage tracking" : {
-
-    },
-    "Open Floe from its menu bar icon. You can set a hotkey in Settings." : {
-
-    },
-    "Open it with a hotkey" : {
-
-    },
-    "Open source under the AGPL" : {
-
-    },
-    "Permissions optional" : {
-
-    },
     "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
       "comment" : "The placeholder is a keyboard shortcut."
     },
-    "Run Raycast extensions" : {
-
-    },
     "Search notes" : {
       "comment" : "The label of the field that filters the list of notes."
-    },
-    "Search the menu bar and the menus of the app in front, and switch windows. These need Accessibility." : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "Text that expands as you type, and quicklinks you open by name." : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "Thaw's actions are in the search, and Floe can follow its look." : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "`>` and a command runs it. ⌘Return opens your terminal." : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "`ask` and a question, answered by a tool you are signed in to, Apple Intelligence or an API. A switch keeps it all on your Mac." : {
-      "comment" : "A tile of the welcome tour. ask is the keyword typed in the search."
-    },
-    "`note` writes to your notes app. Floating Note stays on top." : {
-      "comment" : "A tile of the welcome tour. note is the keyword typed in the search."
     }
   },
   "version" : "1.0"

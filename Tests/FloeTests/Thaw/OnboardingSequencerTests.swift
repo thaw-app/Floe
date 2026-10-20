@@ -16,37 +16,24 @@ import Testing
 struct OnboardingSequencerTests {
     private static nonisolated let bools = [false, true]
 
-    @Test(arguments: bools, bools)
-    func aReplayRequestAlwaysYieldsOnboarding(hasSeenOnboarding: Bool, allPermissionsGranted: Bool) {
-        let stage = OnboardingSequencer.stage(
-            hasSeenOnboarding: hasSeenOnboarding,
-            allPermissionsGranted: allPermissionsGranted,
-            replayRequested: true
-        )
-        #expect(stage == .onboarding(skipsAccessStep: allPermissionsGranted))
+    @Test(arguments: bools)
+    func aReplayRequestAlwaysYieldsOnboarding(hasSeenOnboarding: Bool) {
+        #expect(OnboardingSequencer.stage(hasSeenOnboarding: hasSeenOnboarding, replayRequested: true) == .onboarding)
     }
 
     @Test(arguments: bools)
-    func anUnseenTourYieldsOnboardingAndSkipsAccessOnlyWhenEverythingIsGranted(allPermissionsGranted: Bool) {
-        let stage = OnboardingSequencer.stage(hasSeenOnboarding: false, allPermissionsGranted: allPermissionsGranted)
-        #expect(stage == .onboarding(skipsAccessStep: allPermissionsGranted))
+    func anUnseenTourYieldsTheWholeOnboardingWhateverWasAnswered(hasUnanswered: Bool) {
+        // The access step is part of it even with everything granted: it shows what each permission is for.
+        #expect(OnboardingSequencer.stage(hasSeenOnboarding: false, hasUnanswered: hasUnanswered) == .onboarding)
     }
 
-    @Test(arguments: bools)
-    func aSeenTourYieldsNothingWhileEveryPermissionIsAnswered(allPermissionsGranted: Bool) {
+    @Test func aSeenTourYieldsNothingWhileEveryPermissionIsAnswered() {
         // A declined permission never reopens the window.
-        let stage = OnboardingSequencer.stage(hasSeenOnboarding: true, allPermissionsGranted: allPermissionsGranted)
-        #expect(stage == .none)
+        #expect(OnboardingSequencer.stage(hasSeenOnboarding: true) == .none)
     }
 
     @Test func aPermissionNobodyAnsweredShowsTheAccessStepAlone() {
-        let stage = OnboardingSequencer.stage(hasSeenOnboarding: true, allPermissionsGranted: false, hasUnanswered: true)
-        #expect(stage == .access)
-    }
-
-    @Test func anUnseenTourIsShownWholeWhateverWasAnswered() {
-        let stage = OnboardingSequencer.stage(hasSeenOnboarding: false, allPermissionsGranted: false, hasUnanswered: true)
-        #expect(stage == .onboarding(skipsAccessStep: false))
+        #expect(OnboardingSequencer.stage(hasSeenOnboarding: true, hasUnanswered: true) == .access)
     }
 
     @Test func aPermissionAddedByANewVersionIsUnanswered() {
@@ -68,28 +55,15 @@ struct OnboardingSequencerTests {
 }
 
 struct OnboardingStepTests {
-    @Test func theFullFlowRunsWelcomeTourAccess() {
-        #expect(OnboardingStep.welcome.next(skipsAccessStep: false) == .tour)
-        #expect(OnboardingStep.tour.next(skipsAccessStep: false) == .access)
-        #expect(OnboardingStep.access.next(skipsAccessStep: false) == nil)
+    @Test func theFlowAlwaysRunsWelcomeTourAccess() {
+        #expect(OnboardingStep.welcome.next == .tour)
+        #expect(OnboardingStep.tour.next == .access)
+        #expect(OnboardingStep.access.next == nil)
     }
 
-    @Test func theFlowEndsAtTheTourWhenAccessIsSkipped() {
-        #expect(OnboardingStep.welcome.next(skipsAccessStep: true) == .tour)
-        #expect(OnboardingStep.tour.next(skipsAccessStep: true) == nil)
-    }
-
-    @Test(arguments: [false, true])
-    func theWelcomeScreenIsNotNumbered(skipsAccessStep: Bool) {
-        #expect(OnboardingStep.welcome.progress(skipsAccessStep: skipsAccessStep) == nil)
-    }
-
-    @Test func theTourAndAccessAreNumberedOneAndTwoOfTwo() {
-        #expect(OnboardingStep.tour.progress(skipsAccessStep: false) == OnboardingStep.Progress(step: 1, total: 2))
-        #expect(OnboardingStep.access.progress(skipsAccessStep: false) == OnboardingStep.Progress(step: 2, total: 2))
-    }
-
-    @Test func aTourThatIsTheOnlyStepIsNotNumbered() {
-        #expect(OnboardingStep.tour.progress(skipsAccessStep: true) == nil)
+    @Test func theTourAndAccessAreNumberedOneAndTwoOfTwoAndTheWelcomeIsNot() {
+        #expect(OnboardingStep.welcome.progress == nil)
+        #expect(OnboardingStep.tour.progress == OnboardingStep.Progress(step: 1, total: 2))
+        #expect(OnboardingStep.access.progress == OnboardingStep.Progress(step: 2, total: 2))
     }
 }

@@ -350,7 +350,7 @@ struct AboutSettingsPane: View {
 
     // MARK: Helpers
 
-    private static func currentApplicationIcon() -> NSImage {
+    static func currentApplicationIcon() -> NSImage {
         let icon = NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
         return (icon.copy() as? NSImage) ?? icon
     }

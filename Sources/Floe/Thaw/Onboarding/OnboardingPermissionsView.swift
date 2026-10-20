@@ -120,9 +120,10 @@ struct ThawPermissionsView: View {
 
     private var privacyPanel: some View {
         HStack(spacing: 18) {
-            privacyFact("No analytics or usage tracking")
+            // About the permissions alone: the welcome before this already said open source and no tracking.
+            privacyFact("Nothing is asked until you click Grant Access")
             privacyFact("Permission checks stay on your Mac")
-            privacyFact("Open source under the AGPL")
+            privacyFact("Turn any off later in System Settings")
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -157,6 +158,8 @@ private struct OnboardingPermissionCard: View {
                 Text(permission.title)
                     .font(ThawType.heading)
                     .lineLimit(1)
+                    // The window is narrow enough that a long name shrinks a little rather than being cut.
+                    .minimumScaleFactor(0.8)
             }
             Text((try? AttributedString(markdown: permission.summary)) ?? AttributedString(permission.summary))
                 .font(ThawType.caption)
