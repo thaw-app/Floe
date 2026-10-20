@@ -39,4 +39,35 @@ struct SearchFieldShapeTests {
         let entry = SearchIndex.appearanceEntries.first { $0.id.hasSuffix("searchFieldShape") }
         #expect(entry?.section == "Layout")
     }
+
+    // MARK: The beam
+
+    @Test func theBeamIsColorfulUntilChosenAndIsStored() {
+        let defaults = MemoryDefaults()
+        let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
+        #expect(settings.searchFieldBeam == .colorful)
+        #expect(settings.searchFieldBeamFrameRate == 60)
+        settings.searchFieldBeam = .off
+        settings.searchFieldBeamFrameRate = 30
+        settings.save()
+        let reread = AppSettings(defaults: defaults, savesAfterEdits: false)
+        #expect(reread.searchFieldBeam == .off)
+        #expect(reread.searchFieldBeamFrameRate == 30)
+        #expect(SearchIndex.appearanceEntries.first { $0.id.hasSuffix("searchFieldBeam") }?.section == "Layout")
+    }
+
+    @Test func everyBeamPutsColourOnAllFourSidesAndOffNone() {
+        for beam in SearchFieldBeam.allCases where beam != .off {
+            let places = beam.blobs.map(\.center)
+            #expect(places.contains { $0.y == 0 }, "\(beam) lights the top")
+            #expect(places.contains { $0.y == 1 }, "\(beam) lights the bottom")
+            #expect(places.contains { $0.x == 0 }, "\(beam) lights the left")
+            #expect(places.contains { $0.x == 1 }, "\(beam) lights the right")
+        }
+        #expect(SearchFieldBeam.off.blobs.isEmpty)
+        for beam in SearchFieldBeam.allCases where beam != .off {
+            #expect(beam.ring.first == beam.ring.last, "\(beam)'s colours meet without a seam round the field")
+        }
+        #expect(SearchFieldBeam.off.ring.isEmpty)
+    }
 }

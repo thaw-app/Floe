@@ -352,6 +352,9 @@
         }
       }
     },
+    "%lld frames a second. Fewer are lighter on the graphics card; more are smoother." : {
+
+    },
     "%lld items" : {
       "comment" : "How many lines a list has.",
       "localizations" : {
@@ -480,6 +483,12 @@
     },
     "100%" : {
       "shouldTranslate" : false
+    },
+    "120 fps" : {
+
+    },
+    "15 fps" : {
+
     },
     "360°" : {
       "shouldTranslate" : false
@@ -937,6 +946,9 @@
         }
       }
     },
+    "Beam frame rate" : {
+
+    },
     "Beta" : {
       "comment" : "The update channel that also offers test releases."
     },
@@ -1192,6 +1204,9 @@
     },
     "Color" : {
       "comment" : "The label of a color picker."
+    },
+    "Colorful" : {
+      "comment" : "A beam around the search field in every colour."
     },
     "Command" : {
       "comment" : "The heading a command of an extension is listed under.\nThe kind of a result, shown beside its title."
@@ -2369,6 +2384,9 @@
     "Light appearance" : {
 
     },
+    "Light that sweeps around the inside of the search field's border." : {
+
+    },
     "Link" : {
       "comment" : "A kind of copied thing.\nA web style link that opens an app, as a choice in a picker and as the label of its field."
     },
@@ -2875,6 +2893,9 @@
     },
     "OK" : {
 
+    },
+    "Ocean" : {
+      "comment" : "A beam around the search field in blues and violets."
     },
     "Of %@" : {
       "comment" : "Under how much memory is in use. The placeholder is how much the Mac has, such as 16 GB."
@@ -3643,6 +3664,9 @@
     "Search clipboard history…" : {
 
     },
+    "Search field beam" : {
+
+    },
     "Search field shape" : {
 
     },
@@ -4000,6 +4024,9 @@
     },
     "Sums, units and dates as you type them." : {
       "comment" : "A tile of the welcome tour."
+    },
+    "Sunset" : {
+      "comment" : "A beam around the search field in oranges, pinks and reds."
     },
     "Support Floe" : {
 
@@ -4846,6 +4873,9 @@
     "backup" : {
       "comment" : "Words that find the Time Machine pane of System Settings, separated by commas."
     },
+    "beam, glow, light, border, rainbow, animation, search bar, input" : {
+      "comment" : "Words that find the Search field beam setting in the settings search, separated by commas."
+    },
     "bluetooth, turn bluetooth off, turn bluetooth on" : {
       "comment" : "Words that find the Toggle Bluetooth command, separated by commas."
     },
@@ -5001,6 +5031,9 @@
     },
     "focus, do not disturb, dnd, shortcut, shortcuts, notifications, quiet" : {
       "comment" : "Words that find the Shortcut for Focus setting in the settings search, separated by commas."
+    },
+    "fps, frame rate, frames per second, smooth, animation, beam, battery" : {
+      "comment" : "Words that find the Beam frame rate setting in the settings search, separated by commas."
     },
     "gestures, tap to click" : {
       "comment" : "Words that find the Trackpad pane of System Settings, separated by commas."

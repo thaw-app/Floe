@@ -80,6 +80,10 @@ final class AppSettings: ObservableObject {
     /// Extended always shows the list; compact is the search bar alone until something is typed.
     @Published var launcherLayout = LauncherLayout.extended
     @Published var searchFieldShape = SearchFieldShape.rounded
+    /// The streak of light around the search field, and its colours.
+    @Published var searchFieldBeam = SearchFieldBeam.colorful
+    /// How many times a second the beam is drawn as it turns.
+    @Published var searchFieldBeamFrameRate = 60.0
     /// The search field and the results as two pieces of glass, in either layout.
     @Published var separatesSearchField = false
     @Published var launcherTintIsDynamic = false
@@ -174,6 +178,8 @@ final class AppSettings: ObservableObject {
         var followsThawAppearance: Bool?
         var launcherLayout: LauncherLayout?
         var searchFieldShape: SearchFieldShape?
+        var searchFieldBeam: SearchFieldBeam?
+        var searchFieldBeamFrameRate: Double?
         var separatesSearchField: Bool?
         var aiSource: AISource?
         var aiBaseURL: String?
@@ -336,6 +342,8 @@ final class AppSettings: ObservableObject {
         followsThawAppearance = stored.followsThawAppearance ?? followsThawAppearance
         launcherLayout = stored.launcherLayout ?? launcherLayout
         searchFieldShape = stored.searchFieldShape ?? .rounded
+        searchFieldBeam = stored.searchFieldBeam ?? .colorful
+        searchFieldBeamFrameRate = stored.searchFieldBeamFrameRate ?? 60
         separatesSearchField = stored.separatesSearchField ?? false
     }
 
@@ -381,6 +389,8 @@ final class AppSettings: ObservableObject {
             followsThawAppearance: followsThawAppearance,
             launcherLayout: launcherLayout,
             searchFieldShape: searchFieldShape,
+            searchFieldBeam: searchFieldBeam,
+            searchFieldBeamFrameRate: searchFieldBeamFrameRate,
             separatesSearchField: separatesSearchField,
             aiSource: aiSource,
             aiBaseURL: aiBaseURL,

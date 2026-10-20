@@ -49,7 +49,7 @@ struct SettingsStringsTests {
     @Test func theIdsAreTheOnesTheWindowKnows() {
         #expect(SearchIndex.staticEntries.map(\.id) == [
             "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.ai", "pane.sync", "pane.quicklinks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
-            "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.separatesSearchField", "appearance.glassEffect",
+            "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.searchFieldBeam", "appearance.searchFieldBeamFrameRate", "appearance.separatesSearchField", "appearance.glassEffect",
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
             "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",

@@ -126,6 +126,22 @@ struct AppearanceSettingsPane: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                Picker("Search field beam", selection: $settings.searchFieldBeam) {
+                    ForEach(SearchFieldBeam.allCases) { beam in
+                        Text(beam.title).tag(beam)
+                    }
+                }
+                footnote("Light that sweeps around the inside of the search field's border.")
+                if settings.searchFieldBeam != .off {
+                    Slider(value: $settings.searchFieldBeamFrameRate, in: 15 ... 120, step: 15) {
+                        Text("Beam frame rate")
+                    } minimumValueLabel: {
+                        Text("15 fps")
+                    } maximumValueLabel: {
+                        Text("120 fps")
+                    }
+                    footnote("\(Int(settings.searchFieldBeamFrameRate)) frames a second. Fewer are lighter on the graphics card; more are smoother.")
+                }
                 Toggle("Separate the search field from the results", isOn: $settings.separatesSearchField)
                 footnote("The search field is its own piece of glass, and the results are a second piece below it.")
             }

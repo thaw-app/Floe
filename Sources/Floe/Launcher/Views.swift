@@ -47,6 +47,8 @@ struct LauncherView: View {
         }
         .frame(width: size.width, height: size.height, alignment: .top)
         .environment(\.searchFieldShape, settings.searchFieldShape)
+        .environment(\.searchFieldBeam, settings.searchFieldBeam)
+        .environment(\.searchFieldBeamFrameRate, settings.searchFieldBeamFrameRate)
         .environment(\.pointerRest, model.pointerRest)
         .modifier(PanelLook(look: look, pieces: settings.separatesSearchField ? PanelPieces(look: look, fieldShape: settings.searchFieldShape, heights: heights) : nil))
         .modifier(RefusalShake(refusal: model.refusal))

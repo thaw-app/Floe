@@ -28,6 +28,7 @@ struct SearchQueryField<Accessory: View>: View {
     @FocusState private var isFocused: Bool
     @Environment(\.searchFieldShape) private var fieldShape
     @Environment(\.fieldPieceOutline) private var pieceOutline
+    @Environment(\.searchFieldBeam) private var beam
 
     var body: some View {
         Group {
@@ -36,18 +37,36 @@ struct SearchQueryField<Accessory: View>: View {
                 row
                     .padding(.horizontal, ThawSpacing.inset + 14)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background {
+                        if let pieceOutline, !isRefused, beam != .off {
+                            SearchFieldBeamView(outline: pieceOutline, beam: beam, part: .spill)
+                        }
+                    }
                     .overlay {
-                        if isRefused, let pieceOutline {
-                            pieceOutline.strokeBorder(Color(nsColor: .systemRed), lineWidth: 1.5)
+                        if let pieceOutline {
+                            if isRefused {
+                                pieceOutline.strokeBorder(Color(nsColor: .systemRed), lineWidth: 1.5)
+                            } else if beam != .off {
+                                SearchFieldBeamView(outline: pieceOutline, beam: beam)
+                            }
                         }
                     }
             } else {
                 row
                     .padding(EdgeInsets(top: 11, leading: 14, bottom: 11, trailing: 14))
+                    // On the glass and under the text: the glass draws itself behind what it is given.
+                    .background {
+                        if !isRefused, beam != .off {
+                            SearchFieldBeamView(outline: fieldShape.outline, beam: beam, part: .spill)
+                        }
+                    }
                     .thawGlass(.field(isFocused: isFocused), in: fieldShape.outline)
                     .overlay {
+                        // A refusal's red takes the beam's place, so the one cue is not lost in the other.
                         if isRefused {
                             fieldShape.outline.strokeBorder(Color(nsColor: .systemRed), lineWidth: 1.5)
+                        } else if beam != .off {
+                            SearchFieldBeamView(outline: fieldShape.outline, beam: beam)
                         }
                     }
                     .padding(.horizontal, ThawSpacing.inset)

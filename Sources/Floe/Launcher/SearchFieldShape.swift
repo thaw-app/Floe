@@ -82,4 +82,7 @@ nonisolated struct SearchFieldOutline: InsettableShape {
 extension EnvironmentValues {
     /// Read by the search field, set by the launcher from the setting: the field itself knows nothing of settings.
     @Entry var searchFieldShape: SearchFieldShape = .rounded
+    /// The same for the beam around the field.
+    @Entry var searchFieldBeam: SearchFieldBeam = .off
+    @Entry var searchFieldBeamFrameRate = 60.0
 }

@@ -240,6 +240,26 @@ extension SearchIndex {
             ).searchTerms
         ),
         .appearance(
+            "searchFieldBeam",
+            String(localized: "Search field beam", bundle: .floe),
+            section: String(localized: "Layout", bundle: .floe, comment: "The heading over the settings for how the launcher is arranged."),
+            keywords: String(
+                localized: "beam, glow, light, border, rainbow, animation, search bar, input",
+                bundle: .floe,
+                comment: "Words that find the Search field beam setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .appearance(
+            "searchFieldBeamFrameRate",
+            String(localized: "Beam frame rate", bundle: .floe),
+            section: String(localized: "Layout", bundle: .floe, comment: "The heading over the settings for how the launcher is arranged."),
+            keywords: String(
+                localized: "fps, frame rate, frames per second, smooth, animation, beam, battery",
+                bundle: .floe,
+                comment: "Words that find the Beam frame rate setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .appearance(
             "separatesSearchField",
             String(localized: "Separate the search field from the results", bundle: .floe),
             section: String(localized: "Layout", bundle: .floe, comment: "The heading over the settings for how the launcher is arranged."),

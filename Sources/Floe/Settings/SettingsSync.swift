@@ -53,6 +53,8 @@ enum SettingsSync {
         field("launcherGlass", LauncherGlass.self),
         field("launcherLayout", LauncherLayout.self),
         field("searchFieldShape", SearchFieldShape.self),
+        field("searchFieldBeam", SearchFieldBeam.self),
+        field("searchFieldBeamFrameRate", Double.self),
         field("separatesSearchField", Bool.self),
         // Of the shell settings only the prefix: whether commands run at all is decided on each Mac.
         field("shell", CommandPrefix.self, .entries(only: ["prefix"])),
