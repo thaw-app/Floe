@@ -99,8 +99,12 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         case .toggle: toggle()
         case .hide: hide()
         case .onboarding:
-            if !onboarding.showIfNeeded() {
-                show()
+            Task {
+                // Until macOS answers, granted notifications read as unanswered and would bring the access step back.
+                await TimerAlerts.readStatus()
+                if !onboarding.showIfNeeded() {
+                    show()
+                }
             }
         case let .hud(text): ThawHUD.show(text: text)
         case let .url(url): IncomingURLRouter.shared.route(url)

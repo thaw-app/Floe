@@ -133,8 +133,13 @@ enum TimerAlerts {
     private(set) static var status: UNAuthorizationStatus = .notDetermined
 
     static func refreshStatus() {
+        Task { await readStatus() }
+    }
+
+    /// Reads the answer and returns once `status` holds it.
+    static func readStatus() async {
         guard Bundle.main.bundleIdentifier != nil else { return }
-        Task { status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus }
+        status = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus
     }
 
     /// Whether Floe may post notifications. macOS asks the user the first time.
