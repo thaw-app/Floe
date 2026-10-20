@@ -56,7 +56,7 @@ struct SettingsStringsTests {
             "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.checkForUpdates", "general.popToRootDelay",
             "applications.terminalApp", "applications.editorApp", "applications.browserApp", "applications.notesApp", "applications.clipboardApp", "applications.clearClipboardHistory",
             "ai.aiSource", "ai.aiTool", "ai.aiAddress", "ai.aiModel", "ai.aiKey",
-            "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "about.diagnosticLogging",
+            "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "privacy.diagnosticLogging",
             "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.floatingNoteHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.thawSupport",
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
             "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",

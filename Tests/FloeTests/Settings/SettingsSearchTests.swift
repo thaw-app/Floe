@@ -250,7 +250,7 @@ struct SearchModelTests {
         ("api key", "ai.aiKey"),
         ("icloud", "sync.syncsWithICloud"),
         ("export", "sync.transferSettings"),
-        ("detailed logging", "about.diagnosticLogging"),
+        ("detailed logging", "privacy.diagnosticLogging"),
     ])
     func aSettingIsTheFirstResultForItsOwnWords(query: String, id: String) {
         let model = SearchModel()
@@ -373,7 +373,7 @@ struct SettingsSearchNavigationTests {
         ("ai.aiSource", .ai),
         ("sync.syncsWithICloud", .sync),
         ("sync.transferSettings", .sync),
-        ("about.diagnosticLogging", .about),
+        ("privacy.diagnosticLogging", .privacy),
     ])
     func aSettingMovedOutOfGeneralOpensItsNewPage(id: String, page: SettingsPage) throws {
         let selection = SettingsSelection()

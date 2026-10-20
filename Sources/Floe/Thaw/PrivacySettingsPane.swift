@@ -16,7 +16,8 @@
 import SwiftUI
 import ThawUI
 
-/// What the app may see and where anything goes: the permissions it holds and the network calls it makes.
+/// What the app may see and where anything goes: the permissions it holds, the network calls it makes, and the log
+/// it writes when asked.
 struct PrivacySettingsPane: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var fileIndex: FileIndexStatus
@@ -160,6 +161,8 @@ struct PrivacySettingsPane: View {
                 row("Release notes", String(localized: "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy.", bundle: .floe))
                 row("Extensions", String(localized: "Each extension makes its own requests, and the images it shows are loaded from wherever it points.", bundle: .floe))
             }
+            // Last: what Floe writes about itself, for troubleshooting, once asked to.
+            DiagnosticsSettingsSection(settings: settings)
         }
         .formStyle(.grouped)
         // The grant happens in System Settings; look again whenever this page comes back.

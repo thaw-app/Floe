@@ -8,7 +8,7 @@
 import SwiftUI
 import ThawUI
 
-/// Settings → About: the switch for the log file, and the way to it.
+/// Settings → Privacy: the switch for the log file, and the way to it.
 struct DiagnosticsSettingsSection: View {
     @ObservedObject var settings: AppSettings
     @State private var logFileName: String?
@@ -34,27 +34,11 @@ struct DiagnosticsSettingsSection: View {
     }
 }
 
-/// The section on the About page, which is no form: a form of its own, sized to the section so the
-/// page's scroll view does the scrolling.
-struct DiagnosticsSettingsForm: View {
-    @ObservedObject var settings: AppSettings
-
-    var body: some View {
-        Form {
-            DiagnosticsSettingsSection(settings: settings)
-        }
-        .formStyle(.grouped)
-        .scrollDisabled(true)
-        .scrollContentBackground(.hidden)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-}
-
 extension SearchIndex {
-    /// The log switch on the About page, for the settings search.
-    static let aboutEntries: [SearchEntry] = [
+    /// The log switch on the Privacy page, for the settings search.
+    static let diagnosticsEntries: [SearchEntry] = [
         .on(
-            .about,
+            .privacy,
             "diagnosticLogging",
             String(localized: "Detailed logging", bundle: .floe),
             description: String(localized: "Writes a log for troubleshooting to ~/Library/Logs/Floe.", bundle: .floe),

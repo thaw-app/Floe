@@ -27,8 +27,9 @@ struct DiagnosticsTests {
         #expect(AppSettings(defaults: scratch).diagnosticLogging)
     }
 
-    @Test func theSettingsSearchFindsTheSwitch() {
-        let entry = SearchIndex.aboutEntries.first { $0.id.hasSuffix("diagnosticLogging") }
+    @Test func theSettingsSearchFindsTheSwitchOnThePrivacyPage() {
+        let entry = SearchIndex.diagnosticsEntries.first { $0.id.hasSuffix("diagnosticLogging") }
         #expect(entry?.section == "Diagnostics")
+        #expect(entry?.pane == .privacy)
     }
 }

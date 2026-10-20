@@ -54,7 +54,7 @@ nonisolated enum AppInfo {
 
 /// The About page: who Floe is and which build this is, then one card for
 /// updates, then news and help actions. Project links and copyright form a
-/// quiet footer, and the switch for the log file sits under it.
+/// quiet footer. The log file's switch is on the Privacy page.
 struct AboutSettingsPane: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -83,7 +83,6 @@ struct AboutSettingsPane: View {
                     }
                     actions
                     footer
-                    DiagnosticsSettingsForm(settings: settings)
                 }
                 .frame(maxWidth: 400)
                 .frame(maxWidth: .infinity)

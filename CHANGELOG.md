@@ -172,7 +172,7 @@ After you install:
 - **Search the settings** from the top of the Settings window's sidebar.
 - **Export your settings to one file** and import them on another Mac.
 - **Launch at login, and updates.** Floe asks once whether it may check for updates, and whether to install them by itself. Settings chooses between the Stable and the Beta channel.
-- **What's New and detailed logging.** What's New, in About, shows these notes in the app. Detailed logging is off by default and writes to `~/Library/Logs/Floe`. It never logs what you type or ask.
+- **What's New and detailed logging.** What's New, in About, shows these notes in the app. Detailed logging, in Settings > Privacy, is off by default and writes to `~/Library/Logs/Floe`. It never logs what you type or ask.
 
 #### Shortcuts and Siri
 - **Three actions in Apple's Shortcuts app:** Open Floe, Run Command and Search Menu Bar Items. Siri runs them too.
