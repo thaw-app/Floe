@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
-# Builds the fend-core-c Rust crate and packages it as CFendCore.xcframework.
+# Builds the floe-rust Rust crate and packages it as CFloeRust.xcframework.
 #
 # Usage:
-#   ./scripts/build-fend.sh           # Build release xcframework
-#   ./scripts/build-fend.sh --debug   # Build debug xcframework
-#   ./scripts/build-fend.sh --clean   # Clean cargo artifacts first
+#   ./scripts/build-rust.sh           # Build release xcframework
+#   ./scripts/build-rust.sh --debug   # Build debug xcframework
+#   ./scripts/build-rust.sh --clean   # Clean cargo artifacts first
 set -euo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 if [[ -d "$SCRIPT_DIR/rust" ]]; then
-    FEND_DIR="$SCRIPT_DIR"
+    PACKAGE_DIR="$SCRIPT_DIR"
     REPO_ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
-elif [[ -d "$SCRIPT_DIR/../Vendor/FendCore/rust" ]]; then
+elif [[ -d "$SCRIPT_DIR/../Vendor/FloeRust/rust" ]]; then
     REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
-    FEND_DIR="$REPO_ROOT/Vendor/FendCore"
+    PACKAGE_DIR="$REPO_ROOT/Vendor/FloeRust"
 else
     REPO_ROOT="$(pwd)"
-    FEND_DIR="$REPO_ROOT/Vendor/FendCore"
+    PACKAGE_DIR="$REPO_ROOT/Vendor/FloeRust"
 fi
 cd "$REPO_ROOT"
 
@@ -72,10 +72,10 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-RUST_DIR="$FEND_DIR/rust"
-INCLUDE_DIR="$FEND_DIR/include"
-FRAMEWORKS_DIR="$FEND_DIR/Frameworks"
-OUTPUT_XCFRAMEWORK="$FRAMEWORKS_DIR/CFendCore.xcframework"
+RUST_DIR="$PACKAGE_DIR/rust"
+INCLUDE_DIR="$PACKAGE_DIR/include"
+FRAMEWORKS_DIR="$PACKAGE_DIR/Frameworks"
+OUTPUT_XCFRAMEWORK="$FRAMEWORKS_DIR/CFloeRust.xcframework"
 
 if [[ $CLEAN -eq 1 ]]; then
     say "Cleaning cargo build in $RUST_DIR..."
@@ -95,7 +95,7 @@ if command -v rustup >/dev/null 2>&1; then
         --target aarch64-apple-darwin --target x86_64-apple-darwin >/dev/null
 fi
 
-say "Building fend-core-c ($MODE)..."
+say "Building floe-rust ($MODE)..."
 
 # Detect if x86_64 target stdlib is installed for universal binary. Asked from the crate's folder,
 # where rust-toolchain.toml applies.
@@ -112,10 +112,10 @@ if [[ $SUPPORTS_X86_64 -eq 1 ]]; then
     (cd "$RUST_DIR" && "$CARGO_BIN" build --target x86_64-apple-darwin "${CARGO_FLAGS[@]}")
     
     mkdir -p "$RUST_DIR/target/universal-$MODE"
-    UNIVERSAL_LIB="$RUST_DIR/target/universal-$MODE/libfend_core_c.a"
+    UNIVERSAL_LIB="$RUST_DIR/target/universal-$MODE/libfloe_rust.a"
     lipo -create \
-        "$RUST_DIR/target/aarch64-apple-darwin/$MODE/libfend_core_c.a" \
-        "$RUST_DIR/target/x86_64-apple-darwin/$MODE/libfend_core_c.a" \
+        "$RUST_DIR/target/aarch64-apple-darwin/$MODE/libfloe_rust.a" \
+        "$RUST_DIR/target/x86_64-apple-darwin/$MODE/libfloe_rust.a" \
         -output "$UNIVERSAL_LIB"
     TARGET_LIB="$UNIVERSAL_LIB"
 else
@@ -123,7 +123,7 @@ else
     HOST_TRIPLE=$(cd "$RUST_DIR" && rustc -vV | awk '/^host:/ {print $2}')
     say "Building native host static library ($HOST_TRIPLE)..."
     (cd "$RUST_DIR" && "$CARGO_BIN" build --target "$HOST_TRIPLE" "${CARGO_FLAGS[@]}")
-    TARGET_LIB="$RUST_DIR/target/$HOST_TRIPLE/$MODE/libfend_core_c.a"
+    TARGET_LIB="$RUST_DIR/target/$HOST_TRIPLE/$MODE/libfloe_rust.a"
 fi
 
 if [[ ! -f "$TARGET_LIB" ]]; then
@@ -131,7 +131,7 @@ if [[ ! -f "$TARGET_LIB" ]]; then
     exit 1
 fi
 
-say "Packaging CFendCore.xcframework..."
+say "Packaging CFloeRust.xcframework..."
 rm -rf "$OUTPUT_XCFRAMEWORK"
 mkdir -p "$FRAMEWORKS_DIR"
 

@@ -13,7 +13,7 @@ Floe has no translations yet, so this one lists who builds the app and what it i
 from the files that pin them, so run it again after changing a dependency:
     Package.resolved      Swift packages
     runtime/package.json  the extension runtime's packages
-    Vendor/FendCore/rust/Cargo.lock  the Rust crates behind the calculator and the index of file names
+    Vendor/FloeRust/rust/Cargo.lock  the Rust crates behind the calculator and the index of file names
 Links come from FloeLinks in project.yml, the one place the app's web links are kept.
 
 Every path is fixed and relative to the repository, so the script reads and writes nowhere else.
@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PROJECT = ROOT / "project.yml"
 SWIFT_PINS = ROOT / "Package.resolved"
 RUNTIME_MANIFEST = ROOT / "runtime" / "package.json"
-CARGO_PINS = ROOT / "Vendor" / "FendCore" / "rust" / "Cargo.lock"
+CARGO_PINS = ROOT / "Vendor" / "FloeRust" / "rust" / "Cargo.lock"
 MARKDOWN = ROOT / "CREDITS.md"
 SWIFT = ROOT / "Sources" / "Floe" / "App" / "Credits.swift"
 

@@ -101,23 +101,23 @@ jobs:
           restore-keys: |
             spm-${{ runner.os }}-
 
-      # The calculator's engine is Rust, built into Vendor/FendCore/Frameworks, which is not committed.
-      # The FendCore package does not resolve without it, so this comes before any Swift build.
+      # The calculator's engine and the file index are Rust, built into Vendor/FloeRust/Frameworks, which is not committed.
+      # The FloeRust package does not resolve without it, so this comes before any Swift build.
       # Kept between runs until the wrapper, its lock file or its compiler changes.
-      - name: Cache Fend
-        id: fend-cache
+      - name: Cache FloeRust
+        id: rust-cache
         if: needs.changes.outputs.code == 'true'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: Vendor/FendCore/Frameworks
-          key: fend-${{ runner.os }}-${{ hashFiles('Vendor/FendCore/rust/Cargo.lock', 'Vendor/FendCore/rust/Cargo.toml', 'Vendor/FendCore/rust/rust-toolchain.toml', 'Vendor/FendCore/rust/src/**', 'Vendor/FendCore/include/**', 'scripts/build-fend.sh') }}
+          path: Vendor/FloeRust/Frameworks
+          key: floe-rust-${{ runner.os }}-${{ hashFiles('Vendor/FloeRust/rust/Cargo.lock', 'Vendor/FloeRust/rust/Cargo.toml', 'Vendor/FloeRust/rust/rust-toolchain.toml', 'Vendor/FloeRust/rust/src/**', 'Vendor/FloeRust/include/**', 'scripts/build-rust.sh') }}
 
-      - name: Build Fend
-        if: needs.changes.outputs.code == 'true' && steps.fend-cache.outputs.cache-hit != 'true'
+      - name: Build FloeRust
+        if: needs.changes.outputs.code == 'true' && steps.rust-cache.outputs.cache-hit != 'true'
         run: |
           set -euo pipefail
-          ./scripts/build-fend.sh
-          (cd Vendor/FendCore/rust && cargo test)
+          ./scripts/build-rust.sh
+          (cd Vendor/FloeRust/rust && cargo test)
 
       # No test target yet, so this builds only. The selftest below is the
       # end-to-end check.

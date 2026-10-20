@@ -158,7 +158,7 @@
 		60E687EE61413628159E2CC4 /* AISettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873178EA70279DFA5A5FB656 /* AISettingsSection.swift */; };
 		60FE0B79D7BF23B80E9E658F /* AskAIModel+Panel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F94F4CB7297C9286F2C8A2D /* AskAIModel+Panel.swift */; };
 		62233FAC9FE04DFB2C994F79 /* ThawHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604318B576A5FA49A67E10A4 /* ThawHUD.swift */; };
-		63306AA3252F2A2A9842CF02 /* FendCore in Frameworks */ = {isa = PBXBuildFile; productRef = 92E0A24A8713739E9D70A6B1 /* FendCore */; };
+		63306AA3252F2A2A9842CF02 /* FloeRust in Frameworks */ = {isa = PBXBuildFile; productRef = C9711B30810CFAD121003AA5 /* FloeRust */; };
 		634C27A628FB29D607187209 /* Session+Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2368E725055044F98037A035 /* Session+Memory.swift */; };
 		63A875F55A40AC8CB417058E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3F4985D458BAC986B45EABD6 /* Localizable.xcstrings */; };
 		64C8CC116C231286FCA54282 /* PointerRest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AF25D77D813A73B4FDFCF2B /* PointerRest.swift */; };
@@ -543,6 +543,7 @@
 		3A095A949E191252E89F6A9A /* PermissionsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsWindow.swift; sourceTree = "<group>"; };
 		3A377A245ADAADBB93B3084B /* MenuBarGlyph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarGlyph.swift; sourceTree = "<group>"; };
 		3A4690CBF6FD48F469CE38F1 /* runtime */ = {isa = PBXFileReference; lastKnownFileType = folder; path = runtime; sourceTree = SOURCE_ROOT; };
+		3B06E75582B03937BF646829 /* FloeRust */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FloeRust; path = Vendor/FloeRust; sourceTree = SOURCE_ROOT; };
 		3BACEDACC6B12A4DCEF77FDE /* SettingsPageHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsPageHeader.swift; sourceTree = "<group>"; };
 		3BFA016FEFEB0A2491945A30 /* CalculatorSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorSearch.swift; sourceTree = "<group>"; };
 		3C178B96CB145E8FEA3F3778 /* SystemStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemStores.swift; sourceTree = "<group>"; };
@@ -668,7 +669,6 @@
 		8A64FA2992B47C9D88A77AFE /* PanelHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelHost.swift; sourceTree = "<group>"; };
 		8A7CB90934B672E8A7BED861 /* Model+MenuItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+MenuItems.swift"; sourceTree = "<group>"; };
 		8AE33B90505045A8A2B0BEA4 /* FloeIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloeIntents.swift; sourceTree = "<group>"; };
-		8B84D5026A491B96DFA99BA1 /* FendCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = FendCore; path = Vendor/FendCore; sourceTree = SOURCE_ROOT; };
 		8C0CECF01978DB7DDA0FB1A1 /* NoteDeskModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteDeskModel.swift; sourceTree = "<group>"; };
 		8C16AEB8E37C797A4AA78F46 /* Translate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Translate.swift; sourceTree = "<group>"; };
 		8C1DA7F52B1E57FBB729318A /* PanelSections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanelSections.swift; sourceTree = "<group>"; };
@@ -687,6 +687,7 @@
 		955281ED200D7C89B75825BD /* Model+Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Keys.swift"; sourceTree = "<group>"; };
 		95D5E9CBA2030703F9BE0381 /* FormViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViews.swift; sourceTree = "<group>"; };
 		95F42770ECB0255BA11434C8 /* Timers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timers.swift; sourceTree = "<group>"; };
+		962E6B4A1AD362AEF3BE6C57 /* build-rust.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-rust.sh"; sourceTree = "<group>"; };
 		96930AAEECE7733AB82EE655 /* SettingsSearchNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSearchNavigation.swift; sourceTree = "<group>"; };
 		975C93B46D2CE2C1CB09E1ED /* AppleScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScript.swift; sourceTree = "<group>"; };
 		97A5B790800A314D24197729 /* OpenWindows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenWindows.swift; sourceTree = "<group>"; };
@@ -790,7 +791,6 @@
 		D4C585799DE740F98865EF15 /* ClipboardCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCapture.swift; sourceTree = "<group>"; };
 		D4F04691E14C00EFDF762F28 /* IconThumbnails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconThumbnails.swift; sourceTree = "<group>"; };
 		D54900730524DDEA357356AE /* LoginEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginEnvironment.swift; sourceTree = "<group>"; };
-		D56EF7580052CE64737A4D6C /* build-fend.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-fend.sh"; sourceTree = "<group>"; };
 		D5FACCCFACAFD201DA7D19F3 /* ProcessSearchScopes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessSearchScopes.swift; sourceTree = "<group>"; };
 		D7182B70F3C921F082C9A69B /* WorldTime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldTime.swift; sourceTree = "<group>"; };
 		D8527BDAB44BF2D98CE3BD42 /* BrowserTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserTabs.swift; sourceTree = "<group>"; };
@@ -872,7 +872,7 @@
 				5C14B2AB67F03EDC01B4D0A1 /* ArgumentParser in Frameworks */,
 				B46FB365D377BDA4D17AEBAC /* Algorithms in Frameworks */,
 				EEEE4BAA3CEB92F8ECAACBB7 /* AsyncAlgorithms in Frameworks */,
-				63306AA3252F2A2A9842CF02 /* FendCore in Frameworks */,
+				63306AA3252F2A2A9842CF02 /* FloeRust in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -960,7 +960,7 @@
 			isa = PBXGroup;
 			children = (
 				54EEF3939C9ABBD6C00B0DC4 /* tests */,
-				D56EF7580052CE64737A4D6C /* build-fend.sh */,
+				962E6B4A1AD362AEF3BE6C57 /* build-rust.sh */,
 				C586F4E26A762CE879BEE71B /* check-budget.sh */,
 				B7DAD4E1431B73E8BF3D6DF1 /* check-resident-budget.py */,
 				E6F2A419B59FCCDC76E1C76C /* coverage.sh */,
@@ -1416,7 +1416,7 @@
 		BDFFA7BD7BA3E74AC2775B71 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				8B84D5026A491B96DFA99BA1 /* FendCore */,
+				3B06E75582B03937BF646829 /* FloeRust */,
 				78D37EBDD2D6EF547319287E /* ThawUI */,
 			);
 			name = Packages;
@@ -1563,7 +1563,7 @@
 				DCB8704B102A04F10A7ABBEA /* ArgumentParser */,
 				1F43772FB45D60218EFCAC8B /* Algorithms */,
 				620405AD1BB424142F8C61B3 /* AsyncAlgorithms */,
-				92E0A24A8713739E9D70A6B1 /* FendCore */,
+				C9711B30810CFAD121003AA5 /* FloeRust */,
 			);
 			productName = Floe;
 			productReference = AE77F4EE054A6C520DC7476B /* Floe.app */;
@@ -1601,7 +1601,7 @@
 				F68F2A94F6327C74C97742E7 /* XCRemoteSwiftPackageReference "swift-collections" */,
 				97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */,
 				6F2C0D39465C2E214623284A /* XCRemoteSwiftPackageReference "swift-subprocess" */,
-				B3A3C44DC521DABDC75ABA2C /* XCLocalSwiftPackageReference "Vendor/FendCore" */,
+				B457548832AD6CA4307959B6 /* XCLocalSwiftPackageReference "Vendor/FloeRust" */,
 				1CAF9DD5710E35A029A639F2 /* XCLocalSwiftPackageReference "Vendor/ThawUI" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -2277,9 +2277,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Vendor/ThawUI;
 		};
-		B3A3C44DC521DABDC75ABA2C /* XCLocalSwiftPackageReference "Vendor/FendCore" */ = {
+		B457548832AD6CA4307959B6 /* XCLocalSwiftPackageReference "Vendor/FloeRust" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Vendor/FendCore;
+			relativePath = Vendor/FloeRust;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -2367,14 +2367,14 @@
 			package = 97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
 		};
-		92E0A24A8713739E9D70A6B1 /* FendCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = FendCore;
-		};
 		A5734F6D7F1BB261482C7608 /* Subprocess */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 6F2C0D39465C2E214623284A /* XCRemoteSwiftPackageReference "swift-subprocess" */;
 			productName = Subprocess;
+		};
+		C9711B30810CFAD121003AA5 /* FloeRust */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = FloeRust;
 		};
 		DCB8704B102A04F10A7ABBEA /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;

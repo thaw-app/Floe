@@ -10,7 +10,7 @@ Requires macOS 26 or later, Bun, Rust/Cargo, and Xcode 27 for the vendored ThawU
 ## Run
 
     cd runtime && bun install && cd ..
-    ./scripts/build-fend.sh
+    ./scripts/build-rust.sh
     open Floe.xcodeproj        # ⌘R in Xcode
 
 or install it as `/Applications/Floe.app` with `./scripts/devrun.sh` (`--debug`, `--no-launch`). The script signs
@@ -112,7 +112,7 @@ The aim is code where no feature reaches into another. Each part knows only what
   - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
   - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
     clipboard history, snippets and their expander, quicklinks, the calendar, the file search and its index of file
-    names (`FileIndexService.swift`; the index itself is Rust, in `Vendor/FendCore/rust/src/index.rs`, and is saved
+    names (`FileIndexService.swift`; the index itself is Rust, in `Vendor/FloeRust/rust/src/index.rs`, and is saved
     to `~/Library/Caches/Floe` so a later launch reads it back and asks FSEvents only for what changed since), browser tabs,
     menu bar items, script commands and Thaw's actions, with the AppleScript runner and the selection and pasteboard
     helpers.

@@ -37,15 +37,15 @@ class DevRunSigningTests(unittest.TestCase):
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         for folder in (
-            "scripts", "runtime", "Resources", "tools", "Vendor/FendCore/rust/src",
-            "Vendor/FendCore/include", ".build/xcode/Build/Products/Release/Floe.app/Contents",
+            "scripts", "runtime", "Resources", "tools", "Vendor/FloeRust/rust/src",
+            "Vendor/FloeRust/include", ".build/xcode/Build/Products/Release/Floe.app/Contents",
         ):
             (self.root / folder).mkdir(parents=True, exist_ok=True)
         source = Path(os.environ.get("FLOE_DEVRUN_UNDER_TEST", ROOT / "scripts/devrun.sh"))
         shutil.copyfile(source, self.root / "scripts/devrun.sh")
         shutil.copyfile(ROOT / "Resources/Floe-iCloud.entitlements", self.root / "Resources/Floe-iCloud.entitlements")
-        (self.root / "Vendor/FendCore/rust/Cargo.toml").touch()
-        (self.root / "Vendor/FendCore/Frameworks/CFendCore.xcframework/macos").mkdir(parents=True)
+        (self.root / "Vendor/FloeRust/rust/Cargo.toml").touch()
+        (self.root / "Vendor/FloeRust/Frameworks/CFloeRust.xcframework/macos").mkdir(parents=True)
         (self.root / "profile.provisionprofile").touch()
         mock = self.root / "tools/mock"
         mock.write_text(MOCK)

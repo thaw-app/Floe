@@ -77,10 +77,10 @@ say "Installing runtime dependencies…"
 (cd runtime && bun install --ignore-scripts --frozen-lockfile >/dev/null 2>&1 || bun install --ignore-scripts >/dev/null)
 
 # Built again when it is missing or older than its Rust sources or its header.
-FEND="Vendor/FendCore/Frameworks/CFendCore.xcframework"
-if [[ ! -d "$FEND" || -n "$(find Vendor/FendCore/rust/src Vendor/FendCore/rust/Cargo.toml Vendor/FendCore/include -newer "$FEND" -print -quit)" ]]; then
-    say "Building Fend Core xcframework…"
-    ./scripts/build-fend.sh
+RUST_FRAMEWORK="Vendor/FloeRust/Frameworks/CFloeRust.xcframework"
+if [[ ! -d "$RUST_FRAMEWORK" || -n "$(find Vendor/FloeRust/rust/src Vendor/FloeRust/rust/Cargo.toml Vendor/FloeRust/include -newer "$RUST_FRAMEWORK" -print -quit)" ]]; then
+    say "Building the FloeRust xcframework…"
+    ./scripts/build-rust.sh
 fi
 
 if command -v xcodegen >/dev/null 2>&1; then
@@ -96,7 +96,7 @@ BUILD_ARGS=(
     -derivedDataPath "$DERIVED"
 )
 # A Mac without Rust's Intel target builds the library for itself alone, and then the app is built so too.
-if ! lipo -archs "$FEND"/*/libfend_core_c.a | grep -q x86_64; then
+if ! lipo -archs "$RUST_FRAMEWORK"/*/libfloe_rust.a | grep -q x86_64; then
     BUILD_ARGS+=(ONLY_ACTIVE_ARCH=YES)
 fi
 

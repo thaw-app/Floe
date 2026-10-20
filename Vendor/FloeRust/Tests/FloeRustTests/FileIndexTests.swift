@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import FendCore
+@testable import FloeRust
 
 @Suite("FileIndex Tests")
 struct FileIndexTests {

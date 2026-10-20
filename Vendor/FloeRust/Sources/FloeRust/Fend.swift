@@ -1,4 +1,4 @@
-import CFendCore
+import CFloeRust
 import Foundation
 
 /// Main entry point for interacting with the `fend-core` calculation engine.

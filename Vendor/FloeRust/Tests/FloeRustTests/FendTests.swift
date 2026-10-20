@@ -1,9 +1,9 @@
 import Foundation
 import Testing
-@testable import FendCore
+@testable import FloeRust
 
-@Suite("FendCore Tests")
-struct FendCoreTests {
+@Suite("Fend Tests")
+struct FendTests {
     @Test("Library version is valid semver")
     func testVersion() {
         let version = Fend.version

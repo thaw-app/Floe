@@ -6,7 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
-import FendCore
+import FloeRust
 import Foundation
 import SwiftUI
 
@@ -166,7 +166,7 @@ final nonisolated class Calculator: @unchecked Sendable {
         }
 
         // Try evaluating with fend preview. A preview that comes back empty after running as long as
-        // fend's own time limit (200 ms; see FendCore's TIME_LIMIT) was cut off, not empty: the
+        // fend's own time limit (200 ms; see TIME_LIMIT in FloeRust's fend.rs) was cut off, not empty: the
         // whole-answer fallback would pay the same limit again on the main thread and end the same way.
         let clock = ContinuousClock()
         let previewStarted = clock.now

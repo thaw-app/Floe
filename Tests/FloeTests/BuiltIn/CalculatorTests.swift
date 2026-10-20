@@ -6,7 +6,7 @@
 //  Licensed under the GNU GPLv3
 
 import AppKit
-import FendCore
+import FloeRust
 @testable import Floe
 import Foundation
 import SwiftUI
@@ -594,7 +594,7 @@ struct CalculatorTests {
     }
 
     @Test func outputDisplayUsesSyntacticSpans() throws {
-        // CalculationPreview preserves FendCore spans
+        // CalculationPreview preserves fend's spans
         let preview = try #require(calculator.evaluatePreview("5 ft in meters"))
         #expect(!preview.spans.isEmpty)
         #expect(preview.spans.contains { $0.kind == .number && $0.string == "1.524" })

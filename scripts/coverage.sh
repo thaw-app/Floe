@@ -18,10 +18,10 @@ say() { printf '\033[1;36m==>\033[0m %s\n' "$*"; }
 rm -rf coverage
 mkdir -p coverage
 
-# The FendCore package does not resolve without its framework, which is built from Rust and not committed.
-if [[ ! -d Vendor/FendCore/Frameworks/CFendCore.xcframework ]]; then
-    say "Building Fend Core xcframework…"
-    ./scripts/build-fend.sh
+# The FloeRust package does not resolve without its framework, which is built from Rust and not committed.
+if [[ ! -d Vendor/FloeRust/Frameworks/CFloeRust.xcframework ]]; then
+    say "Building the FloeRust xcframework…"
+    ./scripts/build-rust.sh
 fi
 
 say "Swift tests…"

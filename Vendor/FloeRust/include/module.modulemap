@@ -1,0 +1,4 @@
+module CFloeRust {
+    header "floe_rust.h"
+    export *
+}

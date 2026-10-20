@@ -6,7 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import CoreServices
-import FendCore
+import FloeRust
 @testable import Floe
 import Foundation
 import Synchronization

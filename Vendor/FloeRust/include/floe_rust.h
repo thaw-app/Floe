@@ -1,5 +1,5 @@
-#ifndef FEND_CORE_H
-#define FEND_CORE_H
+#ifndef FLOE_RUST_H
+#define FLOE_RUST_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -182,4 +182,4 @@ size_t floe_index_byte_size(const FloeFileIndex* _Nullable index);
 }
 #endif
 
-#endif /* FEND_CORE_H */
+#endif /* FLOE_RUST_H */

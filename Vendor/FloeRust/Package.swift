@@ -2,24 +2,24 @@
 import PackageDescription
 
 let package = Package(
-    name: "FendCore",
+    name: "FloeRust",
     platforms: [.macOS(.v26)],
     products: [
-        .library(name: "FendCore", targets: ["FendCore"]),
+        .library(name: "FloeRust", targets: ["FloeRust"]),
     ],
     targets: [
         .binaryTarget(
-            name: "CFendCore",
-            path: "Frameworks/CFendCore.xcframework"
+            name: "CFloeRust",
+            path: "Frameworks/CFloeRust.xcframework"
         ),
         .target(
-            name: "FendCore",
-            dependencies: ["CFendCore"],
+            name: "FloeRust",
+            dependencies: ["CFloeRust"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         .testTarget(
-            name: "FendCoreTests",
-            dependencies: ["FendCore"],
+            name: "FendTests",
+            dependencies: ["FloeRust"],
             swiftSettings: [.swiftLanguageMode(.v5)]
         ),
     ]

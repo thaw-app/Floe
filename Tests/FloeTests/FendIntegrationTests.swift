@@ -5,7 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU GPLv3
 
-import FendCore
+import FloeRust
 @testable import Floe
 import Foundation
 import Testing

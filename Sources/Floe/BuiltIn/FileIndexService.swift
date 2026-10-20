@@ -7,7 +7,7 @@
 
 import Combine
 import CoreServices
-import FendCore
+import FloeRust
 import Foundation
 import Synchronization
 import UniformTypeIdentifiers

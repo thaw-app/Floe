@@ -25,7 +25,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-async-algorithms", exact: "1.1.3"),
         // Only swift-async-algorithms uses this. Held back because 1.7 does not build with the Xcode 27 beta.
         .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
-        .package(path: "Vendor/FendCore"),
+        .package(path: "Vendor/FloeRust"),
     ],
     targets: [
         .executableTarget(
@@ -38,7 +38,7 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-                .product(name: "FendCore", package: "FendCore"),
+                .product(name: "FloeRust", package: "FloeRust"),
             ],
             resources: [.process("Resources")],
             swiftSettings: concurrency
@@ -49,7 +49,7 @@ let package = Package(
             name: "FloeTests",
             dependencies: [
                 "Floe",
-                .product(name: "FendCore", package: "FendCore"),
+                .product(name: "FloeRust", package: "FloeRust"),
             ],
             swiftSettings: concurrency,
             linkerSettings: [

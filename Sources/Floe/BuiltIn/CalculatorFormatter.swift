@@ -6,7 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
-import FendCore
+import FloeRust
 import Foundation
 import SwiftUI
 

@@ -1,4 +1,4 @@
-import CFendCore
+import CFloeRust
 import Foundation
 
 /// The syntactic or semantic category of a styled text span in a Fend calculation result.
@@ -17,7 +17,7 @@ public enum FendSpanKind: String, CaseIterable, Equatable, Hashable, Sendable, C
     public static let ident: FendSpanKind = .identifier
 
     /// Initialize a `FendSpanKind` from the underlying C enum value.
-    init(_ cKind: CFendCore.FendSpanKind) {
+    init(_ cKind: CFloeRust.FendSpanKind) {
         switch cKind {
         case FEND_SPAN_NUMBER: self = .number
         case FEND_SPAN_BUILT_IN_FUNCTION: self = .builtInFunction

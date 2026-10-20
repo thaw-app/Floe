@@ -17,7 +17,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CARGO_PINS = ROOT / "Vendor" / "FendCore" / "rust" / "Cargo.lock"
+CARGO_PINS = ROOT / "Vendor" / "FloeRust" / "rust" / "Cargo.lock"
 FIXTURE = ROOT / "Tests" / "FloeTests" / "Fixtures" / "FendIntegrationCorpus.swift"
 SOURCE = "https://raw.githubusercontent.com/printfn/fend/v{version}/core/tests/integration_tests.rs"
 
