@@ -162,7 +162,7 @@ enum Notes {
     }
 
     /// Plain text as the HTML a note's body is: escaped, and a `<div>` a line, with `<br>` keeping an empty line open.
-    nonisolated static func appleNotesHTML(_ text: String) -> String {
+    static nonisolated func appleNotesHTML(_ text: String) -> String {
         text
             .replacingOccurrences(of: "&", with: "&amp;")
             .replacingOccurrences(of: "<", with: "&lt;")
@@ -217,7 +217,7 @@ enum Notes {
 enum NoteFiles {
     /// A new note's file name: its first line, without what a file name cannot hold. Numbered when taken, and
     /// the date and time when the first line leaves nothing.
-    static func fileName(for text: String, now: Date, taken: (String) -> Bool) -> String {
+    static nonisolated func fileName(for text: String, now: Date, taken: (String) -> Bool) -> String {
         let firstLine = text.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
         let cleaned = firstLine.map { "/:\\".contains($0) ? " " : String($0) }.joined()
             .trimmingCharacters(in: CharacterSet(charactersIn: " .#*-"))
@@ -232,7 +232,7 @@ enum NoteFiles {
     }
 
     /// A date written out by a fixed pattern, in the given time zone: the user's own unless said otherwise.
-    static func stamp(_ pattern: String, _ date: Date, in zone: TimeZone = .current) -> String {
+    static nonisolated func stamp(_ pattern: String, _ date: Date, in zone: TimeZone = .current) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = zone
@@ -262,7 +262,7 @@ enum NoteFiles {
 
     /// Writes a new note. Never over a file that is there.
     @discardableResult
-    static func write(_ text: String, in folder: URL, now: Date = Date()) throws -> URL {
+    static nonisolated func write(_ text: String, in folder: URL, now: Date = Date()) throws -> URL {
         let file = folder.appendingPathComponent(fileName(for: text, now: now) { FileManager.default.fileExists(atPath: folder.appendingPathComponent($0).path) })
         try Data((text + "\n").utf8).write(to: file, options: .withoutOverwriting)
         return file

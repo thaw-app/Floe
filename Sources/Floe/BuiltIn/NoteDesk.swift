@@ -67,12 +67,6 @@ nonisolated enum NoteDesk {
         return found.min(count: listLimit) { ($0.modified, $1.name) > ($1.modified, $0.name) }
     }
 
-    /// The notes whose name matches, best first. Without a query, all of them as they came.
-    static func matching(_ notes: [DeskNote], query: String) -> [DeskNote] {
-        guard !query.isEmpty else { return notes }
-        return notes.ranked { Fuzzy.score(query, $0.name) }
-    }
-
     /// When a file was last changed, asked of the disk each time: a URL remembers the answer it was given before.
     static func modified(_ file: URL) -> Date? {
         (try? FileManager.default.attributesOfItem(atPath: file.path))?[.modificationDate] as? Date
@@ -85,14 +79,13 @@ nonisolated enum NoteDesk {
         return (text, attributes?[.modificationDate] as? Date)
     }
 
-    enum Saved: Equatable {
+    enum Saved: Equatable, Sendable {
         case written(modified: Date?)
         /// The file changed under the editor: it is left as it is, and the editor's text is beside it.
         case keptBeside(URL)
     }
 
     /// Writes the editor's text, unless the file is no longer the one that was read: then both are kept.
-    @MainActor
     static func save(_ text: String, to note: URL, readAt modified: Date?, now: Date = Date()) throws -> Saved {
         // A note read without a date is checked by its text, as one whose date moved is.
         if let onDisk = Self.modified(note), onDisk != modified, (try? String(contentsOf: note, encoding: .utf8)) != text {
@@ -121,5 +114,15 @@ nonisolated enum NoteDesk {
             return String(localized: "Kept in \(owner): \(folder.lastPathComponent)", bundle: .floe, comment: "Where the notes on screen are stored. The first placeholder is an app, such as Obsidian; the second is a folder's name.")
         }
         return String(localized: "Kept in the folder \(folder.lastPathComponent)", bundle: .floe, comment: "Where the notes on screen are stored. The placeholder is a folder's name.")
+    }
+}
+
+/// Where the notes' files are read and written: off the main thread, and one at a time, so a save never runs
+/// beside a read or another save.
+actor NoteFileWorker {
+    static let shared = NoteFileWorker()
+
+    func run<T: Sendable>(_ work: @Sendable () throws -> T) rethrows -> T {
+        try work()
     }
 }

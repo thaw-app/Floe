@@ -69,6 +69,8 @@ final class LauncherModel: ObservableObject {
     let clipboard: ClipboardHistoryStore
     /// The notes of the user's folder, while the panel shows them instead of the root search.
     @Published var noteDesk: NoteDeskModel?
+    /// The last save of the notes view closed last: true once it is written.
+    var noteDeskSave: Task<Bool, Never>?
     /// The question on screen and its answer, while the panel shows them instead of the root search.
     @Published var askAI: AskAIModel?
     /// Answers the question. A test replaces it: the real thing reaches the chosen AI source.

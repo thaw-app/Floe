@@ -30,6 +30,9 @@ final class FloatingNotePanel: NSPanel {
         isMovableByWindowBackground = true
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
+        // An empty toolbar makes the title bar tall enough for the note's name, with the close button centred in it.
+        toolbar = NSToolbar()
+        toolbarStyle = .unifiedCompact
         title = String(localized: "Floating Note", bundle: .floe, comment: "The command, and the window, that keep a note on top of other apps.")
     }
 
@@ -76,7 +79,7 @@ final class FloatingNoteWindowController: NSObject, NSWindowDelegate {
         self.model = model
         let panel = panel ?? makePanel()
         self.panel = panel
-        panel.contentView = NSHostingView(rootView: FloatingNoteView(model: model))
+        panel.contentView = NSHostingView(rootView: FloatingNoteView(model: model, titleBarHeight: panel.frame.height - panel.contentLayoutRect.height))
         panel.makeKeyAndOrderFront(nil)
         watchKeys()
         model.start()

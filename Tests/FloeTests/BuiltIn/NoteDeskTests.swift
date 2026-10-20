@@ -26,7 +26,13 @@ import Testing
     }
 
     deinit {
+        try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: vault.path)
         try? FileManager.default.removeItem(at: vault)
+    }
+
+    /// A folder nothing can be written into, so every save fails.
+    private func lock(_ isLocked: Bool) throws {
+        try FileManager.default.setAttributes([.posixPermissions: isLocked ? 0o555 : 0o755], ofItemAtPath: vault.path)
     }
 
     private func write(_ text: String, to name: String, changed seconds: TimeInterval) throws {
@@ -57,7 +63,6 @@ import Testing
 
     @Test func theNotesAreTheMarkdownFilesNewestFirstFoldersIncluded() {
         #expect(NoteDesk.notes(in: vault).map(\.name) == ["Plan", "Ideas", "Old"])
-        #expect(NoteDesk.matching(NoteDesk.notes(in: vault), query: "ide").map(\.name) == ["Ideas"])
         #expect(NoteDesk.notes(in: vault.appendingPathComponent("nowhere")).isEmpty)
     }
 
@@ -82,17 +87,19 @@ import Testing
         #expect(desk.text == "# Plan\n\n- [ ] ship\n")
         #expect(try desk.handleKey(key(125), []))
         #expect(desk.selection == 1)
+        await desk.pending?.value
         #expect(desk.text == "ideas\n")
-        desk.select(9)
+        await desk.select(9).value
         #expect(desk.selected?.name == "Old")
         desk.query = "pla"
+        await desk.pending?.value
         #expect(desk.filtered.map(\.name) == ["Plan"])
         #expect(desk.text == "# Plan\n\n- [ ] ship\n")
     }
 
-    @Test func aNotesAppThatIsNoFolderSaysSoAndReadsNothing() async {
-        let desk = await makeDesk(app: .appleNotes)
-        #expect(desk.place == .elsewhere("Apple Notes"))
+    @Test func aNotesAppThatTextIsOnlySentToSaysSoAndReadsNothing() async {
+        let desk = await makeDesk(app: .antinote)
+        #expect(desk.place == .elsewhere("Antinote"))
         #expect(desk.notes.isEmpty)
         let unset = await makeDesk(folder: "")
         #expect(unset.place == .elsewhere(""))
@@ -101,7 +108,7 @@ import Testing
     @Test func whatAnotherAppWritesShowsUnlessTheEditorHoldsChanges() async throws {
         let desk = await makeDesk()
         try write("# Plan\n\nchanged in Obsidian\n", to: "Plan.md", changed: 500)
-        desk.reloadIfChanged()
+        await desk.reloadIfChanged().value
         #expect(desk.text == "# Plan\n\nchanged in Obsidian\n")
     }
 
@@ -116,16 +123,16 @@ import Testing
             try await Task.sleep(for: .milliseconds(10))
         }
         #expect(try text(of: "Plan.md") == "# Plan\n\n- [x] ship it\n")
-        desk.close()
+        await desk.close().value
     }
 
     @Test func whatIsTypedIsWrittenToTheFileAndNothingElseIs() async throws {
         let desk = await makeDesk()
-        desk.flush()
+        await desk.flush().value
         #expect(try text(of: "Plan.md") == "# Plan\n\n- [ ] ship\n", "a note that was only read is not written")
         desk.toggleEditing()
         desk.text = "# Plan\n\n- [x] ship\n"
-        desk.select(1)
+        await desk.select(1).value
         #expect(try text(of: "Plan.md") == "# Plan\n\n- [x] ship\n", "leaving a note saves it")
         #expect(try text(of: "Projects/Ideas.md") == "ideas\n")
         #expect(said.isEmpty)
@@ -136,16 +143,36 @@ import Testing
         desk.toggleEditing()
         desk.text = "mine\n"
         try write("theirs\n", to: "Plan.md", changed: 900)
-        desk.flush()
+        await desk.flush().value
         #expect(try text(of: "Plan.md") == "theirs\n")
         let copies = try FileManager.default.contentsOfDirectory(atPath: vault.path).filter { $0.hasPrefix("Plan (Floe ") }
         #expect(copies.count == 1)
         #expect(try text(of: #require(copies.first)) == "mine\n")
         #expect(said.count == 1)
         desk.text = "mine, and more\n"
-        desk.flush()
+        await desk.flush().value
         #expect(try text(of: #require(copies.first)) == "mine, and more\n", "the editor goes on in its own copy")
         #expect(try text(of: "Plan.md") == "theirs\n")
+    }
+
+    @Test func aNoteIsLeftOnlyOnceItIsSaved() async throws {
+        let desk = await makeDesk()
+        desk.toggleEditing()
+        desk.text = "# Plan\n\nnot saved yet\n"
+        try lock(true)
+        await desk.select(1).value
+        #expect(desk.selected?.name == "Plan", "the list goes back to the note that could not be saved")
+        #expect(desk.text == "# Plan\n\nnot saved yet\n")
+        #expect(said.count == 1)
+        #expect(said.first?.hasPrefix("Couldn’t save the note") == true)
+        await desk.requestClose().value
+        #expect(closed == 0, "nor is the view left")
+        try lock(false)
+        await desk.select(1).value
+        #expect(try text(of: "Plan.md") == "# Plan\n\nnot saved yet\n")
+        #expect(desk.text == "ideas\n")
+        await desk.requestClose().value
+        #expect(closed == 1)
     }
 
     @Test func aNoteReadWithoutADateIsNotOverwrittenWhenItsTextChangedSince() throws {
@@ -206,6 +233,7 @@ import Testing
         #expect(try desk.handleKey(key(14), .command), "Command-E does the same")
         #expect(desk.isEditing)
         #expect(try desk.handleKey(key(31), .command))
+        await desk.pending?.value
         #expect(opened.map(\.lastPathComponent) == ["Plan.md"])
     }
 
@@ -216,7 +244,50 @@ import Testing
         #expect(desk.query.isEmpty)
         #expect(closed == 0)
         #expect(try desk.handleKey(key(53), []))
+        await desk.pending?.value
         #expect(closed == 1)
+    }
+
+    @Test func leavingTheEditorSavesWhatWasWritten() async throws {
+        let desk = await makeDesk()
+        desk.editorFocusChanged(true)
+        #expect(desk.isEditing)
+        desk.text = "# Plan\n\n- [x] ship\n"
+        desk.editorFocusChanged(false)
+        #expect(!desk.isEditing)
+        await desk.flush().value
+        #expect(try text(of: "Plan.md") == "# Plan\n\n- [x] ship\n")
+    }
+
+    // MARK: Apple Notes
+
+    @Test func appleNotesAreListedReadAndSavedBackThroughFloesFolder() async {
+        let notes = ScriptedNotes()
+        let desk = NoteDeskModel(app: .appleNotes, folder: "", runScript: { notes.run($0) })
+        desk.host = ModeHost(showHUD: { self.said.append($0) })
+        await desk.start().value
+        #expect(desk.place == .appleNotes)
+        #expect(desk.store.opener == "Notes")
+        #expect(desk.notes.map(\.name) == ["Groceries", "Trip"])
+        #expect(desk.text == "Groceries\nmilk")
+        desk.toggleEditing()
+        desk.text = "Groceries list\nmilk\neggs"
+        await desk.select(1).value
+        #expect(notes.scripts.withLock { $0 }.contains(AppleNotesFolder.writeScript("Groceries list\nmilk\neggs", id: "p1")), "leaving the note saves it back to Notes")
+        #expect(desk.notes.first?.name == "Groceries list", "the list takes the name Notes gives the note")
+        #expect(desk.text == "Trip\nRome")
+        await desk.openInApp().value
+        #expect(notes.scripts.withLock { $0.last } == AppleNotesFolder.showScript(id: "p2"))
+        #expect(said.isEmpty)
+    }
+
+    @Test func whenMacOSRefusesNotesTheDeskSaysHowToAllowIt() async {
+        let notes = ScriptedNotes(refuses: true)
+        let desk = NoteDeskModel(app: .appleNotes, folder: "", runScript: { notes.run($0) })
+        await desk.start().value
+        #expect(desk.notes.isEmpty)
+        #expect(desk.needsAutomation)
+        #expect(desk.failure?.hasPrefix("Floe needs permission to control Notes") == true)
     }
 
     // MARK: The launcher
@@ -237,6 +308,30 @@ import Testing
         desk.text = "typed and then the panel closed\n"
         model.reset()
         #expect(model.noteDesk == nil)
+        #expect(await model.noteDeskSave?.value == true)
         #expect(try text(of: "Plan.md") == "typed and then the panel closed\n")
+    }
+}
+
+/// Notes as its scripts see it: two notes in Floe's folder. It keeps each script it is handed.
+private final nonisolated class ScriptedNotes: Sendable {
+    let scripts = Mutex<[String]>([])
+    private let refuses: Bool
+
+    init(refuses: Bool = false) {
+        self.refuses = refuses
+    }
+
+    func run(_ source: String) -> AppleScriptOutcome {
+        scripts.withLock { $0.append(source) }
+        guard !refuses else { return .refused }
+        return switch source {
+        case AppleNotesFolder.listScript(): .text("p1\u{1F}Groceries\u{1E}p2\u{1F}Trip\u{1E}")
+        case AppleNotesFolder.readScript(id: "p1"): .text("Groceries\nmilk")
+        case AppleNotesFolder.readScript(id: "p2"): .text("Trip\nRome")
+        // Notes names the note by the first line of what was written.
+        case _ where source.contains("set body of theNote"): .text("Groceries list")
+        default: .text("")
+        }
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// The notes view: the folder of notes the user chose, read and written in the panel.
+/// The notes view: the notes of the notes app the user chose, read and written in the panel.
 extension LauncherModel {
     func openNoteDesk() {
         runner.endOpenCommand()
@@ -23,7 +23,15 @@ extension LauncherModel {
             self?.focusToken += 1
         }
         noteDesk = desk
-        desk.start()
+        if let saving = noteDeskSave {
+            // The desk closed last may still be writing a note this one is about to read.
+            Task {
+                _ = await saving.value
+                desk.start()
+            }
+        } else {
+            desk.start()
+        }
         panelHost.showPanel()
         focusToken += 1
     }
@@ -35,9 +43,11 @@ extension LauncherModel {
         panelHost.showFloatingNote()
     }
 
-    /// Saves what is being written before the view goes.
+    /// Saves what is being written as the view goes. The save is kept, for the next desk and the end of the process to wait on.
     func closeNoteDesk() {
-        noteDesk?.close()
+        if let noteDesk {
+            noteDeskSave = noteDesk.close()
+        }
         noteDesk = nil
     }
 }

@@ -8,75 +8,98 @@
 import SwiftUI
 import ThawUI
 
-/// The floating note's window: the note's name on top, its text as plain text, and at the bottom where it is
-/// kept, what went wrong, and for the scratch note the button that sends it.
+/// The floating note's window, laid out as a document window: the name, where it is kept and the notes menu in the
+/// title bar, the note below. The bottom shows only for an error, or the scratch note's Send button.
 struct FloatingNoteView: View {
     @ObservedObject var model: FloatingNoteModel
-    @FocusState private var focus: Field?
-
-    private enum Field {
-        case text, search
-    }
+    /// The window's title bar, which the note's name and buttons share with the close button.
+    var titleBarHeight: CGFloat = 40
+    /// Bumped to put the caret in the note.
+    @State private var editorFocus = 0
 
     var body: some View {
         VStack(spacing: 0) {
-            header
-            Divider()
-            ZStack {
-                editor
-                if model.isSwitching {
-                    switcher
-                        .background(.background)
-                }
+            titleBar
+                .frame(height: titleBarHeight)
+            editor
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if model.status != nil || model.store.sendsTo != nil {
+                bottomBar
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Divider()
-            bottomBar
         }
-        .frame(minWidth: 280, minHeight: 200)
-        .onChange(of: model.isSwitching) { focus = model.isSwitching ? .search : .text }
-        .onAppear { focus = .text }
+        .ignoresSafeArea(.container, edges: .top)
+        .frame(minWidth: 300, minHeight: 220)
+        .onAppear { editorFocus += 1 }
         // The editor waits while a note is read, so it takes the keyboard once the note is there.
-        .onChange(of: model.note?.id) { focus = model.isSwitching ? .search : .text }
+        .onChange(of: model.note?.id) { editorFocus += 1 }
     }
 
-    /// Clear of the window's buttons on the left, which sit in the same strip.
-    private var header: some View {
-        HStack(spacing: ThawSpacing.compact) {
+    /// In the window's title bar, beside its close button and centred on it.
+    private var titleBar: some View {
+        HStack(spacing: 10) {
             if model.listsNotes {
-                Button {
-                    model.isSwitching.toggle()
-                } label: {
-                    HStack(spacing: ThawSpacing.tight) {
-                        Text(verbatim: title)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Image(systemName: "chevron.down")
-                            .imageScale(.small)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .buttonStyle(.plain)
-                .help(String(localized: "Switch Note (⌘P)", bundle: .floe, comment: "A tooltip on the note's name, which opens the list of notes."))
-                Spacer(minLength: 0)
+                notesMenu
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: title)
+                    .font(ThawType.body.weight(.semibold))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                NotePlace(store: model.store)
+                    .font(ThawType.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
+            if model.listsNotes {
                 Button {
                     model.makeNote()
                 } label: {
-                    Image(systemName: "square.and.pencil")
+                    roundButton("square.and.pencil")
                 }
                 .buttonStyle(.plain)
                 .help(String(localized: "New Note (⌘N)", bundle: .floe, comment: "A tooltip on the button that makes a new note."))
                 .accessibilityLabel(String(localized: "New Note", bundle: .floe))
-            } else {
-                Text(verbatim: title)
-                    .lineLimit(1)
-                Spacer(minLength: 0)
             }
         }
-        .font(ThawType.body.weight(.semibold))
-        .padding(.leading, 76)
-        .padding(.trailing, ThawSpacing.inset)
-        .frame(height: 28)
+        // The close button ends 26 points in.
+        .padding(.leading, 36)
+        .padding(.trailing, 10)
+    }
+
+    /// The other notes, newest first, with the one on screen ticked. ⌘[ and ⌘] step through them too.
+    private var notesMenu: some View {
+        Menu {
+            ForEach(model.notes) { note in
+                Button {
+                    model.open(note)
+                } label: {
+                    if note.id == model.note?.id {
+                        Label(note.name, systemImage: "checkmark")
+                    } else {
+                        Text(verbatim: note.name)
+                    }
+                }
+            }
+            Divider()
+            Button(String(localized: "New Note", bundle: .floe)) { model.makeNote() }
+        } label: {
+            roundButton("sidebar.left")
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help(String(localized: "Notes", bundle: .floe))
+        .accessibilityLabel(String(localized: "Notes", bundle: .floe))
+    }
+
+    private func roundButton(_ symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(.system(size: 13))
+            .foregroundStyle(.secondary)
+            .frame(width: 28, height: 28)
+            .thawGlass(.control, in: Circle())
+            .contentShape(Circle())
     }
 
     private var title: String {
@@ -86,72 +109,20 @@ struct FloatingNoteView: View {
     @ViewBuilder
     private var editor: some View {
         if model.note == nil, !model.isLoading, model.listsNotes, model.status == nil {
-            ThawEmptyState(
-                systemImage: "note.text",
-                title: .verbatim(String(localized: "No notes here yet", bundle: .floe)),
-                caption: .verbatim(String(localized: "Press ⌘N to write the first.", bundle: .floe))
-            )
+            NoteEmptyState(store: model.store)
         } else {
-            TextEditor(text: $model.text)
-                .font(.system(size: 13, design: .monospaced))
-                .scrollContentBackground(.hidden)
-                .focused($focus, equals: .text)
-                .disabled(model.note == nil || model.isLoading)
-                .padding(ThawSpacing.row)
+            NoteDocument(
+                text: $model.text,
+                store: model.store,
+                style: .compact,
+                isEditable: model.note != nil && !model.isLoading,
+                focusToken: editorFocus
+            )
         }
-    }
-
-    private var switcher: some View {
-        VStack(spacing: 0) {
-            TextField(text: $model.query, prompt: Text(verbatim: String(localized: "Search notes, or name a new one…", bundle: .floe))) {
-                Text(verbatim: String(localized: "Search notes", bundle: .floe, comment: "The label of the field that filters the list of notes."))
-            }
-            .textFieldStyle(.plain)
-            .labelsHidden()
-            .focused($focus, equals: .search)
-            .padding(ThawSpacing.row)
-            Divider()
-            let shown = model.filtered
-            if shown.isEmpty {
-                ThawEmptyState(
-                    systemImage: "magnifyingglass",
-                    title: .verbatim(String(localized: "No note has that name", bundle: .floe)),
-                    caption: .verbatim(String(localized: "Press ⌘N to make one.", bundle: .floe))
-                )
-            } else {
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 0) {
-                            ForEach(Array(shown.enumerated()), id: \.element.id) { index, note in
-                                row(note, selected: index == model.selection)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture { model.open(note) }
-                            }
-                        }
-                    }
-                    .contentMargins(.all, ThawSpacing.tight, for: .scrollContent)
-                    .onChange(of: model.selection) {
-                        if shown.indices.contains(model.selection) {
-                            proxy.scrollTo(shown[model.selection].id)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func row(_ note: FloatingNote, selected: Bool) -> some View {
-        Text(verbatim: note.name.isEmpty ? " " : note.name)
-            .font(ThawType.body)
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .modifier(RowBackground(selected: selected))
-            .id(note.id)
-            .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private var bottomBar: some View {
-        HStack(spacing: ThawSpacing.row) {
+        PanelBottomBar {
             if let status = model.status {
                 Text(verbatim: status)
                     .foregroundStyle(.red)
@@ -161,11 +132,6 @@ struct FloatingNoteView: View {
                         model.askForAutomation()
                     }
                 }
-            } else {
-                Text(verbatim: model.store.place)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
             }
             Spacer(minLength: 0)
             if let recipient = model.store.sendsTo {
@@ -173,15 +139,16 @@ struct FloatingNoteView: View {
                     Button(String(localized: "Append to Current Note", bundle: .floe)) { model.send(.append) }
                         .disabled(model.text.isEmpty)
                 }
-                Button(String(localized: "Send to \(recipient.name)", bundle: .floe, comment: "A button that hands the note to the notes app and clears it. The placeholder is the name of an app.")) {
+                ShortcutHintButton(title: String(localized: "Send to \(recipient.name)", bundle: .floe, comment: "A button that hands the note to the notes app and clears it. The placeholder is the name of an app.")) {
                     model.send(.new)
+                } hint: {
+                    KeyCapView(text: "⌘")
+                    KeyCapView(systemImage: "return")
                 }
                 .keyboardShortcut(.return, modifiers: .command)
                 .disabled(model.text.isEmpty)
             }
         }
         .font(ThawType.caption)
-        .padding(.horizontal, ThawSpacing.inset)
-        .padding(.vertical, ThawSpacing.compact)
     }
 }

@@ -60,6 +60,26 @@ protocol FloatingNoteStore: AnyObject {
     func makeNote(named name: String) async throws -> FloatingNote
     /// The note's text when something else changed it since it was read, and nil when nothing did.
     func changes(to note: FloatingNote) async -> (note: FloatingNote, text: String)?
+    /// The app a note opens in, as its button names it. Nil when the notes open in no app of their own.
+    var opener: String? { get }
+    /// Shows the note in the app that keeps it.
+    func open(_ note: FloatingNote) async throws
+    /// The file whose icon says where the notes are kept: the app's, or the folder's. Nil when there is none to show.
+    var placeIcon: String? { get }
+}
+
+extension FloatingNoteStore {
+    var opener: String? {
+        nil
+    }
+
+    var placeIcon: String? {
+        nil
+    }
+
+    func open(_: FloatingNote) async throws {
+        // The note opens nowhere else.
+    }
 }
 
 /// Picks the store for the notes app the user chose.
@@ -68,8 +88,17 @@ enum FloatingNoteStores {
         switch app {
         case .folder: FolderNoteStore(folder: NoteDesk.folder(at: folder), record: record)
         case .appleNotes: AppleNotesStore()
-        case .antinote, .custom: ScratchNoteStore(app: app, appName: appName(for: app, template: template))
+        case .antinote, .custom: ScratchNoteStore(app: app, appName: appName(for: app, template: template), icon: appPath(for: app, template: template))
         }
+    }
+
+    /// Where the app the text goes to is installed, for its icon.
+    static func appPath(for app: NotesApp, template: String) -> String? {
+        if let bundleID = app.bundleID {
+            return NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)?.path
+        }
+        guard app == .custom, let url = Notes.url(.new, text: "", app: app, template: template), url.scheme != nil else { return nil }
+        return NSWorkspace.shared.urlForApplication(toOpen: url)?.path
     }
 
     /// The app a custom template opens, by its name, so the button says where the text goes. The choice's
@@ -86,24 +115,51 @@ enum FloatingNoteStores {
 /// The notes of the folder the Note Desk reads, read and written as the files they are.
 final class FolderNoteStore: FloatingNoteStore {
     let folder: URL?
+    /// The app whose folder it is, such as Obsidian, which opens its notes. Nil for a plain folder.
+    let owner: String?
     private let record: (Receipt) -> Void
     private let list: @Sendable (URL) -> [DeskNote]
+    private let openURL: (URL) -> Void
 
     init(
         folder: URL?,
         record: @escaping (Receipt) -> Void = { _ in
             // No receipts kept.
         },
-        list: @escaping @Sendable (URL) -> [DeskNote] = NoteDesk.notes
+        list: @escaping @Sendable (URL) -> [DeskNote] = NoteDesk.notes,
+        open: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) }
     ) {
         self.folder = folder
+        owner = folder.flatMap { NoteDesk.owner(of: $0) }
         self.record = record
         self.list = list
+        openURL = open
     }
 
     var place: String {
         guard let folder else { return "" }
-        return NoteDesk.placeLabel(folder: folder, owner: NoteDesk.owner(of: folder))
+        return NoteDesk.placeLabel(folder: folder, owner: owner)
+    }
+
+    var opener: String? {
+        owner
+    }
+
+    /// The app whose folder it is, when it is installed, and otherwise the folder itself.
+    var placeIcon: String? {
+        owner.flatMap(Self.installedApp(named:)) ?? folder?.path
+    }
+
+    /// An app in either Applications folder by its name. The vault apps say whose folder it is by a folder of their
+    /// own in it, not by a bundle id.
+    static func installedApp(named name: String) -> String? {
+        let folders = [URL(fileURLWithPath: "/Applications"), FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications")]
+        return folders.map { $0.appendingPathComponent("\(name).app").path }.first { FileManager.default.fileExists(atPath: $0) }
+    }
+
+    /// In the app whose folder it is, and otherwise in the app that opens Markdown.
+    func open(_ note: FloatingNote) async throws {
+        openURL(NoteDesk.link(to: URL(fileURLWithPath: note.id), owner: owner))
     }
 
     var sendsTo: NoteRecipient? {
@@ -120,18 +176,20 @@ final class FolderNoteStore: FloatingNoteStore {
 
     func read(_ note: FloatingNote) async throws -> (note: FloatingNote, text: String) {
         let file = URL(fileURLWithPath: note.id)
-        guard let read = NoteDesk.read(file) else { throw FloatingNoteError.unreadable }
+        guard let read = await NoteFileWorker.shared.run({ NoteDesk.read(file) }) else { throw FloatingNoteError.unreadable }
         return (FloatingNote(id: note.id, name: note.name, modified: read.modified), read.text)
     }
 
     func save(_ text: String, to note: FloatingNote) async throws -> FloatingNote {
         let file = URL(fileURLWithPath: note.id)
         do {
-            switch try NoteDesk.save(text, to: file, readAt: note.modified) {
-            case let .written(modified):
-                return FloatingNote(id: note.id, name: note.name, modified: modified)
-            case let .keptBeside(copy):
-                return FloatingNote(id: copy.path, name: copy.deletingPathExtension().lastPathComponent, modified: NoteDesk.modified(copy))
+            return try await NoteFileWorker.shared.run {
+                switch try NoteDesk.save(text, to: file, readAt: note.modified) {
+                case let .written(modified):
+                    FloatingNote(id: note.id, name: note.name, modified: modified)
+                case let .keptBeside(copy):
+                    FloatingNote(id: copy.path, name: copy.deletingPathExtension().lastPathComponent, modified: NoteDesk.modified(copy))
+                }
             }
         } catch {
             throw FloatingNoteError.failed(error.localizedDescription)
@@ -141,9 +199,12 @@ final class FolderNoteStore: FloatingNoteStore {
     func makeNote(named name: String) async throws -> FloatingNote {
         guard let folder else { throw FloatingNoteError.noFolder }
         do {
-            let file = try NoteFiles.write(name, in: folder)
+            let (file, modified) = try await NoteFileWorker.shared.run {
+                let file = try NoteFiles.write(name, in: folder)
+                return (file, NoteDesk.modified(file))
+            }
             record(.note(file))
-            return FloatingNote(id: file.path, name: file.deletingPathExtension().lastPathComponent, modified: NoteDesk.modified(file))
+            return FloatingNote(id: file.path, name: file.deletingPathExtension().lastPathComponent, modified: modified)
         } catch {
             throw FloatingNoteError.failed(error.localizedDescription)
         }
@@ -152,8 +213,11 @@ final class FolderNoteStore: FloatingNoteStore {
     /// A look at the file's date is all a check costs; the file is read only when the date moved.
     func changes(to note: FloatingNote) async -> (note: FloatingNote, text: String)? {
         let file = URL(fileURLWithPath: note.id)
-        guard let onDisk = NoteDesk.modified(file), onDisk != note.modified, let read = NoteDesk.read(file) else { return nil }
-        return (FloatingNote(id: note.id, name: note.name, modified: read.modified), read.text)
+        let read = await NoteFileWorker.shared.run { () -> (text: String, modified: Date?)? in
+            guard let onDisk = NoteDesk.modified(file), onDisk != note.modified else { return nil }
+            return NoteDesk.read(file)
+        }
+        return read.map { (FloatingNote(id: note.id, name: note.name, modified: $0.modified), $0.text) }
     }
 }
 
@@ -164,11 +228,14 @@ final class ScratchNoteStore: FloatingNoteStore {
 
     let app: NotesApp
     let appName: String
+    /// The app the text is sent to, for its icon.
+    let placeIcon: String?
     private let file: URL
 
-    init(app: NotesApp, appName: String, file: URL = Paths.scratchNote) {
+    init(app: NotesApp, appName: String, icon: String? = nil, file: URL = Paths.scratchNote) {
         self.app = app
         self.appName = appName
+        placeIcon = icon
         self.file = file
     }
 
@@ -185,8 +252,9 @@ final class ScratchNoteStore: FloatingNoteStore {
     }
 
     func read(_: FloatingNote) async throws -> (note: FloatingNote, text: String) {
+        let file = file
         do {
-            return (Self.note, try String(contentsOf: file, encoding: .utf8))
+            return try await (Self.note, NoteFileWorker.shared.run { try String(contentsOf: file, encoding: .utf8) })
         } catch CocoaError.fileReadNoSuchFile {
             return (Self.note, "")
         } catch {
@@ -195,9 +263,12 @@ final class ScratchNoteStore: FloatingNoteStore {
     }
 
     func save(_ text: String, to _: FloatingNote) async throws -> FloatingNote {
+        let file = file
         do {
-            try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-            try Data(text.utf8).write(to: file, options: .atomic)
+            try await NoteFileWorker.shared.run {
+                try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try Data(text.utf8).write(to: file, options: .atomic)
+            }
             return Self.note
         } catch {
             throw FloatingNoteError.failed(error.localizedDescription)

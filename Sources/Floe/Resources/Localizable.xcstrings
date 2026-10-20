@@ -946,6 +946,12 @@
     "Bluetooth On" : {
 
     },
+    "Body Text" : {
+
+    },
+    "Bold" : {
+
+    },
     "Bookmark" : {
       "comment" : "The kind of a result, shown beside its title. Here a page saved in a browser."
     },
@@ -974,6 +980,9 @@
 
     },
     "Built-in, shell, script and menu bar commands, and where extensions come from." : {
+
+    },
+    "Bulleted List" : {
 
     },
     "Bun install failed" : {
@@ -2116,6 +2125,15 @@
     "Heading" : {
 
     },
+    "Heading 1" : {
+
+    },
+    "Heading 2" : {
+
+    },
+    "Heading 3" : {
+
+    },
     "Help translate" : {
       "comment" : "A button that opens the page where volunteers translate this app."
     },
@@ -2702,6 +2720,9 @@
     "No note has that name" : {
 
     },
+    "No notes in Floe's folder in Notes yet" : {
+
+    },
     "No notes in this folder yet" : {
 
     },
@@ -2848,6 +2869,9 @@
     },
     "Now Playing" : {
       "comment" : "A command that shows the song that is playing and its artist."
+    },
+    "Numbered List" : {
+
     },
     "OK" : {
 
@@ -4351,6 +4375,9 @@
     "To convert money, switch on exchange rates in Settings, Privacy." : {
       "comment" : "A calculator error."
     },
+    "To read and write notes here, choose Apple Notes or a folder of notes, such as an Obsidian vault, as the notes app in Settings." : {
+
+    },
     "Today" : {
       "comment" : "The heading over what was copied today."
     },
@@ -5398,9 +5425,6 @@
     "No analytics or usage tracking" : {
 
     },
-    "No notes here yet" : {
-
-    },
     "Open Floe from its menu bar icon. You can set a hotkey in Settings." : {
 
     },
@@ -5425,17 +5449,11 @@
     "Search the menu bar and the menus of the app in front, and switch windows. These need Accessibility." : {
       "comment" : "A tile of the welcome tour."
     },
-    "Switch Note (⌘P)" : {
-      "comment" : "A tooltip on the note's name, which opens the list of notes."
-    },
     "Text that expands as you type, and quicklinks you open by name." : {
       "comment" : "A tile of the welcome tour."
     },
     "Thaw's actions are in the search, and Floe can follow its look." : {
       "comment" : "A tile of the welcome tour."
-    },
-    "To read and write notes here, choose a folder of notes, such as an Obsidian vault, as the notes app in Settings." : {
-
     },
     "`>` and a command runs it. ⌘Return opens your terminal." : {
       "comment" : "A tile of the welcome tour."

@@ -306,8 +306,12 @@ final class PanelAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate 
         }
         model.runner.session?.forceStop()
         CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
-        // The floating note's last edits are saved before the process goes.
-        floatingNote.finish { [channel] in channel.drain { exit(0) } }
+        // The notes view's and the floating note's last edits are saved before the process goes.
+        let deskSave = model.noteDeskSave
+        Task { [floatingNote, channel] in
+            _ = await deskSave?.value
+            floatingNote.finish { channel.drain { exit(0) } }
+        }
     }
 
     /// Asks the resident to open Settings on its remembered page after hiding the launcher.

@@ -29,19 +29,6 @@ final class FloatingNoteModel: ObservableObject {
         didSet { scheduleSave() }
     }
 
-    /// Whether the list of notes covers the editor, to pick another or name a new one.
-    @Published var isSwitching = false {
-        didSet {
-            query = ""
-            selection = 0
-        }
-    }
-
-    @Published var query = "" {
-        didSet { selection = 0 }
-    }
-
-    @Published var selection = 0
     /// While a note is read the editor waits, so nothing typed lands in the note that is going.
     @Published private(set) var isLoading = false
     /// What went wrong last, or what the store did that the user should know. Cleared by the next save that works.
@@ -53,13 +40,17 @@ final class FloatingNoteModel: ObservableObject {
     /// Closes the window, once the note is saved.
     var close: () -> Void = { /* no window */ }
     private let environment: Environment
-    /// The note that was read or saved last, and its text then. The editor differs from it while there are edits to save.
-    private var loaded: (note: FloatingNote, text: String)?
+    /// What of the note on screen is saved, and the saves that keep it so.
+    private lazy var saver: NoteSaver = {
+        let saver = NoteSaver(store: store) { [weak self] in self?.text }
+        saver.didSave = { [weak self] stored, written in await self?.saved(stored, written: written) }
+        saver.didFail = { [weak self] in self?.report($0, saving: true) }
+        return saver
+    }()
+
     /// Each edit, so a pause in typing saves once.
     private let edits = AsyncStream.makeStream(of: Void.self, bufferingPolicy: .bufferingNewest(1))
     private var pausing: Task<Void, Never>?
-    /// The save in flight. Each new one waits for it, so two never write the same note at once.
-    private var writing: Task<Bool, Never>?
     private var watch: Timer?
 
     init(store: any FloatingNoteStore, environment: Environment = Environment()) {
@@ -84,13 +75,8 @@ final class FloatingNoteModel: ObservableObject {
         store.sendsTo == nil
     }
 
-    var filtered: [FloatingNote] {
-        guard !query.isEmpty else { return notes }
-        return notes.ranked { Fuzzy.score(query, $0.name) }
-    }
-
     var hasUnsavedText: Bool {
-        loaded.map { $0.text != text } ?? false
+        saver.hasUnsavedText
     }
 
     // MARK: Reading
@@ -127,10 +113,7 @@ final class FloatingNoteModel: ObservableObject {
     @discardableResult
     func open(_ other: FloatingNote) -> Task<Void, Never> {
         Task {
-            let saved = await commit()
-            // Either way the list goes: on a failed save, to show the text it kept and the reason.
-            isSwitching = false
-            guard saved else { return }
+            guard await commit() else { return }
             await load(other)
         }
     }
@@ -140,7 +123,7 @@ final class FloatingNoteModel: ObservableObject {
         defer { isLoading = false }
         do {
             let read = try await store.read(other)
-            loaded = read
+            saver.show(read.note, text: read.text)
             note = read.note
             text = read.text
             clearStatus()
@@ -152,12 +135,12 @@ final class FloatingNoteModel: ObservableObject {
     /// Takes what another app wrote into the note on screen, unless the editor holds changes of its own.
     @discardableResult
     func reloadIfChanged() -> Task<Void, Never> {
-        guard let loaded, !hasUnsavedText, !isLoading else { return Task {} }
+        guard let shown = saver.saved?.note, !hasUnsavedText, !isLoading else { return Task { /* Nothing to take: the editor's text comes first. */ } }
         return Task {
-            guard let changed = await store.changes(to: loaded.note),
-                  self.loaded?.note.id == loaded.note.id, !hasUnsavedText
+            guard let changed = await store.changes(to: shown),
+                  saver.saved?.note.id == shown.id, !hasUnsavedText
             else { return }
-            self.loaded = changed
+            saver.show(changed.note, text: changed.text)
             note = changed.note
             text = changed.text
         }
@@ -170,58 +153,36 @@ final class FloatingNoteModel: ObservableObject {
         edits.continuation.yield()
     }
 
-    /// Writes the editor's text once the save before it is done, if it differs from what was saved.
+    /// Writes the editor's text once the save before it is done, and again for what is typed meanwhile.
     /// Answers whether the note on screen is saved.
     @discardableResult
     func flush() -> Task<Bool, Never> {
-        let before = writing
-        let next = Task { [weak self] () -> Bool in
-            _ = await before?.value
-            return await self?.write() ?? false
-        }
-        writing = next
-        return next
+        saver.flush()
     }
 
     /// Saves now and waits. True when nothing is left unsaved.
     func commit() async -> Bool {
-        await flush().value
+        await saver.commit()
     }
 
-    private func write() async -> Bool {
-        guard let loaded, text != loaded.text else { return true }
-        let written = text
-        do {
-            let stored = try await store.save(written, to: loaded.note)
-            self.loaded = (stored, written)
-            note = stored
-            if stored.id == loaded.note.id {
-                clearStatus()
-            } else {
-                // The file was another app's by then: the text went into a copy beside it, which is the note now.
-                status = String(localized: "The note changed elsewhere. Yours is saved as \(stored.name).", bundle: .floe, comment: "The placeholder is the name of a file.")
-                await refreshList()
-            }
-            return true
-        } catch {
-            report(error, saving: true)
-            return false
+    private func saved(_ stored: FloatingNote, written: FloatingNote) async {
+        note = stored
+        if stored.id == written.id {
+            clearStatus()
+        } else {
+            // The file was another app's by then: the text went into a copy beside it, which is the note now.
+            status = String(localized: "The note changed elsewhere. Yours is saved as \(stored.name).", bundle: .floe, comment: "The placeholder is the name of a file.")
+            await refreshList()
         }
     }
 
-    /// A new note, named by what the list's search holds. The note on screen is saved first.
+    /// A new note, named by its first line once one is typed, or by the name given. The note on screen is saved first.
     @discardableResult
-    func makeNote() -> Task<Void, Never> {
-        let name = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        return Task {
-            guard listsNotes else { return }
-            guard await commit() else {
-                isSwitching = false
-                return
-            }
+    func makeNote(named name: String = "") -> Task<Void, Never> {
+        Task {
+            guard listsNotes, await commit() else { return }
             do {
                 let made = try await store.makeNote(named: name)
-                isSwitching = false
                 await refreshList()
                 await load(made)
             } catch {
@@ -287,46 +248,33 @@ final class FloatingNoteModel: ObservableObject {
 
     // MARK: Keys
 
-    /// The window's keys: ⌘W and Escape close, ⌘N makes a note, ⌘P shows the list. While the list is up the
-    /// arrows and Return pick from it and Escape puts it away. Everything else is the text's.
+    /// The window's keys: ⌘W and Escape close, ⌘N makes a note, ⌘[ and ⌘] step through the notes as the Notes menu
+    /// lists them. Everything else is the text's.
     func handleKey(_ event: NSEvent, _ flags: NSEvent.ModifierFlags) -> Bool {
         if flags == .command {
             return runCommand(event.keyCode)
         }
-        guard flags.isEmpty else { return false }
-        if isSwitching {
-            return handleListKey(event.keyCode)
-        }
-        guard event.keyCode == 53 else { return false }
+        guard flags.isEmpty, event.keyCode == 53 else { return false }
         requestClose()
         return true
     }
 
-    /// Command with W, N or P.
+    /// Command with W, N, [ or ].
     private func runCommand(_ keyCode: UInt16) -> Bool {
         switch keyCode {
         case 13: requestClose()
         case 45 where listsNotes: makeNote()
-        case 35 where listsNotes: isSwitching.toggle()
+        case 33 where listsNotes: step(by: -1)
+        case 30 where listsNotes: step(by: 1)
         default: return false
         }
         return true
     }
 
-    private func handleListKey(_ keyCode: UInt16) -> Bool {
-        if let delta = Shortcuts.navigationDelta(keyCode) {
-            selection = max(0, min(selection + delta, filtered.count - 1))
-            return true
-        }
-        switch keyCode {
-        case 36, 76:
-            let shown = filtered
-            if shown.indices.contains(selection) {
-                open(shown[selection])
-            }
-        case 53: isSwitching = false
-        default: return false
-        }
-        return true
+    /// Opens the note before or after the one on screen, in the order the Notes menu lists them.
+    @discardableResult
+    func step(by offset: Int) -> Task<Void, Never> {
+        guard let next = notes.item(stepping: offset, from: { $0.id == note?.id }), next.id != note?.id else { return Task { /* No other note to step to. */ } }
+        return open(next)
     }
 }

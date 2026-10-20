@@ -17,6 +17,8 @@ private final class FakeNoteStore: FloatingNoteStore {
     var failsSaving = false
     var refuses = false
     var changedElsewhere: (note: FloatingNote, text: String)?
+    /// While set, each save says it began, then waits to be let go.
+    var hold: (began: AsyncStream<Void>.Continuation, release: AsyncStream<Void>)?
     let sendsTo: NoteRecipient?
 
     init(_ notes: [(String, String)] = [("Plan", "# Plan\n"), ("Ideas", "ideas\n")], sendsTo: NoteRecipient? = nil) {
@@ -42,6 +44,12 @@ private final class FakeNoteStore: FloatingNoteStore {
     }
 
     func save(_ text: String, to note: FloatingNote) async throws -> FloatingNote {
+        if let hold {
+            hold.began.yield()
+            for await _ in hold.release {
+                break
+            }
+        }
         if failsSaving {
             throw FloatingNoteError.failed("disk full")
         }
@@ -132,6 +140,52 @@ private final class FakeNoteStore: FloatingNoteStore {
         #expect(store.texts["Plan"] == "typed before the disk filled")
     }
 
+    @Test func whatIsTypedWhileTheWindowSavesIsSavedBeforeItCloses() async {
+        let store = FakeNoteStore()
+        let (began, beginning) = AsyncStream.makeStream(of: Void.self)
+        let (release, releasing) = AsyncStream.makeStream(of: Void.self)
+        store.hold = (beginning, release)
+        let model = await started(store)
+        var closed = 0
+        model.close = { closed += 1 }
+        var saves = began.makeAsyncIterator()
+        model.text = "typed"
+        let closing = model.requestClose()
+        await saves.next()
+        model.text = "typed, and more while it saved"
+        // Both saves may go: a window that closed after the first would leave the second unasked.
+        releasing.yield()
+        releasing.yield()
+        await closing.value
+        #expect(closed == 1)
+        #expect(store.saves.map(\.text) == ["typed", "typed, and more while it saved"])
+        #expect(!model.hasUnsavedText)
+    }
+
+    @Test func aSaveAnswersOnlyOnceTheStoreHoldsTheLatestText() async {
+        let store = FakeNoteStore()
+        let (began, beginning) = AsyncStream.makeStream(of: Void.self)
+        let (release, releasing) = AsyncStream.makeStream(of: Void.self)
+        store.hold = (beginning, release)
+        var text = "one"
+        let saver = NoteSaver(store: store) { text }
+        saver.show(FloatingNote(id: "Plan", name: "Plan"), text: "# Plan\n")
+        var saves = began.makeAsyncIterator()
+        let saving = saver.flush()
+        await saves.next()
+        text = "two"
+        releasing.yield()
+        await saves.next()
+        store.failsSaving = true
+        releasing.yield()
+        #expect(await saving.value == false, "the second write failed, so the note is not saved")
+        #expect(saver.hasUnsavedText)
+        store.failsSaving = false
+        store.hold = nil
+        #expect(await saver.commit())
+        #expect(store.texts["Plan"] == "two")
+    }
+
     @Test func aRefusalAsksForAutomationAndListsNothing() async {
         let store = FakeNoteStore()
         store.refuses = true
@@ -142,13 +196,10 @@ private final class FakeNoteStore: FloatingNoteStore {
         #expect(model.status == "Floe needs permission to control Notes. Your text stays here until it can save.")
     }
 
-    @Test func aNewNoteIsNamedByTheListSearchAndOpens() async {
+    @Test func aNewNoteOpensAndJoinsTheNotesAlongTheTop() async {
         let store = FakeNoteStore()
         let model = await started(store)
-        model.isSwitching = true
-        model.query = "Groceries"
-        await model.makeNote().value
-        #expect(!model.isSwitching)
+        await model.makeNote(named: "Groceries").value
         #expect(model.note?.name == "Groceries")
         #expect(model.notes.first?.name == "Groceries")
     }
@@ -166,17 +217,24 @@ private final class FakeNoteStore: FloatingNoteStore {
         #expect(model.text == "mine")
     }
 
-    @Test func theKeysCloseSwitchAndPickFromTheList() async throws {
+    @Test func theKeysStepAlongTheNotesAndClose() async throws {
         let store = FakeNoteStore()
         let model = await started(store)
         var closed = 0
         model.close = { closed += 1 }
-        #expect(try model.handleKey(key(35), .command))
-        #expect(model.isSwitching)
-        #expect(try model.handleKey(key(125), []))
-        #expect(model.selection == 1)
-        #expect(try model.handleKey(key(53), []), "Escape puts the list away first")
-        #expect(!model.isSwitching)
+        let first = model.note?.id
+        #expect(try model.handleKey(key(30), .command), "⌘] steps to the next note")
+        for _ in 0 ..< 100 where model.note?.id == first {
+            await Task.yield()
+        }
+        #expect(model.note?.id == model.notes.dropFirst().first?.id)
+        #expect(try model.handleKey(key(33), .command))
+        for _ in 0 ..< 100 where model.note?.id != first {
+            await Task.yield()
+        }
+        #expect(model.note?.id == first, "⌘[ steps back")
+        await model.step(by: -1).value
+        #expect(model.note?.id == first, "and stops at the first")
         #expect(closed == 0)
         #expect(try !model.handleKey(key(0), []), "a letter is the text's")
         #expect(try model.handleKey(key(13), .command))
@@ -259,7 +317,7 @@ private final class FakeNoteStore: FloatingNoteStore {
 
     @Test func aFileChangedOnDiskIsReadAgain() async throws {
         let store = FolderNoteStore(folder: vault)
-        let read = try await store.read(try #require(store.notes().first))
+        let read = try await store.read(#require(store.notes().first))
         try write("# Plan\n\nfrom Obsidian\n", to: "Plan.md", changed: 500)
         let changed = try #require(await store.changes(to: read.note))
         #expect(changed.text == "# Plan\n\nfrom Obsidian\n")
@@ -268,7 +326,7 @@ private final class FakeNoteStore: FloatingNoteStore {
 
     @Test func aFileChangedUnderTheEditorIsKeptAndTheTextGoesBesideIt() async throws {
         let store = FolderNoteStore(folder: vault)
-        let read = try await store.read(try #require(store.notes().first))
+        let read = try await store.read(#require(store.notes().first))
         try write("theirs\n", to: "Plan.md", changed: 500)
         let saved = try await store.save("mine\n", to: read.note)
         #expect(saved.id != read.note.id)
@@ -341,6 +399,7 @@ private final class FakeNoteStore: FloatingNoteStore {
             AppleNotesFolder.readScript(id: "p1"),
             AppleNotesFolder.writeScript("text", id: "p1"),
             AppleNotesFolder.createScript("Groceries"),
+            AppleNotesFolder.showScript(id: "p1"),
         ]
         for script in scripts {
             #expect(script.hasPrefix("tell application \"Notes\"\n    set theAccount to default account\n"))

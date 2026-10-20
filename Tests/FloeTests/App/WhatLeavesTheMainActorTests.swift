@@ -92,6 +92,11 @@ struct WhatLeavesTheMainActorTests {
         #expect(log.onMain == ["calculation": false])
     }
 
+    @Test func notesAreReadAndWrittenOffTheMainThread() async {
+        await NoteFileWorker.shared.run { [log] in log.note("note file") }
+        #expect(log.onMain == ["note file": false])
+    }
+
     // MARK: Tools and scripts
 
     @Test func aTerminalsScriptRunsOffTheMainThread() async {

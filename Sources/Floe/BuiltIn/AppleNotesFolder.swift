@@ -5,7 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-import Foundation
+import AppKit
 
 /// The scripts that read and write the notes of one folder in Apple Notes, the one named Floe in the
 /// default account. Every script finds a note through that folder, so a note anywhere else is never
@@ -64,6 +64,14 @@ nonisolated enum AppleNotesFolder {
         """)
     }
 
+    /// Brings Notes forward with the note on screen.
+    static func showScript(id: String) -> String {
+        inFolder("""
+        show note id \(AppleScript.literal(id)) of theFolder
+        activate
+        """)
+    }
+
     /// What the list script returned, as notes. A piece without an id is left out.
     static func notes(from output: String) -> [FloatingNote] {
         output.split(separator: noteSeparator).compactMap { note(from: String($0)) }
@@ -111,6 +119,18 @@ final class AppleNotesStore: FloatingNoteStore {
             throw FloatingNoteError.failed(String(localized: "Notes made no note", bundle: .floe, comment: "Notes is Apple's notes app."))
         }
         return note
+    }
+
+    var opener: String? {
+        String(localized: "Notes", bundle: .floe, comment: "The name of Apple's notes app, on a button that opens a note in it.")
+    }
+
+    var placeIcon: String? {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: NotesApp.appleNotes.bundleID ?? "")?.path
+    }
+
+    func open(_ note: FloatingNote) async throws {
+        _ = try await perform(AppleNotesFolder.showScript(id: note.id))
     }
 
     /// Asking Notes every few seconds would cost a script each time: what Notes changes shows when the note is opened again.
