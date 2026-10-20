@@ -15,7 +15,8 @@ import Testing
 struct ShellSnapshotsTests {
     @Test func twentyAsksForOneFolderReadItOnce() async throws {
         let reads = Mutex(0)
-        let store = ShellSnapshots(readEntries: { _ in
+        // The clock stands still: on a busy machine the answer could otherwise age past its lifetime and be read again.
+        let store = ShellSnapshots(now: { Date(timeIntervalSince1970: 0) }, readEntries: { _ in
             let count: Int = reads.withLock { state in
                 state += 1
                 return state
