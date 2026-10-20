@@ -7,8 +7,8 @@
 
 import AppKit
 
-/// Exercises the actual resident and its disposable process, rather than the offscreen search
-/// benchmark (which deliberately does not start the app's background services).
+/// Measures Floe's own process through its life, with the real app's services: started, after menu queries, with the
+/// launcher shown and closed three times, after a trim, and settled for a minute.
 enum ResidentBench {
     /// Returns this process's physical footprint in MiB, or nil if the kernel query fails.
     static func footprint() -> Double? {
@@ -22,8 +22,8 @@ enum ResidentBench {
         return status == KERN_SUCCESS ? Double(info.phys_footprint) / 1_048_576 : nil
     }
 
-    /// Runs the opt-in lifecycle benchmark and exits nonzero for missing children or excess memory.
-    static func start(panel: PanelProcess) {
+    /// Runs the opt-in benchmark and exits nonzero for excess memory.
+    static func start(launcher: LauncherWindow) {
         guard let raw = ProcessInfo.processInfo.environment["FLOE_RESIDENT_BENCH"], let limit = Double(raw), limit.isFinite, limit > 0 else { return }
         Task {
             try? await Task.sleep(for: .seconds(3))
@@ -32,22 +32,32 @@ enum ResidentBench {
             try? await Task.sleep(for: .seconds(2))
             passed = report("after-menu", memory: footprint(), limit: limit) && passed
             for cycle in 1 ... 3 {
-                panel.request(.show)
+                showTimed(launcher, as: "show-\(cycle)")
                 try? await Task.sleep(for: .seconds(2))
-                guard panel.pid != nil else { print("RESIDENT FAIL: panel did not start"); finish(passed: false) }
-                print("PANEL cycle=\(cycle) pid=\(panel.pid ?? 0)")
-                panel.request(.hide)
-                for _ in 0 ..< 60 where panel.pid != nil {
-                    try? await Task.sleep(for: .milliseconds(100))
-                }
-                guard panel.pid == nil else { print("RESIDENT FAIL: panel did not exit"); finish(passed: false) }
+                guard launcher.isVisible else { print("RESIDENT FAIL: the launcher did not show"); finish(passed: false) }
+                passed = report("shown-\(cycle)", memory: footprint(), limit: limit) && passed
+                launcher.hide()
+                try? await Task.sleep(for: .seconds(1))
                 passed = report("dismissed-\(cycle)", memory: footprint(), limit: limit) && passed
             }
+            launcher.trim()
+            try? await Task.sleep(for: .seconds(2))
+            passed = report("trimmed", memory: footprint(), limit: limit) && passed
             let settled = await settledFootprint()
             passed = report("settled", memory: settled, limit: limit) && passed
+            // How long the first show after a trim takes, while the window is made again.
+            showTimed(launcher, as: "show-after-trim")
+            launcher.hide()
             print(passed ? "RESIDENT PASS" : "RESIDENT FAIL: over budget")
             finish(passed: passed)
         }
+    }
+
+    /// Shows the launcher and says how long the show took, drawing included.
+    private static func showTimed(_ launcher: LauncherWindow, as stage: String) {
+        let started = Date()
+        launcher.show()
+        print("RESIDENT \(stage) \(Log.milliseconds(since: started)) ms")
     }
 
     /// Exercise the AppKit side of AX menu queries without requiring a CI Accessibility grant.
@@ -79,7 +89,7 @@ enum ResidentBench {
         return peak
     }
 
-    /// Stops resident-owned services before returning the benchmark verdict to its harness.
+    /// Stops Floe's services before returning the benchmark verdict to its harness.
     private static func finish(passed: Bool) -> Never {
         (NSApp.delegate as? AppDelegate)?.shutDown()
         exit(passed ? 0 : 1)

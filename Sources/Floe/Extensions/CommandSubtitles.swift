@@ -8,7 +8,7 @@
 import Foundation
 
 /// The subtitles commands set with `updateCommandMetadata`, by command id, kept until the command clears its own.
-/// In the defaults, so the panel's process reads what a background run in the resident wrote.
+/// In the defaults, so a subtitle a background run set is there after Floe restarts.
 nonisolated enum CommandSubtitles {
     private static let key = "commandSubtitles"
 

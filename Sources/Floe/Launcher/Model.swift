@@ -65,7 +65,7 @@ final class LauncherModel: ObservableObject {
     @Published var isShowingClipboardHistory = false
     /// The clipboard history view's own state. Not published: its changes redraw its view only.
     lazy var clipboardHistory = ClipboardHistoryModel(usage: usage) { [unowned self] in clipboard }
-    /// The clipboard history the panel shows. The panel process hands in its mirror of the resident's.
+    /// The clipboard history the panel shows, recorded since Floe started.
     let clipboard: ClipboardHistoryStore
     /// The notes of the user's folder, while the panel shows them instead of the root search.
     @Published var noteDesk: NoteDeskModel?
@@ -104,7 +104,6 @@ final class LauncherModel: ObservableObject {
     lazy var calculatorSearch = CalculatorSearch()
 
     let settings: AppSettings
-    let isResident: Bool
     /// The apps the roles resolve to, kept until something they depend on changes.
     let resolvedApps: ResolvedApps
     private var cancellables: Set<AnyCancellable> = []
@@ -119,7 +118,6 @@ final class LauncherModel: ObservableObject {
     private var pendingReset: DispatchWorkItem?
     private(set) var isPanelShown = false
     /// Construction never scans: `startCatalogLoading()` fills the catalog after subscribers are wired.
-    /// The resident loads commands for hotkeys/background work, but never builds search state.
     init(
         scanner: any CatalogScanning = CatalogLoader(),
         settings: AppSettings = .shared,
@@ -127,21 +125,18 @@ final class LauncherModel: ObservableObject {
         snapshot: CatalogSnapshot? = nil,
         scopes: [any SearchScope]? = nil,
         sources: [any SearchSource]? = nil,
-        isResident: Bool = false,
         clipboard: ClipboardHistoryStore? = nil
     ) {
-        self.isResident = isResident
         let clipboard = clipboard ?? .detached()
         self.clipboard = clipboard
-        self.scopes = scopes ?? (isResident ? [] : RootSearch.standardScopes { clipboard.entries })
-        self.sources = sources ?? (isResident ? [] : RootSearch.standardSources())
+        self.scopes = scopes ?? RootSearch.standardScopes { clipboard.entries }
+        self.sources = sources ?? RootSearch.standardSources()
         self.settings = settings
         self.usage = usage
         catalog = CatalogStore(scanner: scanner, settings: settings, snapshot: snapshot)
         resolvedApps = ResolvedApps(settings: settings)
         catalog.onChange = { [weak self] in self?.catalogChanged($0) }
         connectRunner()
-        guard !isResident else { return }
         connectModes()
         // Views read the catalog's loading state and the open command through the model, so their changes redraw it.
         catalog.$isLoading.removeDuplicates().dropFirst().map { _ in () }
@@ -154,9 +149,8 @@ final class LauncherModel: ObservableObject {
         refresh()
     }
 
-    /// Recomputes foreground search results; the resident never constructs search-only sources.
+    /// Recomputes the search's results.
     func refresh() {
-        guard !isResident else { return }
         let started = Date()
         searchedQuery = query
         defer {
@@ -265,7 +259,6 @@ final class LauncherModel: ObservableObject {
 
     /// Back to the root search, ending any open command.
     func reset() {
-        guard !isResident else { return }
         pendingReset?.cancel()
         pendingReset = nil
         runner.endOpenCommand()

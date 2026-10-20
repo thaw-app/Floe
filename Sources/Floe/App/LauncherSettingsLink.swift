@@ -24,8 +24,8 @@ final class LauncherSettingsLink {
         storage: .file(Paths.support.appendingPathComponent("ExtensionSync.json"))
     )
     private var cancellables = Set<AnyCancellable>()
+    /// After Settings changed something: the search reads it again.
     var onChange: (() -> Void)?
-    var onRescan: ((LinkScan) -> Void)?
 
     /// Gates incoming Settings messages against the process this resident actually launched.
     init(model: LauncherModel, clipboard: ClipboardHistoryStore, settings: AppSettings = .shared, hotkeys: HotkeyRegistry) {
@@ -103,23 +103,7 @@ final class LauncherSettingsLink {
         QuicklinkStore.shared.reload()
     }
 
-    /// Recovers foreground-saved changes after its pipe closes, including an unexpected exit.
-    func refreshFromPanel() {
-        SharedStores.reloadAll(settings: settings)
-    }
-
-    /// Accepts only the foreground's supported settings mutations and relays them to Settings.
-    func receiveFromPanel(_ message: LinkMessage) {
-        guard message.isWellFormed else { return }
-        switch message.kind {
-        case .settingsChanged, .storeChanged, .rescan, .forwardURL:
-            handle(message)
-            link.send(message)
-        default: break
-        }
-    }
-
-    /// Applies a validated Settings message and notifies the foreground to reload afterwards.
+    /// Applies a validated Settings message, then has the search read it again.
     private func handle(_ message: LinkMessage) {
         defer { onChange?() }
         switch message.kind {
@@ -148,7 +132,6 @@ final class LauncherSettingsLink {
     private func rescan(_ scan: LinkScan?) {
         guard let scan else { return }
         model.catalog.reload(scan)
-        onRescan?(scan)
     }
 
     /// The things Settings has the launcher do, because what they act on lives here.

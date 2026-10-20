@@ -76,10 +76,6 @@ final class LauncherFeatures {
             { [weak model] in model?.openLink($0) }
         }
 
-        var toResident: () -> ((PanelPacket) -> Void)? {
-            { [weak model] in model?.panelHost.residentRequests }
-        }
-
         /// Everything a row feature asks of the launcher, in one value.
         var row: RowHost {
             RowHost(showHUD: showHUD, hidePanel: hidePanel, leave: leave, reach: reach, record: record) { [weak model] in
@@ -127,7 +123,6 @@ final class LauncherFeatures {
             }
         )
         timers.host = links.row
-        timers.toResident = links.toResident
         reminders.host = links.row
         events.host = links.row
         events.openLink = links.openLink
@@ -139,7 +134,6 @@ final class LauncherFeatures {
             runCommand: { [shell] in shell.runShellCommand($0, terminal: nil) },
             commandsChanged: { model?.catalog.reloadCommands() },
             keepsReceipts: { model?.settings.keepsReceipts ?? false },
-            toResident: links.toResident,
             deleter: { [events, checkpoints, timers, reminders] kind in
                 switch kind {
                 case .event: events.environment.delete

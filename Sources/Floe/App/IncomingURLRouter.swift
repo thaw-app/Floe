@@ -15,8 +15,6 @@ final class IncomingURLRouter: NSObject {
         oauth: { OAuthBroker.shared.complete(url: $0) }
     )
 
-    var forwardOAuth: ((URL) -> Void)?
-    var forwardAppearance: ((URL) -> Void)?
     private let oauthIsParked: Bool
     private let appearance: (URL) -> Void
     private let oauth: (URL) -> Void
@@ -32,8 +30,8 @@ final class IncomingURLRouter: NSObject {
         self.oauth = oauth
     }
 
-    /// Registers URL delivery; only the resident subscribes to Thaw appearance updates.
-    func install(followsAppearance: Bool = true) {
+    /// Registers URL delivery, and starts following Thaw's appearance.
+    func install() {
         NSAppleEventManager.shared().setEventHandler(
             self,
             andSelector: #selector(handleGetURLEvent(_:_:)),
@@ -41,11 +39,9 @@ final class IncomingURLRouter: NSObject {
             andEventID: AEEventID(kAEGetURL)
         )
         // Thaw's answer comes back through the handler, so the follower asks only once it is in place.
-        if followsAppearance {
-            ThawAppearanceFollower.shared.start()
-            // The resident starting: a sign-in cut short by a crash may still hold Raycast's return addresses.
-            Task { await RedirectSchemeClaim.shared.restoreAfterCrash() }
-        }
+        ThawAppearanceFollower.shared.start()
+        // Floe starting: a sign-in cut short by a crash may still hold Raycast's return addresses.
+        Task { await RedirectSchemeClaim.shared.restoreAfterCrash() }
     }
 
     /// Ignores malformed Apple events before applying the scheme and host routing checks.
@@ -62,7 +58,7 @@ final class IncomingURLRouter: NSObject {
         if let scheme = url.scheme?.lowercased(), RedirectSchemeClaim.schemes.contains(scheme) {
             if OAuthBroker.isCallback(url) {
                 if !oauthIsParked {
-                    (forwardOAuth ?? oauth)(url)
+                    oauth(url)
                 }
             } else {
                 Self.openInRaycast(url)
@@ -72,9 +68,9 @@ final class IncomingURLRouter: NSObject {
         guard url.scheme?.lowercased() == "floe" else { return }
         switch url.host?.lowercased() {
         case ThawAppearanceFollower.callbackHost:
-            (forwardAppearance ?? appearance)(url)
+            appearance(url)
         case "oauth" where !oauthIsParked:
-            (forwardOAuth ?? oauth)(url)
+            oauth(url)
         default:
             break
         }

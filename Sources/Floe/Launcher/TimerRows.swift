@@ -22,21 +22,14 @@ struct TimerEnvironment {
 final class RunningTimers {
     private(set) var all: [RunningTimer] = []
     private var waits: [UUID: () -> Void] = [:]
-    var onChange: (() -> Void)?
-
-    /// Replaces the foreground snapshot without scheduling countdowns or echoing an onChange event.
-    func mirror(_ timers: [RunningTimer]) {
-        all = timers
-    }
 
     /// The telling of the last timer that ended, for a test to wait on.
     var announcement: Task<Void, Never>?
 
-    /// Registers a resident countdown and its cancellation callback before notifying mirrors.
+    /// Adds a countdown with what calls its wait off.
     func add(_ timer: RunningTimer, stop: @escaping () -> Void) {
         all.append(timer)
         waits[timer.id] = stop
-        onChange?()
     }
 
     /// Takes a timer off the list. Nil when it is not on it: it ended, or was stopped.
@@ -44,30 +37,20 @@ final class RunningTimers {
         guard let index = all.firstIndex(where: { $0.id == id }) else { return nil }
         waits.removeValue(forKey: id)?()
         let removed = all.remove(at: index)
-        onChange?()
         return removed
     }
 }
 
-/// Timers, as the launcher starts, ends and stops them. The resident runs the countdowns; the panel process
-/// keeps a copy of the list and sends what it is asked to the resident.
+/// Timers, as the launcher starts, ends and stops them.
 final class TimerRows {
     var environment = TimerEnvironment()
     var host = RowHost()
-    /// Sends a request to the resident, in the panel process. Nil in the resident.
-    var toResident: () -> ((PanelPacket) -> Void)? = { nil }
     let running = RunningTimers()
 
     /// Starts the countdown and leaves a receipt that can stop it. The task is for a test to wait on.
     @discardableResult
     func startTimer(_ draft: TimerDraft) -> Task<Void, Never> {
         host.leave()
-        if let residentRequests = toResident() {
-            residentRequests(.startTimer(draft))
-            return Task {
-                // The resident owns the countdown; this task acknowledges only the forwarded request.
-            }
-        }
         let timer = RunningTimer(label: draft.label, duration: draft.duration, ends: environment.now().addingTimeInterval(draft.duration))
         let stop = environment.wait(draft.duration) { [weak self] in self?.timerEnded(timer.id) }
         running.add(timer, stop: stop)
@@ -97,12 +80,9 @@ final class TimerRows {
     }
 
     /// Stops the timer a receipt names, forwarding even when the local snapshot is missing it.
-    /// The result describes local removal, not an acknowledgement from the resident.
     func stopTimer(_ identifier: String) -> Bool {
         guard let id = UUID(uuidString: identifier) else { return false }
-        let removed = running.remove(id) != nil
-        toResident()?(.stopTimer(id))
-        return removed
+        return running.remove(id) != nil
     }
 }
 

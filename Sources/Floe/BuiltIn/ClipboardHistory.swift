@@ -95,8 +95,6 @@ final class ClipboardHistoryStore: ObservableObject {
     }
 
     @Published private(set) var entries: [ClipboardEntry] = []
-    /// Called in the resident once the history on disk changed, with what changed since the last call.
-    var onSaved: ((ClipboardChange) -> Void)?
 
     /// What the folder holds once the worker has caught up: counted from disk at load, then kept.
     var storedBytes: Int {
@@ -109,12 +107,9 @@ final class ClipboardHistoryStore: ObservableObject {
     }
 
     let files: ClipboardFiles
-    private let remote: ((PanelPacket) -> Void)?
     private let limits: Limits
     private let worker: ClipboardHistoryWorker
     private var ledger = ClipboardByteLedger()
-    /// The list as last written, which the next change is counted from.
-    private var written: [ClipboardEntry] = []
     /// Files the list no longer uses, removed by the worker with the next save.
     private var unusedFiles: [String] = []
     /// Goes up with every Clear, so a copy still being processed when it happened is not kept.
@@ -132,11 +127,9 @@ final class ClipboardHistoryStore: ObservableObject {
         files: ClipboardFiles = .onDisk(ClipboardHistoryStore.directory),
         limits: Limits = Limits(),
         monitorsPasteboard: Bool = true,
-        remote: ((PanelPacket) -> Void)? = nil,
         storedPNG: @escaping @Sendable (Data) -> Data? = ClipboardHistoryStore.storedPNG
     ) {
         self.files = files
-        self.remote = remote
         self.limits = limits
         worker = ClipboardHistoryWorker(files: files, maxQueuedBytes: limits.maxQueuedBytes, storedPNG: storedPNG)
         Task { @MainActor [weak self, wakes = worker.wakes] in
@@ -144,9 +137,7 @@ final class ClipboardHistoryStore: ObservableObject {
                 self?.applyEvents()
             }
         }
-        if remote == nil {
-            worker.load()
-        }
+        worker.load()
         if monitorsPasteboard, !ClipboardApps.ownHistoryIsParked {
             startMonitoring()
         }
@@ -210,25 +201,19 @@ final class ClipboardHistoryStore: ObservableObject {
             case let .loaded(stored, sizes):
                 ledger = ClipboardByteLedger(sizes: sizes)
                 entries = stored
-                written = stored
                 isLoaded = true
                 if clearsWhenLoaded {
                     clearsWhenLoaded = false
                     removeUnpinned()
                 }
-                onSaved?(.reload)
             case let .prepared(entry, sizes, epoch):
                 if epoch == self.epoch {
                     insert(entry, sizes: sizes)
                 } else {
                     worker.remove(entry.fileNames)
                 }
-            case let .saved(bytes, list):
+            case let .saved(bytes, _):
                 ledger.set(ClipboardFiles.historyName, bytes: bytes)
-                if let change = ClipboardChange.between(written, list) {
-                    written = list
-                    onSaved?(change)
-                }
             case let .unstored(names):
                 forget(names)
             }
@@ -280,28 +265,21 @@ final class ClipboardHistoryStore: ObservableObject {
 
     /// Moves an entry to the top as copied now: Floe put it back on the clipboard itself.
     func touch(_ id: UUID, date: Date = Date()) {
-        guard remote == nil, let index = entries.firstIndex(where: { $0.id == id }) else { return }
+        guard let index = entries.firstIndex(where: { $0.id == id }) else { return }
         var entry = entries.remove(at: index)
         entry.date = date
         place(entry)
         save()
     }
 
-    /// Toggles a pin in the resident, or forwards its ID without mutating a foreground snapshot.
     func togglePin(_ entry: ClipboardEntry) {
-        if let remote {
-            remote(.pinClipboard(entry.id)); return
-        }
         guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
         entries[index].pinned.toggle()
         save()
     }
 
-    /// Removes an entry and its image through the resident; stale entry IDs are harmless.
+    /// Removes an entry and its image; an entry already gone is no error.
     func delete(_ entry: ClipboardEntry) {
-        if let remote {
-            remote(.deleteClipboard(entry.id)); return
-        }
         guard let index = entries.firstIndex(where: { $0.id == entry.id }) else { return }
         entries[index].fileNames.forEach(removeFile)
         entries.remove(at: index)
@@ -310,9 +288,6 @@ final class ClipboardHistoryStore: ObservableObject {
 
     /// Removes everything not pinned; pins survive Clear. Copies still being processed are dropped too.
     func clear() {
-        if let remote {
-            remote(.clearClipboard); return
-        }
         dropPendingCopies()
         // Nothing is written before the load, or an empty list would replace the saved one.
         clearsWhenLoaded = !isLoaded
@@ -368,24 +343,5 @@ final class ClipboardHistoryStore: ObservableObject {
         guard !name.isEmpty else { return }
         ledger.remove(name)
         unusedFiles.append(name)
-    }
-}
-
-extension ClipboardHistoryStore {
-    /// Only the resident writes history; the panel's copy takes what the resident says changed.
-    /// Before its first read of the file has finished, a change could be older than what that read finds, so it reads again.
-    func apply(_ change: ClipboardChange) {
-        guard remote != nil else { return }
-        switch change {
-        case .reload:
-            worker.load()
-        case let .entries(changed, removed):
-            guard isLoaded else {
-                worker.load()
-                return
-            }
-            let replaced = Set(removed + changed.map(\.id))
-            entries = (entries.filter { !replaced.contains($0.id) } + changed).sorted { $0.date > $1.date }
-        }
     }
 }

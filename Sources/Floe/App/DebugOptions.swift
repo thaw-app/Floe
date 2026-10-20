@@ -44,9 +44,6 @@ struct DebugOptions: ParsableCommand {
     @Flag(help: "Show the settings window in a process of its own, which ends when the window closes. The app starts it this way. FLOE_SETTINGS_CLOSE_AFTER=<seconds> closes the window by itself.")
     var settings = false
 
-    @Flag(help: .hidden)
-    var panel = false
-
     @Option(help: ArgumentHelp("With --settings, the page to open: general, commands, applications, ai, sync, quicklinks, snippets, store, appearance, privacy or about.", valueName: "page"))
     var page: String?
 

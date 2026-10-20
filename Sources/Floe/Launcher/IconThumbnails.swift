@@ -114,6 +114,14 @@ final nonisolated class IconThumbnailCache: Sendable {
         kept.withLock { $0.store(image, cost: cost, for: key.cacheKey) }
     }
 
+    /// Lets go of every thumbnail, when macOS asks for memory back. The rows draw theirs again as they show.
+    func removeAll() {
+        kept.withLock { kept in
+            kept.entries = [:]
+            kept.total = 0
+        }
+    }
+
     /// For what is drawn in one pass and never again: a menu bar image, a diagnostic.
     func imageRenderingNow(for key: IconKey) -> CGImage? {
         if let cached = image(for: key) {

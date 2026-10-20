@@ -60,7 +60,7 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Sign-ins waiting for the browser, keyed by extension name and state together.
     private let pending = Mutex<[String: Pending]>([:])
     private let notice: RaycastSignInNotice
-    /// How a missing browser is said. The resident sends it to the panel, which shows the HUD.
+    /// How a missing browser is said, as a HUD.
     private let say = Mutex<@MainActor @Sendable (String) -> Void>({ ThawHUD.show(text: $0) })
 
     init(notice: RaycastSignInNotice = RaycastSignInNotice()) {

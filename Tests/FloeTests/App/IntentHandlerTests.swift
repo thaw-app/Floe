@@ -18,7 +18,7 @@ struct IntentHandlerTests {
         let planets = Fixture.command("planets")
         let hidden = Fixture.command("moons")
         settings.disabledCommands = [hidden.id]
-        let model = LauncherModel(settings: settings, usage: usage, snapshot: CatalogSnapshot(apps: [], commands: [planets, hidden]), isResident: true)
+        let model = LauncherModel(settings: settings, usage: usage, snapshot: CatalogSnapshot(apps: [], commands: [planets, hidden]))
         var presented: [PanelRequest] = []
         let handler = IntentHandler.serving(model) { presented.append($0) }
 

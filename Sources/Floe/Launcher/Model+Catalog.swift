@@ -40,12 +40,9 @@ extension LauncherModel {
     }
 
     /// Starts the first scans. Called after the panel and its subscriptions exist, so what they publish is heard.
-    /// The resident loads what hotkeys and background work need, never what only the search reads.
     func startCatalogLoading() {
         catalog.reloadAll()
-        if !isResident {
-            catalog.reloadSettingsPanes()
-        }
+        catalog.reloadSettingsPanes()
     }
 
     func catalogChanged(_ part: CatalogStore.Part) {

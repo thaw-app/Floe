@@ -226,68 +226,6 @@ final class ClipboardFormatsTests {
         #expect(formatFiles().count == 2)
     }
 
-    @Test func aMirrorLeavesTheOrderToTheStoreThatWritesTheHistory() async throws {
-        let writer = await makeStore()
-        writer.record(ClipboardCapture(content: .text("older"), date: Date(timeIntervalSince1970: 1), sourceApp: nil))
-        writer.record(ClipboardCapture(content: .text("newer"), date: Date(timeIntervalSince1970: 2), sourceApp: nil))
-        writer.flush()
-        let mirror = ClipboardHistoryStore(files: .onDisk(directory), monitorsPasteboard: false, remote: { _ in })
-        mirror.apply(.reload)
-        await waitFor("the mirror reads the list") { mirror.entries.count == 2 }
-        let older = try #require(mirror.entries.last)
-        mirror.take(.own(older.id))
-        #expect(mirror.entries.map(\.text) == ["newer", "older"])
-    }
-
-    @Test func theResidentSaysWhichEntriesChangedAndTheMirrorTakesOnlyThose() async throws {
-        let writer = await makeStore()
-        writer.record(ClipboardCapture(content: .text("older"), date: Date(timeIntervalSince1970: 1), sourceApp: nil))
-        writer.flush()
-        let mirror = ClipboardHistoryStore(files: .onDisk(directory), monitorsPasteboard: false, remote: { _ in })
-        mirror.apply(.reload)
-        await waitFor("the mirror reads the list") { mirror.entries.count == 1 }
-
-        var changes: [ClipboardChange] = []
-        writer.onSaved = { changes.append($0) }
-        writer.record(ClipboardCapture(content: .text("newer"), date: Date(timeIntervalSince1970: 2), sourceApp: nil))
-        let older = try #require(writer.entries.last)
-        writer.delete(older)
-        writer.flush()
-        var changed: [String?] = []
-        var removed: [UUID] = []
-        for change in changes {
-            guard case let .entries(entries, gone) = change else {
-                Issue.record("a save sends the entries, not a reload")
-                return
-            }
-            changed += entries.map(\.text)
-            removed += gone
-        }
-        #expect(changed == ["newer"])
-        #expect(removed == [older.id])
-        try Data("[]".utf8).write(to: directory.appendingPathComponent(ClipboardFiles.historyName))
-        changes.forEach(mirror.apply)
-        #expect(mirror.entries.map(\.text) == ["newer"], "taken from the changes, not from the file")
-    }
-
-    @Test func aChangeBeforeTheMirrorsFirstReadMakesItReadAgain() async {
-        let writer = await makeStore()
-        writer.record(ClipboardCapture(content: .text("saved"), date: Date(timeIntervalSince1970: 1), sourceApp: nil))
-        writer.flush()
-        let mirror = ClipboardHistoryStore(files: .onDisk(directory), monitorsPasteboard: false, remote: { _ in })
-        mirror.apply(.entries(changed: [], removed: [UUID()]))
-        await waitFor("the mirror reads the list") { mirror.entries.map(\.text) == ["saved"] }
-    }
-
-    @Test func listsWithTheSameEntriesAreNoChange() {
-        let entry = ClipboardEntry(id: UUID(), kind: .text, text: "same", date: Date(), pinned: false)
-        var pinned = entry
-        pinned.pinned = true
-        #expect(ClipboardChange.between([entry], [entry]) == nil)
-        #expect(ClipboardChange.between([entry], [pinned]) == .entries(changed: [pinned], removed: []))
-        #expect(ClipboardChange.between([entry], []) == .entries(changed: [], removed: [entry.id]))
-    }
-
     @Test func filesGoBackMarkedToo() {
         let entry = ClipboardEntry.files(["/tmp/floe-report.pdf"], date: Date(), sourceApp: nil)
         #expect(ClipboardHistoryStore.writeToPasteboard(entry, board: board, directory: directory))

@@ -165,13 +165,7 @@ nonisolated enum SSHConnection {
         showHUD: @escaping @MainActor @Sendable (String) -> Void
     ) -> Task<Void, Never> {
         let plan = plan(alias: host.alias, terminal: terminal, using: connector)
-        let lease = PanelWork.begin()
         return Task { @MainActor in
-            defer {
-                withExtendedLifetime(lease) {
-                    // Retain through the connection attempt and any resulting automation-permission alert.
-                }
-            }
             switch await open(plan, using: connector) {
             case let .finished(notice):
                 if let notice {

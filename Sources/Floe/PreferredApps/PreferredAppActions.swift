@@ -29,7 +29,7 @@ extension LauncherModel {
     func openFinderSelection(in role: AppRole, app: ResolvedApp) {
         panelHost.hidePanel()
         reset()
-        PanelWork.perform { [self] in
+        Task { [self] in
             do {
                 let items = try await FinderSelection.selectionOrFolder()
                 if let handoff = PreferredApps.handoff(items, to: app, role: role, isFolder: PreferredApps.isFolder) {

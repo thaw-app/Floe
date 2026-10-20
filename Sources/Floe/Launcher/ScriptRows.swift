@@ -27,7 +27,7 @@ final class ScriptRows {
         guard !script.needsConfirmation || confirms(script) else { return }
         recordUse(RootItem.script(script).id)
         host.leave()
-        PanelWork.perform { [weak self, runScript] in
+        Task { [weak self, runScript] in
             let result: ShellResult
             do {
                 result = try await runScript(script, argumentStrings)

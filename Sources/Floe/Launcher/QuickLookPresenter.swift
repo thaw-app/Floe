@@ -48,24 +48,9 @@ final class QuickLookPresenter: NSObject, QLPreviewPanelDataSource, QLPreviewPan
     }
 }
 
-/// The panel asks the responder chain who controls it, and the app's delegate is the end of that chain:
-/// the resident's, and the panel process's, where extensions show their files.
+/// The panel asks the responder chain who controls it, and the app's delegate is the end of that chain.
 /// AppKit declares the three calls without an actor and makes them on the main thread.
 extension AppDelegate {
-    override nonisolated func acceptsPreviewPanelControl(_: QLPreviewPanel?) -> Bool {
-        QuickLookPresenter.accepts()
-    }
-
-    override nonisolated func beginPreviewPanelControl(_ panel: QLPreviewPanel?) {
-        QuickLookPresenter.begin(panel)
-    }
-
-    override nonisolated func endPreviewPanelControl(_ panel: QLPreviewPanel?) {
-        QuickLookPresenter.end(panel)
-    }
-}
-
-extension PanelAppDelegate {
     override nonisolated func acceptsPreviewPanelControl(_: QLPreviewPanel?) -> Bool {
         QuickLookPresenter.accepts()
     }

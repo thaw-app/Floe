@@ -47,13 +47,7 @@ final class CommandLauncher {
         background(command, arguments, context)
     }
 
-    /// The panel's background launch, run here in the resident.
-    func launchInBackground(id: String, arguments: Data?, context: Data?) {
-        guard let command = commands().first(where: { $0.id == id }) else { return }
-        background(command, Self.object(arguments) ?? [:], Self.object(context))
-    }
-
-    /// A dictionary as the JSON that crosses between the processes, and back.
+    /// A command's arguments as JSON, for a request that carries them, and back.
     static func data(_ object: [String: Any]?) -> Data? {
         guard let object, JSONSerialization.isValidJSONObject(object) else { return nil }
         return try? JSONSerialization.data(withJSONObject: object)
@@ -61,19 +55,5 @@ final class CommandLauncher {
 
     static func object(_ data: Data?) -> [String: Any]? {
         data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
-    }
-}
-
-extension CommandLauncher {
-    /// The panel's: it runs what the user launches, and hands background launches to the resident, which runs
-    /// what the panel never does.
-    static func panel(model: LauncherModel, send: @escaping (PanelPacket) -> Void) -> CommandLauncher {
-        CommandLauncher(
-            commands: { [weak model] in model?.commands ?? [] },
-            userInitiated: { [weak model] command, arguments, context in model?.runner.run(command, arguments: arguments, context: context) },
-            background: { command, arguments, context in
-                send(.launchInBackground(command.id, arguments: data(arguments), context: data(context)))
-            }
-        )
     }
 }

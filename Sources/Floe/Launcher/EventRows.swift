@@ -35,7 +35,7 @@ final class EventRows {
             return Task { /* nothing to add */ }
         }
         host.leave()
-        return PanelWork.perform { [weak self, environment] in
+        return Task { [weak self, environment] in
             let isAllowed = await environment.requestAccess()
             guard let self else { return }
             guard isAllowed else {

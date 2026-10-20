@@ -68,7 +68,7 @@ final class CheckpointRows {
     @discardableResult
     func saveCheckpoint(named name: String, note: String) -> Task<Void, Never> {
         host.leave()
-        return PanelWork.perform { [weak self, finderItems = environment.finderItems, tabs = environment.tabs] in
+        return Task { [weak self, finderItems = environment.finderItems, tabs = environment.tabs] in
             let files = await Task { @concurrent in await finderItems() }.value
             let items = await Checkpoint.items(files: files, tabs: tabs())
             guard let self else { return }

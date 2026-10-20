@@ -32,8 +32,6 @@ final class ExtensionRunner: ObservableObject {
         var toggleMenuBar: (ExtensionCommand) -> Void = { _ in
             // Set by the launcher's model.
         }
-        /// Hands the run to the panel process and says whether it did. Only the resident hands runs on.
-        var runElsewhere: (_ command: ExtensionCommand, _ arguments: [String: Any]?, _ context: [String: Any]?) -> Bool = { _, _, _ in false }
         /// Opens a link or a file, in a named app when there is one.
         var open: (_ target: String, _ application: String?) -> Void = { _, _ in
             // Set by the launcher's model.
@@ -60,9 +58,6 @@ final class ExtensionRunner: ObservableObject {
 
     /// A command that first has to ask for preferences or arguments starts without `launchCommand`'s context.
     func run(_ command: ExtensionCommand, arguments: [String: Any]? = nil, context: [String: Any]? = nil) {
-        if host.runElsewhere(command, arguments, context) {
-            return
-        }
         let missing = PreferenceStore.missingRequired(for: command)
         if command.mode == "menu-bar", missing.isEmpty {
             host.toggleMenuBar(command)
@@ -72,7 +67,8 @@ final class ExtensionRunner: ObservableObject {
             end(session)
         }
         if !missing.isEmpty {
-            host.beginSetup(SetupRequest(command: command, kind: .preferences, fields: command.preferences))
+            // The arguments wait in the form: once the preferences are saved, the command runs with them.
+            host.beginSetup(SetupRequest(command: command, kind: .preferences, fields: command.preferences, arguments: arguments))
         } else if arguments == nil, !command.arguments.isEmpty {
             host.beginSetup(SetupRequest(command: command, kind: .arguments, fields: command.arguments))
         } else {

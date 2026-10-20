@@ -106,7 +106,7 @@ nonisolated enum ScreenTools {
     @MainActor
     @discardableResult
     static func run(_ tool: Tool, say: @escaping @MainActor (String) -> Void) -> Task<Void, Never> {
-        PanelWork.perform {
+        Task {
             switch tool {
             case .pickColor:
                 guard let hex = await pickColor().flatMap(hex) else { return }

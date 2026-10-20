@@ -56,7 +56,7 @@ final class RedirectSchemeClaim {
         await giveBack([scheme])
     }
 
-    /// Gives back what a sign-in that never ended still holds; the resident calls it when it starts.
+    /// Gives back what a sign-in that never ended still holds; Floe calls it when it starts.
     func restoreAfterCrash() async {
         await giveBack(Array(Self.schemes))
     }

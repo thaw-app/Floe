@@ -17,7 +17,7 @@ import Foundation
     private var intervals: [String: TimeInterval] = [:]
     private var runs: [String: ExtensionSession] = [:]
 
-    /// There is one, in the resident, so it also answers `launchCommand` there.
+    /// There is one, so it also answers `launchCommand`.
     init(model: LauncherModel, menuBarCommands: MenuBarCommands) {
         self.model = model
         self.menuBarCommands = menuBarCommands

@@ -50,66 +50,6 @@ struct TimersTests {
         return model
     }
 
-    /// Timer clocks and notifications remain resident-owned after the foreground stops observing.
-    @Test func theForegroundForwardsTimersAndTheResidentKeepsCounting() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let clock = Stand()
-        let resident = model(in: folder, stand: clock)
-        let foregroundClock = Stand()
-        let foreground = model(in: folder, stand: foregroundClock)
-        foreground.panelHost.residentRequests = { packet in
-            switch packet {
-            case let .startTimer(draft): resident.features.timers.startTimer(draft)
-            case let .stopTimer(id): _ = resident.features.timers.running.remove(id)
-            default: Issue.record("Unexpected timer request")
-            }
-        }
-        resident.features.timers.running.onChange = { [weak foreground, weak resident] in
-            foreground?.features.timers.running.mirror(resident?.features.timers.running.all ?? [])
-        }
-        await foreground.features.timers.startTimer(TimerDraft(duration: 60, label: "tea")).value
-        #expect(foregroundClock.waits.isEmpty)
-        #expect(clock.waits.count == 1)
-        #expect(foreground.features.timers.running.all == resident.features.timers.running.all)
-        let timer = try #require(foreground.features.timers.running.all.first)
-        foreground.features.timers.stop(timer)
-        #expect(resident.features.timers.running.all.isEmpty)
-        #expect(clock.calledOff == 1)
-
-        await foreground.features.timers.startTimer(TimerDraft(duration: 10, label: "eggs")).value
-        resident.features.timers.running.onChange = {}
-        clock.waits.last?.fire()
-        await resident.features.timers.running.announcement?.value
-        #expect(clock.notified.map(\.label) == ["eggs"])
-        #expect(foregroundClock.notified.isEmpty)
-    }
-
-    /// An absent foreground snapshot cannot veto a valid stop request to the authoritative owner.
-    @Test func stoppingATimerBeforeItsMirrorArrivesStillStopsTheResident() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let clock = Stand()
-        let resident = model(in: folder, stand: clock)
-        let foreground = model(in: folder, stand: Stand())
-        await resident.features.timers.startTimer(TimerDraft(duration: 60, label: "tea")).value
-        let timer = try #require(resident.features.timers.running.all.first)
-        var stopped: [UUID] = []
-        foreground.panelHost.residentRequests = { packet in
-            if case let .stopTimer(id) = packet {
-                stopped.append(id)
-                _ = resident.features.timers.running.remove(id)
-            }
-        }
-        #expect(foreground.features.timers.running.all.isEmpty)
-        #expect(!foreground.features.timers.stopTimer("not an identifier"))
-        #expect(stopped.isEmpty)
-        #expect(!foreground.features.timers.stopTimer(timer.id.uuidString), "the Bool reports removal from the local snapshot")
-        #expect(stopped == [timer.id])
-        #expect(resident.features.timers.running.all.isEmpty)
-        #expect(clock.calledOff == 1)
-    }
-
     // MARK: The length
 
     @Test(arguments: [

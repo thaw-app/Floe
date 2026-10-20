@@ -19,11 +19,6 @@ extension LauncherModel {
             isWaitingToResume: { [weak self] in self?.isWaitingToResume ?? false },
             beginSetup: { [weak self] in self?.beginSetup($0) },
             toggleMenuBar: { [weak self] in self?.toggleMenuBarCommand($0) },
-            runElsewhere: { [weak self] command, arguments, context in
-                guard let present = self?.panelHost.presentInPanelProcess else { return false }
-                present(.command(command.id, arguments: CommandLauncher.data(arguments), context: CommandLauncher.data(context)))
-                return true
-            },
             open: { [weak self] in self?.open($0, application: $1) },
             showPreferences: { [weak self] in self?.showPreferences($0, of: $1) },
             manifestChanged: { [weak self] in self?.catalog.reloadCommands() },

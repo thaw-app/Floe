@@ -13,7 +13,7 @@ import Foundation
 struct IntentHandler {
     /// The commands an intent may run: those of the extensions switched on, once the catalog has loaded.
     var runnableCommands: () async -> [ExtensionCommand]
-    /// Shows the launcher with a request, through the resident's lifecycle gate.
+    /// Shows the launcher with a request.
     var present: (PanelRequest) -> Void
     /// Counts a run, as running it from the launcher does.
     var recordUse: (String) -> Void

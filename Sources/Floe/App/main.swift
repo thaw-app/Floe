@@ -40,15 +40,17 @@ extension NSView {
     }
 }
 
+/// Floe itself: the launcher and everything it keeps running, in one process that stays. Only Settings is a process
+/// of its own, started when it opens and gone when it closes.
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    let model = LauncherModel(isResident: true)
-    /// The clipboard history, recorded here from launch and mirrored by the panel process.
-    private lazy var clipboard = ClipboardHistoryStore()
+    /// The clipboard history, recorded from launch.
+    private let clipboard = ClipboardHistoryStore()
+    private(set) lazy var model = LauncherModel(clipboard: clipboard)
     private let hotkeys = HotkeyRegistry()
     private let settings = AppSettings.shared
     /// Settings is a process of its own; this starts it and keeps the two in step.
     private lazy var settingsLink = LauncherSettingsLink(model: model, clipboard: clipboard, hotkeys: hotkeys)
-    private lazy var panelLink = LauncherPanelLink(model: model, clipboard: clipboard, settingsLink: settingsLink)
+    private lazy var launcher = LauncherWindow(model: model, settings: settings) { [weak self] in self?.settingsLink.show(page: $0?.id) }
     private var cancellables = Set<AnyCancellable>()
     private var statusItem: NSStatusItem?
     private var showItem: NSMenuItem?
@@ -56,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarCommands: MenuBarCommands?
     private var backgroundScheduler: BackgroundScheduler?
 
-    /// Starts resident-owned services and routing without constructing foreground windows.
+    /// Starts the services, the launcher's window and the routes into it. The window itself is made on its first show.
     func applicationDidFinishLaunching(_: Notification) {
         Log.follow(settings).store(in: &cancellables)
         settings.$fetchesExchangeRates.removeDuplicates()
@@ -65,7 +67,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
         NSApp.setActivationPolicy(settings.showInDock ? .regular : .accessory)
 
-        panelLink.start()
+        launcher.start()
+        // Settings' changes reach the search at once: they are this process's own settings, read again.
+        settingsLink.onChange = { [weak self] in self?.model.refresh() }
 
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = MenuBarGlyph.image()
@@ -123,14 +127,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Takes floe:// links: Thaw's answer about its appearance, and the browser's return once sign-in is back.
         IncomingURLRouter.shared.install()
         TextExpander.shared.start()
-        _ = clipboard
         settingsLink.start()
 
-        // Welcome and permissions are foreground UI too; none is constructed in the resident.
         if ProcessInfo.processInfo.environment["FLOE_RESIDENT_BENCH"] == nil {
-            panelLink.process.request(.onboarding)
+            launcher.perform(.onboarding)
         }
-        ResidentBench.start(panel: panelLink.process)
+        ResidentBench.start(launcher: launcher)
         model.autorun()
         // FLOE_OPEN_SETTINGS=<seconds>[,<seconds>] opens Settings that long after launch, to check the settings process.
         for delay in (ProcessInfo.processInfo.environment["FLOE_OPEN_SETTINGS"] ?? "").split(separator: ",").compactMap({ Double($0) }) {
@@ -156,7 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for script in model.catalog.allScripts {
             guard let keyCombination = settings.commandHotkeys[script.id] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in
-                self?.panelLink.process.request(.script(script.id))
+                self?.launcher.perform(.script(script.id))
             }
         }
         for (item, keyCombination) in LauncherModel.assigned(settings.commandHotkeys) {
@@ -184,34 +186,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    /// Quits once the notes views have saved what they hold.
+    func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
+        launcher.finish { NSApp.reply(toApplicationShouldTerminate: true) }
+        return .terminateLater
+    }
+
     func applicationWillTerminate(_: Notification) {
         shutDown()
     }
 
-    /// Flushes resident state and stops owned processes before quitting or ending a benchmark.
+    /// Flushes what is kept and stops the processes Floe started, before quitting or ending a benchmark.
     func shutDown() {
         model.runner.session?.forceStop()
         menuBarCommands?.stopAll()
         backgroundScheduler?.stopAll()
-        panelLink.process.terminate()
         settingsLink.terminate()
         clipboard.flush()
         UsageStore.shared.flush()
     }
 
-    /// Routes the global toggle through the foreground lifecycle, including startup and exit races.
     private func toggle() {
-        panelLink.process.request(.toggle)
+        launcher.toggle()
     }
 
-    /// Requests foreground presentation without making the resident create a launcher window.
     @objc private func show() {
-        panelLink.process.request(.show)
+        launcher.show()
     }
 
-    /// Dismisses an existing foreground surface without launching a child solely to hide it.
     private func hide() {
-        panelLink.process.request(.hide)
+        launcher.hide()
     }
 }
 
@@ -282,10 +286,6 @@ if options.pick {
 
 if options.settings {
     SettingsMode.run(options)
-}
-
-if options.panel {
-    PanelMode.run()
 }
 
 if let query = options.search {

@@ -154,6 +154,20 @@ struct IconThumbnailTests {
         #expect(keys.filter { cache.image(for: $0) != nil } == Array(keys.suffix(3)), "the newest three are kept")
     }
 
+    @Test func memoryPressureLetsGoOfEveryIconAndTheBudgetStartsOver() {
+        let image = Self.solidImage(width: 48, height: 48)
+        let cache = IconThumbnailCache(budget: IconThumbnailCache.cost(of: image) * 2) { _ in image }
+        let first = Self.key(.file(path: "/first.png"))
+        let second = Self.key(.file(path: "/second.png"))
+        cache.store(image, for: first)
+        cache.removeAll()
+        #expect(cache.image(for: first) == nil)
+        cache.store(image, for: first)
+        cache.store(image, for: second)
+        #expect(cache.image(for: first) != nil, "the budget counts only what was kept since")
+        #expect(cache.image(for: second) != nil)
+    }
+
     @Test func theIconUsedLongestAgoGoesFirst() {
         let image = Self.solidImage(width: 48, height: 48)
         let cache = IconThumbnailCache(budget: IconThumbnailCache.cost(of: image) * 2) { _ in image }

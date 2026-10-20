@@ -48,7 +48,7 @@ final class ResolvedApps {
         cachedClipboardDestination = nil
     }
 
-    /// A change to one of the choices resolves them again. Only the search needs this; the resident reads them seldom.
+    /// A change to one of the choices resolves them again. Only the search reads them often.
     func followChoices() {
         guard cancellables.isEmpty else { return }
         for change in [

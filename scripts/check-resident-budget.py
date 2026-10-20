@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Check resident footprint at startup, after menu queries and after dismissal.
+"""Check Floe's footprint at startup, after menu queries, with the launcher shown and closed, after a trim and settled.
 
-Usage: python3 scripts/check-resident-budget.py {release,ci,signed,swiftpm} [MiB, default 30]
-Only known repository build products can run. The three foreground windows
-render offscreen. No installed app is replaced.
+Usage: python3 scripts/check-resident-budget.py {release,ci,signed,swiftpm} [MiB, default 150]
+Only known repository build products can run. The launcher renders
+offscreen. No installed app is replaced.
 """
 
 import argparse
@@ -27,9 +27,10 @@ BUILD_PRODUCTS = {
 
 def within_budget(output, limit):
     """Require every lifecycle stage in order and a successful native verdict."""
-    rows = re.findall(r"^RESIDENT (cold|after-menu|dismissed-[123]|settled) (\d+\.\d+) MiB", output, re.M | re.ASCII)
+    rows = re.findall(r"^RESIDENT (cold|after-menu|shown-[123]|dismissed-[123]|trimmed|settled) (\d+\.\d+) MiB", output, re.M | re.ASCII)
+    stages = ["cold", "after-menu"] + [f"{state}-{cycle}" for cycle in (1, 2, 3) for state in ("shown", "dismissed")] + ["trimmed", "settled"]
     return (
-        [stage for stage, _ in rows] == ["cold", "after-menu", "dismissed-1", "dismissed-2", "dismissed-3", "settled"]
+        [stage for stage, _ in rows] == stages
         and all(float(value) <= limit for _, value in rows)
         and "RESIDENT PASS" in output.splitlines()
     )
@@ -67,7 +68,7 @@ def main():
     """Reject unknown build targets and invalid budgets before starting a process."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("target", choices=BUILD_PRODUCTS)
-    parser.add_argument("limit", type=float, nargs="?", default=30)
+    parser.add_argument("limit", type=float, nargs="?", default=150)
     args = parser.parse_args()
     if not math.isfinite(args.limit) or args.limit <= 0:
         parser.error("the budget must be a positive finite number")

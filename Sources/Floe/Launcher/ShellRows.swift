@@ -99,7 +99,7 @@ final class ShellRows {
         guard inTerminal || ShellCommand.needsATerminal(command) else {
             // A manual is for reading: it goes to the window whichever key ran it.
             let reading = ShellCommand.asReading(command)
-            PanelWork.perform { [weak self, run = environment.run] in
+            Task { [weak self, run = environment.run] in
                 let finished = await run(reading ?? command, folder)
                 // A manual that was read changed nothing: no receipt.
                 if reading == nil {
@@ -133,7 +133,7 @@ final class ShellRows {
 
     /// Runs a command in the folder of the Finder window in front, and shows what it printed.
     func runInFinderFolder(_ command: String, terminal: ResolvedApp?) {
-        PanelWork.perform { [self] in
+        Task { [self] in
             do {
                 let folder = try await environment.finderFolder()
                 runShellCommand(command, terminal: terminal, showingOutput: true, in: folder)
@@ -148,7 +148,7 @@ final class ShellRows {
     /// Runs a command out of sight and puts everything it printed on the clipboard.
     func copyOutput(of command: String) {
         host.leave()
-        PanelWork.perform { [weak self, run = environment.run] in
+        Task { [weak self, run = environment.run] in
             let finished = await run(command, nil)
             self?.host.record(Receipt(date: Date(), kind: .command, subject: command, detail: finished.line))
             self?.environment.copy(finished.output)

@@ -269,13 +269,7 @@ nonisolated enum BrowserTabs {
     /// Brings a tab forward and reports back on the main thread.
     static func activate(_ tab: BrowserTab, run: @escaping AppleScriptRunner = AppleScript.run, completion: @escaping @MainActor (AppleScriptOutcome) -> Void) {
         let source = BrowserTabScripts.activate(tab)
-        let lease = PanelWork.begin()
         Task(priority: .userInitiated) {
-            defer {
-                withExtendedLifetime(lease) {
-                    // Activation and its result callback must finish before the panel process can exit.
-                }
-            }
             await completion(run(source))
         }
     }

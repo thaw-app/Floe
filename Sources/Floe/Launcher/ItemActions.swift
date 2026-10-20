@@ -264,7 +264,7 @@ enum AppActions {
     private static func restart(_ app: AppEntry, _ running: NSRunningApplication, host: ActionHost) {
         running.terminate()
         host.showHUD(String(localized: "Restarting \(app.name)", bundle: .floe, comment: "The placeholder is an app's name."))
-        PanelWork.perform {
+        Task {
             // An app asked to quit may stop to ask about unsaved work. It is opened again once it has gone,
             // and left alone when it is still there after ten seconds: the user is answering it, or said no.
             for _ in 0 ..< 100 where !running.isTerminated {

@@ -7,8 +7,8 @@
 
 import Foundation
 
-/// What the launcher model asks of the process around it: the panel, the HUD, settings and the resident.
-/// Each process fills it where it is wired; the defaults keep a model usable without a window, as in tests.
+/// What the launcher model asks of the app around it: the panel, the HUD and settings. The app fills it where it is
+/// wired; the defaults keep a model usable without a window, as in tests.
 struct PanelHost {
     var hidePanel: () -> Void = { /* no panel */ }
     var showPanel: () -> Void = { /* no panel */ }
@@ -23,8 +23,4 @@ struct PanelHost {
     var showActions: () -> Void = { /* no panel */ }
     /// Opens the floating note's window, or brings it forward. Set only where the panel is drawn.
     var showFloatingNote: () -> Void = { /* no window */ }
-    /// Set only in the resident, which hands what the panel shows to the panel process.
-    var presentInPanelProcess: ((PanelRequest) -> Void)?
-    /// Set only in the panel process, which hands what the resident owns to the resident.
-    var residentRequests: ((PanelPacket) -> Void)?
 }

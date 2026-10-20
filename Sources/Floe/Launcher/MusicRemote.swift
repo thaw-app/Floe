@@ -33,7 +33,7 @@ final class MusicRemote {
             say(line)
             return Task { /* nothing to run */ }
         case let .run(source, player):
-            return PanelWork.perform { [weak self, environment] in
+            return Task { [weak self, environment] in
                 let outcome = await MusicControls.run(source, with: environment.run)
                 if outcome == .refused {
                     environment.askForAutomation(player.name)

@@ -28,7 +28,7 @@ final class ReminderRows {
     @discardableResult
     func addReminder(_ draft: ReminderDraft) -> Task<Void, Never> {
         host.leave()
-        return PanelWork.perform { [weak self, environment] in
+        return Task { [weak self, environment] in
             let isAllowed = await environment.requestAccess()
             guard let self else { return }
             guard isAllowed else {

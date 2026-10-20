@@ -201,7 +201,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     }
 
     private func runPmset(arguments: [String]) {
-        PanelWork.perform {
+        Task {
             _ = try? await Subprocess.run(.path("/usr/bin/pmset"), arguments: Arguments(arguments), output: .discarded)
         }
     }

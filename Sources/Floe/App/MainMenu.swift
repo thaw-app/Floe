@@ -10,8 +10,8 @@ import AppKit
 enum MainMenu {
     /// Floe has no menu bar of its own unless it is in the Dock, but the main menu is still where
     /// AppKit looks up key equivalents: without it ⌘Q, ⌘W and the editing keys do nothing.
-    /// Window-owning processes keep the full menu. The resident omits the entire Window submenu:
-    /// AX queries would otherwise populate AppKit's window commands and retain several MiB.
+    /// Floe's own process leaves out the Window submenu: AX queries would otherwise populate AppKit's window
+    /// commands and retain several MiB. The settings process keeps the full menu.
     static func make(target: AnyObject, about: Selector, settings: Selector, includesWindowMenu: Bool = true) -> NSMenu {
         let appMenu = NSMenu()
         appMenu.addItem(withTitle: String(localized: "About Floe", bundle: .floe), action: about, keyEquivalent: "").target = target

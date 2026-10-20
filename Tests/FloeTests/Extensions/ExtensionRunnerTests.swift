@@ -18,7 +18,7 @@ struct ExtensionRunnerTests {
 
     private let asked = Asked()
 
-    private func runner(runsElsewhere: Bool = false, panelShown: Bool = false) -> ExtensionRunner {
+    private func runner(panelShown: Bool = false) -> ExtensionRunner {
         let runner = ExtensionRunner()
         let asked = asked
         runner.host = ExtensionRunner.Host(
@@ -29,12 +29,6 @@ struct ExtensionRunnerTests {
             isPanelShown: { panelShown },
             beginSetup: { asked.calls.append("setup \($0.kind)") },
             toggleMenuBar: { asked.calls.append("menu bar \($0.name)") },
-            runElsewhere: { command, _, _ in
-                if runsElsewhere {
-                    asked.calls.append("elsewhere \(command.name)")
-                }
-                return runsElsewhere
-            },
             open: { target, application in asked.calls.append("open \(target) \(application ?? "-")") },
             showPreferences: { message, _ in asked.calls.append("preferences \(message["type"] as? String ?? "")") }
         )
@@ -63,13 +57,6 @@ struct ExtensionRunnerTests {
         let pasteboard = NSPasteboard.withUniqueName()
         defer { pasteboard.releaseGlobally() }
         body(pasteboard)
-    }
-
-    @Test func aRunHandedToAnotherProcessStartsNothingHere() {
-        let runner = runner(runsElsewhere: true)
-        runner.run(command())
-        #expect(asked.calls == ["elsewhere greet"])
-        #expect(runner.session == nil)
     }
 
     @Test func aMenuBarCommandIsPutInTheMenuBarInsteadOfRun() {

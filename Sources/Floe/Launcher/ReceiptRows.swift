@@ -7,8 +7,7 @@
 
 import AppKit
 
-/// Receipts of what Floe did: kept, shown and undone. The resident keeps them; the panel process sends its
-/// receipts to the resident and reads the list.
+/// Receipts of what Floe did: kept, shown and undone.
 final class ReceiptRows {
     /// What receipts ask of the launcher.
     struct Host {
@@ -30,8 +29,6 @@ final class ReceiptRows {
         var commandsChanged: () -> Void = { /* set by LauncherFeatures */ }
         /// Whether the user keeps receipts.
         var keepsReceipts: () -> Bool = { true }
-        /// Sends a request to the resident, in the panel process. Nil in the resident.
-        var toResident: () -> ((PanelPacket) -> Void)? = { nil }
         /// Deletes what a receipt of that kind made, by its identifier. False when it is no longer there.
         var deleter: (Receipt.Kind) -> (String) throws -> Bool = { _ in { _ in false } }
     }
@@ -43,20 +40,11 @@ final class ReceiptRows {
     /// Keeps a receipt of something Floe did, unless the user switched that off.
     func record(_ receipt: Receipt) {
         guard host.keepsReceipts() else { return }
-        if let toResident = host.toResident() {
-            toResident(.receipt(receipt))
-        } else {
-            store.add(receipt)
-        }
+        store.add(receipt)
     }
 
-    /// Marks completion through the resident when this is only the panel process's copy.
     private func markUndone(_ id: UUID) {
-        if let toResident = host.toResident() {
-            toResident(.receiptUndone(id, Date()))
-        } else {
-            store.markUndone(id)
-        }
+        store.markUndone(id)
     }
 
     /// Takes back what a receipt records and says what came of it. The list stays, read again.

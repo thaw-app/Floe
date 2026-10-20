@@ -41,7 +41,7 @@ final nonisolated class FileIndexService: Sendable {
         var lastUsed: @Sendable (String) -> Date? = RecentFileUse.date(for:)
     }
 
-    static let shared = FileIndexService(environment: Environment(saved: savedFile, writesCache: !ProcessInfo.processInfo.arguments.contains("--panel")))
+    static let shared = FileIndexService(environment: Environment(saved: savedFile))
 
     /// A cache: macOS may clear it, and the next launch then walks the folder again.
     static let savedFile = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("Floe/FileNames.index")

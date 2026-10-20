@@ -17,8 +17,7 @@
 import AppIntents
 import AppKit
 
-/// Even an intent delivered to the foreground goes through the resident's lifecycle gate,
-/// so a request racing with dismissal starts a fresh process instead of being lost.
+/// Hands an intent's request to the launcher, once Floe has finished starting.
 @MainActor
 private func presentFloe(_ request: PanelRequest) throws {
     guard let handler = IntentHandler.current else { throw FloeIntentError.appNotReady }

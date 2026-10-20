@@ -43,35 +43,32 @@ struct CommandLinkTests {
     private let model: LauncherModel
     private let opened = Opened()
 
+    /// Planets needs a preference set before it runs, so running it opens its form: what a test can see of a run,
+    /// without starting the extension.
+    private static let planets = Fixture.command("planets", commandPreferences: [Fixture.field("token", required: true)])
+
     init() throws {
         settings = AppSettings(defaults: MemoryDefaults())
-        model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [Fixture.command("planets"), status]), isResident: true)
+        model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [Self.planets, status]))
     }
 
-    /// Opens a link as a menu-bar command does, and answers what the panel process was asked to run.
-    private func requests(opening target: String) -> [PanelRequest] {
-        var requests: [PanelRequest] = []
-        model.panelHost.presentInPanelProcess = { requests.append($0) }
+    /// Opens a link as a menu-bar command does, and answers the command it ran, by its id.
+    private func ran(opening target: String, in model: LauncherModel? = nil) -> String? {
+        let model = model ?? self.model
         model.linkOpener = opened.opener
         model.runner.handleBackgroundMessage(["type": "open", "target": target])
-        return requests
-    }
-
-    private func arguments(of request: PanelRequest?) throws -> [String: String]? {
-        guard case let .command(_, data, _) = request else { return nil }
-        return try data.map { try #require(JSONSerialization.jsonObject(with: $0) as? [String: String]) }
+        return model.setup?.command.id
     }
 
     @Test func aLinkToAnInstalledCommandRunsItInFloe() {
-        let requests = requests(opening: "raycast://extensions/someone/sample/planets")
-        #expect(requests == [.command("sample/planets", arguments: nil)], "without arguments, so the command asks for the ones it takes")
+        #expect(ran(opening: "raycast://extensions/someone/sample/planets") == "sample/planets")
+        #expect(model.setup?.arguments == nil, "without arguments, so the command asks for the ones it takes")
         #expect(opened.urls.isEmpty)
     }
 
     @Test func theArgumentsOfALinkReachTheCommand() throws {
-        let requests = requests(opening: "raycast://extensions/someone/sample/planets?arguments=%7B%22name%22%3A%22Mars%20%26%20moons%22%7D&launchType=background")
-        #expect(requests.map(\.isCommand) == [true])
-        #expect(try arguments(of: requests.first) == ["name": "Mars & moons"])
+        #expect(ran(opening: "raycast://extensions/someone/sample/planets?arguments=%7B%22name%22%3A%22Mars%20%26%20moons%22%7D&launchType=background") == "sample/planets")
+        #expect(model.setup?.arguments?["name"] as? String == "Mars & moons", "kept while the form asks for the preference")
     }
 
     @Test(arguments: [
@@ -83,44 +80,29 @@ struct CommandLinkTests {
         "raycast://focus/start?goal=Write",
     ])
     func anyOtherRaycastLinkGoesToTheSystem(target: String) throws {
-        #expect(requests(opening: target).isEmpty)
+        #expect(ran(opening: target) == nil)
         #expect(try opened.urls == [#require(URL(string: target))])
     }
 
     @Test func aLinkRunsACommandOnlyForTheOwnerItsExtensionNames() {
-        var owned = Fixture.command("planets")
+        var owned = Self.planets
         owned.owner = "someone"
-        let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [owned]), isResident: true)
-        var requests: [PanelRequest] = []
-        model.panelHost.presentInPanelProcess = { requests.append($0) }
-        model.linkOpener = opened.opener
-        model.runner.handleBackgroundMessage(["type": "open", "target": "raycast://extensions/someone-else/sample/planets"])
-        #expect(requests.isEmpty)
+        let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [owned]))
+        #expect(ran(opening: "raycast://extensions/someone-else/sample/planets", in: model) == nil)
         #expect(opened.urls.count == 1, "another owner's extension of the same name is not this one")
-        model.runner.handleBackgroundMessage(["type": "open", "target": "raycast://extensions/Someone/sample/planets"])
-        #expect(requests.map(\.isCommand) == [true])
+        #expect(ran(opening: "raycast://extensions/Someone/sample/planets", in: model) == "sample/planets")
     }
 
     @Test func aLinkToADisabledCommandGoesToTheSystem() {
         settings.disabledCommands = ["sample/planets"]
-        #expect(requests(opening: "raycast://extensions/someone/sample/planets").isEmpty)
+        #expect(ran(opening: "raycast://extensions/someone/sample/planets") == nil)
         #expect(opened.urls.count == 1)
     }
 
     @Test func aLinkToACommandInTheMenuBarLeavesItThere() {
         settings.menuBarCommands = [status.id]
-        #expect(requests(opening: "raycast://extensions/someone/sample/status").isEmpty)
+        #expect(ran(opening: "raycast://extensions/someone/sample/status") == nil)
         #expect(settings.menuBarCommands == [status.id])
         #expect(opened.urls.isEmpty, "the link is ours, so Raycast is not opened for it")
-    }
-}
-
-private extension PanelRequest {
-    var isCommand: Bool {
-        if case .command = self {
-            true
-        } else {
-            false
-        }
     }
 }

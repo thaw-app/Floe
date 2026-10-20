@@ -3153,6 +3153,9 @@
     "Prefix" : {
 
     },
+    "Press %@ in any app. Change it in Settings." : {
+      "comment" : "A tile of the welcome tour. The placeholder is a keyboard shortcut."
+    },
     "Press ⌘N to make one." : {
 
     },
@@ -5475,15 +5478,6 @@
     },
     "⌘⇧C Copy Path" : {
 
-    },
-    "Actions" : {
-      "comment" : "The label beside the shortcut that opens the menu of things to do with the selected result."
-    },
-    "Press %@ to show or hide Floe from any app. You can change the hotkey in Settings." : {
-      "comment" : "The placeholder is a keyboard shortcut."
-    },
-    "Search notes" : {
-      "comment" : "The label of the field that filters the list of notes."
     }
   },
   "version" : "1.0"

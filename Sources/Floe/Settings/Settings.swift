@@ -473,8 +473,6 @@ extension AppSettings {
 /// because it changes on every launch.
 final class UsageStore {
     static let shared = UsageStore()
-    var forwardUse: ((String) -> Void)?
-    var forwardQuery: ((String) -> Void)?
 
     struct Record: Codable {
         var count: Int
@@ -517,9 +515,6 @@ final class UsageStore {
     func recordQuery(_ query: String) {
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return }
-        if let forwardQuery {
-            forwardQuery(query); return
-        }
         var queries = queries
         queries.removeAll { $0 == query }
         queries.append(query)
@@ -539,9 +534,6 @@ final class UsageStore {
         record.count += 1
         record.lastUsed = now()
         records[id] = record
-        if let forwardUse {
-            forwardUse(id); return
-        }
         pendingSave?.cancel()
         let work = DispatchWorkItem { [weak self] in self?.flush() }
         pendingSave = work
@@ -550,7 +542,6 @@ final class UsageStore {
 
     /// Writes what has not been saved yet: when the burst's timer runs out, and when the app quits.
     func flush() {
-        guard forwardUse == nil else { return }
         pendingSave?.cancel()
         pendingSave = nil
         if let data = try? JSONEncoder().encode(records) {
