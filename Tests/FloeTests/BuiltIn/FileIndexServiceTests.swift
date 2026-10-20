@@ -270,6 +270,30 @@ struct FileIndexServiceTests {
         #expect(fixture.sinces.last == 150)
     }
 
+    @Test func changesWaitForTheDueSaveOrTheFlushAtQuit() async throws {
+        let fixture = try IndexFixture(files: ["docs/first.txt"])
+        var environment = fixture.savingEnvironment
+        environment.saveDelay = 3600
+        let service = FileIndexService(environment: environment)
+        service.set(on: true)
+        await service.settled()
+        let walked = try Data(contentsOf: fixture.saved)
+
+        try fixture.add("docs/second.txt")
+        fixture.send([.folder(fixture.path("docs"))], event: 150)
+        try fixture.add("docs/third.txt")
+        fixture.send([.folder(fixture.path("docs"))], event: 160)
+        await service.settled()
+        #expect(try Data(contentsOf: fixture.saved) == walked, "a change does not rewrite the whole index at once")
+
+        service.flush()
+        let reopened = FileIndexService(environment: fixture.savingEnvironment)
+        reopened.set(on: true)
+        await reopened.settled()
+        #expect(reopened.files(matching: "third")?.map(\.name) == ["third.txt"], "the flush saved every change")
+        #expect(fixture.sinces.last == 160)
+    }
+
     @Test func historicalEventsDeliveredWhenWatchingStartsAreAppliedAfterLoading() async throws {
         let fixture = try IndexFixture(files: ["first.txt"])
         let first = FileIndexService(environment: fixture.savingEnvironment)

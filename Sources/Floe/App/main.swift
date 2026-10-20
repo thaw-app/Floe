@@ -204,6 +204,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsLink.terminate()
         clipboard.flush()
         UsageStore.shared.flush()
+        FileIndexService.shared.flush()
     }
 
     private func toggle() {
