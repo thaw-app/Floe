@@ -87,13 +87,21 @@ enum Confirm {
     /// Asks before something that cannot be taken back, and answers whether to go on.
     /// The panel is gone by then, so Floe comes forward for the question.
     static func destructive(_ question: String, detail: String, button: String) -> Bool {
+        let alert = destructiveAlert(question, detail: detail, button: button)
+        NSApp.activate()
+        return alert.runModal() == .alertFirstButtonReturn
+    }
+
+    static func destructiveAlert(_ question: String, detail: String, button: String) -> NSAlert {
         let alert = NSAlert()
         alert.messageText = question
         alert.informativeText = detail
-        alert.addButton(withTitle: button).hasDestructiveAction = true
+        let confirm = alert.addButton(withTitle: button)
+        confirm.hasDestructiveAction = true
+        // AppKit takes Return off a destructive button; the question was asked by a command run from the keyboard.
+        confirm.keyEquivalent = "\r"
         alert.addButton(withTitle: String(localized: "Cancel", bundle: .floe))
-        NSApp.activate()
-        return alert.runModal() == .alertFirstButtonReturn
+        return alert
     }
 }
 

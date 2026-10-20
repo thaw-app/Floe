@@ -223,4 +223,12 @@ struct ItemActionTests {
         model.rememberQuery()
         #expect(usage.queries.last == "calendar", "nothing is kept once it is switched off")
     }
+
+    @Test func returnConfirmsADestructiveQuestionAndEscapeCancelsIt() {
+        let alert = Confirm.destructiveAlert("Empty Trash", detail: "Empty the Trash? This can't be undone.", button: "Empty Trash")
+        let confirm = alert.buttons[0]
+        #expect(confirm.hasDestructiveAction, "the button still reads as one that cannot be taken back")
+        #expect(confirm.keyEquivalent == "\r", "the command was run from the keyboard, so Return answers it")
+        #expect(alert.buttons[1].keyEquivalent == "\u{1B}")
+    }
 }
