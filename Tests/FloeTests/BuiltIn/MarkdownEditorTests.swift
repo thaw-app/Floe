@@ -154,6 +154,98 @@ import Testing
         window.close()
     }
 
+    @Test func returnCarriesTheListOnAndReturnOnAnEmptyItemEndsIt() {
+        let textView = Self.editing("- milk", caretAt: 6)
+        textView.insertNewline(nil)
+        #expect(textView.string == "- milk\n- ")
+        textView.insertNewline(nil)
+        #expect(textView.string == "- milk\n", "the empty item's mark goes and the list ends")
+        textView.insertText("plain", replacementRange: textView.selectedRange())
+        textView.insertNewline(nil)
+        #expect(textView.string == "- milk\nplain\n", "a body line takes a plain Return")
+    }
+
+    @Test func tabNestsAnItemAndShiftTabTakesItBack() {
+        let textView = Self.editing("- milk", caretAt: 6)
+        textView.insertTab(nil)
+        #expect(textView.string == MarkdownEditing.indent + "- milk")
+        textView.insertBacktab(nil)
+        #expect(textView.string == "- milk")
+        textView.insertBacktab(nil)
+        #expect(textView.string == "- milk", "an item at the margin stays there")
+    }
+
+    @Test func theFormatCommandsChangeTheSelectionAndPlaceTheCaret() {
+        let textView = Self.editing("milk", caretAt: 0)
+        textView.setSelectedRange(NSRange(location: 0, length: 4))
+        textView.run(.bold)
+        #expect(textView.string == "**milk**")
+        #expect(textView.selectedRange() == NSRange(location: 0, length: 8), "the wrapped words stay selected")
+        textView.run(.plain)
+        #expect(textView.string == "milk")
+        textView.setSelectedRange(NSRange(location: 4, length: 0))
+        textView.run(.italic)
+        #expect(textView.string == "milk__")
+        #expect(textView.selectedRange() == NSRange(location: 5, length: 0), "with nothing selected the caret goes between the marks")
+        textView.string = "Floe"
+        textView.setSelectedRange(NSRange(location: 0, length: 4))
+        textView.run(.link)
+        #expect(textView.string == "[Floe]()")
+        #expect(textView.selectedRange() == NSRange(location: 7, length: 0), "the caret waits where the address goes")
+        textView.string = "milk"
+        textView.setSelectedRange(NSRange(location: 2, length: 0))
+        textView.run(.duplicate)
+        #expect(textView.string == "milk\nmilk")
+    }
+
+    @Test func aBlockCommandMakesOverEverySelectedLine() {
+        let textView = Self.editing("milk\neggs", caretAt: 0)
+        textView.setSelectedRange(NSRange(location: 0, length: 9))
+        textView.run(.block(.task))
+        #expect(textView.string == "- [ ] milk\n- [ ] eggs")
+        #expect(textView.selectedRange() == NSRange(location: 21, length: 0), "the caret ends after the last line's words")
+        textView.run(.block(.heading(2)))
+        #expect(textView.string == "- [ ] milk\n## eggs", "only the caret's line changes once the selection is gone")
+    }
+
+    @Test func aNoteThatCannotBeWrittenTakesNoCommand() {
+        let textView = Self.editing("milk", caretAt: 0)
+        textView.isEditable = false
+        textView.setSelectedRange(NSRange(location: 0, length: 4))
+        textView.run(.bold)
+        #expect(textView.string == "milk")
+    }
+
+    @Test func commandKeysFormatAndOptionCommandNumbersSetTheLine() throws {
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 420, height: 300), styleMask: [.titled], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        let textView = Self.editing("milk", caretAt: 0)
+        window.contentView = textView
+        #expect(window.makeFirstResponder(textView))
+        func press(_ key: String, _ flags: NSEvent.ModifierFlags) throws -> Bool {
+            let event = try #require(NSEvent.keyEvent(
+                with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0, windowNumber: window.windowNumber,
+                context: nil, characters: key, charactersIgnoringModifiers: key, isARepeat: false, keyCode: 0
+            ))
+            return textView.performKeyEquivalent(with: event)
+        }
+        textView.setSelectedRange(NSRange(location: 0, length: 4))
+        #expect(try press("b", .command))
+        #expect(textView.string == "**milk**")
+        #expect(try press("1", [.command, .option]))
+        #expect(textView.string == "# **milk**")
+        #expect(try !press("b", [.command, .shift]), "a key Floe does not use is left to the menus")
+        window.close()
+    }
+
+    /// A text view on its own, holding `text` with the caret at `caret`.
+    private static func editing(_ text: String, caretAt caret: Int) -> NoteTextView {
+        let textView = NoteTextView(frame: NSRect(x: 0, y: 0, width: 420, height: 300))
+        textView.string = text
+        textView.setSelectedRange(NSRange(location: caret, length: 0))
+        return textView
+    }
+
     private static func find<T: NSView>(_: T.Type, in view: NSView?) -> T? {
         guard let view else { return nil }
         if let found = view as? T {

@@ -351,7 +351,8 @@ export const ActionPanel = Object.assign(host("ActionPanel"), {
 function toastText(value: unknown): string | undefined {
   if (value == null) return undefined;
   if (value instanceof Error) return value.message;
-  return typeof value === "object" ? JSON.stringify(value) : String(value);
+  if (typeof value === "object" || typeof value === "function") return JSON.stringify(value);
+  return String(value);
 }
 
 let nextToastId = 1;
