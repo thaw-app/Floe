@@ -19,6 +19,32 @@ struct ApplicationSettingsView: View {
 
     var body: some View {
         let apps = catalog.apps.filter { filter.isEmpty || $0.name.localizedCaseInsensitiveContains(filter) }
+        ScrollViewReader { proxy in
+            form(apps)
+                // The app the arrows moved to stays in sight.
+                .onChange(of: selection) {
+                    if let selection {
+                        withAnimation { proxy.scrollTo(selection) }
+                    }
+                }
+                // The arrows go from app to app, as in the sidebar. A field being typed in keeps its own.
+                .onMoveCommand { direction in
+                    switch direction {
+                    case .up: move(by: -1, in: apps)
+                    case .down: move(by: 1, in: apps)
+                    default: break
+                    }
+                }
+        }
+    }
+
+    private func move(by offset: Int, in apps: [AppEntry]) {
+        if let next = apps.item(stepping: offset, from: { $0.url == selection }) {
+            selection = next.url
+        }
+    }
+
+    private func form(_ apps: [AppEntry]) -> some View {
         Form {
             SettingsPageHeader()
             PreferredAppsSettingsSection(settings: settings)
@@ -37,6 +63,7 @@ struct ApplicationSettingsView: View {
             ThawSection {
                 ForEach(apps, id: \.url) { app in
                     ApplicationSettingsRow(settings: settings, app: app, isEdited: selection == app.url) { selection = app.url }
+                        .id(app.url)
                 }
                 if apps.isEmpty {
                     ContentUnavailableView.search(text: filter)
@@ -108,8 +135,14 @@ private struct ApplicationSettingsRow: View {
             }
         }
         // The controls are taller than the text: every row keeps their height, so a click moves nothing.
-        .frame(minHeight: 24)
+        .frame(minHeight: Self.height)
+        // The app being edited has the sidebar's selected fill, a little wider than the row so its edge clears the icon.
+        .padding(.horizontal, ThawSpacing.compact)
+        .selectedRowBackground(isEdited)
+        .padding(.horizontal, -ThawSpacing.compact)
     }
+
+    private static let height: CGFloat = 24
 
     @ViewBuilder
     private var name: some View {

@@ -67,8 +67,18 @@ struct ErrorView: View {
                 .padding(18)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Footer(primary: failure.kind == .unresponsive ? String(localized: "Restart", bundle: .floe, comment: "A verb on a button: start the extension again.") : String(localized: "Try Again", bundle: .floe)) {
-                Text("⌘⇧C copies details · Esc goes back").foregroundStyle(.secondary)
+            Footer(
+                primary: failure.kind == .unresponsive ? String(localized: "Restart", bundle: .floe, comment: "A verb on a button: start the extension again.") : String(localized: "Try Again", bundle: .floe),
+                runPrimary: model.runner.retry
+            ) {
+                ShortcutHintButton(title: String(localized: "Back", bundle: .floe, comment: "A button that leaves the error and goes back.")) { model.runner.end(session) } hint: {
+                    KeyCapView(text: "esc")
+                }
+                ShortcutHintButton(title: String(localized: "Copy Details", bundle: .floe)) { model.runner.copyFailure() } hint: {
+                    KeyCapView(text: "⌘")
+                    KeyCapView(text: "⇧")
+                    KeyCapView(text: "C")
+                }
             }
         }
     }

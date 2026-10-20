@@ -40,6 +40,7 @@ struct StoreDetail: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Commands")
                             .font(.headline)
+                            .accessibilityAddTraits(.isHeader)
                         ForEach(details.commands) { command in
                             StoreCommandCard(store: store, command: command, extensionIcon: details.iconURL)
                         }
@@ -91,6 +92,7 @@ private struct StoreDetailHeader: View {
                     Text(details?.title ?? name)
                         .font(.title2.bold())
                         .lineLimit(2)
+                        .accessibilityAddTraits(.isHeader)
                     if let author = details?.author, !author.isEmpty {
                         Text(author)
                             .foregroundStyle(.secondary)

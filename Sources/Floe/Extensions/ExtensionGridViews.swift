@@ -28,11 +28,7 @@ struct GridRows: View, Equatable {
                     ForEach(Array(layout.sections.enumerated()), id: \.offset) { _, section in
                         VStack(alignment: .leading, spacing: 8) {
                             if section.title != nil || section.subtitle != nil {
-                                HStack(spacing: 6) {
-                                    Text(section.title ?? "").font(ThawType.caption.weight(.semibold))
-                                    Text(section.subtitle ?? "").font(ThawType.caption)
-                                }
-                                .foregroundStyle(.secondary)
+                                ListSectionHeading(title: section.title ?? "", isFirst: true, detail: section.subtitle)
                             }
                             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .top), count: section.columns), alignment: .leading, spacing: 12) {
                                 ForEach(section.items.map { (index: $0, row: rows[$0]) }, id: \.row.id) { index, row in
@@ -44,6 +40,7 @@ struct GridRows: View, Equatable {
                 }
                 .padding(12)
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .onChange(of: selectedID) {
                 if let selectedID {
                     proxy.scrollTo(selectedID)
@@ -103,6 +100,7 @@ struct GridTile: View, Equatable {
                 .background(.quinary, in: Self.shape)
                 .clipShape(Self.shape)
                 .overlay { Self.shape.strokeBorder(selected ? Color.accentColor : .clear, lineWidth: 2.5) }
+                .thawSelectionCue(isSelected: selected, in: Self.shape)
                 .help(tooltip ?? "")
             if let title = node.string("title") {
                 HStack(spacing: 4) {

@@ -42,7 +42,7 @@ struct SettingsView: View {
                 // Content fades under the titlebar instead of stopping at a hard band.
                 .scrollEdgeEffectStyle(.soft, for: .top)
         }
-        .settingsSearchField(search)
+        .settingsSearchField(search, selection: selection)
         .updateConsentSheet(stores.updates)
     }
 

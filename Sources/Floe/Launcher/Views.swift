@@ -26,7 +26,7 @@ struct LauncherView: View {
         let heights = state.pieceHeights(in: settings.launcherLayout)
         GlassEffectContainer {
             if let setup = model.setup {
-                SetupView(form: model.setupForm, request: setup).modifier(PanelOnePiece())
+                SetupView(form: model.setupForm, request: setup, submit: model.submitSetup, cancel: model.cancelSetup).modifier(PanelOnePiece())
             } else if let session = model.runner.session, session.command.mode == "view" {
                 SessionContainer(model: model, session: session)
             } else if model.isSearchingMenuBar {
@@ -77,36 +77,46 @@ struct RowBackground: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(.horizontal, ThawSpacing.row)
-            .frame(height: 38)
+            .frame(height: PanelRow.height)
             .modifier(SearchRowBackground(selected: selected))
     }
 }
 
+/// The bar under an extension's view, its setup and its error. It is `PanelBottomBar`, so it reads as every other
+/// mode's: what is on the left, then the primary action and Actions as buttons with their keys.
 struct Footer<Leading: View>: View {
     var primary: String?
-    var primaryKey = "↵"
-    var hasActions = false
+    /// Whether the primary action takes ⌘ with Return, as a form's does.
+    var primaryTakesCommand = false
+    var runPrimary: () -> Void = {
+        // Nothing to run.
+    }
+
+    /// Opens the Actions menu. Nil when there is no action besides the primary one.
+    var showActions: (() -> Void)?
     @ViewBuilder var leading: Leading
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack(spacing: 10) {
+            PanelBottomBar {
                 leading
-                Spacer()
+                Spacer(minLength: 0)
                 if let primary {
-                    Text(primary).fontWeight(.medium)
-                    KeyCap(primaryKey)
+                    ShortcutHintButton(title: primary, action: runPrimary) {
+                        if primaryTakesCommand {
+                            KeyCapView(text: "⌘")
+                        }
+                        KeyCapView(systemImage: "return")
+                    }
                 }
-                if hasActions {
-                    Divider().frame(height: 14)
-                    Text("Actions").foregroundStyle(.secondary)
-                    KeyCap("⌘K")
+                if let showActions {
+                    ShortcutHintButton(title: String(localized: "Actions…", bundle: .floe), action: showActions) {
+                        KeyCapView(text: "⌘")
+                        KeyCapView(text: "K")
+                    }
                 }
             }
-            .font(ThawType.footnote)
-            .padding(.horizontal, ThawSpacing.gutter)
-            .frame(height: 38)
         }
     }
 }
@@ -161,7 +171,6 @@ struct RootView: View {
                 if !selected.isScopeResult {
                     ShortcutHintButton(title: String(localized: "Favorite", bundle: .floe, comment: "A verb on a button: add the selected result to the favorites.")) { model.toggleFavorite(selected) } hint: {
                         KeyCapView(text: "⌘")
-                        Text(verbatim: "+")
                         KeyCapView(text: "⇧")
                         KeyCapView(text: "F")
                     }
@@ -197,15 +206,6 @@ struct ShellHintButtons: View {
         case .quit, nil:
             EmptyView()
         }
-    }
-}
-
-struct SectionTitle: View {
-    let title: String
-    var isFirst = false
-
-    var body: some View {
-        SearchSectionHeader(title: title)
     }
 }
 

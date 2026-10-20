@@ -73,6 +73,18 @@ struct ReadingPage<Content: View, Links: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .scrollContentBackground(.hidden)
+        // The text fades under the transparent title bar, as the settings pages do.
+        .scrollEdgeEffectStyle(.soft, for: .top)
+        // The left and right arrows step along the path, the way it reads.
+        .focusable()
+        .focusEffectDisabled()
+        .onMoveCommand { direction in
+            switch direction {
+            case .left: step(by: -1)
+            case .right: step(by: 1)
+            default: break
+            }
+        }
         .ignoresSafeArea(.container, edges: .top)
         .background {
             // The same HUD material and wash as the settings detail column.
@@ -151,6 +163,12 @@ struct ReadingPage<Content: View, Links: View>: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
+    }
+
+    private func step(by offset: Int) {
+        if let next = path.item(stepping: offset, from: { $0.id == selection }) {
+            select(next.id)
+        }
     }
 
     private func select(_ id: String) {

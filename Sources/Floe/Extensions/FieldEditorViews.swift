@@ -71,6 +71,14 @@ struct CheckboxHeading: View {
 struct SetupView: View {
     @ObservedObject var form: SetupFormModel
     let request: SetupRequest
+    var submit: () -> Void = {
+        // Nothing to submit to.
+    }
+
+    var cancel: () -> Void = {
+        // Nothing to go back to.
+    }
+
     @FocusState private var focusedField: String?
 
     private var title: String {
@@ -116,11 +124,13 @@ struct SetupView: View {
             }
             .formStyle(.grouped)
             .scrollContentBackground(.hidden)
-            Footer(primary: request.kind == .preferences ? String(localized: "Save and Continue", bundle: .floe) : String(localized: "Run Command", bundle: .floe)) {
+            Footer(primary: request.kind == .preferences ? String(localized: "Save and Continue", bundle: .floe) : String(localized: "Run Command", bundle: .floe), runPrimary: submit) {
                 if let error = form.error {
                     Text(error).foregroundStyle(.red).lineLimit(1)
                 } else {
-                    Text("Esc to cancel").foregroundStyle(.secondary)
+                    ShortcutHintButton(title: String(localized: "Cancel", bundle: .floe)) { cancel() } hint: {
+                        KeyCapView(text: "esc")
+                    }
                 }
             }
         }

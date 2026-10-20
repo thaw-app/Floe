@@ -75,14 +75,24 @@ struct ExtensionView: View {
             }
         }
         .thawAnimation(ThawMotion.quick, value: session.actionMenuOpen)
-        Footer(primary: actions.first?.string("title"), primaryKey: view?.type == "Form" ? "⌘↵" : "↵", hasActions: actions.count > 1) {
-            if let toast = session.toast {
-                ToastView(session: session, toast: toast)
-            } else {
-                IconView(value: session.command.icon ?? "icon:Terminal", assetsPath: session.command.assetsPath, size: 16)
-                Text(view?.string("navigationTitle") ?? session.command.title).foregroundStyle(.secondary).lineLimit(1)
+        Footer(
+            primary: actions.first?.string("title"),
+            primaryTakesCommand: view?.type == "Form",
+            runPrimary: {
+                if let first = session.actions.first {
+                    session.run(first)
+                }
+            },
+            showActions: actions.count > 1 ? { session.actionMenuOpen = true } : nil,
+            leading: {
+                if let toast = session.toast {
+                    ToastView(session: session, toast: toast)
+                } else {
+                    IconView(value: session.command.icon ?? "icon:Terminal", assetsPath: session.command.assetsPath, size: 16)
+                    Text(view?.string("navigationTitle") ?? session.command.title).foregroundStyle(.secondary).lineLimit(1)
+                }
             }
-        }
+        )
     }
 }
 
@@ -114,7 +124,8 @@ struct ToastView: View {
                 Button(primary) { session.runToastAction(primary: true) }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
-                KeyCap("⌘↵")
+                KeyCapView(text: "⌘")
+                KeyCapView(systemImage: "return")
             }
             if let secondary = toast.secondaryTitle {
                 Button(secondary) { session.runToastAction(primary: false) }
@@ -196,6 +207,11 @@ struct DropdownView: View, Equatable {
 struct ActionMenu: View {
     @ObservedObject var session: ExtensionSession
 
+    private static let width: CGFloat = 320
+    /// Past this the actions scroll, and the one the arrows are on is kept in sight.
+    private static let listHeight: CGFloat = 300
+    private static let searchHeight: CGFloat = 30
+
     var body: some View {
         let entries = session.menuEntries
         VStack(alignment: .leading, spacing: 0) {
@@ -209,36 +225,41 @@ struct ActionMenu: View {
                 Spacer()
             }
             .padding(.horizontal, ThawSpacing.row)
-            .frame(height: 30)
+            .frame(height: Self.searchHeight)
             Divider().padding(.bottom, ThawSpacing.tight)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                        if let section = entry.section, !section.isEmpty, index == 0 || entries[index - 1].section != section {
-                            SectionTitle(title: section, isFirst: index == 0)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                            if let section = entry.section, !section.isEmpty, index == 0 || entries[index - 1].section != section {
+                                ListSectionHeading(title: section, isFirst: index == 0)
+                            }
+                            row(entry, selected: index == session.actionSelection)
+                                .onTapGesture { session.activateMenuEntry(at: index) }
+                                .id(index)
                         }
-                        row(entry, selected: index == session.actionSelection)
-                            .onTapGesture { session.activateMenuEntry(at: index) }
-                    }
-                    if entries.isEmpty {
-                        Text("No matching actions").foregroundStyle(.secondary).padding(ThawSpacing.row)
+                        if entries.isEmpty {
+                            Text("No matching actions").foregroundStyle(.secondary).padding(ThawSpacing.row)
+                        }
                     }
                 }
+                .frame(maxHeight: Self.listHeight)
+                .fixedSize(horizontal: false, vertical: true)
+                .scrollEdgeEffectStyle(.soft, for: .top)
+                .onChange(of: session.actionSelection) { proxy.scrollTo(session.actionSelection) }
             }
-            .frame(maxHeight: 300)
-            .fixedSize(horizontal: false, vertical: true)
         }
         .font(ThawType.body)
         .padding(ThawSpacing.compact)
-        .frame(width: 320)
+        .frame(width: Self.width)
         .thawGlass(.panel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
         .padding(ThawSpacing.row)
     }
 
     private func row(_ entry: MenuEntry, selected: Bool) -> some View {
         let action = entry.node
-        return HStack(spacing: 9) {
-            IconView(value: action.props["icon"], assetsPath: session.command.assetsPath, size: 15)
+        return HStack(spacing: ThawSpacing.base) {
+            ListRowIcon(source: .icon(action.props["icon"], assetsPath: session.command.assetsPath))
             Text(action.string("title") ?? String(localized: "Action", bundle: .floe, comment: "Stands in for an action's title when the extension gave none."))
                 .foregroundStyle(action.props["style"] as? String == "destructive" ? Color.red : Color.primary)
                 .lineLimit(1)

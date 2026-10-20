@@ -101,7 +101,7 @@ struct RootResultList: View, Equatable {
                         // One view per result, title included: a lazy stack walks the whole list when rows vary in count.
                         VStack(alignment: .leading, spacing: 0) {
                             if let section = result.section, index == 0 || results[index - 1].section != section {
-                                SectionTitle(title: section, isFirst: index == 0)
+                                ListSectionHeading(title: section, isFirst: index == 0)
                             }
                             SelectableRootRow(flag: model.rowSelection.flag(for: result.id), model: model, item: result.item)
                                 .onTapGesture { model.activate(result.item) }
@@ -110,6 +110,7 @@ struct RootResultList: View, Equatable {
                     }
                 }
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .background { SelectionFollower(model: model, results: results, proxy: proxy) }
         }

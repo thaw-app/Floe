@@ -118,6 +118,7 @@ struct CalculatorBlockView: View {
             }
         }
         .contentShape(RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
+        .thawSelectionCue(isSelected: selected, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
         .background {
             let shape = RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous)
             shape

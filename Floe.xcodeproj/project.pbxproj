@@ -285,6 +285,7 @@
 		AD7D516AA066DF894A612E04 /* Emoji.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BACDBEF9B0113F5AD2F9866 /* Emoji.swift */; };
 		AD84C699A35719BC8FB473AE /* CalculatorFormatter+Roots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 555B14F53474E2CB55338A18 /* CalculatorFormatter+Roots.swift */; };
 		AE1EB6FEDD10E7D4504EF711 /* RaycastSignInNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = D298878946A8F9FCE533B02B /* RaycastSignInNotice.swift */; };
+		AE6AA56A0843B8D24782F2EA /* ListStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D6D5DE2787DBC9F66ABFBD2 /* ListStyle.swift */; };
 		AFCACDF87AA3EFB29226266E /* SearchModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93C9A4E8B1189CAE2502F5A5 /* SearchModel.swift */; };
 		B0394ED7B2F6B9D812AF3EE0 /* ExtensionAISource.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB6D841C70728A5152372ECB /* ExtensionAISource.swift */; };
 		B09E3036EBF0101677720F04 /* WhatsNewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E717F1ACA9ED08705A4C5B /* WhatsNewView.swift */; };
@@ -566,6 +567,7 @@
 		4C111C74FE8C998059BB71F9 /* Calculator+Result.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calculator+Result.swift"; sourceTree = "<group>"; };
 		4C187D386A4232E01E22B780 /* BrowserExtensionBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserExtensionBridge.swift; sourceTree = "<group>"; };
 		4CB6FF4189AA62999432BD2F /* SyncAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAvailability.swift; sourceTree = "<group>"; };
+		4D6D5DE2787DBC9F66ABFBD2 /* ListStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListStyle.swift; sourceTree = "<group>"; };
 		4F0249DC6940E1049818D55E /* SnippetsSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsSettingsPage.swift; sourceTree = "<group>"; };
 		4F258F443B0715319BB464D8 /* ReceiptRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptRows.swift; sourceTree = "<group>"; };
 		4F3FC87CB8661B6367471C15 /* Focus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Focus.swift; sourceTree = "<group>"; };
@@ -908,6 +910,7 @@
 				6AC8924ABF92EC374FAB32FB /* KeyCode.swift */,
 				42251D9E5402360C16FC6AAC /* KeyCombination.swift */,
 				A4A4E7591F69E972182C8543 /* LauncherGlass.swift */,
+				4D6D5DE2787DBC9F66ABFBD2 /* ListStyle.swift */,
 				219F645E1E608A4BB123BFB4 /* Modifiers.swift */,
 				07F174FA5910D853B72691B0 /* OnWindowChange.swift */,
 				FB366C323BC449BC6B784D8D /* PrivacySettingsPane.swift */,
@@ -1812,6 +1815,7 @@
 				B27E06650F16164575537272 /* LauncherPanelLink.swift in Sources */,
 				7B7FABA4592B5310EB2C87C5 /* LauncherSettingsLink.swift in Sources */,
 				CE4980D0D2FB7C31D9D92402 /* LentSignIn.swift in Sources */,
+				AE6AA56A0843B8D24782F2EA /* ListStyle.swift in Sources */,
 				1D735243075E52327F804984 /* Localization.swift in Sources */,
 				3AD35881F6B724143FF6B7E6 /* LoginEnvironment.swift in Sources */,
 				C3A46A5027658323A674E782 /* MainMenu.swift in Sources */,

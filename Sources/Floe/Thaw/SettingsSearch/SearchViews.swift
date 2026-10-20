@@ -20,6 +20,7 @@ import ThawUI
 /// Puts the search field in the settings window and shares the model with the panes.
 private struct SettingsSearchField: ViewModifier {
     @Bindable var search: SearchModel
+    let selection: SettingsSelection
 
     /// Whether the search field has focus. Driven by ⌘F; the system clears it on Escape or
     /// when the field loses focus.
@@ -35,6 +36,12 @@ private struct SettingsSearchField: ViewModifier {
                 placement: .sidebar,
                 prompt: Text(String(localized: "Search settings", bundle: .floe, comment: "The placeholder of the search field in the settings sidebar."))
             )
+            // Return opens the result the arrows are on, the first until they move.
+            .onSubmit(of: .search) {
+                if let entry = search.highlightedEntry {
+                    SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
+                }
+            }
             .background {
                 // ⌘F from anywhere in the window lands in the field.
                 Button("Find") {
@@ -42,6 +49,16 @@ private struct SettingsSearchField: ViewModifier {
                 }
                 .keyboardShortcut("f", modifiers: .command)
                 .hidden()
+                // The arrows walk the results while the field keeps the typing. Only during a search, so
+                // they are the sidebar's and the pages' otherwise.
+                if search.isSearching {
+                    Button("Previous Result") { search.moveHighlight(by: -1) }
+                        .keyboardShortcut(.upArrow, modifiers: [])
+                        .hidden()
+                    Button("Next Result") { search.moveHighlight(by: 1) }
+                        .keyboardShortcut(.downArrow, modifiers: [])
+                        .hidden()
+                }
             }
             .environment(search)
     }
@@ -49,8 +66,8 @@ private struct SettingsSearchField: ViewModifier {
 
 extension View {
     /// Adds the settings search field to the split view it is applied to.
-    func settingsSearchField(_ search: SearchModel) -> some View {
-        modifier(SettingsSearchField(search: search))
+    func settingsSearchField(_ search: SearchModel, selection: SettingsSelection) -> some View {
+        modifier(SettingsSearchField(search: search, selection: selection))
     }
 
     /// Scrolls this pane to the search result that opened it. The target is the view whose id
@@ -87,7 +104,7 @@ struct SettingsSearchResults: View {
     let entries: () -> [SearchEntry]
 
     var body: some View {
-        SearchResultsList(groups: search.displayedGroups) { entry in
+        SearchResultsList(groups: search.displayedGroups, highlighted: search.highlighted) { entry in
             SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
         } header: {
             SettingsPageHeader()
@@ -119,10 +136,24 @@ struct SettingsSearchResults: View {
 /// Scrollable, grouped search results for the settings window, under a header that scrolls with them.
 struct SearchResultsList<Header: View>: View {
     let groups: [SearchGroup]
+    /// The result the arrow keys are on.
+    var highlighted: String?
     let onSelect: (SearchEntry) -> Void
     @ViewBuilder let header: Header
 
     var body: some View {
+        ScrollViewReader { proxy in
+            list
+                // The result the arrows moved to stays in sight.
+                .onChange(of: highlighted) {
+                    if let highlighted {
+                        proxy.scrollTo(highlighted)
+                    }
+                }
+        }
+    }
+
+    private var list: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -139,7 +170,7 @@ struct SearchResultsList<Header: View>: View {
                             .padding(.vertical, ThawSpacing.base)
                     }
 
-                    SearchGroupSection(group: group, onSelect: onSelect)
+                    SearchGroupSection(group: group, highlighted: highlighted, onSelect: onSelect)
                 }
             }
             .padding(.horizontal, ThawSpacing.row)
@@ -153,23 +184,15 @@ struct SearchResultsList<Header: View>: View {
 
 private struct SearchGroupSection: View {
     let group: SearchGroup
+    let highlighted: String?
     let onSelect: (SearchEntry) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: ThawSpacing.tight) {
             HStack(spacing: ThawSpacing.compact) {
-                // The same glyph the sidebar row shows, so a result group
+                // The same glyph the sidebar row shows, in the same box, so a result group
                 // names its pane the way the sidebar does.
-                Group {
-                    if let symbol = group.label.symbol {
-                        Image(systemName: symbol)
-                            .font(ThawType.symbol.weight(.medium))
-                            .foregroundStyle(.secondary)
-                    } else {
-                        IconView(value: group.label.icon, assetsPath: group.label.assetsPath, size: 16)
-                    }
-                }
-                .frame(width: 18, height: 16)
+                ListRowIcon(source: group.label.symbol.map { .symbol($0) } ?? .icon(group.label.icon, assetsPath: group.label.assetsPath))
 
                 Text(group.label.title)
                     .font(ThawType.detail.weight(.semibold))
@@ -182,9 +205,10 @@ private struct SearchGroupSection: View {
 
             VStack(spacing: ThawSpacing.hairline) {
                 ForEach(group.entries) { entry in
-                    SearchResultButton(entry: entry) {
+                    SearchResultButton(entry: entry, isHighlighted: entry.id == highlighted) {
                         onSelect(entry)
                     }
+                    .id(entry.id)
                 }
             }
         }
@@ -194,7 +218,7 @@ private struct SearchGroupSection: View {
 // MARK: - SearchResultRowAppearance
 
 private enum SearchResultRowAppearance {
-    static let shape = RoundedRectangle(cornerRadius: ThawRadius.control, style: .continuous)
+    static let shape = ListStyle.rowShape
 }
 
 // MARK: - SearchResultButton
@@ -202,6 +226,7 @@ private enum SearchResultRowAppearance {
 /// Interactive search result row with hover and pressed feedback.
 private struct SearchResultButton: View {
     let entry: SearchEntry
+    let isHighlighted: Bool
     let action: () -> Void
 
     @State private var isHovering = false
@@ -219,6 +244,8 @@ private struct SearchResultButton: View {
                 rowShape: SearchResultRowAppearance.shape
             )
         )
+        // The sidebar's selected fill on the result Return opens.
+        .selectedRowBackground(isHighlighted)
         .onHover { isHovering = $0 }
         .thawAnimation(ThawMotion.quick, value: isHovering)
     }
@@ -281,10 +308,10 @@ private struct SearchResultButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .background {
-                // Same selection wash as the sidebar pill, stronger on press.
+                // The sidebar's neutral wash rather than the accent, stronger on press.
                 if let strength = strength(isPressed: configuration.isPressed) {
                     Color.clear
-                        .thawGlass(.selection(.accentColor, strength: strength), in: rowShape)
+                        .thawGlass(.selection(Color.primary, strength: strength), in: rowShape)
                 }
             }
             .opacity(configuration.isPressed ? 0.92 : 1)

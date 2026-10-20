@@ -90,6 +90,7 @@ struct AskAITranscript: View, Equatable {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .scrollPosition($position)
             .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, new in offset = new }
             .onScrollGeometryChange(for: CGFloat.self) { $0.containerSize.height } action: { _, new in viewport = new }

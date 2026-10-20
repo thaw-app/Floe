@@ -52,7 +52,6 @@ struct ActionsButton: View {
     var body: some View {
         ShortcutHintButton(title: String(localized: "Actions…", bundle: .floe)) { model.panelHost.showActions() } hint: {
             KeyCapView(text: "⌘")
-            Text(verbatim: "+")
             KeyCapView(text: "K")
         }
         .background { ActionsAnchor(model: model, actions: actions) }

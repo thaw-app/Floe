@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import SwiftUI
+import ThawUI
 
 struct ExtensionStoreSettingsPage: View {
     @ObservedObject var store: ExtensionStore
@@ -15,9 +16,12 @@ struct ExtensionStoreSettingsPage: View {
     /// changes, not on every pass of the view, where a row's own state would ask for it again.
     @State private var matched: [StoreListing] = []
     @State private var selection: String?
+    /// How wide the grid is, for how many tiles a row of it holds: the arrows move by rows.
+    @State private var gridWidth: CGFloat = 0
     /// The field and the grid line up; a row's text, inside its highlight, then lines up with the page's title.
-    private static let inset = SettingsPageHeading.leadingMargin - 8
-    private let columns = [GridItem(.adaptive(minimum: 160, maximum: 220), spacing: 12, alignment: .top)]
+    private static let inset = SettingsPageHeading.leadingMargin - ThawSpacing.base
+    private static let tileWidth: CGFloat = 160
+    private let columns = [GridItem(.adaptive(minimum: tileWidth, maximum: 220), spacing: ThawSpacing.inset, alignment: .top)]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -31,7 +35,7 @@ struct ExtensionStoreSettingsPage: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
+                .padding(ThawSpacing.inset)
         }
         .task {
             // The catalog may be here already, and when a load brings it, the change asks again below.
@@ -62,6 +66,25 @@ struct ExtensionStoreSettingsPage: View {
         })
     }
 
+    private func toggle(_ name: String) {
+        selection = selection == name ? nil : name
+    }
+
+    /// Left and right step a tile, up and down a row of them. With none selected, any arrow selects the first.
+    private func move(_ direction: MoveCommandDirection, in listings: [StoreListing]) {
+        let perRow = max(1, Int((gridWidth + ThawSpacing.inset) / (Self.tileWidth + ThawSpacing.inset)))
+        let offset = switch direction {
+        case .left: -1
+        case .right: 1
+        case .up: -perRow
+        case .down: perRow
+        @unknown default: 0
+        }
+        if let next = listings.item(stepping: offset, from: { $0.name == selection }) {
+            selection = next.name
+        }
+    }
+
     private func search() {
         matched = StoreSearch.results(store.catalog, query: query)
     }
@@ -69,14 +92,14 @@ struct ExtensionStoreSettingsPage: View {
     @ViewBuilder
     private var content: some View {
         if store.isLoading, store.catalog.isEmpty {
-            VStack(spacing: 8) {
+            VStack(spacing: ThawSpacing.base) {
                 ProgressView()
                 Text("Loading extensions…")
                     .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let error = store.error, store.catalog.isEmpty {
-            VStack(spacing: 8) {
+            VStack(spacing: ThawSpacing.base) {
                 Text("Could not load the extension store.")
                 Text(error)
                     .font(.footnote)
@@ -96,27 +119,33 @@ struct ExtensionStoreSettingsPage: View {
                     // Named for the store, so it is not taken for the settings search in the sidebar.
                     SettingsFilterField(prompt: "Search Raycast extensions", text: $query)
                         .padding(.horizontal, Self.inset)
-                        .padding(.vertical, 10)
-                    ScrollView {
-                        LazyVGrid(columns: columns, spacing: 12) {
-                            ForEach(filtered, id: \.name) { listing in
-                                StoreRow(store: store, name: listing.name)
-                                    .padding(.horizontal, 8)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                            .fill(selection == listing.name ? Color.accentColor.opacity(0.2) : .clear)
-                                    )
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        if selection == listing.name {
-                                            selection = nil
-                                        } else {
-                                            selection = listing.name
-                                        }
-                                    }
+                        .padding(.vertical, ThawSpacing.row)
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVGrid(columns: columns, spacing: ThawSpacing.inset) {
+                                ForEach(filtered, id: \.name) { listing in
+                                    // A tap and not a Button: the tile holds the Install button of its own.
+                                    StoreRow(store: store, name: listing.name)
+                                        .padding(.horizontal, ThawSpacing.base)
+                                        .selectedRowBackground(selection == listing.name)
+                                        .onTapGesture { toggle(listing.name) }
+                                        .accessibilityAction { toggle(listing.name) }
+                                        .id(listing.name)
+                                }
+                            }
+                            .padding(.horizontal, Self.inset)
+                            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { gridWidth = $0 }
+                        }
+                        .scrollEdgeEffectStyle(.soft, for: .top)
+                        // A tile chosen by the arrow keys stays in sight.
+                        .onChange(of: selection) {
+                            if let selection {
+                                withAnimation { proxy.scrollTo(selection) }
                             }
                         }
-                        .padding(.horizontal, Self.inset)
+                        .focusable()
+                        .focusEffectDisabled()
+                        .onMoveCommand { move($0, in: filtered) }
                     }
                     .overlay {
                         if filtered.isEmpty, !query.isEmpty {

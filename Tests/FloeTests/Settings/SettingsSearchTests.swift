@@ -411,4 +411,22 @@ struct SettingsSearchNavigationTests {
         #expect(SettingsSearchNavigation.consumeAnchor(search: search) == "zeta-tools/timer")
         #expect(SettingsSearchNavigation.consumeAnchor(search: search) == nil)
     }
+
+    @Test func theArrowsWalkTheResultsInTheOrderShownAndStopAtTheEnds() throws {
+        let model = SearchModel()
+        model.searchText = "search"
+        let shown = model.orderedResults.map(\.id)
+        try #require(shown.count > 1)
+        #expect(model.highlighted == shown.first, "a new search starts on its first result, which Return opens")
+        model.moveHighlight(by: -1)
+        #expect(model.highlighted == shown.first)
+        model.moveHighlight(by: 1)
+        #expect(model.highlightedEntry?.id == shown[1])
+        for _ in shown {
+            model.moveHighlight(by: 1)
+        }
+        #expect(model.highlighted == shown.last)
+        model.searchText = ""
+        #expect(model.highlighted == nil)
+    }
 }

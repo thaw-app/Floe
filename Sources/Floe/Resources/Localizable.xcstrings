@@ -2612,6 +2612,9 @@
     "New Snippet" : {
 
     },
+    "Next Result" : {
+
+    },
     "Next Track" : {
       "comment" : "A command that skips to the next song."
     },
@@ -3104,6 +3107,9 @@
     },
     "Preview" : {
       "comment" : "The heading over a picture of how the launcher will look."
+    },
+    "Previous Result" : {
+
     },
     "Previous Track" : {
       "comment" : "A command that goes back to the song before."
@@ -5380,9 +5386,6 @@
     "Aliases, hotkeys and settings, the same on all your Macs." : {
       "comment" : "A tile of the welcome tour."
     },
-    "Esc to cancel" : {
-
-    },
     "Every permission is optional" : {
 
     },
@@ -5442,9 +5445,6 @@
     },
     "`note` writes to your notes app. Floating Note stays on top." : {
       "comment" : "A tile of the welcome tour. note is the keyword typed in the search."
-    },
-    "⌘⇧C copies details · Esc goes back" : {
-
     }
   },
   "version" : "1.0"

@@ -140,6 +140,7 @@ struct WhatsNewView: View {
                             if let title = theme.title {
                                 Text(verbatim: title)
                                     .font(ReadingPageType.body.weight(.semibold))
+                                    .accessibilityAddTraits(.isHeader)
                             }
                             ForEach(Array(theme.bullets.enumerated()), id: \.offset) { _, block in
                                 themeBlock(block)

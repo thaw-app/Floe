@@ -71,15 +71,16 @@ struct ClipboardHistoryView: View {
                     let (rest, pinned) = entries.partitioned(by: \.pinned)
                     let positions = Dictionary(uniqueKeysWithValues: entries.enumerated().map { ($1.id, $0) })
                     if !pinned.isEmpty {
-                        SearchSectionHeader(title: String(localized: "Pinned", bundle: .floe, comment: "The heading over the copies the user pinned."))
+                        ListSectionHeading(title: String(localized: "Pinned", bundle: .floe, comment: "The heading over the copies the user pinned."), isFirst: true)
                         ForEach(pinned) { entry in row(entry, index: positions[entry.id] ?? 0) }
                     }
-                    ForEach(Self.dayGroups(rest), id: \.title) { group in
-                        SearchSectionHeader(title: group.title)
+                    ForEach(Array(Self.dayGroups(rest).enumerated()), id: \.element.title) { index, group in
+                        ListSectionHeading(title: group.title, isFirst: index == 0 && pinned.isEmpty)
                         ForEach(group.entries) { entry in row(entry, index: positions[entry.id] ?? 0) }
                     }
                 }
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .onChange(of: history.entries.map(\.id)) { clipboard.entriesChanged() }
             .onChange(of: clipboard.selection) {
@@ -133,9 +134,10 @@ struct ClipboardHistoryView: View {
                     }
                     metadata(title: "Detail", value: detail(for: entry))
                 }
-                .padding(14)
+                .padding(ThawSpacing.inset)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
         } else {
             ThawEmptyState(systemImage: "doc.on.clipboard", title: "Select a copy to preview it")
         }
@@ -143,13 +145,13 @@ struct ClipboardHistoryView: View {
 
     private func metadata(title: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(title).font(.system(size: 11)).foregroundStyle(.secondary)
-            Text(value).font(.system(size: 12)).textSelection(.enabled)
+            Text(title).font(ThawType.caption).foregroundStyle(.secondary)
+            Text(value).font(ThawType.detail).textSelection(.enabled)
         }
     }
 
     private func bottomBar() -> some View {
-        HStack(spacing: ThawSpacing.row) {
+        PanelBottomBar {
             OpenSettingsButton(model: launcher)
             Spacer(minLength: 0)
             if let entry = clipboard.selectedEntry {
@@ -160,15 +162,14 @@ struct ClipboardHistoryView: View {
                     KeyCapView(text: "⌫")
                 }
                 ShortcutHintButton(title: String(localized: "Copy", bundle: .floe, comment: "A button that copies the selected entry.")) { clipboard.copy(entry) } hint: {
-                    KeyCapView(text: "⌘C")
+                    KeyCapView(text: "⌘")
+                    KeyCapView(text: "C")
                 }
                 ShortcutHintButton(title: String(localized: "Paste", bundle: .floe, comment: "A button that pastes the selected entry.")) { clipboard.paste(entry) } hint: {
                     KeyCapView(systemImage: "return")
                 }
             }
         }
-        .padding(.horizontal, ThawSpacing.inset)
-        .padding(.vertical, ThawSpacing.row)
     }
 
     private func kindName(for kind: ClipboardEntry.Kind) -> String {
@@ -268,10 +269,8 @@ private struct ClipboardRow: View {
     static let deleteTitle = String(localized: "Delete", bundle: .floe, comment: "A button that removes a copy from the history.")
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: entry.kind.symbol)
-                .foregroundStyle(.secondary)
-                .frame(width: 18)
+        HStack(spacing: ThawSpacing.row) {
+            ListRowIcon(source: .symbol(entry.kind.symbol))
             VStack(alignment: .leading, spacing: 1) {
                 Text(title).lineLimit(1)
                 Text(subtitle)
@@ -279,7 +278,7 @@ private struct ClipboardRow: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-            Spacer(minLength: 8)
+            Spacer(minLength: ThawSpacing.base)
             if isHovering {
                 button(Self.pinTitle(for: entry), symbol: entry.pinned ? "pin.slash" : "pin") { clipboard.togglePin(entry) }
                 button(Self.deleteTitle, symbol: "trash") { clipboard.delete(entry) }

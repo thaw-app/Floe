@@ -58,6 +58,7 @@ struct ListRows: View, Equatable {
     }
 
     var body: some View {
+        let hasIconColumn = rows.contains { ListRow.icon(of: $0.node) != nil }
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
@@ -65,14 +66,9 @@ struct ListRows: View, Equatable {
                         // One view per row, title included: a lazy stack walks the whole list when rows vary in count.
                         VStack(alignment: .leading, spacing: 0) {
                             if let title = row.sectionTitle, index == 0 || rows[index - 1].sectionTitle != title {
-                                Text(title)
-                                    .font(ThawType.caption.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 10)
-                                    .padding(.top, index == 0 ? 2 : 10)
-                                    .padding(.bottom, 4)
+                                ListSectionHeading(title: title, isFirst: index == 0)
                             }
-                            ListRow(node: row.node, assetsPath: session.command.assetsPath, selected: row.id == selectedID, compact: compact)
+                            ListRow(node: row.node, assetsPath: session.command.assetsPath, selected: row.id == selectedID, compact: compact, hasIconColumn: hasIconColumn)
                                 .equatable()
                                 .onTapGesture(count: 2) {
                                     session.selection = index
@@ -92,6 +88,7 @@ struct ListRows: View, Equatable {
                 }
                 .padding(8)
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .onChange(of: selectedID) {
                 if let selectedID {
                     proxy.scrollTo(selectedID)
@@ -107,15 +104,24 @@ struct ListRow: View, Equatable {
     let assetsPath: String
     let selected: Bool
     let compact: Bool
+    /// Whether any row of the list has an icon: then a row without one keeps the room, so the titles line up.
+    var hasIconColumn = true
 
     static func == (lhs: ListRow, rhs: ListRow) -> Bool {
         lhs.node.revision == rhs.node.revision && lhs.selected == rhs.selected && lhs.compact == rhs.compact && lhs.assetsPath == rhs.assetsPath
+            && lhs.hasIconColumn == rhs.hasIconColumn
+    }
+
+    static func icon(of node: Node) -> Any? {
+        node.props["icon"] ?? node.props["content"]
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            if let icon = node.props["icon"] ?? node.props["content"] {
-                IconView(value: icon, assetsPath: assetsPath, size: 18)
+        HStack(spacing: ThawSpacing.row) {
+            if let icon = Self.icon(of: node) {
+                ListRowIcon(source: .icon(icon, assetsPath: assetsPath))
+            } else if hasIconColumn {
+                Color.clear.frame(width: ListStyle.iconBox, height: ListStyle.iconBox)
             }
             Text(node.string("title") ?? "").lineLimit(1)
             if !compact, let subtitle = node.string("subtitle") {
@@ -180,6 +186,7 @@ struct DetailBody: View, Equatable {
                     .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             if let metadata = node.slot("metadata") {
                 Divider()
                 ScrollView {
@@ -189,6 +196,7 @@ struct DetailBody: View, Equatable {
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .scrollEdgeEffectStyle(.soft, for: .top)
                 .frame(width: 210)
             }
         }

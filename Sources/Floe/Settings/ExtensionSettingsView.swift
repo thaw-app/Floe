@@ -174,14 +174,20 @@ private struct ExtensionHeader: View {
 }
 
 /// One command of an extension on one line: what it is, the alias and hotkey it answers to, and whether it is on.
+/// A command that is off, or whose extension is, reads as off, as the sidebar's row of a disabled extension does.
 struct CommandSettingsRow: View {
     @ObservedObject var settings: AppSettings
     let command: ExtensionCommand
 
+    private var isOff: Bool {
+        settings.disabledExtensions.contains(command.extensionName) || !settings.enabledBinding(for: command).wrappedValue
+    }
+
     var body: some View {
         HStack(spacing: ThawSpacing.compact) {
-            IconView(value: command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 14)
+            ListRowIcon(source: .icon(command.icon ?? "icon:Terminal", assetsPath: command.assetsPath), isDimmed: isOff)
             Text(command.title)
+                .foregroundStyle(isOff ? Color.secondary : Color.primary)
                 .lineLimit(1)
             if command.mode == "no-view" {
                 ThawBadge("No View")

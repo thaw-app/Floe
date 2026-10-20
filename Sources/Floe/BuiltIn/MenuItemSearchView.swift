@@ -84,6 +84,7 @@ struct MenuItemSearchView: View {
                     }
                 }
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .onChange(of: search.selection) {
                 if results.indices.contains(search.selection) {
@@ -108,20 +109,29 @@ struct MenuItemSearchView: View {
     }
 }
 
-/// One menu command: the app's icon, the command's title over the menus it is in, and its shortcut at the right.
+/// One menu command: the app's icon, the command's title, and at the right the menus it is in and its shortcut,
+/// so the row is one line high like every other in the panel.
 struct MenuItemRowView: View {
     let entry: AppMenuItem
     let appURL: URL?
     let selected: Bool
 
     var body: some View {
-        PaletteRow(title: entry.title, subtitle: entry.menuPath.isEmpty ? nil : entry.menuPath, selected: selected) {
+        PaletteRow(title: entry.title, subtitle: nil, selected: selected) {
             if let appURL {
                 AppIconView(path: appURL.path, size: 24)
             } else {
                 SymbolTile(symbol: "filemenu.and.selection")
             }
         } trailing: {
+            if !entry.menuPath.isEmpty {
+                // The end of a long path is the menu the command is in, which says the most.
+                Text(verbatim: entry.menuPath)
+                    .font(ThawType.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.head)
+            }
             if let shortcut = entry.shortcut {
                 Text(verbatim: shortcut.label)
                     .font(ThawType.caption)

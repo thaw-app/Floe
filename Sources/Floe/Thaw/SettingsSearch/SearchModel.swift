@@ -54,6 +54,25 @@ final class SearchModel {
     /// The anchor of the result that was just chosen, until its pane scrolls to it.
     var requestedAnchor: String?
 
+    /// The result the arrow keys are on, by its id, which Return chooses. The first of each new search.
+    private(set) var highlighted: String?
+
+    /// The results in the order they are shown, group by group.
+    var orderedResults: [SearchEntry] {
+        displayedGroups.flatMap(\.entries)
+    }
+
+    /// Moves the highlight down the results or up them, and stops at either end.
+    func moveHighlight(by offset: Int) {
+        if let next = orderedResults.item(stepping: offset, from: { $0.id == highlighted }) {
+            highlighted = next.id
+        }
+    }
+
+    var highlightedEntry: SearchEntry? {
+        orderedResults.first { $0.id == highlighted }
+    }
+
     /// The search corpus. Starts with Floe's own panes; the extensions join when a search begins.
     @ObservationIgnored
     private var entries = SearchIndex.staticEntries
@@ -82,6 +101,7 @@ final class SearchModel {
             if !displayedGroups.isEmpty {
                 displayedGroups = []
             }
+            highlighted = nil
             return
         }
 
@@ -106,5 +126,6 @@ final class SearchModel {
         displayedGroups = paneOrder.map { first in
             SearchGroup(pane: first.pane, label: first.paneLabel, entries: grouped[first.pane] ?? [])
         }
+        highlighted = displayedGroups.first?.entries.first?.id
     }
 }

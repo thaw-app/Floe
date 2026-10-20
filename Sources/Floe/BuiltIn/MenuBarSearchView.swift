@@ -69,7 +69,7 @@ struct MenuBarSearchView: View {
                         // One view per item, title included: a lazy stack walks the whole list when rows vary in count.
                         VStack(alignment: .leading, spacing: 0) {
                             if let section = result.section, index == 0 || results[index - 1].section != section {
-                                SectionTitle(title: section, isFirst: index == 0)
+                                ListSectionHeading(title: section, isFirst: index == 0)
                             }
                             MenuBarItemRow(
                                 extra: result.extra,
@@ -84,6 +84,7 @@ struct MenuBarSearchView: View {
                     }
                 }
             }
+            .scrollEdgeEffectStyle(.soft, for: .top)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .onChange(of: search.selection) {
                 if results.indices.contains(search.selection) {
@@ -108,7 +109,7 @@ struct MenuBarSearchView: View {
 
             if search.renamingItem != nil {
                 ShortcutHintButton(title: String(localized: "Cancel", bundle: .floe)) { search.cancelRename() } hint: {
-                    KeyCapView(text: "⎋", font: ThawType.detail)
+                    KeyCapView(text: "esc")
                 }
                 ShortcutHintButton(title: String(localized: "Rename", bundle: .floe, comment: "A button that saves the new name of a menu bar item.")) { search.commitRename() } hint: {
                     KeyCapView(systemImage: "return")
@@ -116,7 +117,6 @@ struct MenuBarSearchView: View {
             } else if let extra = search.selectedExtra {
                 ShortcutHintButton(title: String(localized: "Edit Name", bundle: .floe)) { search.beginRenamingSelection() } hint: {
                     KeyCapView(text: "⌘")
-                    Text(verbatim: "+")
                     KeyCapView(text: "E")
                 }
                 ActionsButton(model: launcher) { $0.menuBarSearch.selectedExtra.map($0.menuBarSearch.actions) ?? [] }
@@ -140,8 +140,8 @@ struct MenuBarItemRow: View {
     var body: some View {
         if let renameDraft {
             // The same measures as PaletteRow, which has no field of its own.
-            HStack(spacing: 10) {
-                icon.frame(width: 24, height: 24)
+            HStack(spacing: PanelRow.iconSpacing) {
+                icon.frame(width: PanelRow.iconBox, height: PanelRow.iconBox)
                 TextField(extra.name, text: renameDraft)
                     .textFieldStyle(.plain)
                     .font(ThawType.body)
@@ -150,7 +150,8 @@ struct MenuBarItemRow: View {
                     .onAppear { isEditing = true }
                 Spacer(minLength: 0)
             }
-            .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
+            .padding(.horizontal, PanelRow.inset)
+            .frame(minHeight: PanelRow.height)
             .modifier(SearchRowBackground(selected: selected))
         } else {
             PaletteRow(title: name, subtitle: nil, selected: selected) {

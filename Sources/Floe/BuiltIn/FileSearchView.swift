@@ -61,6 +61,7 @@ struct FileSearchView: View {
                             }
                         }
                     }
+                    .scrollEdgeEffectStyle(.soft, for: .top)
                     .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
                     .onChange(of: search.selection) {
                         if results.indices.contains(search.selection) {
