@@ -349,7 +349,7 @@ impl Tree {
             return Vec::new();
         }
         let by_path = query.contains('/');
-        let pattern = Pattern::new(query, CaseMatching::Smart, Normalization::Smart, AtomKind::Fuzzy);
+        let pattern = Pattern::new(query, CaseMatching::Ignore, Normalization::Smart, AtomKind::Fuzzy);
 
         let mut found: Vec<(u32, u32)> = self
             .entries

@@ -374,13 +374,14 @@ fn the_name_is_matched_and_a_query_with_a_slash_matches_the_path() {
 }
 
 #[test]
-fn capitals_in_the_query_have_to_match_and_small_letters_match_both() {
+fn capitals_in_the_query_match_as_small_letters_do_as_in_every_other_row() {
     let scratch = Scratch::new();
     scratch.file("Makefile");
     scratch.file("makefile.bak");
     let index = built(&scratch);
-    assert_eq!(found(&index, &scratch, "Make"), ["Makefile"]);
     assert_eq!(found(&index, &scratch, "make").len(), 2);
+    assert_eq!(found(&index, &scratch, "Make").len(), 2);
+    assert_eq!(found(&index, &scratch, "MAKE").len(), 2);
 }
 
 #[test]
