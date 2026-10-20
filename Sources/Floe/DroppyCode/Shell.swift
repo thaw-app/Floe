@@ -70,7 +70,6 @@ nonisolated enum Shell {
     /// `outputLimit`, only that many bytes of each stream's tail are kept. `onOutput` is given
     /// standard output as it is read, in order.
     @concurrent
-    // swiftlint:disable:next function_body_length - one run of one process, kept in one piece
     static func run(
         _ executable: URL,
         _ arguments: [String],
@@ -92,14 +91,24 @@ nonisolated enum Shell {
         var options = PlatformOptions()
         let teardown = [TeardownStep.gracefulShutDown(allowedDurationToNextStep: .seconds(1))]
         options.teardownSequence = teardown
-        // The body hands the running process and its deadline over: the deadline ends the process
-        // when it outlives its time, and is only put down once the process has ended.
+        // The body hands the running process over, for the deadline to end when it outlives its time.
         let running = Mutex<Execution<FileDescriptorInput, SequenceOutput, SequenceOutput>?>(nil)
-        let deadline = Mutex<Task<Void, Never>?>(nil)
         let surroundings = environment ?? LoginEnvironment.current
         // The input goes through a pipe of Floe's own, whose write end is made quiet, so a program
         // that ends without reading it fails the write instead of ending Floe. Without input: the null device.
         let stdin = try StandardInput(for: input)
+        let deadline = Task {
+            do {
+                try await Task.sleep(for: .seconds(timeout))
+            } catch {
+                // Cancelled because the process has ended: only a real deadline tears
+                // a living process down, however its streams ended before it did.
+                return
+            }
+            await running.withLock { $0 }?.teardown(using: teardown)
+        }
+        // The process has ended, one way or another: its deadline is of no more use.
+        defer { deadline.cancel() }
 
         let result: ExecutionResult<Void, SequenceOutput, SequenceOutput>
         do {
@@ -116,46 +125,13 @@ nonisolated enum Shell {
                 // The child has its own copy of the read end; Floe's goes at once.
                 stdin.closeReadEnd()
                 running.withLock { $0 = execution }
-                deadline.withLock {
-                    $0 = Task {
-                        do {
-                            try await Task.sleep(for: .seconds(timeout))
-                        } catch {
-                            // Cancelled because the process has ended: only a real deadline tears
-                            // a living process down, however its streams ended before it did.
-                            return
-                        }
-                        await running.withLock { $0 }?.teardown(using: teardown)
-                    }
-                }
-                await withThrowingTaskGroup { group in
-                    group.addTask {
-                        for try await buffer in execution.standardOutput {
-                            collector.read(buffer.withUnsafeBytes(Data.init), from: .stdout)
-                        }
-                    }
-                    group.addTask {
-                        for try await buffer in execution.standardError {
-                            collector.read(buffer.withUnsafeBytes(Data.init), from: .stderr)
-                        }
-                    }
-                    if let input {
-                        group.addTask {
-                            // The write is quiet: a program that has ended fails it instead of ending Floe with it.
-                            stdin.write([UInt8](input))
-                            stdin.close()
-                        }
-                    }
-                }
+                await exchange(with: execution, input: input, stdin: stdin, collector: collector)
                 stdin.close()
             }
         } catch {
             stdin.close()
-            deadline.withLock { $0?.cancel() }
             throw error
         }
-        // The process has ended, one way or another: its deadline is of no more use.
-        deadline.withLock { $0?.cancel() }
         try Task.checkCancellation()
         // A process ended by a signal carries the signal's number, as it did.
         let status: Int32 = switch result.terminationStatus {
@@ -163,6 +139,34 @@ nonisolated enum Shell {
         case let .signaled(signal): signal
         }
         return ShellResult(status: status, stdout: collector.output(.stdout), stderr: collector.output(.stderr))
+    }
+
+    /// Reads both streams to their ends while the input is written.
+    private static func exchange(
+        with execution: Execution<FileDescriptorInput, SequenceOutput, SequenceOutput>,
+        input: Data?,
+        stdin: StandardInput,
+        collector: OutputCollector
+    ) async {
+        await withThrowingTaskGroup { group in
+            group.addTask {
+                for try await buffer in execution.standardOutput {
+                    collector.read(buffer.withUnsafeBytes(Data.init), from: .stdout)
+                }
+            }
+            group.addTask {
+                for try await buffer in execution.standardError {
+                    collector.read(buffer.withUnsafeBytes(Data.init), from: .stderr)
+                }
+            }
+            if let input {
+                group.addTask {
+                    // The write is quiet: a program that has ended fails it instead of ending Floe with it.
+                    stdin.write([UInt8](input))
+                    stdin.close()
+                }
+            }
+        }
     }
 
     /// Runs a named tool found on the login PATH.

@@ -81,7 +81,7 @@ nonisolated enum SystemFacts: String, CaseIterable, Sendable {
             case .device: percent(level.percent)
             case .left: String(localized: "Left \(percent(level.percent))", bundle: .floe, comment: "The battery of the left earbud. The placeholder is a percentage.")
             case .right: String(localized: "Right \(percent(level.percent))", bundle: .floe, comment: "The battery of the right earbud. The placeholder is a percentage.")
-            case .case: String(localized: "Case \(percent(level.percent))", bundle: .floe, comment: "The battery of the earbuds' charging case. The placeholder is a percentage.")
+            case .chargingCase: String(localized: "Case \(percent(level.percent))", bundle: .floe, comment: "The battery of the earbuds' charging case. The placeholder is a percentage.")
             }
         }
         return AnswerRow(

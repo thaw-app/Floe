@@ -43,15 +43,13 @@ function isBroken(error: unknown): boolean {
 
 /// Runs a database step, waiting out a database another process holds. The wait is a sleep between
 /// tries, so the event loop keeps running while the other process finishes its work.
-async function patiently<T>(work: () => T | Promise<T>): Promise<T> {
-    const deadline = Date.now() + 5000;
-    for (;;) {
-        try {
-            return await work();
-        } catch (error) {
-            if (Date.now() >= deadline || !isHeld(error)) throw error;
-            await Bun.sleep(25 + (crypto.getRandomValues(new Uint8Array(1))[0] % 50));
-        }
+async function patiently<T>(work: () => T | Promise<T>, deadline = Date.now() + 5000): Promise<T> {
+    try {
+        return await work();
+    } catch (error) {
+        if (Date.now() >= deadline || !isHeld(error)) throw error;
+        await Bun.sleep(25 + (crypto.getRandomValues(new Uint8Array(1))[0] % 50));
+        return patiently(work, deadline);
     }
 }
 

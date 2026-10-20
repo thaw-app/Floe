@@ -68,7 +68,7 @@ final nonisolated class FileIndexService: Sendable {
     private struct Running {
         let index: FileIndex
         var root = ""
-        var stop: @Sendable () -> Void = {}
+        var stop: @Sendable () -> Void = { /* Nothing watches the disk until the index starts. */ }
         var isReady = false
         /// The last event the index holds the changes of.
         var event: UInt64 = 0

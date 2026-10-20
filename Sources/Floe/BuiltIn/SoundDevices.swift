@@ -73,7 +73,7 @@ nonisolated enum SoundDevices {
         let parts = [
             levels.left.map { String(localized: "Left \(percent($0))", bundle: .floe, comment: "The battery of the left earbud. The placeholder is a percentage.") },
             levels.right.map { String(localized: "Right \(percent($0))", bundle: .floe, comment: "The battery of the right earbud. The placeholder is a percentage.") },
-            levels.case.map { String(localized: "Case \(percent($0))", bundle: .floe, comment: "The battery of the earbuds' charging case. The placeholder is a percentage.") },
+            levels.chargingCase.map { String(localized: "Case \(percent($0))", bundle: .floe, comment: "The battery of the earbuds' charging case. The placeholder is a percentage.") },
         ].compactMap(\.self)
         return parts.isEmpty ? nil : parts.joined(separator: ", ")
     }

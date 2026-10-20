@@ -41,7 +41,7 @@ nonisolated enum ScreenTools {
             sampler.show { continuation.resume(returning: $0) }
         }
         // The sampler is kept until it has answered.
-        withExtendedLifetime(sampler) {}
+        withExtendedLifetime(sampler) { /* Only the lifetime matters. */ }
         return color
     }
 

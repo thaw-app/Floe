@@ -348,7 +348,11 @@ export const ActionPanel = Object.assign(host("ActionPanel"), {
 // Feedback
 
 // Extensions hand a caught Error to a toast as its text. As JSON it would be {}, which the app shows as nothing.
-const toastText = (value: unknown) => (value == null ? undefined : value instanceof Error ? value.message : String(value));
+function toastText(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  if (value instanceof Error) return value.message;
+  return typeof value === "object" ? JSON.stringify(value) : String(value);
+}
 
 let nextToastId = 1;
 const liveToasts = new Map<number, Toast>();

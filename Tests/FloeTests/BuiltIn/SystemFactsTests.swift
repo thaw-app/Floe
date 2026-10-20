@@ -84,7 +84,7 @@ struct SystemFactsTests {
 
     @Test func batteryAlsoListsTheConnectedDevicesThatReportOne() {
         let mouse = DeviceBatteryReading(id: "m", name: "Magic Mouse", levels: [(.device, 64)])
-        let buds = DeviceBatteryReading(id: "a", name: "AirPods Pro", levels: [(.left, 80), (.right, 82), (.case, 60)])
+        let buds = DeviceBatteryReading(id: "a", name: "AirPods Pro", levels: [(.left, 80), (.right, 82), (.chargingCase, 60)])
         let rows = SystemFacts.rows(for: "battery", readers: readers(battery: battery(82), devices: [buds, mouse]), locale: english)
         #expect(rows.map(\.text) == ["82%", "Left 80%, Right 82%, Case 60%", "64%"])
         #expect(rows.map(\.subtitle) == ["On battery", "AirPods Pro", "Magic Mouse"])
@@ -98,7 +98,7 @@ struct SystemFactsTests {
         let mouse = SystemReadings.deviceBattery(properties: ["Product": "Magic Mouse", "BatteryPercent": 64, "SerialNumber": "S1"], registryIdentifier: 7)
         #expect(mouse == DeviceBatteryReading(id: "S1", name: "Magic Mouse", levels: [(.device, 64)]))
         let buds = SystemReadings.deviceBattery(properties: ["Name": "Buds", "BatteryPercentLeft": 80, "BatteryPercentCase": 60], registryIdentifier: 9)
-        #expect(buds == DeviceBatteryReading(id: "9", name: "Buds", levels: [(.left, 80), (.case, 60)]))
+        #expect(buds == DeviceBatteryReading(id: "9", name: "Buds", levels: [(.left, 80), (.chargingCase, 60)]))
         #expect(SystemReadings.deviceBattery(properties: ["Product": "Hub"], registryIdentifier: 1) == nil, "no battery, no row")
         #expect(SystemReadings.deviceBattery(properties: ["BatteryPercent": 255], registryIdentifier: 1) == nil, "a level out of range is none")
         _ = SystemReadings.deviceBatteries()

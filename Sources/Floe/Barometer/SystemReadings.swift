@@ -35,7 +35,7 @@ nonisolated struct BatteryReading: Equatable, Sendable {
 /// The battery of a mouse, a keyboard or headphones connected to the Mac, by the parts that report one.
 nonisolated struct DeviceBatteryReading: Equatable, Sendable, Identifiable {
     enum Component: Equatable, Sendable {
-        case device, left, right, `case`
+        case device, left, right, chargingCase
     }
 
     var id: String
@@ -167,7 +167,7 @@ nonisolated enum SystemReadings {
             (.device, ["BatteryPercent", "BatteryPercentSingle", "BatteryLevel"]),
             (.left, ["BatteryPercentLeft"]),
             (.right, ["BatteryPercentRight"]),
-            (.case, ["BatteryPercentCase"]),
+            (.chargingCase, ["BatteryPercentCase"]),
         ]
         let levels = parts.compactMap { part, keys in percent(keys).map { (component: part, percent: $0) } }
         guard !levels.isEmpty else { return nil }

@@ -19,12 +19,12 @@ import Foundation
 nonisolated struct BatteryLevels: Equatable, Sendable {
     var left: Int?
     var right: Int?
-    var `case`: Int?
+    var chargingCase: Int?
     /// Headphones with one battery, such as AirPods Max.
     var main: Int?
 
     var isEmpty: Bool {
-        left == nil && right == nil && `case` == nil && main == nil
+        left == nil && right == nil && chargingCase == nil && main == nil
     }
 }
 
@@ -69,7 +69,7 @@ nonisolated enum BluetoothBattery {
                     let levels = BatteryLevels(
                         left: percent(info["device_batteryLevelLeft"]),
                         right: percent(info["device_batteryLevelRight"]),
-                        case: percent(info["device_batteryLevelCase"]),
+                        chargingCase: percent(info["device_batteryLevelCase"]),
                         main: percent(info["device_batteryLevelMain"])
                     )
                     guard !levels.isEmpty else { continue }

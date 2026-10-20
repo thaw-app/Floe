@@ -49,7 +49,7 @@ import Testing
     @Test func theLevelsAreReadForAppleHeadphonesThatReportAny() {
         let report = BluetoothBattery.parse(profiler)
         #expect(report.byAddress.keys.sorted() == ["70AE2A5E21CD", "AABBCCDDEEFF"])
-        #expect(report.levels(for: airPods) == BatteryLevels(left: 80, right: 82, case: 60))
+        #expect(report.levels(for: airPods) == BatteryLevels(left: 80, right: 82, chargingCase: 60))
         #expect(report.levels(for: airPodsMicrophone) == report.levels(for: airPods), "the microphone is the same headphones")
         #expect(report.levels(for: speakers) == nil)
         #expect(report.byName["Some Mouse"] == nil, "not Apple's, so its level is not one this reads")
@@ -57,7 +57,7 @@ import Testing
     }
 
     @Test func aBatteryIsWrittenByItsParts() {
-        #expect(SoundDevices.batteryLabel(BatteryLevels(left: 80, right: 82, case: 60), locale: english) == "Left 80%, Right 82%, Case 60%")
+        #expect(SoundDevices.batteryLabel(BatteryLevels(left: 80, right: 82, chargingCase: 60), locale: english) == "Left 80%, Right 82%, Case 60%")
         #expect(SoundDevices.batteryLabel(BatteryLevels(left: 80), locale: english) == "Left 80%")
         #expect(SoundDevices.batteryLabel(BatteryLevels(main: 91), locale: english) == "91%")
         #expect(SoundDevices.batteryLabel(BatteryLevels(), locale: english) == nil)
