@@ -21,6 +21,7 @@ struct SettingsSidebarPaneList: View {
     static let listWidth: CGFloat = 220
 
     @Environment(SearchModel.self) private var search
+    @FocusState private var isFocused: Bool
 
     private var rows: [SettingsSidebarRow] {
         SettingsSidebarRows.rows(commands: catalog.allCommands, disabledExtensions: settings.disabledExtensions)
@@ -40,7 +41,7 @@ struct SettingsSidebarPaneList: View {
                         case let .heading(title):
                             ListSectionHeading(title: title)
                         case let .page(page):
-                            SettingsSidebarPageRow(row: page, isSelected: page.page == selectedPage) {
+                            SettingsSidebarPageRow(row: page, isSelected: page.page == selectedPage, showsFocus: isFocused) {
                                 SettingsSearchNavigation.selectSidebarPane(page.page, selection: selection, search: search)
                             }
                         }
@@ -54,7 +55,13 @@ struct SettingsSidebarPaneList: View {
             .onChange(of: selection.page) { proxy.scrollTo(selection.page.id) }
         }
         .scrollEdgeEffectStyle(.soft, for: .top)
-        .movesSelectionWithArrows { move(by: $0) }
+        .thawKeyboardList(isFocused: $isFocused) { direction in
+            switch direction {
+            case .up: move(by: -1)
+            case .down: move(by: 1)
+            default: break
+            }
+        }
     }
 
     /// Selects the page above or below the selected one, past the headings.
@@ -70,6 +77,8 @@ struct SettingsSidebarPaneList: View {
 private struct SettingsSidebarPageRow: View {
     let row: SettingsSidebarPage
     let isSelected: Bool
+    /// The sidebar has keyboard focus, so the selected row shows the focus ring.
+    let showsFocus: Bool
     let select: () -> Void
 
     var body: some View {
@@ -87,5 +96,6 @@ private struct SettingsSidebarPageRow: View {
             .selectedRowBackground(isSelected)
         }
         .buttonStyle(.plain)
+        .thawFocusRing(isSelected && showsFocus, in: ListStyle.rowShape)
     }
 }

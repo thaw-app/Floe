@@ -8,8 +8,9 @@
 import SwiftUI
 import ThawUI
 
-/// The settings sidebar's touches, for every list: the shared icon box, the selected fill, the group headings and the
-/// arrow keys. The panel's lists keep their own glass selection and share the rest.
+/// The settings sidebar's touches, for every list: the shared icon box, the selected fill and the group headings.
+/// The panel's lists keep their own glass selection and share the rest. ThawUI's thawKeyboardList gives a list the
+/// arrow keys.
 enum ListStyle {
     /// The box every row's icon sits in, so the names line up whatever the icon.
     static let iconBox: CGFloat = 18
@@ -17,9 +18,9 @@ enum ListStyle {
     static let imageSize: CGFloat = 16
     static let symbolFont = Font.system(size: 15, weight: .regular)
     static let rowHeight: CGFloat = 32
-    static let rowShape = RoundedRectangle(cornerRadius: 8, style: .continuous)
-    /// How much an icon that is off fades.
-    static let dimmedIconOpacity = 0.5
+    static let rowShape = RoundedRectangle(cornerRadius: ThawRadius.row, style: .continuous)
+    /// How much an icon that is off fades: as much as a disabled control.
+    static let dimmedIconOpacity = ThawInk.disabledOpacity
 }
 
 /// A row's icon in the shared box: a symbol in the secondary colour, or an icon of its own a little smaller.
@@ -64,27 +65,14 @@ struct SelectedRowBackground: ViewModifier {
                 }
             }
             .contentShape(ListStyle.rowShape)
-            .accessibilityAddTraits(isSelected ? .isSelected : [])
+            // A fill alone can be missed; Differentiate Without Color adds a bar, and VoiceOver hears the state.
+            .thawSelectionCue(isSelected: isSelected)
     }
 }
 
 extension View {
     func selectedRowBackground(_ isSelected: Bool) -> some View {
         modifier(SelectedRowBackground(isSelected: isSelected))
-    }
-
-    /// The up and down arrows move the selection once the list has focus, the way a List's do. `move` is handed
-    /// -1 or 1.
-    func movesSelectionWithArrows(_ move: @escaping (Int) -> Void) -> some View {
-        focusable()
-            .focusEffectDisabled()
-            .onMoveCommand { direction in
-                switch direction {
-                case .up: move(-1)
-                case .down: move(1)
-                default: break
-                }
-            }
     }
 }
 
@@ -98,20 +86,17 @@ struct ListSectionHeading: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: ThawSpacing.compact) {
-            Text(title)
-                .font(.system(size: 11, weight: .semibold))
-                .textCase(.uppercase)
+            ThawListHeading(Text(title))
             if let detail {
                 Text(detail)
                     .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
-        .foregroundStyle(.secondary)
-        .lineLimit(1)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, isFirst ? ThawSpacing.tight : ThawSpacing.gutter)
         .padding(.bottom, ThawSpacing.tight)
         .padding(.leading, ThawSpacing.row)
-        .accessibilityAddTraits(.isHeader)
     }
 }
