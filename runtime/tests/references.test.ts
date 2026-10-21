@@ -8,8 +8,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import React, { useState } from "react";
 import { Action, ActionPanel, Detail, List, useNavigation } from "../api/index";
-import { referenceVersion, renderInFull, setReferences } from "../renderer";
-import { find, findAll, fire, installRuntime, renders, settle, showScreen, type Message, type TreeNode } from "./support";
+import { dispatchEvent, referenceVersion, renderInFull, renderStats, setReferences } from "../renderer";
+import { find, findAll, fire, fireForRender, installRuntime, renders, settle, showScreen, type Message, type TreeNode } from "./support";
 
 const h = React.createElement;
 installRuntime("reference-tests");
@@ -22,7 +22,7 @@ const isReference = (node: Sent): node is { ref: number } => "ref" in node;
 // What the app does with a render: nodes of the last one are kept by id and put where a reference names them.
 class App {
   private kept = new Map<number, TreeNode>();
-  private sequence?: number;
+  sequence?: number;
   tree?: TreeNode;
 
   apply(message: Message) {
@@ -211,5 +211,106 @@ describe("references across navigation", () => {
     expect(popped.flatMap((message) => references(message.tree as Sent))).toEqual([], "the app dropped the lower screen when it was hidden");
     expect(find(app.tree!, "Detail").props.markdown).toBe("# Saturn");
     expect(find(app.tree!, "Detail").id).toBe(find(tree, "Detail").id);
+  });
+});
+
+// Each row keeps a count of its own, so a change can reach one row without the list rendering again.
+function Row({ name, title }: { name: string; title: string }) {
+  const [count, setCount] = useState(0);
+  return h(List.Item, { id: name, title, subtitle: count ? `bumped ${count}` : undefined, accessories: [{ text: name }], onBump: () => setCount((value) => value + 1) });
+}
+type Rows = { names: string[]; renamed?: string; loading?: boolean };
+function Roster() {
+  const { push } = useNavigation();
+  const [state, setState] = useState<Rows>({ names: Array.from({ length: 30 }, (_, index) => `row-${index}`) });
+  return h(
+    List,
+    { isLoading: state.loading ?? false, onChange: (change: Partial<Rows>) => setState((current) => ({ ...current, ...change })), onPush: () => push(h(Planet, { name: "Io" })) },
+    state.names.map((name) => h(Row, { key: name, name, title: name === "row-5" ? (state.renamed ?? name) : name })),
+  );
+}
+
+// Ids and sequences as they stand relative to the run, so the same commits read the same in any process.
+function normalized(messages: Message[]): string[] {
+  const ids = new Map<number, number>();
+  const first = messages[0]?.sequence ?? 0;
+  return messages.map((message) =>
+    JSON.stringify({ ...message, sequence: message.sequence - first, ...(message.base === undefined ? {} : { base: message.base - first }) }).replace(
+      /"(id|ref)":(\d+)/g,
+      (_, key: string, id: string) => {
+        if (!ids.has(Number(id))) ids.set(Number(id), ids.size);
+        return `"${key}":${ids.get(Number(id))}`;
+      },
+    ),
+  );
+}
+
+describe("what is sent", () => {
+  test("the same commits send the same lines, byte for byte", async () => {
+    const start = renders().length;
+    const tree = await showScreen(h(Roster));
+    const app = new App();
+    renders().slice(start).forEach((message) => app.apply(message));
+    const follow = async (id: number, prop: string, ...args: unknown[]) => {
+      const before = renders().length;
+      dispatchEvent(id, prop, args);
+      await settle();
+      renders().slice(before).forEach((message) => app.apply(message));
+    };
+    const list = () => find(app.tree!, "List").id;
+    const row = (name: string) => findAll(app.tree!, "List.Item").find((item) => item.props.id === name)!.id;
+    const names = () => findAll(app.tree!, "List.Item").map((item) => item.props.id as string);
+
+    expect(find(tree, "List")).toBeDefined();
+    await follow(list(), "onChange", { renamed: "The fifth" });
+    await follow(list(), "onChange", { loading: true });
+    await follow(row("row-12"), "onBump");
+    await follow(row("row-12"), "onBump");
+    await follow(list(), "onChange", { names: names().toReversed() });
+    await follow(list(), "onChange", { names: [...names(), "row-new"] });
+    await follow(list(), "onChange", { names: names().filter((name) => name !== "row-3") });
+    let before = renders().length;
+    renderInFull();
+    await settle(before);
+    renders().slice(before).forEach((message) => app.apply(message));
+    await follow(row("row-7"), "onBump");
+    await follow(list(), "onPush");
+    await follow(find(app.tree!, "Detail").id, "onBack");
+    await follow(row("row-7"), "onBump");
+    setReferences(false);
+    try {
+      await follow(list(), "onChange", { loading: false });
+      await follow(row("row-9"), "onBump");
+    } finally {
+      setReferences(true);
+    }
+    await follow(list(), "onChange", { renamed: "Fifth again" });
+    before = renders().length;
+    await follow(row("row-20"), "onBump");
+    expect(renders().length).toBe(before + 1);
+
+    const lines = normalized(renders().slice(start));
+    const golden = Bun.file(new URL("fixtures/sent-lines.json", import.meta.url));
+    if (process.env.FLOE_WRITE_GOLDEN) await Bun.write(golden, JSON.stringify(lines, null, 1) + "\n");
+    expect(lines).toEqual(await golden.json());
+  });
+
+  test("a change to one row of a thousand writes that row alone, whether the row or the list changed", async () => {
+    const names = Array.from({ length: 1000 }, (_, index) => `row-${index}`);
+    const start = renders().length;
+    await showScreen(h(Roster));
+    const app = new App();
+    renders().slice(start).forEach((message) => app.apply(message));
+    await fireForRender(find(app.tree!, "List"), "onChange", { names });
+    renders().slice(start).forEach((message) => message.sequence > app.sequence! && app.apply(message));
+    const item = findAll(app.tree!, "List.Item").find((node) => node.props.id === "row-5")!;
+
+    let heads = renderStats.heads;
+    await fireForRender(item, "onBump");
+    expect(renderStats.heads - heads).toBe(1);
+    heads = renderStats.heads;
+    await fireForRender(find(app.tree!, "List"), "onChange", { renamed: "The fifth" });
+    expect(renderStats.heads - heads).toBe(1, "the other rows rendered again with props that write the same");
+    expect(findAll(renders().at(-1)!.tree!, "List.Item").map((node) => node.props.title)).toEqual(["The fifth"]);
   });
 });

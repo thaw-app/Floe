@@ -11,7 +11,8 @@ import Reconciler from "react-reconciler";
 import { ConcurrentRoot, DefaultEventPriority } from "react-reconciler/constants";
 import { ctx, send, sendLine } from "./bridge";
 
-type Sent = { sentRound?: number; sentHead?: string; sentChildren?: Child[] };
+// `head` is the node's own JSON while its props stand; `stale` says it or something under it changed since it was written.
+type Sent = { sentRound?: number; sentHead?: string; sentChildren?: Child[]; head?: string; stale?: boolean };
 type Instance = Sent & {
   id: number;
   type: string;
@@ -40,8 +41,17 @@ function touch(node: Instance | undefined) {
   dirty = top?.parent !== container || top.type !== "_screen" || top === visibleScreen(container);
 }
 
+// Marks a node and the nodes above it as changed. A node never written is changed already, so the climb stops there.
+function mark(node: Child | undefined) {
+  while (node && node.stale === false) {
+    node.stale = true;
+    node = node.parent;
+  }
+}
+
 function remove(parent: Instance, child: Child) {
   touch(parent);
+  mark(parent);
   const index = parent.children.indexOf(child);
   if (index >= 0) parent.children.splice(index, 1);
   child.parent = undefined;
@@ -58,6 +68,28 @@ function insertBefore(parent: Instance, child: Child, before: Child) {
   else parent.children.splice(index, 0, child);
   child.parent = parent;
 }
+// Whether two prop values would be written the same: false whenever unsure, which only costs a head() call.
+function samePlain(a: unknown, b: unknown, depth = 0): boolean {
+  if (a === b) return true;
+  const callable = (value: unknown) => typeof value === "function" || typeof value === "symbol";
+  if (callable(a) || callable(b)) return callable(a) && callable(b);
+  if (a === null || b === null || typeof a !== "object" || typeof b !== "object" || depth > 8) return false;
+  if (React.isValidElement(a) || React.isValidElement(b)) return React.isValidElement(a) && React.isValidElement(b);
+  if (a instanceof Date || b instanceof Date) return a instanceof Date && b instanceof Date && a.getTime() === b.getTime();
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const keys = Object.keys(a);
+  const others = Object.keys(b);
+  if (keys.length !== others.length || keys.some((key, index) => key !== others[index])) return false;
+  return keys.every((key) => samePlain((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key], depth + 1));
+}
+
+function sameProps(old: Record<string, unknown>, now: Record<string, unknown>): boolean {
+  const keys = Object.keys(old);
+  const others = Object.keys(now);
+  if (keys.length !== others.length || keys.some((key, index) => key !== others[index])) return false;
+  return keys.every((key) => key === "children" || samePlain(old[key], now[key]));
+}
+
 function forget(child: Child) {
   if ("text" in child) return;
   instances.delete(child.id);
@@ -92,7 +124,11 @@ export function setReferences(enabled: boolean) {
   heldRound = -1;
 }
 
+// What serializing has cost, for the tests and the benchmark.
+export const renderStats = { heads: 0, flushTime: 0 };
+
 function head(node: Child): string {
+  renderStats.heads += 1;
   if ("text" in node) return JSON.stringify({ id: node.id, type: "#text", text: node.text });
   const props: Record<string, unknown> = {};
   const handlers: string[] = [];
@@ -109,9 +145,18 @@ const sameChildren = (sent: Child[] | undefined, now: Child[]) =>
 
 // The node's JSON, or nothing when the app already holds this very subtree: the parent then names it by id.
 // Compared as text, so anything that would be sent differently counts as a change, a handler's name included.
+// A subtree the app holds and nothing in it changed is named by id without being walked. Holding passes down:
+// the children a held node was last sent with are held too, whether they went whole or by reference.
 function write(node: Child, children: Child[]): string | undefined {
-  const own = head(node);
-  let same = node.sentRound === heldRound && node.sentHead === own && sameChildren(node.sentChildren, children);
+  const held = node.sentRound === heldRound;
+  if (references && held && node.stale === false) {
+    node.sentRound = round;
+    return undefined;
+  }
+  if (held) node.sentChildren?.forEach((child) => (child.sentRound ?? -1) < heldRound && (child.sentRound = heldRound));
+  node.stale = false;
+  const own = (node.head ??= head(node));
+  let same = held && node.sentHead === own && sameChildren(node.sentChildren, children);
   const parts = children.map((child) => write(child, "text" in child ? noChildren : child.children));
   if (parts.some((part) => part !== undefined)) same = false;
   if (references) {
@@ -129,6 +174,7 @@ function write(node: Child, children: Child[]): string | undefined {
 // Navigation keeps lower screens mounted so Back can restore them, but Swift only shows the last one:
 // hidden screen subtrees are skipped before serialization ever walks them. The live tree is not touched.
 function flush() {
+  const started = performance.now();
   const visible = visibleScreen(container);
   const shown = container.children.filter((child) => child === visible || child.type !== "_screen");
   round += 1;
@@ -140,6 +186,7 @@ function flush() {
   sequence += 1;
   const base = referenced ? `"base":${sequence - 1},"references":${referenceVersion},` : "";
   sendLine(`{"type":"render","sequence":${sequence},${base}"tree":${tree}}`);
+  renderStats.flushTime += performance.now() - started;
 }
 
 // The app could not place a reference, or missed a render: the next one is sent whole.
@@ -196,16 +243,23 @@ const reconciler = Reconciler({
     remove(parent, child);
     forget(child);
   },
-  commitUpdate(instance: Instance, _type: string, _oldProps: unknown, newProps: Record<string, unknown>) {
+  commitUpdate(instance: Instance, _type: string, oldProps: Record<string, unknown>, newProps: Record<string, unknown>) {
     touch(instance);
+    if (!sameProps(oldProps, newProps)) {
+      instance.head = undefined;
+      mark(instance);
+    }
     instance.props = newProps;
   },
   commitTextUpdate(instance: TextInstance, _oldText: string, newText: string) {
     touch(instance.parent);
     instance.text = newText;
+    instance.head = undefined;
+    mark(instance);
   },
   clearContainer(root: Instance) {
     touch(root);
+    mark(root);
     root.children.forEach(forget);
     root.children = [];
   },

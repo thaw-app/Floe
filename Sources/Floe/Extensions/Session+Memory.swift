@@ -23,4 +23,16 @@ extension ExtensionSession {
         onMessage(["type": "crashed"])
         return true
     }
+
+    /// A message too long to keep waiting for is held by Floe, not the host, so the host is stopped for it here.
+    func stopsOverLineLimit(holding bytes: Int) {
+        guard !isStopping else { return }
+        failure = SessionFailure(
+            kind: .crashed,
+            message: String(localized: "The extension sent a message too large to read and was stopped.", bundle: .floe),
+            details: String(localized: "One message ran past \(bytes / 1_048_576) MB.", bundle: .floe, comment: "The placeholder is a number of megabytes.")
+        )
+        forceStop()
+        onMessage(["type": "crashed"])
+    }
 }

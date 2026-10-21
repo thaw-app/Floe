@@ -34,6 +34,7 @@ struct HostMessageDecoderTests {
         case .render: "render"
         case .unresolvedRender: "unresolvedRender"
         case let .fields(fields): fields["type"] as? String ?? ""
+        case .oversized: "oversized"
         }
     }
 
@@ -106,6 +107,24 @@ struct HostMessageDecoderTests {
         let good = await decoder.append(line(["type": "render", "tree": ["type": "Detail", "id": 7]]))
         #expect(tree(good[0])?.id == 7)
         #expect(tree(good[0])?.type == "Detail")
+    }
+
+    @Test func aLineThatRunsPastTheLimitStopsTheReading() async {
+        let decoder = HostMessageDecoder(lineLimit: 64)
+        #expect(await decoder.append(Data(repeating: 0x41, count: 40)).isEmpty)
+        let past = await decoder.append(Data(repeating: 0x41, count: 40))
+        #expect(types(past) == ["oversized"])
+        if case let .oversized(bytes) = past.first {
+            #expect(bytes == 80)
+        }
+        #expect(await decoder.append(line(["type": "close"])).isEmpty, "nothing more is read once a line ran past")
+    }
+
+    @Test func aLineUnderTheLimitStillCompletesAcrossChunks() async {
+        let message = line(["type": "hud", "title": "Copied"])
+        let decoder = HostMessageDecoder(lineLimit: message.count)
+        #expect(await decoder.append(message.prefix(10)).isEmpty)
+        #expect(await types(decoder.append(message.dropFirst(10))) == ["hud"])
     }
 
     @Test func decodersDoNotShareState() async {

@@ -350,6 +350,22 @@ struct ExtensionSessionTests {
         #expect(session.isStopping)
     }
 
+    @Test func aMessageTooLargeToReadStopsTheHostAndSaysWhy() {
+        var crashes = 0
+        session.onMessage = {
+            if $0["type"] as? String == "crashed" {
+                crashes += 1
+            }
+        }
+        session.apply(.oversized(bytes: 300 * 1_048_576))
+        #expect(session.failure?.kind == .crashed)
+        #expect(session.failure?.message == "The extension sent a message too large to read and was stopped.")
+        #expect(session.failure?.details == "One message ran past 300 MB.")
+        #expect(session.isStopping)
+        session.apply(.oversized(bytes: 300 * 1_048_576))
+        #expect(crashes == 1)
+    }
+
     @Test func anUnresponsiveHostStillHasAMemoryCeiling() {
         let start = Date(timeIntervalSince1970: 1_800_000_000)
         session.heartbeat(now: start)

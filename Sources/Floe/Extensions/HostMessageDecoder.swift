@@ -19,6 +19,8 @@ nonisolated enum DecodedHostMessage: @unchecked Sendable {
     /// A render that names nodes the app does not hold: nothing to show, the host is asked for a whole one.
     case unresolvedRender
     case fields([String: Any])
+    /// A line still unfinished past the decoder's limit: what came of it is dropped, and the host is stopped.
+    case oversized(bytes: Int)
 
     /// Decodes one complete NDJSON line. Nil for anything JSON cannot read into an object, which the
     /// host's output has always skipped.
@@ -38,6 +40,7 @@ nonisolated struct KeptRender {
     static let referenceVersion = 1
 
     private var nodes: [Int: Node] = [:]
+    private var root: Node?
     private var sequence: Int?
     private var hasAsked = false
 
@@ -51,13 +54,61 @@ nonisolated struct KeptRender {
             return hasAsked ? nil : .unresolvedRender
         }
         // Only this render is held, as the host assumes: a screen it left out is sent whole when it comes back.
-        var held: [Int: Node] = [:]
-        held.reserveCapacity(nodes.count)
-        tree?.hold(in: &held)
-        nodes = held
+        // A render that refers to the last one changes the held nodes where it sent nodes again.
+        if message["base"] != nil, let tree, root?.id == tree.id {
+            Self.refresh(tree, in: &nodes)
+        } else {
+            var held: [Int: Node] = [:]
+            held.reserveCapacity(nodes.count)
+            tree?.hold(in: &held)
+            nodes = held
+        }
+        root = tree
         sequence = message["sequence"] as? Int
         hasAsked = false
         return .render(tree: tree)
+    }
+
+    /// The ids held and the revision of each, for a test that compares them with a whole rebuild.
+    var heldRevisions: [Int: Int] {
+        nodes.mapValues(\.revision)
+    }
+
+    /// Changes the held nodes where this render sent nodes again; a referenced subtree is held already.
+    /// Drops come before filing, since a subtree may move under another parent.
+    private static func refresh(_ tree: Node, in held: inout [Int: Node]) {
+        dropRemoved(under: tree, from: &held)
+        file(tree, in: &held)
+    }
+
+    private static func dropRemoved(under node: Node, from held: inout [Int: Node]) {
+        let old = held[node.id]
+        guard old?.revision != node.revision else { return }
+        // Mostly the same children in the same order, which needs no set to tell.
+        if let old, !old.children.elementsEqual(node.children, by: { $0.id == $1.id }) {
+            let kept = Set(node.children.map(\.id))
+            for child in old.children where !kept.contains(child.id) {
+                drop(child, from: &held)
+            }
+        }
+        for child in node.children {
+            dropRemoved(under: child, from: &held)
+        }
+    }
+
+    private static func file(_ node: Node, in held: inout [Int: Node]) {
+        guard held[node.id]?.revision != node.revision else { return }
+        held[node.id] = node
+        for child in node.children {
+            file(child, in: &held)
+        }
+    }
+
+    private static func drop(_ node: Node, from held: inout [Int: Node]) {
+        held[node.id] = nil
+        for child in node.children {
+            drop(child, from: &held)
+        }
     }
 
     /// A whole render names nothing. One with references is only good against the render it was written
@@ -74,14 +125,26 @@ nonisolated struct KeptRender {
 /// Frames the host's NDJSON stdout and decodes each complete line, away from the main actor.
 /// One decoder per running host: it owns the partial bytes between chunks.
 actor HostMessageDecoder {
+    /// The longest line kept while it waits for its newline. The memory watchdog watches only the host,
+    /// so a host writing one line without end would otherwise grow Floe instead.
+    static let lineLimit = 256 << 20
+
+    private let lineLimit: Int
     private var kept = KeptRender()
     private var buffer = Data()
+    /// Set once a line ran past the limit: the rest of the output is not read.
+    private var isRefusing = false
     /// Bytes already searched for a newline, counted from buffer.startIndex, so an incomplete long
     /// line is not rescanned on every chunk.
     private var scanned = 0
 
+    init(lineLimit: Int = HostMessageDecoder.lineLimit) {
+        self.lineLimit = lineLimit
+    }
+
     /// Hands back the messages this chunk completed, in arrival order.
     func append(_ data: Data) -> [DecodedHostMessage] {
+        guard !isRefusing else { return [] }
         buffer.append(data)
         var messages: [DecodedHostMessage] = []
         var search = buffer.index(buffer.startIndex, offsetBy: scanned)
@@ -101,6 +164,12 @@ actor HostMessageDecoder {
         scanned = buffer.distance(from: lineStart, to: buffer.endIndex)
         if lineStart > buffer.startIndex {
             buffer.removeSubrange(buffer.startIndex ..< lineStart)
+        }
+        if buffer.count > lineLimit {
+            messages.append(.oversized(bytes: buffer.count))
+            isRefusing = true
+            buffer = Data()
+            scanned = 0
         }
         return messages
     }

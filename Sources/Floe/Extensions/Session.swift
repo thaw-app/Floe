@@ -177,6 +177,8 @@ final class ExtensionSession: ObservableObject {
             send(["type": "fullRender"])
         case let .fields(message):
             resetsField(message) ? () : apply(message)
+        case let .oversized(bytes):
+            stopsOverLineLimit(holding: bytes)
         }
     }
 
