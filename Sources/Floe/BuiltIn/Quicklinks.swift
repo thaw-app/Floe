@@ -124,6 +124,18 @@ final class QuicklinkStore: ObservableObject {
         links.append(link)
     }
 
+    func moveFallbacks(from source: IndexSet, to destination: Int) {
+        var reordered = fallbacks
+        reordered.move(fromOffsets: source, toOffset: destination)
+
+        let slots = links.indices.filter { links[$0].isFallback }
+        var updated = links
+        for (slot, link) in zip(slots, reordered) {
+            updated[slot] = link
+        }
+        links = updated
+    }
+
     func update(_ link: Quicklink) {
         guard let index = links.firstIndex(where: { $0.id == link.id }) else { return }
         links[index] = link

@@ -21,7 +21,7 @@ struct QuicklinksSettingsPage: View {
         Form {
             SettingsPageHeader()
             ThawSection(header: { Text("Quicklinks") }, content: {
-                ForEach(store.links) { link in
+                ForEach($store.links) { $link in
                     HStack(spacing: ThawSpacing.row) {
                         QuicklinkTile(symbol: link.symbol)
                         VStack(alignment: .leading, spacing: 1) {
@@ -36,6 +36,7 @@ struct QuicklinksSettingsPage: View {
                                 .truncationMode(.middle)
                         }
                         Spacer()
+                        Toggle("", isOn: $link.isFallback)
                         Button("Edit") { edit(link) }
                     }
                 }
@@ -44,21 +45,16 @@ struct QuicklinksSettingsPage: View {
             ThawSection(
                 header: { Text("Fallbacks") },
                 content: {
-                    let fallbacks = store.fallbacks
-                    ForEach(fallbacks) { link in
-                        HStack(spacing: ThawSpacing.row) {
-                            QuicklinkTile(symbol: link.symbol)
-                            Text(link.name)
-                            Spacer()
-                            Button { store.move(link, by: -1) } label: {
-                                Image(systemName: "chevron.up")
+                    List {
+                        ForEach(store.fallbacks) { link in
+                            HStack(spacing: ThawSpacing.row) {
+                                QuicklinkTile(symbol: link.symbol)
+                                Text(link.name)
+                                Spacer()
+                                Image(systemName: "line.3.horizontal")
                             }
-                            .disabled(fallbacks.first?.id == link.id)
-                            Button { store.move(link, by: 1) } label: {
-                                Image(systemName: "chevron.down")
-                            }
-                            .disabled(fallbacks.last?.id == link.id)
                         }
+                        .onMove { store.moveFallbacks(from: $0, to: $1) }
                     }
                 },
                 footer: { Text("Shown under your results when you search.") }
