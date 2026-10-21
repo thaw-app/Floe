@@ -63,7 +63,7 @@ struct StoreDetail: View {
             // Only the pane that is open asks: the list's rows never fetch screenshots.
             for url in await store.screenshots(for: name) {
                 guard !Task.isCancelled else { return }
-                if let file = await store.iconFile(for: url), let screenshot = StoreScreenshot(file: file) {
+                if let file = await store.iconFile(for: url), let screenshot = await StoreScreenshot.load(file) {
                     screenshots.append(screenshot)
                 }
             }
@@ -299,18 +299,27 @@ struct StoreTagFlow: Layout {
     }
 }
 
-/// A screenshot kept in the temporary folder, read once when it arrives.
+/// A screenshot kept in the temporary folder, decoded at the size the strip draws it. Raycast's are 2000 pixels
+/// wide, 10 MB each once decoded, so the full picture is never held.
 struct StoreScreenshot: Identifiable {
+    /// The longer side in pixels: the strip's width on a Retina display, and the sheet's.
+    static let stripPixels = 576
+    static let sheetPixels = 1440
+
     let file: String
-    let image: NSImage
+    let image: CGImage
     var id: String {
         file
     }
 
-    init?(file: String) {
-        guard let image = NSImage(contentsOfFile: file), image.isValid else { return nil }
-        self.file = file
-        self.image = image
+    static func load(_ file: String) async -> StoreScreenshot? {
+        await decoded(file, pixels: stripPixels).map { StoreScreenshot(file: file, image: $0) }
+    }
+
+    /// Decodes off the main thread, straight to the size asked for.
+    @concurrent
+    static func decoded(_ file: String, pixels: Int) async -> CGImage? {
+        CGImageSourceCreateWithURL(URL(fileURLWithPath: file) as CFURL, nil)?.thumbnail(at: 0, maxPixelSize: pixels)
     }
 }
 
@@ -331,7 +340,7 @@ private struct StoreScreenshotStrip: View {
                     Button {
                         open(screenshot)
                     } label: {
-                        Image(nsImage: screenshot.image)
+                        Image(decorative: screenshot.image, scale: 1)
                             .resizable()
                             .scaledToFill()
                             .frame(width: Self.width, height: Self.height)
@@ -347,14 +356,16 @@ private struct StoreScreenshotStrip: View {
     }
 }
 
-/// One screenshot as large as the window allows, closed with Escape or Done.
+/// One screenshot as large as the window allows, closed with Escape or Done. The larger picture is decoded when the
+/// sheet opens and let go when it closes; the strip's stands in until it arrives.
 private struct StoreScreenshotSheet: View {
     let screenshot: StoreScreenshot
+    @State private var large: CGImage?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 12) {
-            Image(nsImage: screenshot.image)
+            Image(decorative: large ?? screenshot.image, scale: 1)
                 .resizable()
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -366,5 +377,6 @@ private struct StoreScreenshotSheet: View {
             }
         }
         .padding(16)
+        .task { large = await StoreScreenshot.decoded(screenshot.file, pixels: StoreScreenshot.sheetPixels) }
     }
 }

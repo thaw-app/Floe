@@ -7,6 +7,7 @@
 
 @testable import Floe
 import Foundation
+import ImageIO
 import Testing
 
 struct ExtensionStoreTests {
@@ -348,5 +349,31 @@ struct ExtensionStoreTests {
     @Test(arguments: ["", "   ", "-", " - "])
     func aSearchWithNothingToMatchOnListsEverything(query: String) {
         #expect(found(query) == ["1password", "pass", "proton-mail", "proton-pass", "spotify-player"])
+    }
+}
+
+/// The store's screenshots, which Raycast takes 2000 pixels wide.
+struct StoreScreenshotTests {
+    @Test func aScreenshotIsDecodedAtTheSizeItIsDrawnNotAtTheSizeItWasTaken() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-screenshot-\(UUID().uuidString).png")
+        defer { try? FileManager.default.removeItem(at: file) }
+        try Self.writePicture(width: 2000, height: 1250, to: file)
+
+        let screenshot = try #require(await StoreScreenshot.load(file.path))
+        #expect(screenshot.image.width == StoreScreenshot.stripPixels)
+        #expect(screenshot.image.height == 360, "the shape is kept")
+        let large = try #require(await StoreScreenshot.decoded(file.path, pixels: StoreScreenshot.sheetPixels))
+        #expect(large.width == StoreScreenshot.sheetPixels)
+        #expect(await StoreScreenshot.load("/nonexistent.png") == nil)
+    }
+
+    private static func writePicture(width: Int, height: Int, to file: URL) throws {
+        let space = CGColorSpaceCreateDeviceRGB()
+        let alpha = CGImageAlphaInfo.premultipliedLast.rawValue
+        let context = try #require(CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0, space: space, bitmapInfo: alpha))
+        let image = try #require(context.makeImage())
+        let destination = try #require(CGImageDestinationCreateWithURL(file as CFURL, "public.png" as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, image, nil)
+        #expect(CGImageDestinationFinalize(destination))
     }
 }
