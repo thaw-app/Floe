@@ -82,6 +82,7 @@ nonisolated enum SettingsPage: Hashable {
     case ai
     case sync
     case quicklinks
+    case fallbacks
     case snippets
     case extensionStore
     case appearance
@@ -97,6 +98,7 @@ nonisolated enum SettingsPage: Hashable {
         "ai": .ai,
         "sync": .sync,
         "quicklinks": .quicklinks,
+        "fallbacks": .fallbacks,
         "snippets": .snippets,
         "store": .extensionStore,
         "appearance": .appearance,

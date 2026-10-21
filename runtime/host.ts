@@ -99,7 +99,8 @@ const launchProps = {
   arguments: argumentsJSON ? JSON.parse(argumentsJSON) : {},
   // What the command that called launchCommand handed on.
   launchContext: process.env.FLOE_LAUNCH_CONTEXT ? JSON.parse(process.env.FLOE_LAUNCH_CONTEXT) : undefined,
-  fallbackText: undefined,
+  // What was typed, when the command was chosen as a fallback.
+  fallbackText: process.env.FLOE_FALLBACK_TEXT,
 };
 
 globalThis.fetch = withNodeCause(withNodeOptions(globalThis.fetch));

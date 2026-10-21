@@ -78,6 +78,7 @@ extension ExtensionSession {
             preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
             hasAI: AIAnswer.isAvailable(for: command.extensionName),
             launch: (launchType, launchContext),
+            fallbackText: fallbackText,
             recordsAccess: recordsAccess(),
             isDevelopment: Self.isUnderDevelopment(command.extensionDir),
             isDark: NSApp?.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua

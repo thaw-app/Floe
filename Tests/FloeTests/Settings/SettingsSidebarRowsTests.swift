@@ -32,7 +32,7 @@ struct SettingsSidebarRowsTests {
         let rows = SettingsSidebarRows.rows(commands: Self.commands, disabledExtensions: ["zeta"])
         #expect(Self.describe(rows) == [
             "general", "appearance", "privacy",
-            "# Search", "commands", "applications", "quicklinks", "snippets",
+            "# Search", "commands", "applications", "quicklinks", "fallbacks", "snippets",
             "# Connections", "ai", "sync", "store",
             "# Extensions", "extension:alpha", "extension:zeta",
             "about",

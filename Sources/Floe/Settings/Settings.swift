@@ -22,6 +22,8 @@ final class AppSettings: ObservableObject {
     @Published var aliases: [String: String] = [:]
     /// `RootItem.id`s, in the order they're shown.
     @Published var favorites: [String] = []
+    /// `Fallback.id`s, in the order they're offered; nil until the user chooses them on the Fallbacks page.
+    @Published var fallbacks: [String]?
     /// Results taken out of the search: `RootItem.id` to the title it had, which Settings lists it by.
     @Published var hiddenResults: [String: String] = [:]
     @Published var emojiSkinTone = EmojiSkinTone.none
@@ -148,6 +150,7 @@ final class AppSettings: ObservableObject {
         var includeRaycastExtensions: Bool?
         var popToRootDelay: Int?
         var favorites: [String]?
+        var fallbacks: [String]?
         var hiddenResults: [String: String]?
         var emojiSkinTone: EmojiSkinTone?
         var rememberMenuBarQuery: Bool?
@@ -291,6 +294,7 @@ final class AppSettings: ObservableObject {
         includeRaycastExtensions = stored.includeRaycastExtensions ?? true
         popToRootDelay = stored.popToRootDelay ?? popToRootDelay
         favorites = stored.favorites ?? []
+        fallbacks = stored.fallbacks
         hiddenResults = stored.hiddenResults ?? [:]
         emojiSkinTone = stored.emojiSkinTone ?? .none
         rememberMenuBarQuery = stored.rememberMenuBarQuery ?? false
@@ -359,6 +363,7 @@ final class AppSettings: ObservableObject {
             includeRaycastExtensions: includeRaycastExtensions,
             popToRootDelay: popToRootDelay,
             favorites: favorites,
+            fallbacks: fallbacks,
             hiddenResults: hiddenResults,
             emojiSkinTone: emojiSkinTone,
             rememberMenuBarQuery: rememberMenuBarQuery,

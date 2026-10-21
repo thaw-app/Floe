@@ -224,6 +224,17 @@
     "%@ · stopped" : {
       "comment" : "Beside the receipt of a timer that was stopped. The placeholder is a time, such as 2 hr. ago."
     },
+    "%@ “%@”" : {
+      "comment" : "A fallback row: the first placeholder is a command's name, the second is what the user typed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ “%2$@”"
+          }
+        }
+      }
+    },
     "%@, %@" : {
       "localizations" : {
         "en" : {
@@ -626,6 +637,9 @@
       "comment" : "Stands in for an action's title when the extension gave none."
     },
     "Actions…" : {
+
+    },
+    "Add" : {
 
     },
     "Add %@ to the menu bar?" : {
@@ -1789,7 +1803,7 @@
 
     },
     "Fallbacks" : {
-      "comment" : "A section title above the searches offered when nothing else matches.\nQuicklinks offered under the results of every search."
+      "comment" : "A section title above the searches offered when nothing else matches.\nThe name of a settings page: the rows offered under the results of every search."
     },
     "Family (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -2307,13 +2321,13 @@
     "Keywords" : {
       "comment" : "A section title. Keywords are the words the search answers to, such as remind or timer."
     },
-    "Keywords and fallbacks for web search." : {
-
-    },
     "Keywords can't contain spaces." : {
 
     },
     "Keywords cannot contain spaces." : {
+
+    },
+    "Keywords for web search." : {
 
     },
     "Keywords need at least 2 characters." : {
@@ -2576,6 +2590,12 @@
         }
       }
     },
+    "Move Down" : {
+
+    },
+    "Move Up" : {
+
+    },
     "Move to Trash" : {
 
     },
@@ -2703,6 +2723,9 @@
       "comment" : "Beside a reminder that has no due date."
     },
     "No disks to eject" : {
+
+    },
+    "No fallbacks. Searches end with what they found." : {
 
     },
     "No files are selected in the Finder." : {
@@ -2922,6 +2945,9 @@
     },
     "Off" : {
       "comment" : "Automatic updates: never check.\nNo beam around the search field."
+    },
+    "Offered under your results, in this order, with what you typed. Return opens the first when nothing else matches." : {
+
     },
     "Older" : {
       "comment" : "A button that shows older release notes."
@@ -3882,9 +3908,6 @@
     "Show your upcoming events and meeting links in the search." : {
 
     },
-    "Shown under your results when you search." : {
-
-    },
     "Shut Down" : {
       "comment" : "A command that turns the Mac off."
     },
@@ -4657,9 +4680,6 @@
     "Use as Microphone" : {
       "comment" : "A button that makes the selected device the one that records."
     },
-    "Use as fallback" : {
-
-    },
     "Use for Sound Output" : {
       "comment" : "A button that makes the selected device the one sound plays through."
     },
@@ -4751,6 +4771,9 @@
 
     },
     "What answers Ask AI and extensions." : {
+
+    },
+    "What is offered under your results, and in what order." : {
 
     },
     "What’s New" : {
@@ -5041,11 +5064,8 @@
     "extensions, record, access, hosts, folders, programs, network, reached, forget" : {
       "comment" : "Words that find the Record what extensions reach setting in the settings search, separated by commas."
     },
-    "fallback, default, search, results" : {
-      "comment" : "Words that find the Use as fallback setting in the settings search, separated by commas."
-    },
-    "fallback, fallbacks, order, reorder, default, results, bottom" : {
-      "comment" : "Words that find the Fallbacks setting in the settings search, separated by commas."
+    "fallback, fallbacks, order, reorder, default, results, bottom, search files, ask ai" : {
+      "comment" : "Words that find the Fallbacks page in the settings search, separated by commas."
     },
     "family sharing" : {
       "comment" : "Words that find the Family pane of System Settings, separated by commas."
@@ -5239,7 +5259,7 @@
     "quicklink, keyword, link, name, url, list, edit, delete" : {
       "comment" : "Words that find the Quicklinks setting in the settings search, separated by commas."
     },
-    "quicklink, quicklinks, keyword, search, web, fallback, link, url" : {
+    "quicklink, quicklinks, keyword, search, web, link, url" : {
       "comment" : "Words that find the Quicklinks page in the settings search, separated by commas."
     },
     "quit all apps, quit all, close all apps" : {

@@ -51,7 +51,7 @@ enum SettingsSidebarRows {
                 ))
             }
         let basics = pages([.general, .appearance, .privacy])
-        let search = pages([.commands, .applications, .quicklinks, .snippets])
+        let search = pages([.commands, .applications, .quicklinks, .fallbacks, .snippets])
         let connections = pages([.ai, .sync, .extensionStore])
         return basics
             + [.heading(String(localized: "Search", bundle: .floe, comment: "A noun: the heading over the settings for searching."))] + search

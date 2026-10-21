@@ -7,14 +7,11 @@
 
 import Foundation
 
-/// Ask AI two ways: `ask why is the sky blue` on top, and for any other text a row at the bottom.
+/// `ask why is the sky blue` leads with the question; any other text can be asked as a fallback.
 /// Neither is offered while no source can answer.
 struct AskAISearchProvider: SearchProvider {
     func contribution(for context: SearchContext) -> SearchContribution {
-        guard context.canAskAI, !context.trimmed.isEmpty else { return SearchContribution() }
-        if let question = AskAI.question(in: context) {
-            return SearchContribution(pinned: [RootResult(item: .askAI(question), section: nil)])
-        }
-        return SearchContribution(appended: [RootResult(item: .askAI(context.trimmed), section: nil)])
+        guard context.canAskAI, !context.trimmed.isEmpty, let question = AskAI.question(in: context) else { return SearchContribution() }
+        return SearchContribution(pinned: [RootResult(item: .askAI(question), section: nil)])
     }
 }

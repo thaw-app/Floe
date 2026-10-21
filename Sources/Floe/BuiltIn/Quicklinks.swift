@@ -15,6 +15,7 @@ struct Quicklink: Codable, Identifiable, Equatable {
     var keyword: String
     /// May contain {query}, replaced with the percent-encoded search text.
     var url: String
+    /// Whether the link was a fallback before the Fallbacks page: it seeds the order until the user chooses one there.
     var isFallback: Bool
     var symbol: String
 
@@ -138,11 +139,6 @@ final class QuicklinkStore: ObservableObject {
         let destination = min(max(index + offset, 0), links.count - 1)
         guard destination != index else { return }
         links.move(fromOffsets: IndexSet(integer: index), toOffset: destination > index ? destination + 1 : destination)
-    }
-
-    /// Fallback links in user order.
-    var fallbacks: [Quicklink] {
-        links.filter(\.isFallback)
     }
 
     /// True when no other link (besides `ignoring`) already uses this keyword.

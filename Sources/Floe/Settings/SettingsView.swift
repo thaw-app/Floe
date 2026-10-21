@@ -75,6 +75,8 @@ struct SettingsView: View {
             SyncSettingsView(catalog: catalog, settings: settings, sync: stores.sync)
         case .quicklinks:
             QuicklinksSettingsPage(store: stores.quicklinks)
+        case .fallbacks:
+            FallbacksSettingsPage(catalog: catalog, settings: settings, quicklinks: stores.quicklinks)
         case .snippets:
             SnippetsSettingsPage(store: stores.snippets)
         case .extensionStore:
@@ -108,6 +110,7 @@ struct SettingsView: View {
         case .ai: SearchPaneLabel.ai.title
         case .sync: SearchPaneLabel.sync.title
         case .quicklinks: SearchPaneLabel.quicklinks.title
+        case .fallbacks: SearchPaneLabel.fallbacks.title
         case .snippets: SearchPaneLabel.snippets.title
         case .extensionStore: SearchPaneLabel.extensionStore.title
         case .appearance: SearchPaneLabel.appearance.title

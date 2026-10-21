@@ -76,9 +76,10 @@ struct SearchProviderTests {
         let contribution = QuicklinkSearchProvider().contribution(for: context("swift") { $0.quicklinks = [github, google] })
         #expect(contribution.ranked.map(\.id) == ["quicklink:\(github.id.uuidString)", "quicklink:\(google.id.uuidString)"])
         #expect(contribution.pinned.isEmpty, "no keyword starts the query")
-        #expect(contribution.appended.map(\.id) == ["quicklink-fallback:\(google.id.uuidString)"])
-        #expect(contribution.appended.first?.section == "Fallbacks")
-        #expect(contribution.appended.first?.item.title == "Search Google for \u{201C}swift\u{201D}")
+        let fallbacks = FallbackSearchProvider().contribution(for: context("swift") { $0.quicklinks = [github, google] }).appended
+        #expect(fallbacks.map(\.id) == ["quicklink-fallback:\(google.id.uuidString)", "files-for:swift"])
+        #expect(fallbacks.first?.section == "Fallbacks")
+        #expect(fallbacks.first?.item.title == "Search Google for \u{201C}swift\u{201D}")
     }
 
     @Test func aQuicklinkKeywordAndASpacePinsThatSearchOnTop() {
@@ -139,12 +140,6 @@ struct SearchProviderTests {
         #expect(!contribution.sectioned.isEmpty)
         #expect(contribution.sectioned.allSatisfy { $0.section == "Emoji & Symbols" && $0.id.hasPrefix("emoji:") })
         #expect(EmojiSearchProvider().contribution(for: context("smile")).sectioned.isEmpty, "without the colon it is an ordinary search")
-    }
-
-    @Test func everySearchEndsWithARowThatSearchesFilesForIt() {
-        let contribution = SearchFilesRowProvider().contribution(for: context("invoice "))
-        #expect(contribution.appended.map(\.id) == ["files-for:invoice "])
-        #expect(SearchFilesRowProvider().contribution(for: context("")).appended.isEmpty)
     }
 
     // MARK: The merge

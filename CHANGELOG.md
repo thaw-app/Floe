@@ -114,6 +114,7 @@ After you install:
 
 #### Built in
 - **Snippets with text expansion, and quicklinks** with fallback searches. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **Settings > Fallbacks chooses what is offered under every search, and in what order.** Running the text as a shell command, Search Files, Ask AI, any quicklink that searches, and any extension command that takes text can be added, moved and removed. A command gets what you typed in its first argument and as `fallbackText`. Return opens the first fallback when nothing else matches.
 - **A calculator with unit conversion.** It converts money with the European Central Bank's daily rates once you turn that on in Settings > Privacy, and shows the day the rates are from. Powers are drawn as real superscripts, and `pi` is π. By @lylythechosenone in [#7](https://github.com/thaw-app/Floe/pull/7).
 - **The calculator reads sums the way people type them.** `200 + 10%` is 220, `100 f to c` converts a temperature, `5 ft 10 in to cm` is 177.8 cm and `today + 3 days` is a date. `today` on its own shows the date.
 - **`define tide` shows what the dictionary says about a word.** The answer comes from the dictionaries on your Mac, the ones switched on in the Dictionary app, so nothing is sent anywhere. Return opens the word in Dictionary, and the Actions menu copies the definition.

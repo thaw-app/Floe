@@ -41,28 +41,6 @@ struct QuicklinksSettingsPage: View {
                 }
                 Button("New Quicklink") { add() }
             })
-            ThawSection(
-                header: { Text("Fallbacks") },
-                content: {
-                    let fallbacks = store.fallbacks
-                    ForEach(fallbacks) { link in
-                        HStack(spacing: ThawSpacing.row) {
-                            QuicklinkTile(symbol: link.symbol)
-                            Text(link.name)
-                            Spacer()
-                            Button { store.move(link, by: -1) } label: {
-                                Image(systemName: "chevron.up")
-                            }
-                            .disabled(fallbacks.first?.id == link.id)
-                            Button { store.move(link, by: 1) } label: {
-                                Image(systemName: "chevron.down")
-                            }
-                            .disabled(fallbacks.last?.id == link.id)
-                        }
-                    }
-                },
-                footer: { Text("Shown under your results when you search.") }
-            )
         }
         .formStyle(.grouped)
         .sheet(isPresented: $showingEditor) {
@@ -93,7 +71,6 @@ struct QuicklinksSettingsPage: View {
                 TextField("Keyword", text: $draft.keyword)
                 TextField("URL", text: $draft.url)
                 TextField("Symbol", text: $draft.symbol, prompt: Text("SF Symbol name"))
-                Toggle("Use as fallback", isOn: $draft.isFallback)
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Use {query} where the search text goes.")

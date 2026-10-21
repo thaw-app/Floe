@@ -179,14 +179,14 @@ struct ShellCommandTests {
         var recognizing = SearchContext(query: "pkill -f debug/ThawNotch")
         recognizing.shell.runs = true
         recognizing.shell.recognizes = true
-        let found = provider.contribution(for: recognizing)
-        #expect(found.pinned.isEmpty, "a guess never leads the results")
-        #expect(found.appended.map(\.item.title) == ["Run pkill -f debug/ThawNotch"])
-        #expect(provider.contribution(for: SearchContext(query: "pkill -f debug/ThawNotch")).appended.isEmpty)
+        #expect(provider.contribution(for: recognizing).pinned.isEmpty, "a guess never leads the results")
+        #expect(provider.guess(for: recognizing)?.title == "Run pkill -f debug/ThawNotch")
+        #expect(FallbackSearchProvider(shell: provider).contribution(for: recognizing).appended.first?.item.title == "Run pkill -f debug/ThawNotch", "it is the first fallback")
+        #expect(provider.guess(for: SearchContext(query: "pkill -f debug/ThawNotch")) == nil)
         var sentence = SearchContext(query: "find my keys")
         sentence.shell.runs = true
         sentence.shell.recognizes = true
-        #expect(provider.contribution(for: sentence).appended.isEmpty)
+        #expect(provider.guess(for: sentence) == nil)
     }
 
     @Test func aSavedCommandIsAScriptCommandTheSearchFindsByItsName() throws {

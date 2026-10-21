@@ -7,8 +7,8 @@
 
 import Foundation
 
-/// Quicklinks three ways: by name or keyword among the ranked rows, as `keyword rest` on top,
-/// and as fallbacks at the bottom.
+/// Quicklinks by name or keyword among the ranked rows, and as `keyword rest` on top. The ones that search
+/// can also be fallbacks (see `FallbackSearchProvider`).
 struct QuicklinkSearchProvider: SearchProvider {
     func contribution(for context: SearchContext) -> SearchContribution {
         let text = context.trimmed
@@ -17,11 +17,7 @@ struct QuicklinkSearchProvider: SearchProvider {
         return SearchContribution(
             // Names and keywords rank alongside everything else, through the keyword alias.
             ranked: links.map { RootItem.quicklink($0, queryText: text, fallback: false, keywordSearch: false) },
-            pinned: Self.keywordSearchResult(query: text, links: links).map { [$0] } ?? [],
-            // Enabled fallbacks in user order.
-            appended: links.filter(\.isFallback).map { link in
-                RootResult(item: .quicklink(link, queryText: text, fallback: true, keywordSearch: false), section: String(localized: "Fallbacks", bundle: .floe, comment: "A section title above the searches offered when nothing else matches."))
-            }
+            pinned: Self.keywordSearchResult(query: text, links: links).map { [$0] } ?? []
         )
     }
 

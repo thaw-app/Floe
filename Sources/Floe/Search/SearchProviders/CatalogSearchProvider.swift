@@ -18,11 +18,3 @@ struct CatalogSearchProvider: SearchProvider {
         return SearchContribution(ranked: found + own, searchOnly: context.settingsPanes.map(RootItem.settingsPane))
     }
 }
-
-/// The "Search Files for …" row that ends every search.
-struct SearchFilesRowProvider: SearchProvider {
-    func contribution(for context: SearchContext) -> SearchContribution {
-        guard !context.query.isEmpty else { return SearchContribution() }
-        return SearchContribution(appended: [RootResult(item: .searchFiles(context.query), section: nil)])
-    }
-}

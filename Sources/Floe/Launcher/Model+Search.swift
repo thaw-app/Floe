@@ -46,6 +46,7 @@ extension LauncherModel {
         context.shortcuts = features.shortcuts.forSearch
         context.snippets = SnippetStore.shared.snippets
         context.quicklinks = QuicklinkStore.shared.links
+        context.fallbacks = settings.fallbacks
         context.menuBarItemNames = settings.menuBarItemNames
         context.canAskAI = !query.isEmpty && canAskAI()
         return context

@@ -50,6 +50,8 @@ final class ExtensionSession: ObservableObject {
     let launchType: String
     /// What `launchCommand` handed on, which the command reads as `launchContext`.
     let launchContext: [String: Any]?
+    /// What was typed, when the command was run as a fallback; the command reads it as `fallbackText`.
+    let fallbackText: String?
     @Published private(set) var root: Node?
     /// Form field values by field id. Dates are kept as ISO 8601 strings.
     @Published var formValues: [String: Any] = [:]
@@ -127,11 +129,12 @@ final class ExtensionSession: ObservableObject {
     private(set) var pingSentAt: Date?
     private var suppressSearchEvent = false
 
-    init(command: ExtensionCommand, arguments: [String: Any] = [:], launchType: String = "userInitiated", launchContext: [String: Any]? = nil) {
+    init(command: ExtensionCommand, arguments: [String: Any] = [:], launchType: String = "userInitiated", launchContext: [String: Any]? = nil, fallbackText: String? = nil) {
         self.command = command
         self.arguments = arguments
         self.launchType = launchType
         self.launchContext = launchContext
+        self.fallbackText = fallbackText
     }
 
     /// Set while the host is running.

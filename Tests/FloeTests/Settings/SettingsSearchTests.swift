@@ -138,6 +138,7 @@ struct SearchIndexTests {
             case .sync: #expect(entry.paneLabel == .sync)
             case .appearance: #expect(entry.paneLabel == .appearance)
             case .quicklinks: #expect(entry.paneLabel == .quicklinks)
+            case .fallbacks: #expect(entry.paneLabel == .fallbacks)
             case .snippets: #expect(entry.paneLabel == .snippets)
             case .extensionStore: #expect(entry.paneLabel == .extensionStore)
             case .privacy: #expect(entry.paneLabel == .privacy)
@@ -147,7 +148,7 @@ struct SearchIndexTests {
         }
     }
 
-    @Test(arguments: [SettingsPage.general, .commands, .applications, .ai, .sync, .quicklinks, .snippets, .extensionStore, .appearance, .privacy, .about])
+    @Test(arguments: [SettingsPage.general, .commands, .applications, .ai, .sync, .quicklinks, .fallbacks, .snippets, .extensionStore, .appearance, .privacy, .about])
     func everyPaneOfFloeCanBeFoundByName(pane: SettingsPage) {
         #expect(SearchIndex.paneEntries.contains { $0.pane == pane })
     }

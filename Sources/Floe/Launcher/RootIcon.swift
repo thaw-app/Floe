@@ -15,7 +15,7 @@ struct RootIcon: View {
         switch item {
         case let .app(app):
             AppIconView(path: app.url.path, size: 24)
-        case let .command(command):
+        case let .command(command), let .fallbackCommand(command, _):
             IconView(value: command.icon ?? "icon:Terminal", assetsPath: command.assetsPath, size: 24)
         case let .script(script):
             IconView(value: script.icon ?? "icon:Terminal", assetsPath: "", size: 24)

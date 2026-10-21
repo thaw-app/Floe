@@ -33,8 +33,8 @@ enum RootSearch {
         TypedLocationSearchProvider(),
         CalculatorSearchProvider(),
         ScriptArgumentsSearchProvider(),
-        SearchFilesRowProvider(),
         AskAISearchProvider(),
+        FallbackSearchProvider(),
     ]
 
     /// `sources` are the rows the optional sources have found so far (see `SourceSearch`).

@@ -42,6 +42,8 @@ extension LauncherModel {
             reset()
         case let .command(command):
             runner.run(command)
+        case let .fallbackCommand(command, text):
+            runner.run(command, arguments: Fallback.arguments(for: command, text: text), fallbackText: text)
         case .menuBarSearch:
             openMenuBarSearch()
         case .emojiSearch:

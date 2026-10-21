@@ -8,7 +8,7 @@
 import Foundation
 
 /// The prefix and a command lead the results with the row that runs it, and what it could become under it.
-/// A search without the prefix that reads as a command gets the row under everything else.
+/// A search without the prefix that reads as a command is offered among the fallbacks (see `guess`).
 struct ShellCommandSearchProvider: SearchProvider {
     /// The suggestions read snapshots the store keeps, so the reads follow behind the typing
     /// off the main actor. A test hands over its own instead.
@@ -31,8 +31,15 @@ struct ShellCommandSearchProvider: SearchProvider {
             }
             return SearchContribution(pinned: rows.map(result))
         }
-        // A guess is kept under everything the search found: Return runs it only when nothing else answered.
-        guard shell.runs, shell.recognizes, ShellCommand.reads(asACommand: context.trimmed, isProgram: isProgram) else { return SearchContribution() }
-        return SearchContribution(appended: [result(ShellRow(text: context.trimmed, origin: .typed))])
+        return SearchContribution()
+    }
+
+    /// The text run as a command line, when it reads as one: a fallback, so Return runs it only when nothing else answered.
+    func guess(for context: SearchContext) -> RootItem? {
+        let shell = context.shell
+        guard shell.runs, shell.recognizes, ShellCommand.typed(in: context.query, prefix: shell.prefix) == nil,
+              ShellCommand.reads(asACommand: context.trimmed, isProgram: isProgram) else { return nil }
+        let terminal = context.preferredApps.first { $0.role == .terminal }?.app
+        return .shell(ShellRow(text: context.trimmed, origin: .typed), terminal: terminal)
     }
 }

@@ -48,7 +48,7 @@ struct SettingsStringsTests {
 
     @Test func theIdsAreTheOnesTheWindowKnows() {
         #expect(SearchIndex.staticEntries.map(\.id) == [
-            "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.ai", "pane.sync", "pane.quicklinks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
+            "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.ai", "pane.sync", "pane.quicklinks", "pane.fallbacks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
             "appearance.followThaw", "appearance.launcherLayout", "appearance.searchFieldShape", "appearance.searchFieldBeam", "appearance.searchFieldBeamFrameRate", "appearance.separatesSearchField", "appearance.glassEffect",
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
@@ -60,8 +60,7 @@ struct SettingsStringsTests {
             "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.floatingNoteHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.thawSupport",
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
             "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",
-            "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol", "quicklinks.fallback",
-            "quicklinks.fallbacks",
+            "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol",
         ])
     }
 

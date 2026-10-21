@@ -20,6 +20,8 @@ struct RootResult: Identifiable {
 enum RootItem: Identifiable {
     case app(AppEntry)
     case command(ExtensionCommand)
+    /// An extension command offered as a fallback, run with what was typed.
+    case fallbackCommand(ExtensionCommand, text: String)
     case script(ScriptCommand)
     case menuBarSearch
     /// The commands in the menus of the app in front, to choose one from the keyboard.
@@ -123,6 +125,7 @@ enum RootItem: Identifiable {
         switch self {
         case let .app(app): "app:\(app.url.path)"
         case let .command(command): "command:\(command.id)"
+        case let .fallbackCommand(command, _): "fallback-command:\(command.id)"
         case let .script(script): "script:\(script.file.lastPathComponent)"
         case .menuBarSearch: Self.menuBarSearchKey
         case .menuItemSearch: Self.menuItemSearchKey
@@ -184,6 +187,7 @@ enum RootItem: Identifiable {
         switch self {
         case let .app(app): app.name
         case let .command(command): command.title
+        case let .fallbackCommand(command, text): String(localized: "\(command.title) \u{201C}\(text)\u{201D}", bundle: .floe, comment: "A fallback row: the first placeholder is a command's name, the second is what the user typed.")
         case let .script(script): script.title
         case .menuBarSearch: String(localized: "Search Menu Bar Items", bundle: .floe)
         case .menuItemSearch: String(localized: "Search Menu Items", bundle: .floe, comment: "The command that lists the commands in the menus of the app in front.")
@@ -248,7 +252,7 @@ enum RootItem: Identifiable {
 
     var subtitle: String? {
         switch self {
-        case let .command(command):
+        case let .command(command), let .fallbackCommand(command, _):
             return command.extensionTitle
         case let .script(script):
             return script.displayPackage
@@ -289,7 +293,7 @@ enum RootItem: Identifiable {
         case let .system(command): "system:\(command.rawValue)"
         case .snippet: id
         case let .focus(request, _): request == .toggle ? id : nil
-        case .settings, .extensionStore, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event: nil
+        case .settings, .extensionStore, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event, .fallbackCommand: nil
         case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .definition, .answer, .menuItem, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: nil
         }
     }
@@ -300,7 +304,7 @@ extension RootItem {
         switch self {
         case .app: String(localized: "Application", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case let .command(command) where command.mode == "menu-bar": String(localized: "Menu Bar", bundle: .floe, comment: "The kind of a result, shown beside its title.")
-        case .command: String(localized: "Command", bundle: .floe, comment: "The kind of a result, shown beside its title.")
+        case .command, .fallbackCommand: String(localized: "Command", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .script: String(localized: "Script", bundle: .floe, comment: "The kind of a result, shown beside its title.")
         case .menuBarSearch, .menuItemSearch, .emojiSearch, .clipboardHistory, .noteDesk, .floatingNote, .settings, .extensionStore: "Floe"
         case let .clipboardApp(destination): destination.label

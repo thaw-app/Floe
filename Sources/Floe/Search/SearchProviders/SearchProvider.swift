@@ -50,6 +50,8 @@ struct SearchContext {
     var shortcuts: [AppleShortcut] = []
     var snippets: [Snippet] = []
     var quicklinks: [Quicklink] = []
+    /// The fallbacks' ids in the order chosen; nil until the user chooses (see `Fallback.order`).
+    var fallbacks: [String]?
     /// The names the user gave menu bar items, by item id.
     var menuBarItemNames: [String: String] = [:]
     /// Whether an AI source can answer; the Ask AI rows are left out when none can.

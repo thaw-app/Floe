@@ -14,6 +14,7 @@ extension SearchPaneLabel {
     static let ai = SearchPaneLabel(title: String(localized: "AI", bundle: .floe, comment: "The name of a settings page."), symbol: AskAI.symbol)
     static let sync = SearchPaneLabel(title: String(localized: "Sync", bundle: .floe, comment: "The name of a settings page."), symbol: "arrow.triangle.2.circlepath")
     static let quicklinks = SearchPaneLabel(title: String(localized: "Quicklinks", bundle: .floe, comment: "The name of a settings page."), symbol: "link")
+    static let fallbacks = SearchPaneLabel(title: String(localized: "Fallbacks", bundle: .floe, comment: "The name of a settings page: the rows offered under the results of every search."), symbol: "arrow.turn.down.right")
     static let snippets = SearchPaneLabel(title: String(localized: "Snippets", bundle: .floe, comment: "The name of a settings page."), symbol: "text.quote")
     static let extensionStore = SearchPaneLabel(title: String(localized: "Extension Store", bundle: .floe, comment: "The name of a settings page."), symbol: "bag")
     static let appearance = SearchPaneLabel(title: String(localized: "Appearance", bundle: .floe, comment: "The name of a settings page."), symbol: "paintbrush")
@@ -28,6 +29,7 @@ extension SearchPane {
     static let ai = SearchPane(page: .ai, label: .ai)
     static let sync = SearchPane(page: .sync, label: .sync)
     static let quicklinks = SearchPane(page: .quicklinks, label: .quicklinks)
+    static let fallbacks = SearchPane(page: .fallbacks, label: .fallbacks)
     static let snippets = SearchPane(page: .snippets, label: .snippets)
     static let extensionStore = SearchPane(page: .extensionStore, label: .extensionStore)
     static let appearance = SearchPane(page: .appearance, label: .appearance)
@@ -155,12 +157,23 @@ extension SearchIndex {
         SearchEntry(
             id: "pane.quicklinks",
             title: String(localized: "Quicklinks", bundle: .floe, comment: "The name of a settings page."),
-            descriptionText: String(localized: "Keywords and fallbacks for web search.", bundle: .floe),
+            descriptionText: String(localized: "Keywords for web search.", bundle: .floe),
             pane: .quicklinks,
             keywords: String(
-                localized: "quicklink, quicklinks, keyword, search, web, fallback, link, url",
+                localized: "quicklink, quicklinks, keyword, search, web, link, url",
                 bundle: .floe,
                 comment: "Words that find the Quicklinks page in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        SearchEntry(
+            id: "pane.fallbacks",
+            title: String(localized: "Fallbacks", bundle: .floe, comment: "The name of a settings page: the rows offered under the results of every search."),
+            descriptionText: String(localized: "What is offered under your results, and in what order.", bundle: .floe),
+            pane: .fallbacks,
+            keywords: String(
+                localized: "fallback, fallbacks, order, reorder, default, results, bottom, search files, ask ai",
+                bundle: .floe,
+                comment: "Words that find the Fallbacks page in the settings search, separated by commas."
             ).searchTerms
         ),
         SearchEntry(
@@ -657,27 +670,6 @@ extension SearchIndex {
                 localized: "symbol, icon, glyph",
                 bundle: .floe,
                 comment: "Words that find the Symbol setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .quicklinks(
-            "fallback",
-            String(localized: "Use as fallback", bundle: .floe),
-            section: String(localized: "Quicklink", bundle: .floe, comment: "The heading of the form that edits one quicklink."),
-            keywords: String(
-                localized: "fallback, default, search, results",
-                bundle: .floe,
-                comment: "Words that find the Use as fallback setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        .quicklinks(
-            "fallbacks",
-            String(localized: "Fallbacks", bundle: .floe, comment: "Quicklinks offered under the results of every search."),
-            description: String(localized: "Shown under your results when you search.", bundle: .floe),
-            section: String(localized: "Fallbacks", bundle: .floe, comment: "Quicklinks offered under the results of every search."),
-            keywords: String(
-                localized: "fallback, fallbacks, order, reorder, default, results, bottom",
-                bundle: .floe,
-                comment: "Words that find the Fallbacks setting in the settings search, separated by commas."
             ).searchTerms
         ),
     ]

@@ -57,7 +57,8 @@ final class ExtensionRunner: ObservableObject {
     private var sourceWatcher: DirectoryWatcher?
 
     /// A command that first has to ask for preferences or arguments starts without `launchCommand`'s context.
-    func run(_ command: ExtensionCommand, arguments: [String: Any]? = nil, context: [String: Any]? = nil) {
+    /// `fallbackText` is what was typed, when the command was chosen as a fallback.
+    func run(_ command: ExtensionCommand, arguments: [String: Any]? = nil, context: [String: Any]? = nil, fallbackText: String? = nil) {
         let missing = PreferenceStore.missingRequired(for: command)
         if command.mode == "menu-bar", missing.isEmpty {
             host.toggleMenuBar(command)
@@ -75,7 +76,7 @@ final class ExtensionRunner: ObservableObject {
             if command.mode == "view" {
                 host.showPanel()
             }
-            launch(command, arguments: arguments ?? [:], context: context)
+            launch(command, arguments: arguments ?? [:], context: context, fallbackText: fallbackText)
         }
     }
 
@@ -85,8 +86,9 @@ final class ExtensionRunner: ObservableObject {
         let command = session.command
         let arguments = session.arguments
         let context = session.launchContext
+        let fallbackText = session.fallbackText
         end(session)
-        run(command, arguments: arguments, context: context)
+        run(command, arguments: arguments, context: context, fallbackText: fallbackText)
     }
 
     func copyFailure() {
@@ -112,9 +114,9 @@ final class ExtensionRunner: ObservableObject {
         }
     }
 
-    private func launch(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]? = nil) {
+    private func launch(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]? = nil, fallbackText: String? = nil) {
         Log.extensions.info("Running \(command.extensionName)/\(command.name) (\(command.mode))")
-        let session = ExtensionSession(command: command, arguments: arguments, launchContext: context)
+        let session = ExtensionSession(command: command, arguments: arguments, launchContext: context, fallbackText: fallbackText)
         session.onMessage = { [weak self, weak session] message in
             guard let self, let session else { return }
             handle(message, from: session)
@@ -137,7 +139,7 @@ final class ExtensionRunner: ObservableObject {
         }
         if host.isWaitingToResume() {
             end(watched)
-            launch(watched.command, arguments: watched.arguments, context: watched.launchContext)
+            launch(watched.command, arguments: watched.arguments, context: watched.launchContext, fallbackText: watched.fallbackText)
         } else {
             retry()
         }
