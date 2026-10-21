@@ -47,14 +47,14 @@ struct OnboardingTourView: View {
             HStack(spacing: ThawSpacing.gutter) {
                 Text("Type ? in the search to see every keyword.")
                     .font(ThawType.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThawInk.supporting)
                 Spacer()
                 Button(action: onContinue) {
                     Text(verbatim: continueTitle)
                         .font(ThawType.heading)
                         .frame(minWidth: 140, minHeight: 34)
                 }
-                .buttonStyle(.glassProminent)
+                .buttonStyle(.thawProminent)
                 .keyboardShortcut(.defaultAction)
             }
             .padding(.horizontal, ThawSpacing.section)

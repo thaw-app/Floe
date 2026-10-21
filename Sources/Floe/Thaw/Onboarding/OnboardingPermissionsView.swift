@@ -71,7 +71,7 @@ struct ThawPermissionsView: View {
                         .font(ThawType.heading)
                         .frame(minWidth: 140, minHeight: 34)
                 }
-                .buttonStyle(.glassProminent)
+                .buttonStyle(.thawProminent)
                 .keyboardShortcut(.defaultAction)
             }
             .padding(.horizontal, ThawSpacing.section)

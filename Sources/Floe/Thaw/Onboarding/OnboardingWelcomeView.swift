@@ -35,7 +35,7 @@ struct OnboardingWelcomeView: View {
                     .font(ThawType.heading)
                     .frame(minWidth: 140, minHeight: 34)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.thawProminent)
             .keyboardShortcut(.defaultAction)
             .padding(.top, ThawSpacing.section)
 

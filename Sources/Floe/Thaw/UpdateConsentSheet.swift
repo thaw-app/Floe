@@ -11,6 +11,7 @@
 //  SettingsWindow moved into a view modifier. The General page's toggle is Floe's.
 
 import SwiftUI
+import ThawUI
 
 struct UpdateConsentSheet: View {
     var onEnable: (_ autoDownload: Bool) -> Void
@@ -31,7 +32,7 @@ struct UpdateConsentSheet: View {
             Toggle(isOn: $autoDownload) {
                 Text("Download and install updates automatically")
             }
-            .toggleStyle(.checkbox)
+            .toggleStyle(.thawCheckbox)
 
             HStack {
                 Spacer()
@@ -50,7 +51,7 @@ struct UpdateConsentSheet: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(isProcessing)
-                .buttonStyle(.glassProminent)
+                .buttonStyle(.thawProminent)
             }
         }
         .padding(20)

@@ -184,7 +184,7 @@ struct PanelQuestionCard: View {
                             .focused($confirmFocused)
                     } else {
                         Button(primaryTitle) { answer(true) }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.thawProminent)
                             .keyboardShortcut(.defaultAction)
                             .focused($confirmFocused)
                     }
