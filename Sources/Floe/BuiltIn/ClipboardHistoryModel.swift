@@ -35,9 +35,19 @@ final class ClipboardHistoryModel: ObservableObject {
         store()
     }
 
+    /// The last answer, kept while the query and the copies stay the same: the view asks several times a pass.
+    private var matched: (query: String, entries: [ClipboardEntry], matching: [ClipboardEntry])?
+
     /// History entries matching the query, pins first, then newest first.
     func filteredEntries() -> [ClipboardEntry] {
-        ClipboardSearchScope.matching(store().entries, query: query)
+        let entries = store().entries
+        // Unchanged copies share their storage with the kept ones, so this comparison costs nothing.
+        if let matched, matched.query == query, matched.entries == entries {
+            return matched.matching
+        }
+        let matching = ClipboardSearchScope.matching(entries, query: query)
+        matched = (query, entries, matching)
+        return matching
     }
 
     var selectedEntry: ClipboardEntry? {

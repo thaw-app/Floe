@@ -20,6 +20,9 @@ struct ClipboardHistoryView: View {
     let focusToken: Int
     @ObservedObject var history: ClipboardHistoryStore
     @ObservedObject var settings = AppSettings.shared
+    @Environment(\.displayScale) private var displayScale
+    /// The selected image's preview, loaded off the main actor, with the copy it is for.
+    @State private var imagePreview: (id: UUID, preview: ClipboardImagePreview)?
 
     var body: some View {
         PanelSections {
@@ -109,11 +112,13 @@ struct ClipboardHistoryView: View {
         if let entry = clipboard.selectedEntry {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    if entry.kind == .image, let image = history.image(for: entry) {
-                        Image(nsImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 160)
+                    if entry.kind == .image {
+                        if let image = imagePreview(for: entry)?.image {
+                            Image(decorative: image, scale: displayScale)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxHeight: 160)
+                        }
                     } else if let text = entry.text {
                         Text(text)
                             .textSelection(.enabled)
@@ -138,9 +143,17 @@ struct ClipboardHistoryView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollEdgeEffectStyle(.soft, for: .top)
+            .task(id: entry.id) {
+                guard let file = history.imageURL(for: entry) else { return }
+                imagePreview = await (entry.id, ClipboardHistoryStore.preview(of: file, maxPixels: Int(250 * displayScale)))
+            }
         } else {
             ThawEmptyState(systemImage: "doc.on.clipboard", title: "Select a copy to preview it")
         }
+    }
+
+    private func imagePreview(for entry: ClipboardEntry) -> ClipboardImagePreview? {
+        imagePreview?.id == entry.id ? imagePreview?.preview : nil
     }
 
     private func metadata(title: LocalizedStringKey, value: String) -> some View {
@@ -201,10 +214,8 @@ struct ClipboardHistoryView: View {
             let count = entry.filePaths?.count ?? 0
             return String(localized: "\(count) files", bundle: .floe, comment: "How many files were copied together.")
         case .image:
-            if let name = entry.imageFile,
-               let size = try? FileManager.default.attributesOfItem(atPath: ClipboardHistoryStore.directory.appendingPathComponent(name).path)[.size] as? Int
-            {
-                return Self.byteFormatter.string(fromByteCount: Int64(size))
+            if let bytes = imagePreview(for: entry)?.bytes {
+                return Self.byteFormatter.string(fromByteCount: Int64(bytes))
             }
             return String(localized: "Image", bundle: .floe, comment: "A copied picture.")
         }

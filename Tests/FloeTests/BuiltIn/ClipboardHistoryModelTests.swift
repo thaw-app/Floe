@@ -50,6 +50,36 @@ final class ClipboardHistoryModelTests {
         #expect(model.selectedEntry?.text == "beta")
     }
 
+    @Test func theListKeptBetweenPassesFollowsTheQueryAndTheCopies() async throws {
+        let model = await makeModel()
+        model.query = "a"
+        #expect(model.filteredEntries().map(\.text) == ["gamma", "beta", "alpha"])
+        model.query = "al"
+        #expect(model.filteredEntries().map(\.text) == ["alpha"])
+        model.query = ""
+        #expect(model.filteredEntries().count == 3, "a query typed back is filtered again")
+        try model.togglePin(#require(model.filteredEntries().last))
+        #expect(model.filteredEntries().first?.text == "alpha", "a pin changes the copies, so the list is made again")
+    }
+
+    @Test func anImagePreviewIsDecodedAtThePreviewsSizeWithItsFileSize() async throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let file = directory.appendingPathComponent("wide.png")
+        let context = try #require(CGContext(
+            data: nil, width: 2000, height: 500, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        let picture = try #require(context.makeImage())
+        let png = try #require(NSBitmapImageRep(cgImage: picture).representation(using: .png, properties: [:]))
+        try png.write(to: file)
+        let preview = await ClipboardHistoryStore.preview(of: file, maxPixels: 500)
+        #expect(preview.image?.width == 500)
+        #expect(preview.image?.height == 125)
+        #expect(preview.bytes == png.count)
+        let missing = await ClipboardHistoryStore.preview(of: directory.appendingPathComponent("gone.png"), maxPixels: 500)
+        #expect(missing.image == nil && missing.bytes == nil)
+    }
+
     @Test func theArrowsMoveTheSelectionAndStopAtTheEnds() async throws {
         let model = await makeModel()
         #expect(try model.handleKey(key(126)))

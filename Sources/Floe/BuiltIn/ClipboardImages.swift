@@ -48,8 +48,23 @@ extension ClipboardHistoryStore {
         return scaledRep.representation(using: .png, properties: [:])
     }
 
-    func image(for entry: ClipboardEntry) -> NSImage? {
+    /// Where a copied image's PNG is kept.
+    func imageURL(for entry: ClipboardEntry) -> URL? {
         guard entry.kind == .image, let name = entry.imageFile else { return nil }
-        return NSImage(contentsOf: files.directory.appendingPathComponent(name))
+        return files.directory.appendingPathComponent(name)
     }
+
+    /// The preview of a copied image, read off the main actor: decoded no larger than `maxPixels` on its longer side.
+    @concurrent
+    static nonisolated func preview(of file: URL, maxPixels: Int) async -> ClipboardImagePreview {
+        let source = CGImageSourceCreateWithURL(file as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary)
+        let bytes = (try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize
+        return ClipboardImagePreview(image: source?.thumbnail(at: 0, maxPixelSize: maxPixels), bytes: bytes)
+    }
+}
+
+/// What the clipboard preview shows of a copied image: the picture, and how large its file is.
+nonisolated struct ClipboardImagePreview: Sendable {
+    let image: CGImage?
+    let bytes: Int?
 }
