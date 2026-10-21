@@ -144,8 +144,8 @@ final nonisolated class FileIndexService: Sendable {
         let root = environment.root()
         let stamp = stamp(for: root)
         let event = stamp?.event ?? environment.currentEvent()
-        let stop = environment.watch(root, stamp?.event) { [weak self] changes, event in
-            guard let self else { return }
+        let stop = environment.watch(root, stamp?.event) { [weak self, weak index] changes, event in
+            guard let self, let index else { return }
             work.async { self.apply(changes, upTo: event, to: index) }
         }
         let started = running.withLock { running in
@@ -211,7 +211,13 @@ final nonisolated class FileIndexService: Sendable {
         guard let isFirst else { return }
         guard environment.saveDelay > 0 else { return save(index) }
         guard isFirst else { return }
-        work.asyncAfter(deadline: .now() + environment.saveDelay) { [weak self] in
+        saveLater(index)
+    }
+
+    /// Weak, so an index switched off meanwhile is freed now rather than when the save comes due.
+    private func saveLater(_ index: FileIndex) {
+        work.asyncAfter(deadline: .now() + environment.saveDelay) { [weak self, weak index] in
+            guard let index else { return }
             self?.save(index)
         }
     }
@@ -270,6 +276,11 @@ final nonisolated class FileIndexService: Sendable {
         }
         guard isNew, let observer = observer.withLock({ $0 }) else { return }
         DispatchQueue.main.async { observer(state) }
+    }
+
+    /// The index while one is on, for a test that it is let go.
+    var currentIndex: FileIndex? {
+        running.withLock { $0?.index }
     }
 
     /// Returns once the walk and every change handed over so far are in the index.

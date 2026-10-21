@@ -294,6 +294,26 @@ struct FileIndexServiceTests {
         #expect(fixture.sinces.last == 160)
     }
 
+    @Test func anIndexSwitchedOffIsLetGoWithoutWaitingForItsSave() async throws {
+        let fixture = try IndexFixture(files: ["first.txt"])
+        var environment = fixture.savingEnvironment
+        environment.saveDelay = 3600
+        // A change as watching starts puts a save an hour out; the watch keeps nothing.
+        environment.watch = { root, _, deliver in
+            deliver([.folder(root)], 150)
+            return {}
+        }
+        let service = FileIndexService(environment: environment)
+        service.set(on: true)
+        await service.settled()
+        weak var index = service.currentIndex
+        #expect(index != nil)
+
+        service.set(on: false)
+        await service.settled()
+        #expect(index == nil, "the save still due does not hold the index")
+    }
+
     @Test func historicalEventsDeliveredWhenWatchingStartsAreAppliedAfterLoading() async throws {
         let fixture = try IndexFixture(files: ["first.txt"])
         let first = FileIndexService(environment: fixture.savingEnvironment)
