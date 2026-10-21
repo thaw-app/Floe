@@ -9,12 +9,26 @@ import Foundation
 
 /// The modes with a model of their own, and what the launcher model lends each of them.
 extension LauncherModel {
-    /// Called once from `init`. The hooks are read when they are called, so the app delegate's are the ones used.
-    func connectModes() {
-        menuBarSearch.host = modeHost { [weak self] in self?.closeMenuBarSearch() }
-        clipboardHistory.host = modeHost { [weak self] in self?.closeClipboardHistory() }
-        fileSearch.host = modeHost { [weak self] in self?.closeFileSearch() }
-        fileSearch.preferredApps = { [weak self] in self?.resolvedApps.apps ?? [] }
+    // Each is made the first time it is used, not at launch. The hooks are read when they are called,
+    // so the app delegate's are the ones used.
+
+    func makeMenuBarSearch() -> MenuBarSearchModel {
+        let search = MenuBarSearchModel(settings: settings)
+        search.host = modeHost { [weak self] in self?.closeMenuBarSearch() }
+        return search
+    }
+
+    func makeClipboardHistory() -> ClipboardHistoryModel {
+        let history = ClipboardHistoryModel(usage: usage) { [unowned self] in clipboard }
+        history.host = modeHost { [weak self] in self?.closeClipboardHistory() }
+        return history
+    }
+
+    func makeFileSearch() -> FileSearchModel {
+        let search = FileSearchModel()
+        search.host = modeHost { [weak self] in self?.closeFileSearch() }
+        search.preferredApps = { [weak self] in self?.resolvedApps.apps ?? [] }
+        return search
     }
 
     func modeHost(close: @escaping () -> Void) -> ModeHost {
