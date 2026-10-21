@@ -54,7 +54,8 @@ nonisolated enum AppInfo {
 
 /// The About page: who Floe is and which build this is, then one card for
 /// updates, then news and help actions. Project links and copyright form a
-/// quiet footer. The log file's switch is on the Privacy page.
+/// quiet footer; Thaw and the community links sit in the actions' menu. The log
+/// file's switch is on the Privacy page.
 struct AboutSettingsPane: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -76,7 +77,7 @@ struct AboutSettingsPane: View {
     var body: some View {
         ScrollView {
             SettingsPageColumn {
-                VStack(spacing: 24) {
+                VStack(spacing: ThawSpacing.section) {
                     identity
                     if updatesManager.isAvailable {
                         updates
@@ -105,9 +106,9 @@ struct AboutSettingsPane: View {
     // MARK: Identity
 
     private var identity: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 8) {
-                HStack(spacing: 12) {
+        VStack(spacing: ThawSpacing.gutter) {
+            VStack(spacing: ThawSpacing.base) {
+                HStack(spacing: ThawSpacing.inset) {
                     Text(verbatim: AppInfo.displayName)
                         .font(.system(size: Self.nameSize, weight: .semibold))
                         .accessibilityAddTraits(.isHeader)
@@ -118,7 +119,7 @@ struct AboutSettingsPane: View {
                         .accessibilityHidden(true)
                 }
                 Text("The open source launcher for macOS")
-                    .font(.callout)
+                    .font(ThawType.detail)
                     .foregroundStyle(ThawInk.supporting)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -130,18 +131,16 @@ struct AboutSettingsPane: View {
 
     // MARK: Details
 
-    /// Labels right-aligned against a shared edge, values in monospace so a
-    /// hash and a build number line up and can be selected and pasted.
+    /// One line, monospaced so it can be selected and pasted. The copy button beside
+    /// it copies the full block a bug report asks for.
     private var details: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 6) {
-                detailRow("Version", value: AppInfo.versionString, isPrimary: true)
-                detailRow("Build", value: AppInfo.buildString)
-                detailRow("Commit", value: AppInfo.commitString)
-            }
-            .font(.callout)
-            .accessibilityElement(children: .combine)
-            // Beside what it copies.
+        HStack(alignment: .firstTextBaseline, spacing: ThawSpacing.row) {
+            Text(verbatim: "\(AppInfo.versionString) (\(AppInfo.buildString)) · \(AppInfo.commitString)")
+                .font(ThawType.detail)
+                .monospaced()
+                .foregroundStyle(ThawInk.supporting)
+                .textSelection(.enabled)
+                .accessibilityLabel("Version \(AppInfo.versionString), build \(AppInfo.buildString), commit \(AppInfo.commitString)")
             Button {
                 copyVersionInfo()
             } label: {
@@ -155,23 +154,10 @@ struct AboutSettingsPane: View {
         }
     }
 
-    private func detailRow(_ label: LocalizedStringKey, value: String, isPrimary: Bool = false) -> some View {
-        GridRow {
-            Text(label)
-                .foregroundStyle(ThawInk.supporting)
-                .gridColumnAlignment(.trailing)
-            Text(verbatim: value)
-                .monospaced()
-                .fontWeight(isPrimary ? .medium : .regular)
-                .foregroundStyle(isPrimary ? Color.primary : ThawInk.supporting)
-                .textSelection(.enabled)
-        }
-    }
-
     // MARK: Actions
 
     private var actions: some View {
-        HStack(spacing: 8) {
+        ThawActionGroup {
             Button("What’s New") {
                 ReadingWindow.releaseNotes.show()
             }
@@ -193,13 +179,12 @@ struct AboutSettingsPane: View {
             .accessibilityLabel("More about \(AppInfo.displayName)")
             .background { MoreMenuAnchorView(anchor: menuAnchor) }
         }
-        .buttonStyle(.settingsGlass)
-        .controlSize(.regular)
+        .buttonStyle(.thawGrouped)
     }
 
     private var footer: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 12) {
+        VStack(spacing: ThawSpacing.inset) {
+            HStack(spacing: ThawSpacing.inset) {
                 if let url = AppInfo.repositoryURL {
                     Link(destination: url) {
                         Text("Source Code").underline()
@@ -217,19 +202,13 @@ struct AboutSettingsPane: View {
                         Text("Support Floe").underline()
                     }
                 }
-                if let url = AppInfo.link("thaw") {
-                    footerSeparator
-                    Link(destination: url) {
-                        Text("Thaw").underline()
-                    }
-                }
             }
             .buttonStyle(.plain)
             .fixedSize(horizontal: false, vertical: true)
 
             Text(AppInfo.copyrightString)
         }
-        .font(.footnote)
+        .font(ThawType.footnote)
         .foregroundStyle(ThawInk.supporting)
         .multilineTextAlignment(.center)
     }
@@ -267,8 +246,10 @@ struct AboutSettingsPane: View {
                 openURL(url)
             }
         })
-        menu.addItem(.separator())
-        menu.addItem(item(String(localized: "Acknowledgements", bundle: .floe), "text.book.closed") { ReadingWindow.acknowledgements.show() })
+        if let url = AppInfo.link("thaw") {
+            menu.addItem(.separator())
+            menu.addItem(item("Thaw", "snowflake") { openURL(url) })
+        }
         guard let anchor = menuAnchor.view else { return }
         // The anchor's own coordinate system is not flipped, so minY is its
         // bottom edge and the menu opens just below the button.
@@ -277,29 +258,21 @@ struct AboutSettingsPane: View {
 
     // MARK: Updates
 
-    /// Pickers are made borderless explicitly, since outside a Form they
-    /// default to bordered. The two Sparkle switches are one picker:
-    /// downloading implies checking.
+    /// The choices are pills, short enough to sit beside their labels. The two
+    /// Sparkle switches are one choice: downloading implies checking.
     private var updates: some View {
         VStack(spacing: 0) {
             updateRow(String(localized: "Update channel", bundle: .floe)) {
-                Picker("Update channel", selection: $updatesManager.updateChannel) {
-                    ForEach(UpdateChannel.allCases) { channel in
-                        Text(channel.title).tag(channel)
-                    }
-                }
-                .pickerStyle(.menu)
-                .buttonStyle(.borderless)
+                ThawPillPicker(selection: $updatesManager.updateChannel, values: UpdateChannel.allCases, title: \.title)
+                    .accessibilityLabel("Update channel")
             }
             Divider()
             updateRow(String(localized: "Automatic updates", bundle: .floe)) {
-                Picker("Automatic updates", selection: automaticUpdatesMode) {
-                    ForEach(AutomaticUpdates.allCases, id: \.self) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                .pickerStyle(.menu)
-                .buttonStyle(.borderless)
+                ThawPillPicker(
+                    selection: automaticUpdatesMode,
+                    options: AutomaticUpdates.allCases.map { ThawPillPicker.Option($0, title: .verbatim($0.shortTitle), help: .verbatim($0.title)) }
+                )
+                .accessibilityLabel("Automatic updates")
             }
             Divider()
             updateRow(UpdateText.lastChecked(updatesManager.lastUpdateCheckDate), isSecondary: true) {
@@ -310,7 +283,7 @@ struct AboutSettingsPane: View {
                 .disabled(!updatesManager.canCheckNow)
             }
         }
-        .font(.callout)
+        .font(ThawType.detail)
         .background(.quinary, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous)
@@ -326,13 +299,13 @@ struct AboutSettingsPane: View {
         HStack {
             Text(label)
                 .foregroundStyle(isSecondary ? AnyShapeStyle(ThawInk.supporting) : AnyShapeStyle(.primary))
-            Spacer(minLength: 12)
+            Spacer(minLength: ThawSpacing.inset)
             control()
                 .labelsHidden()
                 .fixedSize()
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, ThawSpacing.inset)
+        .padding(.vertical, ThawSpacing.base)
     }
 
     private var automaticUpdatesMode: Binding<AutomaticUpdates> {
@@ -393,66 +366,5 @@ private struct MoreMenuAnchorView: NSViewRepresentable {
 
     func updateNSView(_ nsView: NSView, context _: Context) {
         anchor.view = nsView
-    }
-}
-
-// MARK: - From Thaw's SettingsView and LayoutBarItemMenu
-
-/// Behind-window vibrancy so surfaces sample the desktop rather than the
-/// system-owned NavigationSplitView backdrop beneath the SwiftUI layer.
-struct BehindWindowMaterialBackground: NSViewRepresentable {
-    let material: NSVisualEffectView.Material
-
-    func makeNSView(context _: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        configure(view)
-        return view
-    }
-
-    func updateNSView(_ view: NSVisualEffectView, context _: Context) {
-        configure(view)
-    }
-
-    private func configure(_ view: NSVisualEffectView) {
-        view.material = material
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.isEmphasized = false
-    }
-}
-
-/// The system glass button, unmodified: its own padding and shape, so a
-/// Settings button looks like one in System Settings and follows macOS as the
-/// style changes. Kept as a name so call sites say what they mean.
-extension PrimitiveButtonStyle where Self == GlassButtonStyle {
-    static var settingsGlass: GlassButtonStyle {
-        .glass
-    }
-}
-
-/// A menu item that runs a closure.
-final class ClosureMenuItem: NSMenuItem {
-    private let handler: () -> Void
-
-    init(title: String, isEnabled: Bool = true, handler: @escaping () -> Void) {
-        self.handler = handler
-        super.init(title: title, action: #selector(run), keyEquivalent: "")
-        target = self
-        self.isEnabled = isEnabled
-    }
-
-    /// AppKit's initializers are nonisolated, and so must be what stands in for them here.
-    @available(*, unavailable)
-    override nonisolated init(title _: String, action _: Selector?, keyEquivalent _: String) {
-        fatalError("init(title:action:keyEquivalent:) has not been implemented")
-    }
-
-    @available(*, unavailable)
-    required nonisolated init(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    @objc private func run() {
-        handler()
     }
 }

@@ -112,6 +112,15 @@ enum AutomaticUpdates: Hashable, CaseIterable {
         case .download: String(localized: "Check and download", bundle: .floe, comment: "Automatic updates: check, and download what is found.")
         }
     }
+
+    /// The name in a pill, where the full one doesn't fit; the full one is its help.
+    var shortTitle: String {
+        switch self {
+        case .off: title
+        case .check: String(localized: "Check", bundle: .floe, comment: "Automatic updates, in a narrow pill: check, and do not download.")
+        case .download: String(localized: "Download", bundle: .floe, comment: "Automatic updates, in a narrow pill: check, and download what is found.")
+        }
+    }
 }
 
 /// The words and enabled states of the update controls.
