@@ -64,11 +64,86 @@ struct IconThumbnailTests {
         #expect(Self.key(.workspace(path: Self.calculator)).cacheKey == row.cacheKey)
     }
 
+    @Test func aDataIconIsKeptByADigestOfItsURINotTheURIItself() {
+        let large = "data:image/png;base64," + String(repeating: "A", count: 1_000_000)
+        let key = Self.key(.data(uri: large))
+        #expect(key.cacheKey.utf8.count < 200, "the cache keeps no copy of the image")
+        #expect(key.cacheKey == Self.key(.data(uri: large)).cacheKey)
+        #expect(key.cacheKey != Self.key(.data(uri: large + "B")).cacheKey)
+    }
+
     @Test(arguments: [(24.0, 2.0, 48), (24.0, 1.0, 24), (16.0, 2.0, 32), (96.0, 2.0, 192)])
     func anAppIconComesOutAtThePixelsItIsDrawnIn(points: Double, scale: Double, pixels: Int) throws {
         let image = try #require(IconThumbnail.render(Self.key(.workspace(path: Self.calculator), points: points, scale: scale)))
         #expect(image.width == pixels)
         #expect(image.height == pixels)
+    }
+
+    @Test func aRemoteIconIsFetchedOnceAndKeptAtTheSizeItIsDrawn() async throws {
+        let png = Self.pngData(width: 1024, height: 1024)
+        let fetches = Mutex(0)
+        let cache = IconThumbnailCache(budget: 1024 * 1024, render: { _ in nil }) { _ in
+            fetches.withLock { $0 += 1 }
+            return png
+        }
+        let key = try Self.key(.remote(url: #require(URL(string: "https://example.com/icon.png"))))
+        let image = try #require(await cache.load(key))
+        #expect(image.width == 48 && image.height == 48, "a 1024 px picture is kept as the 48 px the row draws")
+        #expect(await cache.load(key) != nil)
+        #expect(fetches.withLock(\.self) == 1, "the second row reads the kept thumbnail")
+        #expect(try cache.imageRenderingNow(for: Self.key(.remote(url: #require(URL(string: "https://example.com/other.png"))))) == nil, "nothing is fetched in one pass")
+    }
+
+    @Test func aRemoteIconThatFailsToLoadIsNotKept() async throws {
+        let cache = IconThumbnailCache(budget: 1024 * 1024, render: { _ in nil }) { _ in nil }
+        let key = try Self.key(.remote(url: #require(URL(string: "https://example.com/missing.png"))))
+        #expect(await cache.load(key) == nil)
+        #expect(cache.image(for: key) == nil)
+    }
+
+    @Test func aMarkdownPictureIsDecodedNoLargerThanItsLongerSideAllows() throws {
+        let image = try #require(RemoteImage.image(from: Self.pngData(width: 4000, height: 1000), maxPixels: 800))
+        #expect(image.width == 800)
+        #expect(image.height == 200)
+        let small = try #require(RemoteImage.image(from: Self.pngData(width: 300, height: 100), maxPixels: 800))
+        #expect(small.width == 300, "a small picture is not scaled up")
+        #expect(RemoteImage.image(from: Data("not an image".utf8), maxPixels: 800) == nil)
+    }
+
+    @Test func onlyAnAbsoluteWebAddressIsFetched() async throws {
+        #expect(try RemoteImage.accepts(#require(URL(string: "https://example.com/a.png"))))
+        #expect(try RemoteImage.accepts(#require(URL(string: "HTTP://example.com/a.png"))))
+        for refused in ["file:///etc/passwd", "ftp://example.com/a.png", "data:image/png;base64,AAAA", "https:///a.png", "/a.png"] {
+            let url = try #require(URL(string: refused))
+            #expect(!RemoteImage.accepts(url), "\(refused)")
+            #expect(await RemoteImage.data(at: url) == nil, "\(refused) is never asked for")
+        }
+    }
+
+    @Test func aRedirectIsFollowedTenTimesAtMostAndNeverFromHTTPSDownToHTTP() throws {
+        let secure = try #require(URL(string: "https://example.com/a.png"))
+        let plain = try #require(URL(string: "http://example.com/a.png"))
+        #expect(RemoteImage.follows(redirectTo: secure, from: plain, count: 1))
+        #expect(RemoteImage.follows(redirectTo: secure, from: secure, count: 10))
+        #expect(!RemoteImage.follows(redirectTo: secure, from: secure, count: 11))
+        #expect(!RemoteImage.follows(redirectTo: plain, from: secure, count: 1))
+        #expect(try !RemoteImage.follows(redirectTo: #require(URL(string: "file:///etc/hosts")), from: plain, count: 1))
+    }
+
+    @Test func aDownloadStopsAtTheByteLimit() async {
+        func stream(_ count: Int) -> AsyncStream<UInt8> {
+            AsyncStream { continuation in
+                for _ in 0 ..< count {
+                    continuation.yield(0x41)
+                }
+                continuation.finish()
+            }
+        }
+        #expect(await RemoteImage.collect(stream(16), expected: -1, limit: 16)?.count == 16, "exactly the limit is kept")
+        #expect(await RemoteImage.collect(stream(17), expected: -1, limit: 16) == nil, "a length not said up front is counted")
+        #expect(await RemoteImage.collect(stream(4), expected: 17, limit: 16) == nil, "a length said past the limit is not read")
+        #expect(RemoteImage.byteLimit == 8 * 1024 * 1024)
+        #expect(RemoteImage.timeout == 30)
     }
 
     @Test func imageIOKeepsNoDecodedImage() {

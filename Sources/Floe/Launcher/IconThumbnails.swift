@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
+import CryptoKit
 import ImageIO
 import Synchronization
 
@@ -17,6 +18,8 @@ nonisolated enum IconSource: Hashable {
     case file(path: String)
     /// A `data:` URI, as extensions pass for images they build themselves.
     case data(uri: String)
+    /// An image on the web, fetched before it is drawn.
+    case remote(url: URL)
 }
 
 /// One thumbnail: the same icon at another size or on another display is another bitmap.
@@ -34,7 +37,9 @@ nonisolated struct IconKey: Hashable {
         let origin = switch source {
         case let .workspace(path): "workspace:\(path)"
         case let .file(path): "file:\(path)"
-        case let .data(uri): uri
+        case let .remote(url): "remote:\(url.absoluteString)"
+        // A digest, so the cache does not keep a copy of an image the size of the URI beside its thumbnail.
+        case let .data(uri): "data:" + SHA256.hash(data: Data(uri.utf8)).map { String(format: "%02x", $0) }.joined()
         }
         return "\(points)@\(scale)|\(origin)"
     }
@@ -94,10 +99,16 @@ final nonisolated class IconThumbnailCache: Sendable {
 
     private let kept: Mutex<Kept>
     private let render: @Sendable (IconKey) -> CGImage?
+    private let fetch: @Sendable (URL) async -> Data?
 
-    init(budget: Int = IconThumbnailCache.defaultBudget, render: @escaping @Sendable (IconKey) -> CGImage? = { IconThumbnail.render($0) }) {
+    init(
+        budget: Int = IconThumbnailCache.defaultBudget,
+        render: @escaping @Sendable (IconKey) -> CGImage? = { IconThumbnail.render($0) },
+        fetch: @escaping @Sendable (URL) async -> Data? = { await RemoteImage.data(at: $0) }
+    ) {
         kept = Mutex(Kept(budget: budget))
         self.render = render
+        self.fetch = fetch
     }
 
     /// The bytes a thumbnail's bitmap takes, which is what the budget counts.
@@ -122,7 +133,8 @@ final nonisolated class IconThumbnailCache: Sendable {
         }
     }
 
-    /// For what is drawn in one pass and never again: a menu bar image, a diagnostic.
+    /// For what is drawn in one pass and never again: a menu bar image, a diagnostic. A remote image is not
+    /// fetched here, since that cannot happen in one pass.
     func imageRenderingNow(for key: IconKey) -> CGImage? {
         if let cached = image(for: key) {
             return cached
@@ -136,7 +148,13 @@ final nonisolated class IconThumbnailCache: Sendable {
     @concurrent
     func load(_ key: IconKey) async -> CGImage? {
         guard !Task.isCancelled else { return nil }
-        return imageRenderingNow(for: key)
+        guard case let .remote(url) = key.source else { return imageRenderingNow(for: key) }
+        if let cached = image(for: key) {
+            return cached
+        }
+        guard let data = await fetch(url), !Task.isCancelled, let image = IconThumbnail.image(from: data, pixels: key.pixels) else { return nil }
+        store(image, for: key)
+        return image
     }
 }
 
@@ -153,10 +171,16 @@ nonisolated enum IconThumbnail {
             let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary)
             return source.flatMap { downsampled($0, pixels: key.pixels) } ?? NSImage(contentsOf: url).flatMap { drawn($0, pixels: key.pixels) }
         case let .data(uri):
-            guard let data = data(fromURI: uri) else { return nil }
-            let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary)
-            return source.flatMap { downsampled($0, pixels: key.pixels) } ?? NSImage(data: data).flatMap { drawn($0, pixels: key.pixels) }
+            return data(fromURI: uri).flatMap { image(from: $0, pixels: key.pixels) }
+        case .remote:
+            return nil
         }
+    }
+
+    /// An image file's bytes drawn so the shorter side is `pixels`.
+    static func image(from data: Data, pixels: Int) -> CGImage? {
+        let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary)
+        return source.flatMap { downsampled($0, pixels: pixels) } ?? NSImage(data: data).flatMap { drawn($0, pixels: pixels) }
     }
 
     static func data(fromURI uri: String) -> Data? {
@@ -243,5 +267,86 @@ nonisolated extension CGImageSource {
 
     func thumbnail(at index: Int, maxPixelSize: Int) -> CGImage? {
         CGImageSourceCreateThumbnailAtIndex(self, index, Self.thumbnailOptions(maxPixelSize: maxPixelSize) as CFDictionary)
+    }
+}
+
+/// Images on the web, for icons and for the pictures in Markdown. An extension names the address, so the
+/// fetch is bounded: the web only, a few redirects that keep https, half a minute, and 8 MiB.
+nonisolated enum RemoteImage {
+    static let byteLimit = 8 << 20
+    static let redirectLimit = 10
+    static let timeout: TimeInterval = 30
+
+    /// Only an absolute web address is fetched.
+    static func accepts(_ url: URL) -> Bool {
+        ["http", "https"].contains(url.scheme?.lowercased()) && url.host?.isEmpty == false
+    }
+
+    /// Whether to follow the redirect that would be the `count`th, from `old` to `new`: never from https down to http.
+    static func follows(redirectTo new: URL, from old: URL, count: Int) -> Bool {
+        count <= redirectLimit && accepts(new) && !(old.scheme?.lowercased() == "https" && new.scheme?.lowercased() == "http")
+    }
+
+    /// The bytes at `url`, or nil for a failed request, an answer that is not a success, or one past the limit.
+    static func data(at url: URL) async -> Data? {
+        guard accepts(url) else { return nil }
+        let request = URLRequest(url: url, timeoutInterval: timeout)
+        guard let (bytes, response) = try? await URLSession.shared.bytes(for: request, delegate: RedirectGuard()),
+              (response as? HTTPURLResponse).map({ (200 ..< 300).contains($0.statusCode) }) ?? false
+        else { return nil }
+        return await collect(bytes, expected: response.expectedContentLength)
+    }
+
+    /// Reads at most `limit` bytes: a length said up front past it is refused unread, and a stream that runs past it is dropped.
+    static func collect<Bytes: AsyncSequence>(_ bytes: Bytes, expected: Int64, limit: Int = byteLimit) async -> Data? where Bytes.Element == UInt8 {
+        guard expected <= Int64(limit) else { return nil }
+        var data = Data()
+        if expected > 0 {
+            data.reserveCapacity(Int(expected))
+        }
+        do {
+            for try await byte in bytes {
+                guard data.count < limit else { return nil }
+                data.append(byte)
+            }
+        } catch {
+            return nil
+        }
+        return data
+    }
+
+    /// Counts one fetch's redirects; a session-wide delegate could not tell the fetches apart.
+    private final class RedirectGuard: NSObject, URLSessionTaskDelegate {
+        private let count = Mutex(0)
+
+        func urlSession(
+            _: URLSession,
+            task: URLSessionTask,
+            willPerformHTTPRedirection _: HTTPURLResponse,
+            newRequest request: URLRequest,
+            completionHandler: @escaping @Sendable (URLRequest?) -> Void
+        ) {
+            let count = count.withLock { count in
+                count += 1
+                return count
+            }
+            guard let old = task.currentRequest?.url, let new = request.url, RemoteImage.follows(redirectTo: new, from: old, count: count) else {
+                return completionHandler(nil)
+            }
+            completionHandler(request)
+        }
+    }
+
+    /// Fetches and decodes off the main actor.
+    @concurrent
+    static func picture(at url: URL, maxPixels: Int) async -> CGImage? {
+        guard let data = await data(at: url), !Task.isCancelled else { return nil }
+        return image(from: data, maxPixels: maxPixels)
+    }
+
+    /// A picture decoded with its longer side at most `maxPixels`, so a large photo never exists at full size.
+    static func image(from data: Data, maxPixels: Int) -> CGImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) else { return nil }
+        return source.thumbnail(at: CGImageSourceGetPrimaryImageIndex(source), maxPixelSize: maxPixels)
     }
 }

@@ -88,16 +88,36 @@ private struct MarkdownBlocks: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 8))
                 case let .image(url):
-                    AsyncImage(url: url) { image in
-                        image.resizable().scaledToFit()
-                    } placeholder: {
-                        Color.primary.opacity(0.05)
-                    }
-                    .frame(maxHeight: 260)
+                    MarkdownImage(url: url)
                 case .rule:
                     Divider()
                 }
             }
+        }
+    }
+}
+
+/// A picture in the text, decoded no larger than it can be drawn: the panel's width, and 260 pt high.
+private struct MarkdownImage: View {
+    let url: URL
+    @Environment(\.displayScale) private var displayScale
+    @State private var image: CGImage?
+
+    private static let maxHeight: CGFloat = 260
+    /// Wider than the launcher's panel, so a wide picture is still sharp across it.
+    private static let maxWidth: CGFloat = 900
+
+    var body: some View {
+        Group {
+            if let image {
+                Image(decorative: image, scale: displayScale).resizable().scaledToFit()
+            } else {
+                Color.primary.opacity(0.05)
+            }
+        }
+        .frame(maxHeight: Self.maxHeight)
+        .task(id: url) {
+            image = await RemoteImage.picture(at: url, maxPixels: Int(Self.maxWidth * displayScale))
         }
     }
 }

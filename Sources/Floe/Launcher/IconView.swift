@@ -132,7 +132,7 @@ struct IconView: View {
                     }
                 }
             case let .remote(url):
-                AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { Color.clear }
+                IconThumbnailView(source: .remote(url: url), size: size, waitsForImage: waitsForImage) { $0.resizable().scaledToFill() }
             case let .text(text):
                 Text(text).font(.system(size: size * 0.55))
             case .none:
