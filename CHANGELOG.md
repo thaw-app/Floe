@@ -103,7 +103,7 @@ After you install:
 - **An extension's Swift helper is built the first time a command calls it**, which takes a few minutes. Rust helpers do not run on macOS, as in Raycast.
 - **`Clipboard.read` with an offset reads Floe's clipboard history**, and Raycast's icon names draw as SF Symbols.
 - **More extensions build and run as they do in Raycast:** self-signed certificates and proxies through node-fetch, undici and ws, better-sqlite3 on Bun's SQLite, and packages whose module build lacks what Node's build has. An extension's support folder holds only its own files.
-- **An extension you are writing runs again when you save it.** While one of its commands is open, a save under `src` or `assets`, or of `package.json`, runs the command again with the same arguments.
+- **An extension you are writing runs again when you save it.** While one of its commands is open, a save under `src` or `assets`, or of `package.json`, runs the command again with the same arguments. A change that fails to build or load leaves the last working view up, with a toast that says why.
 
 #### Extension settings and sign-in
 - **Turn off an extension, or one of its commands**, on its page in Settings. Floe leaves what is off out of the search, and a hotkey, the menu bar or Shortcuts will not run it.

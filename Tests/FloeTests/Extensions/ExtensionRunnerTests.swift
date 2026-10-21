@@ -59,6 +59,56 @@ struct ExtensionRunnerTests {
         body(pasteboard)
     }
 
+    /// A runner whose sessions start no host, handed out as they are made: the test plays the host.
+    private func reloadingRunner() -> (ExtensionRunner, () -> [ExtensionSession]) {
+        let runner = runner()
+        var started: [ExtensionSession] = []
+        runner.startsHost = { started.append($0) }
+        runner.run(command())
+        return (runner, { started })
+    }
+
+    private func render(_ session: ExtensionSession) {
+        var kept = KeptRender()
+        let line = Data(#"{"type":"render","sequence":1,"tree":{"id":1,"type":"List","props":{},"handlers":[],"children":[]}}"#.utf8)
+        if let message = DecodedHostMessage.decode(line, kept: &kept) {
+            session.apply(message)
+        }
+    }
+
+    @Test func aSavedChangeTakesOverOnceItShowsSomething() throws {
+        let (runner, started) = reloadingRunner()
+        let first = try #require(runner.session)
+        render(first)
+        runner.reload(first, changed: ["src/index.tsx"])
+        #expect(started().count == 2)
+        #expect(runner.session === first, "the view on screen stays while the change starts")
+        render(started()[1])
+        #expect(runner.session === started()[1])
+    }
+
+    @Test func aSavedChangeThatFailsLeavesTheLastViewUpAndSaysWhy() throws {
+        let (runner, started) = reloadingRunner()
+        let first = try #require(runner.session)
+        render(first)
+        runner.reload(first, changed: ["src/index.tsx"])
+        started()[1].failure = SessionFailure(kind: .error, message: "Expected \";\" but found \"}\"", details: "")
+        #expect(runner.session === first)
+        #expect(first.toast?.title == "The change didn't load")
+        #expect(first.toast?.message == "Expected \";\" but found \"}\"")
+        render(started()[1])
+        #expect(runner.session === first, "the failed change is gone")
+    }
+
+    @Test func aViewThatFailedGivesWayToTheNextFailure() throws {
+        let (runner, started) = reloadingRunner()
+        let first = try #require(runner.session)
+        first.failure = SessionFailure(kind: .error, message: "first", details: "")
+        runner.reload(first, changed: ["src/index.tsx"])
+        started()[1].failure = SessionFailure(kind: .error, message: "second", details: "")
+        #expect(runner.session === started()[1])
+    }
+
     @Test func aMenuBarCommandIsPutInTheMenuBarInsteadOfRun() {
         let runner = runner()
         runner.run(command(mode: "menu-bar"))

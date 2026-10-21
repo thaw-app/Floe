@@ -2979,6 +2979,9 @@
     "On the power adapter" : {
       "comment" : "About the battery: plugged in and not charging."
     },
+    "One message ran past %lld MB." : {
+      "comment" : "The placeholder is a number of megabytes."
+    },
     "Only use AI that runs on this Mac" : {
 
     },
@@ -4278,6 +4281,9 @@
     "The calculator converts money with the European Central Bank’s daily rates, downloaded about twice a day. Off removes them." : {
 
     },
+    "The change didn't load" : {
+
+    },
     "The checkpoint %@ was already deleted" : {
       "comment" : "The placeholder is the name the user gave a checkpoint."
     },
@@ -4306,6 +4312,9 @@
 
     },
     "The extension isn't responding." : {
+
+    },
+    "The extension sent a message too large to read and was stopped." : {
 
     },
     "The extension stopped unexpectedly." : {

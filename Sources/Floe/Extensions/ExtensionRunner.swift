@@ -7,6 +7,7 @@
 
 import AppKit
 import ApplicationServices
+import Combine
 
 /// The extension command the panel runs: starting it, what it asks the app to do, running it again and ending it.
 /// It is handed what it needs from the panel as a Host, and knows nothing of the launcher.
@@ -55,6 +56,10 @@ final class ExtensionRunner: ObservableObject {
     private var toastLine: (session: ObjectIdentifier, id: Int, line: String)?
     /// Watches the open command's extension while it is one being developed (see HotReload.swift).
     private var sourceWatcher: DirectoryWatcher?
+    /// Starts a session's host. A test leaves it unstarted and plays the host's part.
+    var startsHost: (ExtensionSession) -> Void = { $0.start() }
+    /// The command started again after a save, until it shows something or fails: the one on screen stays meanwhile.
+    private var reloading: (session: ExtensionSession, outcome: AnyCancellable)?
 
     /// A command that first has to ask for preferences or arguments starts without `launchCommand`'s context.
     /// `fallbackText` is what was typed, when the command was chosen as a fallback.
@@ -103,6 +108,8 @@ final class ExtensionRunner: ObservableObject {
         if self.session === session {
             self.session = nil
             sourceWatcher = nil
+            reloading?.session.stop()
+            reloading = nil
             host.refocus()
         }
     }
@@ -116,33 +123,62 @@ final class ExtensionRunner: ObservableObject {
 
     private func launch(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]? = nil, fallbackText: String? = nil) {
         Log.extensions.info("Running \(command.extensionName)/\(command.name) (\(command.mode))")
+        let session = makeSession(command, arguments: arguments, context: context, fallbackText: fallbackText)
+        self.session = session
+        startsHost(session)
+        watchSources(of: session)
+    }
+
+    private func makeSession(_ command: ExtensionCommand, arguments: [String: Any], context: [String: Any]?, fallbackText: String?) -> ExtensionSession {
         let session = ExtensionSession(command: command, arguments: arguments, launchContext: context, fallbackText: fallbackText)
         session.onMessage = { [weak self, weak session] message in
             guard let self, let session else { return }
             handle(message, from: session)
         }
         session.answer = Self.answer(withHistory: host.clipboardHistory)
-        self.session = session
-        session.start()
-        sourceWatcher = HotReload.watcher(for: command) { [weak self, weak session] paths in
+        return session
+    }
+
+    private func watchSources(of session: ExtensionSession) {
+        sourceWatcher = HotReload.watcher(for: session.command) { [weak self, weak session] paths in
             guard let self, let session else { return }
             reload(session, changed: paths)
         }
     }
 
-    /// A file of the open command's extension was saved: runs the command again as retry does.
-    /// A panel that is hidden while its command waits to be resumed stays hidden.
-    private func reload(_ watched: ExtensionSession, changed paths: [String]) {
+    /// A file of the open command's extension was saved: the command starts again beside the one on screen,
+    /// and takes its place once it shows something. A change that fails to build or load leaves the last
+    /// working view up, with a toast that says why. A panel hidden while its command waits stays hidden.
+    func reload(_ watched: ExtensionSession, changed paths: [String]) {
         guard session === watched else { return }
         if HotReload.changesManifest(paths) {
             host.manifestChanged()
         }
-        if host.isWaitingToResume() {
-            end(watched)
-            launch(watched.command, arguments: watched.arguments, context: watched.launchContext, fallbackText: watched.fallbackText)
-        } else {
-            retry()
+        reloading?.session.stop()
+        let next = makeSession(watched.command, arguments: watched.arguments, context: watched.launchContext, fallbackText: watched.fallbackText)
+        let shows = next.$root.compactMap(\.self).map { _ in nil as SessionFailure? }
+        let fails = next.$failure.compactMap(\.self).map { $0 as SessionFailure? }
+        let outcome = shows.merge(with: fails).first().sink { [weak self, weak next] failure in
+            guard let self, let next else { return }
+            settleReload(next, failing: failure)
         }
+        reloading = (next, outcome)
+        startsHost(next)
+    }
+
+    private func settleReload(_ next: ExtensionSession, failing failure: SessionFailure?) {
+        guard reloading?.session === next else { return }
+        reloading = nil
+        guard let current = session else { return next.stop() }
+        // A view that failed itself gives way to the newer failure, which is the one worth reading.
+        if let failure, current.failure == nil {
+            next.stop()
+            current.toast = ToastState(id: 0, style: "failure", title: String(localized: "The change didn't load", bundle: .floe), message: failure.message)
+            return
+        }
+        current.stop(after: 0.5)
+        session = next
+        watchSources(of: next)
     }
 
     /// The app's answers, with `Clipboard.read`'s older copies taken from Floe's history.
