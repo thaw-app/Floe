@@ -62,7 +62,7 @@ async function patiently<T>(work: () => T | Promise<T>, deadline = Date.now() + 
         return await work();
     } catch (error) {
         if (Date.now() >= deadline || !isHeld(error)) throw error;
-        await Bun.sleep(25 + (crypto.getRandomValues(new Uint8Array(1))[0] % 50));
+        await Bun.sleep(25 + Math.floor(Math.random() * 50));
         return patiently(work, deadline);
     }
 }

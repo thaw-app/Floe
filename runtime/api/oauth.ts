@@ -88,10 +88,15 @@ function isReceivable(method?: string): boolean {
 }
 
 const unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+// A byte past the last whole multiple of the alphabet is drawn again, so every character is as likely.
 function randomString(length: number): string {
-  const values = crypto.getRandomValues(new Uint8Array(length));
+  const limit = 256 - (256 % unreserved.length);
   let out = "";
-  for (const value of values) out += unreserved[value % unreserved.length];
+  while (out.length < length) {
+    for (const value of crypto.getRandomValues(new Uint8Array(length - out.length))) {
+      if (value < limit) out += unreserved[value % unreserved.length];
+    }
+  }
   return out;
 }
 

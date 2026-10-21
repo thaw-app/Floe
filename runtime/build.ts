@@ -18,6 +18,12 @@ export const shimPath = path.join(import.meta.dir, "api/index.ts");
 // Raycast builds every command to CommonJS, where a name a module does not export is undefined and not a failed
 // import. A command with a top-level await cannot be CommonJS, so that one is built as a module.
 const formats = ["cjs", "esm"] as const;
+
+// A string as a JavaScript literal for generated code. JSON leaves <, > and / as they are, and U+2028 and U+2029
+// end a line in engines older than ES2019, so all five are escaped.
+export function literal(value: string): string {
+  return JSON.stringify(value).replace(/[<>/\u2028\u2029]/g, (char) => String.raw`\u` + char.codePointAt(0)!.toString(16).padStart(4, "0"));
+}
 export async function bundle(entry: string): Promise<string> {
   const outdir = path.join(ctx.dataPath, "build");
   const output = path.join(outdir, `${ctx.commandName}.js`);
@@ -41,7 +47,7 @@ const compatDir = path.join(import.meta.dir, "compat");
 function useCompatModules(output: string) {
   const code = fs.readFileSync(output, "utf8");
   const pointed = code.replace(/(require\(|from\s*)"(node-fetch|undici|ws)"/g, (_match, lead: string, name: string) =>
-    lead + JSON.stringify(path.join(compatDir, name + ".ts")),
+    lead + literal(path.join(compatDir, name + ".ts")),
   );
   if (pointed !== code) fs.writeFileSync(output, pointed);
 }
@@ -155,9 +161,9 @@ function importMeta(): Record<string, string> {
   const file = path.join(ctx.extDir, `${ctx.commandName}.js`);
   return {
     "import.meta.env": "undefined",
-    "import.meta.url": JSON.stringify(pathToFileURL(file).href),
-    "import.meta.filename": JSON.stringify(file),
-    "import.meta.dirname": JSON.stringify(ctx.extDir),
+    "import.meta.url": literal(pathToFileURL(file).href),
+    "import.meta.filename": literal(file),
+    "import.meta.dirname": literal(ctx.extDir),
     // A function, which define cannot hold, so the banner below declares it; Jev's PDF library resolves its worker.
     "import.meta.resolve": "__floeImportMetaResolve",
   };
@@ -165,7 +171,7 @@ function importMeta(): Record<string, string> {
 
 // Resolves from the extension's folder, where its node_modules are, as a module there would.
 function importMetaResolveBanner(): string {
-  return `var __floeImportMetaResolve = (specifier) => require("node:url").pathToFileURL(Bun.resolveSync(specifier, ${JSON.stringify(ctx.extDir)})).href;`;
+  return `var __floeImportMetaResolve = (specifier) => require("node:url").pathToFileURL(Bun.resolveSync(specifier, ${literal(ctx.extDir)})).href;`;
 }
 
 function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[number], retry: Retry = {}) {
@@ -179,8 +185,8 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
     // Raycast's own build leaves one file per command at the extension's root, and extensions find their
     // assets from there. Bun would put each source file's own folder in its place.
     define: {
-      __dirname: JSON.stringify(ctx.extDir),
-      __filename: JSON.stringify(path.join(ctx.extDir, `${ctx.commandName}.js`)),
+      __dirname: literal(ctx.extDir),
+      __filename: literal(path.join(ctx.extDir, `${ctx.commandName}.js`)),
       // CommonJS has no import.meta, so a module build that reads it (zustand's import.meta.env) would not even load.
       ...(format === "cjs" ? importMeta() : {}),
     },
@@ -200,7 +206,7 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
           }));
           build.onLoad({ filter: /\.wasm$/ }, (args) => ({
             loader: "js",
-            contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${JSON.stringify(args.path)}));`,
+            contents: `import { readFileSync } from "node:fs";\nexport default new WebAssembly.Module(readFileSync(${literal(args.path)}));`,
           }));
           if (retry.unresolved) {
             const unresolved = retry.unresolved;
@@ -262,7 +268,7 @@ export function nativeStub(specifier: string, importer: string, importerSource: 
     return [...[...names].map((name) => `export const ${name} = ${rejected};`), "export default {};"].join("\n");
   }
   const packageDir = path.resolve(path.dirname(importer), specifier.slice("swift:".length));
-  const call = (name: string) => `export const ${name} = (...args) => runSwiftFunction(${JSON.stringify(packageDir)}, ${JSON.stringify(name)}, args);`;
+  const call = (name: string) => `export const ${name} = (...args) => runSwiftFunction(${literal(packageDir)}, ${literal(name)}, args);`;
   return ['import { runSwiftFunction } from "floe:native";', ...[...names].map(call), "export default {};"].join("\n");
 }
 

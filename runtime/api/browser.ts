@@ -61,8 +61,8 @@ export function pageContent(format: string, selector: string | null): string {
         return `\n\n\`\`\`\n${inner(depth, true).replace(/\n$/, "")}\n\`\`\`\n\n`;
       case "A": {
         const text = inner().trim();
-        const href = node.getAttribute("href");
-        return text && href && !href.startsWith("javascript:") ? `[${text}](${node.href})` : text;
+        // node.href is the resolved address; a link that runs or embeds something keeps only its text.
+        return text && /^(https?|mailto):/i.test(node.href ?? "") ? `[${text}](${node.href})` : text;
       }
       case "IMG":
         return node.src ? `![${node.getAttribute("alt") ?? ""}](${node.src})` : "";

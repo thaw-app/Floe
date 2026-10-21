@@ -10,7 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import React from "react";
 import { ctx } from "../bridge";
-import { bundle, findEntry, fingerprint, newestChange, shimPath } from "../build";
+import { bundle, findEntry, fingerprint, literal, newestChange, shimPath } from "../build";
 import { find, installRuntime, makeTempDir, sent, showScreen } from "./support";
 
 installRuntime("build-tests");
@@ -51,6 +51,14 @@ afterEach(() => {
 });
 afterAll(() => {
   for (const dir of tempDirs) fs.rmSync(dir, { recursive: true, force: true });
+});
+
+describe("literal", () => {
+  test("reads back as the same string, with nothing that could close a script or end a line", () => {
+    const value = '/ext/</script><b>"\\\u2028\u2029';
+    expect(literal(value)).not.toMatch(/[<>/\u2028\u2029]/);
+    expect(new Function(`return ${literal(value)}`)()).toBe(value);
+  });
 });
 
 describe("findEntry", () => {
