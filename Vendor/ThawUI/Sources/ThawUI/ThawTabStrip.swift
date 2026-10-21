@@ -44,44 +44,12 @@ public struct ThawTabStrip<Tab: Hashable>: View {
     }
 
     public var body: some View {
-        HStack(spacing: ThawSpacing.tight) {
-            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                tabButton(item)
-            }
-        }
-        .padding(ThawSpacing.tight)
-        .frame(maxWidth: .infinity)
-        .thawGlass(.control, in: Capsule(style: .continuous))
-        .accessibilityElement(children: .contain)
-    }
-
-    private func tabButton(_ item: Item) -> some View {
-        let isSelected = item.tab == selection
-        let shape = Capsule(style: .continuous)
-        return Button {
-            selection = item.tab
-        } label: {
-            // Styled on each part: a section header sets its own text colour over the label's.
-            let style = isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary)
-            Label {
-                Text(item.title)
-                    .font(ThawType.body.weight(isSelected ? .semibold : .regular))
-                    .foregroundStyle(style)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-            } icon: {
-                Image(systemName: item.systemImage)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(style)
-            }
-            .labelStyle(.titleAndIcon)
-            .padding(.horizontal, ThawSpacing.inset)
-            .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30)
-            .thawSelectedFill(isSelected, in: shape)
-            .contentShape(shape)
-        }
-        .buttonStyle(.plain)
-        .thawSelectionCue(isSelected: isSelected, in: shape)
-        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+        ThawCapsuleSegments(
+            selection: $selection,
+            segments: items.map { item in
+                .init(value: item.tab, title: item.title, systemImage: item.systemImage, help: nil)
+            },
+            sizing: .filling
+        )
     }
 }
