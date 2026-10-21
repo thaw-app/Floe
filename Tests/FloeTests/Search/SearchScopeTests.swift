@@ -159,7 +159,7 @@ struct SearchScopeTests {
         // With a space and nothing after it the search is still the ordinary one.
         for query in ["files", "files "] {
             model.query = query
-            #expect(model.results.last?.id == "files-for:\(query)")
+            #expect(model.results.last?.id == "files-for:\(query.trimmingCharacters(in: .whitespaces))", "Search Files takes the text without the space")
             #expect(model.activeScope == nil)
         }
         #expect(files.started.isEmpty, "the scope was never asked")

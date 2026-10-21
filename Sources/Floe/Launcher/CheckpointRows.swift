@@ -139,6 +139,8 @@ final class CheckpointRows {
             ItemAction(title: String(localized: "Delete Checkpoint…", bundle: .floe), symbol: "trash") { [weak self] in
                 guard let self else { return }
                 environment.confirmsDelete(checkpoint) { [weak self] in
+                    // The rows on show were found before the delete, so the panel goes rather than show it still.
+                    self?.host.hidePanel()
                     self?.store.delete(checkpoint.id)
                     self?.reload()
                 }

@@ -17,7 +17,7 @@ export const storageLimits = { valueBytes: 8 << 20, totalBytes: 64 << 20, keys: 
 const size = (row: string) => `length(CAST(${row}.key AS BLOB)) + length(CAST(${row}.value AS BLOB))`;
 const usage = [
     "CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY CHECK (id = 1), keys INTEGER NOT NULL, bytes INTEGER NOT NULL)",
-    `INSERT OR IGNORE INTO usage SELECT 1, count(*), coalesce(sum(${size("items")}), 0) FROM items`,
+    `INSERT OR IGNORE INTO usage SELECT 1, count(*), coalesce(sum(${size("items")}), 0) FROM items WHERE NOT EXISTS (SELECT 1 FROM usage)`,
     `CREATE TRIGGER IF NOT EXISTS items_added AFTER INSERT ON items BEGIN UPDATE usage SET keys = keys + 1, bytes = bytes + ${size("new")}; END`,
     `CREATE TRIGGER IF NOT EXISTS items_changed AFTER UPDATE ON items BEGIN UPDATE usage SET bytes = bytes + ${size("new")} - (${size("old")}); END`,
     `CREATE TRIGGER IF NOT EXISTS items_removed AFTER DELETE ON items BEGIN UPDATE usage SET keys = keys - 1, bytes = bytes - (${size("old")}); END`,

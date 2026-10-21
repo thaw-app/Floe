@@ -145,7 +145,10 @@ struct ClipboardHistoryView: View {
             .scrollEdgeEffectStyle(.soft, for: .top)
             .task(id: entry.id) {
                 guard let file = history.imageURL(for: entry) else { return }
-                imagePreview = await (entry.id, ClipboardHistoryStore.preview(of: file, maxPixels: Int(250 * displayScale)))
+                let preview = await ClipboardHistoryStore.preview(of: file, maxPixels: Int(250 * displayScale))
+                // A task for a copy no longer selected must not overwrite the preview of the one that is.
+                guard !Task.isCancelled else { return }
+                imagePreview = (entry.id, preview)
             }
         } else {
             ThawEmptyState(systemImage: "doc.on.clipboard", title: "Select a copy to preview it")

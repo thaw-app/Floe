@@ -301,19 +301,30 @@ nonisolated enum RemoteImage {
     static func collect<Bytes: AsyncSequence>(_ bytes: Bytes, expected: Int64, limit: Int = byteLimit) async -> Data? where Bytes.Element == UInt8 {
         guard expected <= Int64(limit) else { return nil }
         var data = Data()
+        // A length the server states is not trusted with more than a megabyte up front.
         if expected > 0 {
-            data.reserveCapacity(Int(expected))
+            data.reserveCapacity(min(Int(expected), 1 << 20))
         }
+        var chunk: [UInt8] = []
+        chunk.reserveCapacity(chunkSize)
         do {
             for try await byte in bytes {
-                guard data.count < limit else { return nil }
-                data.append(byte)
+                chunk.append(byte)
+                guard chunk.count == chunkSize else { continue }
+                guard data.count + chunk.count <= limit else { return nil }
+                data.append(contentsOf: chunk)
+                chunk.removeAll(keepingCapacity: true)
             }
         } catch {
             return nil
         }
+        guard data.count + chunk.count <= limit else { return nil }
+        data.append(contentsOf: chunk)
         return data
     }
+
+    /// Bytes are gathered this many at a time before they join the data, rather than one by one.
+    private static let chunkSize = 16 << 10
 
     /// Counts one fetch's redirects; a session-wide delegate could not tell the fetches apart.
     private final class RedirectGuard: NSObject, URLSessionTaskDelegate {

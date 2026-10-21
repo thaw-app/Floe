@@ -117,6 +117,7 @@ private struct MarkdownImage: View {
         }
         .frame(maxHeight: Self.maxHeight)
         .task(id: url) {
+            image = nil
             image = await RemoteImage.picture(at: url, maxPixels: Int(Self.maxWidth * displayScale))
         }
     }

@@ -27,7 +27,7 @@ struct FallbackSearchProvider: SearchProvider {
         case .shell:
             return shell.guess(for: context)
         case .searchFiles:
-            return .searchFiles(context.query)
+            return .searchFiles(text)
         case .askAI:
             return context.canAskAI && AskAI.question(in: context) == nil ? .askAI(text) : nil
         case let .quicklink(id):

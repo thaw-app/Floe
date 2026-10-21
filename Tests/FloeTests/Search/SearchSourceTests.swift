@@ -241,7 +241,7 @@ struct SearchSourceTests {
         for query in ["slow", "slow "] {
             model.query = query
             #expect(model.activeScope == nil)
-            #expect(model.results.last?.id == "files-for:\(query)")
+            #expect(model.results.last?.id == "files-for:\(query.trimmingCharacters(in: .whitespaces))", "Search Files takes the text without the space")
         }
     }
 

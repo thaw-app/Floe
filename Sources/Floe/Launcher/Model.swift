@@ -57,7 +57,17 @@ final class LauncherModel: ObservableObject {
     /// True while the panel shows the file search instead of the root search.
     @Published var isSearchingFiles = false
     /// The file search's own state. Not published: its changes redraw its view only.
-    lazy var fileSearch = makeFileSearch()
+    var fileSearch: FileSearchModel {
+        if let madeFileSearch {
+            return madeFileSearch
+        }
+        let search = makeFileSearch()
+        madeFileSearch = search
+        return search
+    }
+
+    /// Nil until the file search is first used, so a reset does not make one only to cancel it.
+    private var madeFileSearch: FileSearchModel?
 
     /// True while the panel shows the menu bar item search instead of the root search.
     @Published var isSearchingMenuBar = false
@@ -271,7 +281,7 @@ final class LauncherModel: ObservableObject {
         menuItemSearch = nil
         isShowingClipboardHistory = false
         isSearchingFiles = false
-        fileSearch.cancel()
+        madeFileSearch?.cancel()
         closeNoteDesk()
         closeAskAI()
         recalledQuery = nil
