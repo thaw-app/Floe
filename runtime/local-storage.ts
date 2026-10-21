@@ -9,6 +9,20 @@ const itemsTable = "CREATE TABLE IF NOT EXISTS items (key TEXT PRIMARY KEY, valu
 // that exactly one process wins, so a migration that has run is never run again.
 const migrationTable = "CREATE TABLE IF NOT EXISTS migration (done INTEGER NOT NULL UNIQUE)";
 
+/// Ceilings no extension reaches by keeping what it needs, which stop one that writes without end.
+/// Raycast documents none; a write past one fails the way a failed write always has, by rejecting.
+export const storageLimits = { valueBytes: 8 << 20, totalBytes: 64 << 20, keys: 65_536 };
+
+// What the items take, kept by SQLite on every insert, change and delete, so a write checks it without a scan.
+const size = (row: string) => `length(CAST(${row}.key AS BLOB)) + length(CAST(${row}.value AS BLOB))`;
+const usage = [
+    "CREATE TABLE IF NOT EXISTS usage (id INTEGER PRIMARY KEY CHECK (id = 1), keys INTEGER NOT NULL, bytes INTEGER NOT NULL)",
+    `INSERT OR IGNORE INTO usage SELECT 1, count(*), coalesce(sum(${size("items")}), 0) FROM items`,
+    `CREATE TRIGGER IF NOT EXISTS items_added AFTER INSERT ON items BEGIN UPDATE usage SET keys = keys + 1, bytes = bytes + ${size("new")}; END`,
+    `CREATE TRIGGER IF NOT EXISTS items_changed AFTER UPDATE ON items BEGIN UPDATE usage SET bytes = bytes + ${size("new")} - (${size("old")}); END`,
+    `CREATE TRIGGER IF NOT EXISTS items_removed AFTER DELETE ON items BEGIN UPDATE usage SET keys = keys - 1, bytes = bytes - (${size("old")}); END`,
+];
+
 /// The file operations, replaceable so a test can count them or make one fail.
 export const storagePersistence = {
     /// Written beside the file and renamed over it, so a kill mid-write keeps the previous complete file.
@@ -53,14 +67,34 @@ async function patiently<T>(work: () => T | Promise<T>, deadline = Date.now() + 
     }
 }
 
+function tables(database: Database) {
+    database.transaction(() => [itemsTable, migrationTable, ...usage].forEach((statement) => database.run(statement)))();
+}
+
+/// Refuses a write that would take the storage past a ceiling, before anything is written.
+function checkRoom(database: Database, key: string, value: string) {
+    const valueBytes = Buffer.byteLength(value);
+    if (valueBytes > storageLimits.valueBytes) {
+        throw new Error(`LocalStorage could not save "${key}": the value is ${megabytes(valueBytes)}, and one value may take ${megabytes(storageLimits.valueBytes)}.`);
+    }
+    const now = database.query("SELECT keys, bytes FROM usage").get() as { keys: number; bytes: number };
+    const old = database.query(`SELECT ${size("items")} AS bytes FROM items WHERE key = ?`).get(key) as { bytes: number } | null;
+    if (!old && now.keys >= storageLimits.keys) {
+        throw new Error(`LocalStorage could not save "${key}": it holds ${storageLimits.keys} keys, as many as it may.`);
+    }
+    const bytes = now.bytes - (old?.bytes ?? 0) + Buffer.byteLength(key) + valueBytes;
+    if (bytes > storageLimits.totalBytes) {
+        throw new Error(`LocalStorage could not save "${key}": everything stored would take ${megabytes(bytes)}, and it may take ${megabytes(storageLimits.totalBytes)}.`);
+    }
+}
+
+const megabytes = (bytes: number) => `${(bytes / (1 << 20)).toFixed(1)} MB`;
+
 /// The tables of items and of the migration marker, made when they are not there. A database that
 /// cannot be read is moved aside, never one that is merely locked: locked is not the same as broken.
 async function settle(opened: Database, target: string): Promise<Database> {
     try {
-        await patiently(() => {
-            opened.run(itemsTable);
-            opened.run(migrationTable);
-        });
+        await patiently(() => tables(opened));
         return opened;
     } catch (error) {
         if (!isBroken(error)) throw error;
@@ -71,10 +105,7 @@ async function settle(opened: Database, target: string): Promise<Database> {
             storagePersistence.keepAside(target);
         } catch {}
         const again = storagePersistence.open(target);
-        await patiently(() => {
-            again.run(itemsTable);
-            again.run(migrationTable);
-        });
+        await patiently(() => tables(again));
         return again;
     }
 }
@@ -137,7 +168,16 @@ export function createLocalStorage(file: () => string) {
             return read;
         },
         async setItem(key: string, value: unknown): Promise<void> {
-            await patiently(async () => (await database()).query("INSERT OR REPLACE INTO items (key, value) VALUES (?, ?)").run(key, JSON.stringify(value)));
+            const json = JSON.stringify(value);
+            // An upsert, not INSERT OR REPLACE: a replacement deletes without running the delete trigger.
+            await patiently(async () => {
+                const db = await database();
+                db.transaction(() => {
+                    // JSON has no undefined: that write fails on the table's NOT NULL, as it always did.
+                    if (json !== undefined) checkRoom(db, key, json);
+                    db.query("INSERT INTO items (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value").run(key, json);
+                })();
+            });
         },
         async removeItem(key: string): Promise<void> {
             await patiently(async () => (await database()).query("DELETE FROM items WHERE key = ?").run(key));

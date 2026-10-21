@@ -3,11 +3,12 @@ import { Database } from "bun:sqlite";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createLocalStorage, storagePersistence } from "../local-storage";
+import { createLocalStorage, storageLimits, storagePersistence } from "../local-storage";
 
 let folder: string;
 let file: string;
 const original = { ...storagePersistence };
+const limits = { ...storageLimits };
 
 beforeEach(() => {
     folder = fs.mkdtempSync(path.join(os.tmpdir(), "floe-local-storage-"));
@@ -16,6 +17,7 @@ beforeEach(() => {
 
 afterEach(() => {
     Object.assign(storagePersistence, original);
+    Object.assign(storageLimits, limits);
     fs.rmSync(folder, { recursive: true, force: true });
 });
 
@@ -210,5 +212,60 @@ describe("LocalStorage", () => {
         const storage = createLocalStorage(() => file);
         await storage.setItem("a", 1);
         expect(fs.readdirSync(folder)).toEqual(["local-storage.sqlite"]);
+    });
+});
+
+describe("LocalStorage ceilings", () => {
+    test("a value past the ceiling is refused and the one before it stays", async () => {
+        storageLimits.valueBytes = 100;
+        const storage = createLocalStorage(() => file);
+        await storage.setItem("note", "short");
+        await expect(storage.setItem("note", "x".repeat(200))).rejects.toThrow('LocalStorage could not save "note": the value is');
+        expect(await storage.getItem("note")).toBe("short");
+    });
+
+    test("the whole storage has a ceiling, and what is removed or replaced makes room again", async () => {
+        storageLimits.totalBytes = 1000;
+        const storage = createLocalStorage(() => file);
+        await storage.setItem("a", "x".repeat(400));
+        await storage.setItem("b", "x".repeat(400));
+        await expect(storage.setItem("c", "x".repeat(400))).rejects.toThrow("everything stored would take");
+        await storage.setItem("b", "x".repeat(100));
+        await storage.setItem("c", "x".repeat(400));
+        await storage.removeItem("a");
+        await storage.setItem("d", "x".repeat(400));
+        await storage.clear();
+        await storage.setItem("e", "x".repeat(900));
+        expect(Object.keys(await storage.allItems())).toEqual(["e"]);
+    });
+
+    test("there is a ceiling on keys, and a key already there can still change", async () => {
+        storageLimits.keys = 3;
+        const storage = createLocalStorage(() => file);
+        for (const key of ["a", "b", "c"]) await storage.setItem(key, 1);
+        await expect(storage.setItem("d", 1)).rejects.toThrow("it holds 3 keys");
+        await storage.setItem("c", 2);
+        expect(await storage.getItem("c")).toBe(2);
+    });
+
+    test("a storage written before the ceilings is counted when it opens", async () => {
+        const database = new Database(file);
+        database.run("CREATE TABLE items (key TEXT PRIMARY KEY, value TEXT NOT NULL)");
+        database.run("INSERT INTO items VALUES ('old', ?)", [JSON.stringify("x".repeat(500))]);
+        database.close();
+        storageLimits.totalBytes = 1000;
+        const storage = createLocalStorage(() => file);
+        await expect(storage.setItem("new", "x".repeat(500))).rejects.toThrow("everything stored would take");
+        expect(await storage.getItem("old")).toBe("x".repeat(500));
+    });
+
+    test("the totals follow every process's writes, since SQLite keeps them", async () => {
+        storageLimits.totalBytes = 1000;
+        const first = createLocalStorage(() => file);
+        const second = createLocalStorage(() => file);
+        await first.setItem("a", "x".repeat(600));
+        await expect(second.setItem("b", "x".repeat(600))).rejects.toThrow("everything stored would take");
+        await first.removeItem("a");
+        await second.setItem("b", "x".repeat(600));
     });
 });
