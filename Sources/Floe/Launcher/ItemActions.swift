@@ -88,14 +88,12 @@ enum Confirm {
     /// The panel is gone by then, so Floe comes forward for the question.
     /// `show` puts the question on screen and waits for the answer; a test answers it instead.
     static func destructive(
-        _ question: String, detail: String, button: String, show: @MainActor (NSAlert) -> NSApplication.ModalResponse = showInFront
+        _ question: String,
+        detail: String,
+        button: String,
+        show: @MainActor (NSAlert) -> NSApplication.ModalResponse = { NSApp.activate(); return $0.runModal() }
     ) -> Bool {
         show(destructiveAlert(question, detail: detail, button: button)) == .alertFirstButtonReturn
-    }
-
-    private static func showInFront(_ alert: NSAlert) -> NSApplication.ModalResponse {
-        NSApp.activate()
-        return alert.runModal()
     }
 
     static func destructiveAlert(_ question: String, detail: String, button: String) -> NSAlert {
