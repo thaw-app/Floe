@@ -54,6 +54,9 @@ final class SearchModel {
     /// The anchor of the result that was just chosen, until its pane scrolls to it.
     var requestedAnchor: String?
 
+    /// The id of the result that was just chosen, until a pane with tabs opens the tab that holds it.
+    var requestedEntry: String?
+
     /// The result the arrow keys are on, by its id, which Return chooses. The first of each new search.
     private(set) var highlighted: String?
 

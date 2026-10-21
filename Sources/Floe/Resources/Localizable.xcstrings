@@ -612,6 +612,9 @@
     "About Floe" : {
 
     },
+    "Access" : {
+      "comment" : "A tab of the Privacy settings: what the app may read or run on this Mac."
+    },
     "Accessibility" : {
       "comment" : "The macOS permission named Accessibility."
     },
@@ -987,6 +990,9 @@
     "Border" : {
       "comment" : "The line drawn around the launcher panel."
     },
+    "Border and Shadow" : {
+
+    },
     "Browse Notes" : {
       "comment" : "The command that shows the user's notes in the panel, to read and write them."
     },
@@ -1001,6 +1007,9 @@
     },
     "Build" : {
       "comment" : "A label before the build number of this app."
+    },
+    "Built-in" : {
+
     },
     "Built-in Commands" : {
 
@@ -1926,7 +1935,7 @@
         }
       }
     },
-    "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below." : {
+    "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network." : {
 
     },
     "Floe has no sign-in of its own yet. For now the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary and may stop working. Floe’s own sign-in service is planned to replace it." : {
@@ -2139,6 +2148,9 @@
     "Glass Effect" : {
 
     },
+    "Glass and Tint" : {
+
+    },
     "Gradient" : {
       "comment" : "A background tint choice: two colors blended."
     },
@@ -2299,6 +2311,9 @@
     },
     "Kept in the folder %@" : {
       "comment" : "Where the notes on screen are stored. The placeholder is a folder's name."
+    },
+    "Kept on This Mac" : {
+      "comment" : "A tab of the Privacy settings: what the app keeps about what it did, such as searches, receipts and logs."
     },
     "Kept on this Mac until you send it to %@" : {
       "comment" : "Where the scratch note is stored. The placeholder is the name of an app."
@@ -2631,6 +2646,9 @@
     },
     "Neither Spotify nor Music is open" : {
       "comment" : "Spotify and Music are the names of two apps."
+    },
+    "Network" : {
+      "comment" : "A tab of the Privacy settings: what the app sends over the network."
     },
     "Network (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -3653,6 +3671,9 @@
       "comment" : "What a script command is called where it names no package."
     },
     "Script Commands" : {
+
+    },
+    "Scripts" : {
 
     },
     "Scripts folder" : {

@@ -413,6 +413,18 @@ struct SettingsSearchNavigationTests {
         #expect(SettingsSearchNavigation.consumeAnchor(search: search) == nil)
     }
 
+    @Test func aChosenResultIsHandedToItsPaneOnceAndASidebarJumpDropsIt() throws {
+        let selection = SettingsSelection()
+        let search = SearchModel()
+        let entry = try #require(SearchIndex.staticEntries.first { $0.id == "privacy.keepsReceipts" })
+        SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
+        #expect(SettingsSearchNavigation.consumeEntry(search: search) == "privacy.keepsReceipts")
+        #expect(SettingsSearchNavigation.consumeEntry(search: search) == nil)
+        SettingsSearchNavigation.selectSearchResult(entry, selection: selection, search: search)
+        SettingsSearchNavigation.selectSidebarPane(.about, selection: selection, search: search)
+        #expect(search.requestedEntry == nil)
+    }
+
     @Test func theArrowsWalkTheResultsInTheOrderShownAndStopAtTheEnds() throws {
         let model = SearchModel()
         model.searchText = "search"

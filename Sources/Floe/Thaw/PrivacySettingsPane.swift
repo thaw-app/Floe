@@ -12,6 +12,7 @@
 //  capture inspector and connection status sections have nothing to describe here.
 //  The search sources' switches, the switch for the index of file names, the switch that keeps
 //  AI on this Mac, the row about follow-up questions and the row about iCloud are Floe's too.
+//  The tabs are Thaw's ThawTabStrip in a section header, as Thaw's SettingsPaneTabs places it.
 
 import SwiftUI
 import ThawUI
@@ -26,6 +27,7 @@ struct PrivacySettingsPane: View {
     private let receipts: ReceiptStore
     @State private var forgotSearches = false
     @State private var forgotReceipts = false
+    @State private var tab = PrivacyTab.access
 
     init(settings: AppSettings, stores: SettingsStores) {
         self.settings = settings
@@ -44,129 +46,147 @@ struct PrivacySettingsPane: View {
             } footer: {
                 SettingsWarningPill(
                     title: "No analytics",
-                    message: "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed below.",
+                    message: "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network.",
                     systemImage: "hand.raised.fill",
                     tint: .green
                 )
             }
-            ThawSection("Permissions") {
-                ForEach(permissions.allPermissions) { permission in
-                    LabeledContent {
-                        PermissionStatusControl(permission: permission)
-                    } label: {
-                        PermissionLabel(permission: permission)
-                        Text(verbatim: permission.details.joined(separator: " "))
-                    }
-                }
+            SettingsTabs(selection: $tab)
+            switch tab {
+            case .access: accessSections
+            case .network: networkSection
+            case .kept: keptSections
             }
-            ThawSection("Search Sources") {
-                ForEach(SearchSourceInfo.switches) { source in
-                    Toggle(isOn: isOn(source)) {
-                        Text(source.title)
-                        Text(source.detail)
-                    }
-                }
-                Toggle(isOn: $settings.indexesFileNames) {
-                    Text("Fast file search")
-                    Text("Floe keeps the names of your files, in memory and in a file on this Mac, so file search answers as you type. Switching this off deletes the file. macOS will ask about Desktop, Documents and Downloads.")
-                }
-                if settings.indexesFileNames, let line = fileIndex.state?.line {
-                    LabeledContent("File names held") { Text(line) }
-                }
-                row("SSH Hosts", String(localized: "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal.", bundle: .floe))
-            }
-            ThawSection("Shell Commands") {
-                row("Commands", String(localized: "A search that starts with the prefix runs as a command in your shell, with everything your account may do. Nothing asks first.", bundle: .floe))
-                row("Shell history", String(localized: "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept.", bundle: .floe))
-                row("Processes", String(localized: "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept.", bundle: .floe))
-                row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
-            }
-            ThawSection("Extensions") {
-                Toggle(isOn: Binding(
-                    get: { settings.recordsExtensionAccess },
-                    set: { settings.setRecordsExtensionAccess($0) }
-                )) {
-                    Text("Record what extensions reach")
-                    Text("Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them.")
-                }
-                row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension.", bundle: .floe))
-            }
-            ThawSection("Search History") {
-                Toggle(isOn: Binding(
-                    get: { settings.remembersSearches },
-                    set: { remembers in
-                        settings.remembersSearches = remembers
-                        if !remembers {
-                            usage.forgetQueries()
-                        }
-                    }
-                )) {
-                    Text("Remember searches")
-                    Text("The Up arrow in an empty search brings back the last 50 searches that opened something. Off forgets them.")
-                }
-                LabeledContent("Remembered searches") {
-                    Button("Forget Them") {
-                        usage.forgetQueries()
-                        forgotSearches = true
-                    }
-                    .disabled(!settings.remembersSearches || forgotSearches)
-                }
-            }
-            ThawSection("Reminders and Events") {
-                row("Reminders", String(localized: "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders.", bundle: .floe))
-                row("Calendar events", String(localized: "“event” and a sentence adds an event to your default calendar. macOS asks first, and the event’s receipt deletes it again.", bundle: .floe))
-            }
-            ThawSection("Contacts") {
-                row("People", String(localized: "“contact” and a name finds people in your Contacts. macOS asks first, and only once you type that word and a name. Nothing is saved.", bundle: .floe))
-            }
-            ThawSection("Receipts") {
-                Toggle(isOn: Binding(
-                    get: { settings.keepsReceipts },
-                    set: { keeps in
-                        settings.keepsReceipts = keeps
-                        if !keeps {
-                            receipts.forget()
-                        }
-                    }
-                )) {
-                    Text("Keep receipts")
-                    Text("The last 200 things Floe changed: commands run, files trashed, processes quit. Type “receipts” to see them. Off forgets them.")
-                }
-                LabeledContent("Receipts kept") {
-                    Button("Forget Them") {
-                        receipts.forget()
-                        forgotReceipts = true
-                    }
-                    .disabled(!settings.keepsReceipts || forgotReceipts)
-                }
-            }
-            ThawSection("Network Access") {
-                if let host = PrivacyNetwork.updateHost {
-                    row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started. The switch is in General.", bundle: .floe, comment: "The placeholder is the address of a server."))
-                }
-                row("Extension Store", PrivacyNetwork.extensionStoreLine)
-                row("Extension sign-in", String(localized: "An extension that signs in through the browser uses Raycast’s sign-in service for now: the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary: Floe’s own sign-in service is planned to replace it.", bundle: .floe, comment: "Raycast is another app's name."))
-                row("AI", PrivacyNetwork.aiLine(source: settings.aiSource, baseURL: settings.aiBaseURL, tool: AskAI.configuredTool(settings), onThisMacOnly: settings.aiOnThisMacOnly))
-                row("Follow-up questions", String(localized: "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it.", bundle: .floe, comment: "Ask AI is the name of the feature that answers a question in the launcher."))
-                Toggle(isOn: $settings.fetchesExchangeRates) {
-                    Text("Download exchange rates")
-                    Text(PrivacyNetwork.exchangeRatesLine(held: ExchangeRateStore.load()?.date))
-                }
-                Toggle(isOn: $settings.aiOnThisMacOnly) {
-                    Text("Only use AI that runs on this Mac")
-                    Text("A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place.")
-                }
-                row("iCloud", SettingsSyncText.privacyLine(isOn: settings.syncsWithICloud, includesExtensions: settings.syncsExtensionSettings, passwords: Keychain.vault.isOn))
-                row("Maps", String(localized: "A search that starts with “maps” sends the text after it to Apple Maps, to find the place. Floe asks for no location, and nothing is sent for any other search.", bundle: .floe, comment: "The word in quotation marks is typed as it is and stays in English."))
-                row("Release notes", String(localized: "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy.", bundle: .floe))
-                row("Extensions", String(localized: "Each extension makes its own requests, and the images it shows are loaded from wherever it points.", bundle: .floe))
-            }
-            // Last: what Floe writes about itself, for troubleshooting, once asked to.
-            DiagnosticsSettingsSection(settings: settings)
         }
         .formStyle(.grouped)
         // The grant happens in System Settings; look again whenever this page comes back.
         .onAppear { permissions.refreshPermissionsState() }
+    }
+
+    /// What Floe may read or run on this Mac: the permissions, the search sources, commands, reminders, contacts and extensions.
+    @ViewBuilder private var accessSections: some View {
+        ThawSection("Permissions") {
+            ForEach(permissions.allPermissions) { permission in
+                LabeledContent {
+                    PermissionStatusControl(permission: permission)
+                } label: {
+                    PermissionLabel(permission: permission)
+                    Text(verbatim: permission.details.joined(separator: " "))
+                }
+            }
+        }
+        ThawSection("Search Sources") {
+            ForEach(SearchSourceInfo.switches) { source in
+                Toggle(isOn: isOn(source)) {
+                    Text(source.title)
+                    Text(source.detail)
+                }
+            }
+            Toggle(isOn: $settings.indexesFileNames) {
+                Text("Fast file search")
+                Text("Floe keeps the names of your files, in memory and in a file on this Mac, so file search answers as you type. Switching this off deletes the file. macOS will ask about Desktop, Documents and Downloads.")
+            }
+            if settings.indexesFileNames, let line = fileIndex.state?.line {
+                LabeledContent("File names held") { Text(line) }
+            }
+            row("SSH Hosts", String(localized: "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal.", bundle: .floe))
+        }
+        ThawSection("Shell Commands") {
+            row("Commands", String(localized: "A search that starts with the prefix runs as a command in your shell, with everything your account may do. Nothing asks first.", bundle: .floe))
+            row("Shell history", String(localized: "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept.", bundle: .floe))
+            row("Processes", String(localized: "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept.", bundle: .floe))
+            row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
+        }
+        ThawSection("Extensions") {
+            Toggle(isOn: Binding(
+                get: { settings.recordsExtensionAccess },
+                set: { settings.setRecordsExtensionAccess($0) }
+            )) {
+                Text("Record what extensions reach")
+                Text("Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them.")
+            }
+            row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension.", bundle: .floe))
+        }
+        ThawSection("Reminders and Events") {
+            row("Reminders", String(localized: "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders.", bundle: .floe))
+            row("Calendar events", String(localized: "“event” and a sentence adds an event to your default calendar. macOS asks first, and the event’s receipt deletes it again.", bundle: .floe))
+        }
+        ThawSection("Contacts") {
+            row("People", String(localized: "“contact” and a name finds people in your Contacts. macOS asks first, and only once you type that word and a name. Nothing is saved.", bundle: .floe))
+        }
+    }
+
+    /// What Floe keeps on this Mac about what it did: searches, receipts and the log.
+    @ViewBuilder private var keptSections: some View {
+        ThawSection("Search History") {
+            Toggle(isOn: Binding(
+                get: { settings.remembersSearches },
+                set: { remembers in
+                    settings.remembersSearches = remembers
+                    if !remembers {
+                        usage.forgetQueries()
+                    }
+                }
+            )) {
+                Text("Remember searches")
+                Text("The Up arrow in an empty search brings back the last 50 searches that opened something. Off forgets them.")
+            }
+            LabeledContent("Remembered searches") {
+                Button("Forget Them") {
+                    usage.forgetQueries()
+                    forgotSearches = true
+                }
+                .disabled(!settings.remembersSearches || forgotSearches)
+            }
+        }
+        ThawSection("Receipts") {
+            Toggle(isOn: Binding(
+                get: { settings.keepsReceipts },
+                set: { keeps in
+                    settings.keepsReceipts = keeps
+                    if !keeps {
+                        receipts.forget()
+                    }
+                }
+            )) {
+                Text("Keep receipts")
+                Text("The last 200 things Floe changed: commands run, files trashed, processes quit. Type “receipts” to see them. Off forgets them.")
+            }
+            LabeledContent("Receipts kept") {
+                Button("Forget Them") {
+                    receipts.forget()
+                    forgotReceipts = true
+                }
+                .disabled(!settings.keepsReceipts || forgotReceipts)
+            }
+        }
+        // Last: what Floe writes about itself, for troubleshooting, once asked to.
+        DiagnosticsSettingsSection(settings: settings)
+    }
+
+    /// Every request Floe makes, and the switches that stop some of them.
+    private var networkSection: some View {
+        ThawSection("Network Access") {
+            if let host = PrivacyNetwork.updateHost {
+                row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started. The switch is in General.", bundle: .floe, comment: "The placeholder is the address of a server."))
+            }
+            row("Extension Store", PrivacyNetwork.extensionStoreLine)
+            row("Extension sign-in", String(localized: "An extension that signs in through the browser uses Raycast’s sign-in service for now: the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary: Floe’s own sign-in service is planned to replace it.", bundle: .floe, comment: "Raycast is another app's name."))
+            row("AI", PrivacyNetwork.aiLine(source: settings.aiSource, baseURL: settings.aiBaseURL, tool: AskAI.configuredTool(settings), onThisMacOnly: settings.aiOnThisMacOnly))
+            row("Follow-up questions", String(localized: "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it.", bundle: .floe, comment: "Ask AI is the name of the feature that answers a question in the launcher."))
+            Toggle(isOn: $settings.fetchesExchangeRates) {
+                Text("Download exchange rates")
+                Text(PrivacyNetwork.exchangeRatesLine(held: ExchangeRateStore.load()?.date))
+            }
+            Toggle(isOn: $settings.aiOnThisMacOnly) {
+                Text("Only use AI that runs on this Mac")
+                Text("A source that sends questions elsewhere is refused, for Ask AI and for extensions. Nothing else is asked in its place.")
+            }
+            row("iCloud", SettingsSyncText.privacyLine(isOn: settings.syncsWithICloud, includesExtensions: settings.syncsExtensionSettings, passwords: Keychain.vault.isOn))
+            row("Maps", String(localized: "A search that starts with “maps” sends the text after it to Apple Maps, to find the place. Floe asks for no location, and nothing is sent for any other search.", bundle: .floe, comment: "The word in quotation marks is typed as it is and stays in English."))
+            row("Release notes", String(localized: "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy.", bundle: .floe))
+            row("Extensions", String(localized: "Each extension makes its own requests, and the images it shows are loaded from wherever it points.", bundle: .floe))
+        }
     }
 
     /// A source's switch: on while its id is among the settings' search sources.
@@ -186,6 +206,38 @@ struct PrivacySettingsPane: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
             Text(detail).font(.callout).foregroundStyle(ThawInk.supporting)
+        }
+    }
+}
+
+/// The Privacy page's tabs: what Floe may reach on this Mac, what goes over the network, and what it keeps.
+nonisolated enum PrivacyTab: SettingsTab {
+    case access
+    case network
+    case kept
+
+    init?(entry id: String) {
+        switch id {
+        case "privacy.network", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly": self = .network
+        case "privacy.remembersSearches", "privacy.keepsReceipts", "privacy.diagnosticLogging": self = .kept
+        case _ where id.hasPrefix("privacy."): self = .access
+        default: return nil
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .access: "Access"
+        case .network: "Network"
+        case .kept: "Kept on This Mac"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .access: "hand.raised"
+        case .network: "network"
+        case .kept: "internaldrive"
         }
     }
 }

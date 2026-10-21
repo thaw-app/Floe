@@ -13,6 +13,7 @@ import ThawUI
 struct CommandsSettingsView: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
+    @State private var tab = CommandsTab.builtIn
 
     /// Writes a starter script into the Scripts folder and reveals it, so it can be edited.
     static func makeScript(catalog: CatalogStore) {
@@ -34,58 +35,110 @@ struct CommandsSettingsView: View {
     var body: some View {
         Form {
             SettingsPageHeader()
-            BuiltInCommandsSection(settings: settings)
-            ShellCommandsSettingsSection(settings: settings)
-            ThawSection("Extensions") {
-                Toggle(isOn: $settings.includeRaycastExtensions) {
-                    Text("Include extensions installed in Raycast")
-                    Text("Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over.")
-                }
-                LabeledContent("Extensions folder") {
-                    Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.extensions]) }
-                }
-                LabeledContent("Runtime") {
-                    if Paths.isBunBundled {
-                        Text("Bun, bundled with the app").foregroundStyle(.secondary)
-                    } else if let bun = Paths.bun {
-                        Text(bun).foregroundStyle(.secondary).textSelection(.enabled)
-                    } else {
-                        Text("Bun not found. Install it with brew install bun.").foregroundStyle(.red)
-                    }
-                }
+            SettingsTabs(selection: $tab)
+            switch tab {
+            case .builtIn: builtInSections
+            case .extensions: extensionsSection
+            case .scripts: scriptsSection
+            case .menuBar: MenuBarCommandsSettingsSection(catalog: catalog, settings: settings)
             }
-            ThawSection("Script Commands") {
-                LabeledContent("Scripts folder") {
-                    Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.scripts]) }
-                }
-                LabeledContent("New") {
-                    Button("New Script") { Self.makeScript(catalog: catalog) }
-                }
-                if catalog.allScripts.isEmpty, catalog.scriptFailures.isEmpty {
-                    Text("No script commands yet. Scripts are executable files with @raycast metadata.").foregroundStyle(.secondary)
-                }
-                ForEach(catalog.allScripts) { script in
-                    LabeledContent(script.title) {
-                        Text(script.mode.rawValue).foregroundStyle(.secondary)
-                    }
-                }
-                ForEach(catalog.scriptFailures) { failure in
-                    LabeledContent(failure.file) {
-                        Text(failure.error.localizedDescription).foregroundStyle(.red)
-                    }
-                }
-            }
-            MenuBarCommandsSettingsSection(catalog: catalog, settings: settings)
-            if !settings.hiddenResults.isEmpty {
-                ThawSection("Hidden from Search") {
-                    ForEach(settings.hiddenResults.sorted { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }, id: \.key) { hidden in
-                        LabeledContent(hidden.value) {
-                            Button("Show Again") { settings.hiddenResults[hidden.key] = nil }
-                        }
+        }
+        .formStyle(.grouped)
+    }
+
+    /// Floe's own commands, the shell's, and what was taken out of the search.
+    @ViewBuilder private var builtInSections: some View {
+        BuiltInCommandsSection(settings: settings)
+        ShellCommandsSettingsSection(settings: settings)
+        if !settings.hiddenResults.isEmpty {
+            ThawSection("Hidden from Search") {
+                ForEach(settings.hiddenResults.sorted { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }, id: \.key) { hidden in
+                    LabeledContent(hidden.value) {
+                        Button("Show Again") { settings.hiddenResults[hidden.key] = nil }
                     }
                 }
             }
         }
-        .formStyle(.grouped)
+    }
+
+    private var extensionsSection: some View {
+        ThawSection("Extensions") {
+            Toggle(isOn: $settings.includeRaycastExtensions) {
+                Text("Include extensions installed in Raycast")
+                Text("Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over.")
+            }
+            LabeledContent("Extensions folder") {
+                Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.extensions]) }
+            }
+            LabeledContent("Runtime") {
+                if Paths.isBunBundled {
+                    Text("Bun, bundled with the app").foregroundStyle(.secondary)
+                } else if let bun = Paths.bun {
+                    Text(bun).foregroundStyle(.secondary).textSelection(.enabled)
+                } else {
+                    Text("Bun not found. Install it with brew install bun.").foregroundStyle(.red)
+                }
+            }
+        }
+    }
+
+    private var scriptsSection: some View {
+        ThawSection("Script Commands") {
+            LabeledContent("Scripts folder") {
+                Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.scripts]) }
+            }
+            LabeledContent("New") {
+                Button("New Script") { Self.makeScript(catalog: catalog) }
+            }
+            if catalog.allScripts.isEmpty, catalog.scriptFailures.isEmpty {
+                Text("No script commands yet. Scripts are executable files with @raycast metadata.").foregroundStyle(.secondary)
+            }
+            ForEach(catalog.allScripts) { script in
+                LabeledContent(script.title) {
+                    Text(script.mode.rawValue).foregroundStyle(.secondary)
+                }
+            }
+            ForEach(catalog.scriptFailures) { failure in
+                LabeledContent(failure.file) {
+                    Text(failure.error.localizedDescription).foregroundStyle(.red)
+                }
+            }
+        }
+    }
+}
+
+/// The Commands page's tabs: Floe's own, extensions, script commands, and what runs in the menu bar.
+nonisolated enum CommandsTab: SettingsTab {
+    case builtIn
+    case extensions
+    case scripts
+    case menuBar
+
+    init?(entry id: String) {
+        switch id {
+        case "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime": self = .extensions
+        case "commands.scriptsFolder": self = .scripts
+        case "commands.menuBarCommands": self = .menuBar
+        case _ where id.hasPrefix("commands."): self = .builtIn
+        default: return nil
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .builtIn: "Built-in"
+        case .extensions: "Extensions"
+        case .scripts: "Scripts"
+        case .menuBar: "Menu Bar"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .builtIn: "command"
+        case .extensions: "puzzlepiece.extension"
+        case .scripts: "terminal"
+        case .menuBar: "menubar.rectangle"
+        }
     }
 }

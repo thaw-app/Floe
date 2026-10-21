@@ -15,6 +15,7 @@ struct AppearanceSettingsPane: View {
     @ObservedObject var follower: ThawAppearanceFollower
     @Environment(\.colorScheme) private var colorScheme
     @State private var thawIsInstalled = Thaw.applicationURL != nil
+    @State private var tab = AppearanceTab.layout
 
     private var mirror: ThawMirror? {
         settings.thawMirror(for: colorScheme)
@@ -102,6 +103,9 @@ struct AppearanceSettingsPane: View {
                     separateFieldShape: settings.separatesSearchField ? settings.searchFieldShape : nil
                 )
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                // Glass over the form's card would show nothing behind it; this stands in for a desktop.
+                .background(PreviewBackdrop(), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             // Shown without Thaw too while it is on, so it can always be turned off.
             if thawIsInstalled || settings.followsThawAppearance {
@@ -112,69 +116,84 @@ struct AppearanceSettingsPane: View {
                     }
                 }
             }
-            ThawSection("Layout") {
-                Picker("Launcher layout", selection: $settings.launcherLayout) {
-                    ForEach(LauncherLayout.allCases) { layout in
-                        Text(layout.title).tag(layout)
-                    }
-                }
-                .pickerStyle(.segmented)
-                footnote("Extended always shows the list. Compact shows only the search bar until you type.")
-                Picker("Search field shape", selection: $settings.searchFieldShape) {
-                    ForEach(SearchFieldShape.allCases) { shape in
-                        Text(shape.title).tag(shape)
-                    }
-                }
-                .pickerStyle(.segmented)
-                Picker("Search field beam", selection: $settings.searchFieldBeam) {
-                    ForEach(SearchFieldBeam.allCases) { beam in
-                        Text(beam.title).tag(beam)
-                    }
-                }
-                footnote("Light that sweeps around the inside of the search field's border.")
-                if settings.searchFieldBeam != .off {
-                    Slider(value: $settings.searchFieldBeamFrameRate, in: 15 ... 120, step: 15) {
-                        Text("Beam frame rate")
-                    } minimumValueLabel: {
-                        Text("15 fps")
-                    } maximumValueLabel: {
-                        Text("120 fps")
-                    }
-                    footnote("\(Int(settings.searchFieldBeamFrameRate)) frames a second. Fewer are lighter on the graphics card; more are smoother.")
-                }
-                Toggle("Separate the search field from the results", isOn: $settings.separatesSearchField)
-                footnote("The search field is its own piece of glass, and the results are a second piece below it.")
-            }
-            ThawSection("Glass") {
-                if follows(.glass) {
-                    footnote("The launcher is following Thaw's glass.")
-                } else {
-                    glassControls
-                }
-            }
-            ThawSection("Tint") {
-                if follows(.tint) {
-                    footnote("The launcher is following Thaw's tint.")
-                } else {
-                    tintSection
-                }
-            }
-            ThawSection("Border") {
-                if follows(.border) {
-                    footnote("The launcher is following Thaw's border.")
-                } else {
-                    borderControls
-                }
-            }
-            ThawSection("Shadow") {
-                if follows(.shadow) {
-                    footnote("The launcher is following Thaw's shadow.")
-                } else {
-                    Toggle("Drop shadow", isOn: $settings.launcherShowsShadow)
-                }
+            SettingsTabs(selection: $tab)
+            switch tab {
+            case .layout: layoutSection
+            case .glass: glassSections
+            case .edges: edgeSections
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var layoutSection: some View {
+        ThawSection("Layout") {
+            Picker("Launcher layout", selection: $settings.launcherLayout) {
+                ForEach(LauncherLayout.allCases) { layout in
+                    Text(layout.title).tag(layout)
+                }
+            }
+            .pickerStyle(.segmented)
+            footnote("Extended always shows the list. Compact shows only the search bar until you type.")
+            Picker("Search field shape", selection: $settings.searchFieldShape) {
+                ForEach(SearchFieldShape.allCases) { shape in
+                    Text(shape.title).tag(shape)
+                }
+            }
+            .pickerStyle(.segmented)
+            Picker("Search field beam", selection: $settings.searchFieldBeam) {
+                ForEach(SearchFieldBeam.allCases) { beam in
+                    Text(beam.title).tag(beam)
+                }
+            }
+            footnote("Light that sweeps around the inside of the search field's border.")
+            if settings.searchFieldBeam != .off {
+                Slider(value: $settings.searchFieldBeamFrameRate, in: 15 ... 120, step: 15) {
+                    Text("Beam frame rate")
+                } minimumValueLabel: {
+                    Text("15 fps")
+                } maximumValueLabel: {
+                    Text("120 fps")
+                }
+                footnote("\(Int(settings.searchFieldBeamFrameRate)) frames a second. Fewer are lighter on the graphics card; more are smoother.")
+            }
+            Toggle("Separate the search field from the results", isOn: $settings.separatesSearchField)
+            footnote("The search field is its own piece of glass, and the results are a second piece below it.")
+        }
+    }
+
+    @ViewBuilder private var glassSections: some View {
+        ThawSection("Glass") {
+            if follows(.glass) {
+                footnote("The launcher is following Thaw's glass.")
+            } else {
+                glassControls
+            }
+        }
+        ThawSection("Tint") {
+            if follows(.tint) {
+                footnote("The launcher is following Thaw's tint.")
+            } else {
+                tintSection
+            }
+        }
+    }
+
+    @ViewBuilder private var edgeSections: some View {
+        ThawSection("Border") {
+            if follows(.border) {
+                footnote("The launcher is following Thaw's border.")
+            } else {
+                borderControls
+            }
+        }
+        ThawSection("Shadow") {
+            if follows(.shadow) {
+                footnote("The launcher is following Thaw's shadow.")
+            } else {
+                Toggle("Drop shadow", isOn: $settings.launcherShowsShadow)
+            }
+        }
     }
 
     private var glassControls: some View {
@@ -257,84 +276,6 @@ struct AppearanceSettingsPane: View {
     }
 }
 
-/// A miniature launcher that runs the exact panel appearance pipeline, so the
-/// glass, tint, border and shadow read live next to their controls.
-struct LauncherAppearancePreview: View {
-    let glass: LauncherGlass
-    let tint: LauncherTint
-    let border: LauncherBorder?
-    let hasShadow: Bool
-    /// The field's shape while the field is its own piece; nil draws the one panel.
-    var separateFieldShape: SearchFieldShape?
-
-    /// The miniature's pieces, at half the launcher's field and gap, over the two rows.
-    private static let heights = PanelPieceHeights(field: 34, gap: ThawSpacing.tight, results: 60)
-
-    var body: some View {
-        if let separateFieldShape {
-            VStack(spacing: Self.heights.gap) {
-                field
-                    .padding(.horizontal, 12)
-                    .frame(height: Self.heights.field)
-                    // At this scale a control's corner stands for the panel's.
-                    .modifier(piece(radius: separateFieldShape.cornerRadius(height: Self.heights.field), style: separateFieldShape.pieceCornerStyle, facing: .bottom, span: Self.heights.fieldSpan))
-                rows
-                    .padding(12)
-                    .frame(height: Self.heights.results)
-                    .modifier(piece(radius: separateFieldShape.panelPieceRadius, style: .continuous, facing: .top, span: Self.heights.resultsSpan))
-            }
-            .padding(6)
-        } else {
-            VStack(alignment: .leading, spacing: 10) {
-                field
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(.quinary, in: Capsule(style: .continuous))
-                rows
-            }
-            .padding(12)
-            .modifier(LauncherPanelAppearance(glass: glass, tint: tint, border: border, hasShadow: hasShadow))
-            .padding(6)
-        }
-    }
-
-    private var field: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-            Text("Search")
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var rows: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            previewRow(width: 150)
-            previewRow(width: 110)
-        }
-    }
-
-    private func piece(radius: CGFloat, style: RoundedCornerStyle, facing: VerticalEdge, span: ClosedRange<CGFloat>) -> LauncherPanelAppearance {
-        var appearance = LauncherPanelAppearance(glass: glass, tint: tint, border: border, hasShadow: hasShadow)
-        appearance.cornerRadius = radius
-        appearance.cornerStyle = style
-        appearance.shadow = .piece(facing: facing)
-        appearance.span = span
-        return appearance
-    }
-
-    private func previewRow(width: CGFloat) -> some View {
-        HStack(spacing: 8) {
-            Circle().fill(.quinary).frame(width: 14, height: 14)
-            RoundedRectangle(cornerRadius: 3, style: .continuous)
-                .fill(.quinary)
-                .frame(width: width, height: 8)
-            Spacer()
-        }
-    }
-}
-
 /// What the Appearance pane says under the switch while the launcher follows Thaw.
 enum ThawAppearanceNote {
     static func lines(status: ThawAppearanceFollower.Status, mirror: ThawMirror?) -> [String] {
@@ -370,6 +311,38 @@ enum ThawAppearanceNote {
         case ([.background], false): return String(localized: "Thaw's background follows the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint.", bundle: .floe)
         case (_, true): return String(localized: "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so it is left out.", bundle: .floe)
         case (_, false): return String(localized: "Thaw's tint and background follow the wallpaper, which the launcher cannot copy, so the launcher keeps its own tint.", bundle: .floe)
+        }
+    }
+}
+
+/// The Appearance page's tabs, under the preview: the launcher's layout, its glass and tint, and its border and shadow.
+nonisolated enum AppearanceTab: SettingsTab {
+    case layout
+    case glass
+    case edges
+
+    init?(entry id: String) {
+        switch id {
+        case "appearance.glassEffect", "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity": self = .glass
+        case "appearance.border", "appearance.shadow": self = .edges
+        case _ where id.hasPrefix("appearance."): self = .layout
+        default: return nil
+        }
+    }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .layout: "Layout"
+        case .glass: "Glass and Tint"
+        case .edges: "Border and Shadow"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .layout: "rectangle.split.1x2"
+        case .glass: "drop"
+        case .edges: "square.dashed"
         }
     }
 }
