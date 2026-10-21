@@ -124,10 +124,10 @@ struct ProcessesTests {
         #expect(model.primaryActionTitle(for: item) == "Quit")
         #expect(model.rootActions(for: item).map { $0?.title ?? "-" } == ["Quit", "Force Quit…", "-", "Show in Finder", "Copy Process ID"])
         model.activate(item)
-        model.features.shell.environment.confirmsForceQuit = { _ in false }
+        model.features.shell.environment.confirmsForceQuit = { _, _ in }
         model.rootActions(for: item)[1]?.run()
         #expect(ended == ["400 asked"], "a no to the question ends nothing")
-        model.features.shell.environment.confirmsForceQuit = { _ in true }
+        model.features.shell.environment.confirmsForceQuit = { _, goAhead in goAhead() }
         model.rootActions(for: item)[1]?.run()
         refuse = true
         model.activate(item)

@@ -46,6 +46,17 @@ struct LauncherView: View {
             }
         }
         .frame(width: size.width, height: size.height, alignment: .top)
+        .overlay {
+            if let question = model.question {
+                PanelQuestionCard(
+                    title: question.title,
+                    message: question.detail,
+                    primaryTitle: question.button,
+                    dismissTitle: String(localized: "Cancel", bundle: .floe),
+                    isDestructive: true
+                ) { model.answer(question, yes: $0) }
+            }
+        }
         .environment(\.searchFieldShape, settings.searchFieldShape)
         .environment(\.searchFieldBeam, settings.searchFieldBeam)
         .environment(\.searchFieldBeamFrameRate, settings.searchFieldBeamFrameRate)

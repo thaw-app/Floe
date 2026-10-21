@@ -266,10 +266,10 @@ struct CheckpointsTests {
         model.features.checkpoints.store.save(checkpoint)
         model.features.checkpoints.reload()
         let delete = try #require(model.features.checkpoints.checkpointActions(checkpoint).last ?? nil)
-        model.features.checkpoints.environment.confirmsDelete = { _ in false }
+        model.features.checkpoints.environment.confirmsDelete = { _, _ in }
         delete.run()
         #expect(model.features.checkpoints.store.all.count == 1)
-        model.features.checkpoints.environment.confirmsDelete = { _ in true }
+        model.features.checkpoints.environment.confirmsDelete = { _, goAhead in goAhead() }
         delete.run()
         #expect(model.features.checkpoints.store.all.isEmpty)
         #expect(model.features.checkpoints.checkpoints.isEmpty)

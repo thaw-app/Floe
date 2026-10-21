@@ -136,34 +136,54 @@ struct ToastView: View {
     }
 }
 
-/// An in-panel `confirmAlert` dialog: a scrim over the content with a centered card.
+/// An in-panel `confirmAlert` dialog.
 struct ConfirmAlertOverlay: View {
     @ObservedObject var session: ExtensionSession
     let alert: AlertState
+
+    var body: some View {
+        PanelQuestionCard(
+            title: alert.title,
+            message: alert.message,
+            primaryTitle: alert.primaryTitle,
+            dismissTitle: alert.dismissTitle,
+            isDestructive: alert.isDestructive
+        ) { session.resolveAlert($0) }
+    }
+}
+
+/// A question in the panel: a scrim over the content with a centered card. The panel's keys answer it too.
+struct PanelQuestionCard: View {
+    let title: String
+    let message: String?
+    let primaryTitle: String
+    let dismissTitle: String
+    let isDestructive: Bool
+    let answer: (Bool) -> Void
     @FocusState private var confirmFocused: Bool
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.15)
             VStack(alignment: .leading, spacing: ThawSpacing.row) {
-                Text(alert.title)
+                Text(title)
                     .font(ThawType.heading)
-                if let message = alert.message, !message.isEmpty {
+                if let message, !message.isEmpty {
                     Text(message)
                         .font(ThawType.body)
                         .foregroundStyle(.secondary)
                 }
                 HStack(spacing: ThawSpacing.base) {
                     Spacer(minLength: 0)
-                    Button(alert.dismissTitle) { session.resolveAlert(false) }
+                    Button(dismissTitle) { answer(false) }
                         .keyboardShortcut(.cancelAction)
-                    if alert.isDestructive {
-                        Button(alert.primaryTitle) { session.resolveAlert(true) }
+                    if isDestructive {
+                        Button(primaryTitle) { answer(true) }
                             .foregroundStyle(.red)
                             .keyboardShortcut(.defaultAction)
                             .focused($confirmFocused)
                     } else {
-                        Button(alert.primaryTitle) { session.resolveAlert(true) }
+                        Button(primaryTitle) { answer(true) }
                             .buttonStyle(.borderedProminent)
                             .keyboardShortcut(.defaultAction)
                             .focused($confirmFocused)

@@ -20,11 +20,12 @@ struct CheckpointEnvironment {
     var openFile: (URL) -> Void = { NSWorkspace.shared.open($0) }
     /// Opens files in the app a role stands for.
     var openIn: (Handoff) -> Void = { PreferredApps.open($0) }
-    var confirmsDelete: (Checkpoint) -> Bool = { checkpoint in
-        Confirm.destructive(
+    var confirmsDelete: (Checkpoint, _ then: @escaping () -> Void) -> Void = { checkpoint, goAhead in
+        Confirm.destructiveInPanel(
             String(localized: "Delete the checkpoint “\(checkpoint.name)”?", bundle: .floe, comment: "The placeholder is the name the user gave a checkpoint."),
             detail: String(localized: "Its files and tabs are not touched. Only the list of them goes.", bundle: .floe),
-            button: String(localized: "Delete", bundle: .floe)
+            button: String(localized: "Delete", bundle: .floe),
+            then: goAhead
         )
     }
 }
@@ -137,10 +138,10 @@ final class CheckpointRows {
             nil,
             ItemAction(title: String(localized: "Delete Checkpoint…", bundle: .floe), symbol: "trash") { [weak self] in
                 guard let self else { return }
-                host.hidePanel()
-                guard environment.confirmsDelete(checkpoint) else { return }
-                store.delete(checkpoint.id)
-                reload()
+                environment.confirmsDelete(checkpoint) { [weak self] in
+                    self?.store.delete(checkpoint.id)
+                    self?.reload()
+                }
             },
         ]
     }

@@ -203,10 +203,10 @@ struct ShellRowsTests {
         let process = RunningProcess(pid: 42, path: "/Applications/Mail.app/Contents/MacOS/Mail", memory: 1024)
         let actions = try #require(rows.actions(for: .process(process)))
         let run = { (symbol: String) in actions.first { $0?.symbol == symbol }??.run() }
-        rows.environment.confirmsForceQuit = { _ in false }
+        rows.environment.confirmsForceQuit = { _, _ in }
         run("xmark.octagon")
         #expect(asked.ended.isEmpty)
-        rows.environment.confirmsForceQuit = { _ in true }
+        rows.environment.confirmsForceQuit = { _, goAhead in goAhead() }
         run("xmark.octagon")
         #expect(asked.ended == [true])
         run("folder")

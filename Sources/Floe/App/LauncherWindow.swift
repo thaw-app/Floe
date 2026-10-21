@@ -77,6 +77,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
             return self.model.handlePanelKey(event, layout: self.settings.launcherLayout) ? nil : event
         }
         onboarding.openLauncher = { [weak self] in self?.show() }
+        Confirm.inPanel = { [weak self] in self?.model.ask($0) }
         IntentHandler.current = .serving(model) { [weak self] in self?.perform($0) }
         OAuthBroker.shared.say { ThawHUD.show(text: $0) }
         watchMemoryPressure()

@@ -17,11 +17,12 @@ struct ShellEnvironment {
     /// Ends a process, and answers whether the system took the request.
     var endProcess: (RunningProcess, _ force: Bool) -> Bool = { Processes.end($0, force: $1) }
     /// Asks before a process is ended where it stands.
-    var confirmsForceQuit: (RunningProcess) -> Bool = { process in
-        Confirm.destructive(
+    var confirmsForceQuit: (RunningProcess, _ then: @escaping () -> Void) -> Void = { process, goAhead in
+        Confirm.destructiveInPanel(
             String(localized: "Force “\(process.name)” to quit?", bundle: .floe, comment: "The placeholder is an app's name."),
             detail: String(localized: "You will lose any changes you haven't saved.", bundle: .floe),
-            button: String(localized: "Force Quit", bundle: .floe, comment: "An action that ends a process at once.")
+            button: String(localized: "Force Quit", bundle: .floe, comment: "An action that ends a process at once."),
+            then: goAhead
         )
     }
 
@@ -243,8 +244,8 @@ final class ShellRows {
     private func processActions(_ process: RunningProcess) -> [ItemAction?] {
         [
             ItemAction(title: String(localized: "Force Quit…", bundle: .floe), symbol: "xmark.octagon") { [weak self] in
-                guard let self, environment.confirmsForceQuit(process) else { return }
-                end(process, force: true)
+                guard let self else { return }
+                environment.confirmsForceQuit(process) { [weak self] in self?.end(process, force: true) }
             },
             nil,
             ItemAction(title: String(localized: "Show in Finder", bundle: .floe), symbol: "folder") { [weak self] in

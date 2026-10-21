@@ -124,7 +124,7 @@ extension LauncherModel {
             clipboardHistory: isShowingClipboardHistory,
             fileSearch: isSearchingFiles || noteDesk != nil,
             queryIsEmpty: query.isEmpty,
-            askingAI: askAI != nil
+            askingAI: askAI != nil || question != nil
         )
     }
 
@@ -135,7 +135,7 @@ extension LauncherModel {
         let menuSearches = $isSearchingMenuBar.combineLatest($menuItemSearch.map { $0 != nil }).map { $0 || $1 }
         let views = $setup.map { $0 != nil }
             .combineLatest(runner.$session.map { $0?.command.mode == "view" }, menuSearches, $isShowingClipboardHistory)
-        let searches = $isSearchingFiles.combineLatest($noteDesk.map { $0 != nil }).map { $0 || $1 }.combineLatest($askAI.map { $0 != nil })
+        let searches = $isSearchingFiles.combineLatest($noteDesk.map { $0 != nil }).map { $0 || $1 }.combineLatest($askAI.combineLatest($question).map { $0 != nil || $1 != nil })
         return views.combineLatest(searches, $query.map(\.isEmpty), settings.$launcherLayout)
             .map { views, searches, queryIsEmpty, layout in
                 LauncherPanelState(
@@ -155,6 +155,9 @@ extension LauncherModel {
 
     /// Collapsed, there are no rows on screen, so the keys that act on the selected row do nothing.
     func handlePanelKey(_ event: NSEvent, layout: LauncherLayout) -> Bool {
+        if let question {
+            return answer(question, with: event)
+        }
         let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
         if panelState.isCollapsed(in: layout), LauncherPanelState.isRowKey(event.keyCode, flags: flags) {
             return true

@@ -60,6 +60,29 @@ extension LauncherModel {
         return true
     }
 
+    /// Return goes ahead and Escape does not; any other key is held back, so nothing changes behind the question.
+    func answer(_ question: PanelQuestion, with event: NSEvent) -> Bool {
+        switch event.keyCode {
+        case 36, 76: answer(question, yes: true)
+        case 53: answer(question, yes: false)
+        default: break
+        }
+        return true
+    }
+
+    func answer(_ question: PanelQuestion, yes: Bool) {
+        self.question = nil
+        if yes {
+            question.goAhead()
+        }
+    }
+
+    /// Shows a question over whatever the panel shows, bringing the panel up for a command run by its hotkey.
+    func ask(_ question: PanelQuestion) {
+        self.question = question
+        panelHost.showPanel()
+    }
+
     private func handleAlertKey(_ event: NSEvent, _ session: ExtensionSession) -> Bool {
         switch event.keyCode {
         case 36, 76: session.resolveAlert(true)

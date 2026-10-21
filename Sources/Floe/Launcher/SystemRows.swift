@@ -17,12 +17,14 @@ final class SystemRows {
     /// How a host's connection is opened. Tests replace it, so they open nothing.
     var sshConnector = SSHConnector.system
 
-    /// Risky commands ask first; the panel goes away before anything runs.
+    /// Risky commands ask first, in the panel; the panel goes away before anything runs.
     func run(_ command: SystemCommand) {
+        guard let question = command.confirmation else { return perform(command) }
+        Confirm.destructiveInPanel(command.title, detail: question, button: command.title) { [weak self] in self?.perform(command) }
+    }
+
+    private func perform(_ command: SystemCommand) {
         host.leave()
-        if let question = command.confirmation {
-            guard Confirm.destructive(command.title, detail: question, button: command.title) else { return }
-        }
         if let flip = command.flip {
             host.showHUD(flip())
             return

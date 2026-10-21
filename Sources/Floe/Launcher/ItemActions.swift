@@ -83,9 +83,26 @@ struct ActionsAnchor: NSViewRepresentable {
     }
 }
 
+/// A question the launcher asks in its own panel before something that cannot be taken back.
+struct PanelQuestion {
+    let title: String
+    let detail: String
+    let button: String
+    let goAhead: () -> Void
+}
+
 enum Confirm {
-    /// Asks before something that cannot be taken back, and answers whether to go on.
-    /// The panel is gone by then, so Floe comes forward for the question.
+    /// Shows a question in the launcher's panel, which has the keys where a system alert may not: macOS can keep Floe behind.
+    static var inPanel: (PanelQuestion) -> Void = { _ in
+        // LauncherWindow sets it; unset, nothing goes ahead.
+    }
+
+    /// Asks in the launcher's panel, and goes ahead only when the answer is yes.
+    static func destructiveInPanel(_ question: String, detail: String, button: String, then goAhead: @escaping () -> Void) {
+        inPanel(PanelQuestion(title: question, detail: detail, button: button, goAhead: goAhead))
+    }
+
+    /// Asks Settings' question before something that cannot be taken back, and answers whether to go on.
     /// `show` puts the question on screen and waits for the answer; a test answers it instead.
     static func destructive(
         _ question: String,
@@ -204,17 +221,18 @@ enum FileActions {
         !url.standardizedFileURL.path.hasPrefix("/System/") && FileManager.default.isDeletableFile(atPath: url.path)
     }
 
-    /// The panel goes away before the question, like a system command that asks first.
+    /// The panel asks first, like a system command that asks, and goes away once the answer is yes.
     private static func trash(_ url: URL, host: ActionHost) {
         let name = FileManager.default.displayName(atPath: url.path)
-        host.dismiss()
         let detail = String(localized: "You can put it back from the Trash until you empty it.", bundle: .floe)
-        guard Confirm.destructive(String(localized: "Move “\(name)” to the Trash?", bundle: .floe, comment: "The placeholder is a file name."), detail: detail, button: String(localized: "Move to Trash", bundle: .floe)) else { return }
-        do {
-            try host.record(ReceiptStore.trash(url))
-            host.showHUD(String(localized: "Moved to Trash", bundle: .floe))
-        } catch {
-            host.showHUD(String(localized: "Couldn't move \(name) to the Trash", bundle: .floe, comment: "The placeholder is a file name."))
+        Confirm.destructiveInPanel(String(localized: "Move “\(name)” to the Trash?", bundle: .floe, comment: "The placeholder is a file name."), detail: detail, button: String(localized: "Move to Trash", bundle: .floe)) {
+            host.dismiss()
+            do {
+                try host.record(ReceiptStore.trash(url))
+                host.showHUD(String(localized: "Moved to Trash", bundle: .floe))
+            } catch {
+                host.showHUD(String(localized: "Couldn't move \(name) to the Trash", bundle: .floe, comment: "The placeholder is a file name."))
+            }
         }
     }
 }
@@ -291,10 +309,11 @@ enum AppActions {
     }
 
     private static func forceQuit(_ app: AppEntry, _ running: NSRunningApplication, host: ActionHost) {
-        host.dismiss()
         let detail = String(localized: "You will lose any changes you haven't saved.", bundle: .floe)
-        guard Confirm.destructive(String(localized: "Force “\(app.name)” to quit?", bundle: .floe, comment: "The placeholder is an app's name."), detail: detail, button: String(localized: "Force Quit", bundle: .floe)) else { return }
-        running.forceTerminate()
-        host.showHUD(String(localized: "Forced \(app.name) to quit", bundle: .floe, comment: "The placeholder is an app's name."))
+        Confirm.destructiveInPanel(String(localized: "Force “\(app.name)” to quit?", bundle: .floe, comment: "The placeholder is an app's name."), detail: detail, button: String(localized: "Force Quit", bundle: .floe)) {
+            host.dismiss()
+            running.forceTerminate()
+            host.showHUD(String(localized: "Forced \(app.name) to quit", bundle: .floe, comment: "The placeholder is an app's name."))
+        }
     }
 }

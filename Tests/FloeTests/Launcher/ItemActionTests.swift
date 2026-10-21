@@ -236,4 +236,45 @@ struct ItemActionTests {
         #expect(Confirm.destructive("Empty Trash", detail: "", button: "Empty Trash") { _ in .alertFirstButtonReturn })
         #expect(!Confirm.destructive("Empty Trash", detail: "", button: "Empty Trash") { _ in .alertSecondButtonReturn }, "Cancel")
     }
+
+    private func key(_ code: UInt16) throws -> NSEvent {
+        try #require(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: 0, context: nil,
+            characters: "", charactersIgnoringModifiers: "", isARepeat: false, keyCode: code
+        ))
+    }
+
+    @Test func aQuestionInThePanelGoesAheadOnReturnAndNotOnEscape() throws {
+        let model = makeModel()
+        var shown = 0
+        model.panelHost.showPanel = { shown += 1 }
+        var went = 0
+        let question = PanelQuestion(title: "Empty Trash", detail: "", button: "Empty Trash") { went += 1 }
+        model.ask(question)
+        #expect(shown == 1, "a command run by its hotkey brings the panel up for its question")
+        #expect(try model.handlePanelKey(key(0), layout: .extended), "a letter is held back while the question is up")
+        #expect(model.question != nil && model.query.isEmpty)
+        #expect(try model.handlePanelKey(key(53), layout: .extended))
+        #expect(model.question == nil && went == 0, "Escape is no")
+        model.ask(question)
+        #expect(try model.handlePanelKey(key(36), layout: .extended))
+        #expect(model.question == nil && went == 1, "Return is yes")
+        model.ask(question)
+        model.panelDidHide()
+        #expect(model.question == nil && went == 1, "closing the panel is no answer to go ahead on")
+    }
+
+    @Test func emptyTrashAsksInThePanelBeforeTheMacIsTouched() {
+        let kept = Confirm.inPanel
+        defer { Confirm.inPanel = kept }
+        var asked: [PanelQuestion] = []
+        Confirm.inPanel = { asked.append($0) }
+        let rows = SystemRows()
+        var left = 0
+        rows.host.leave = { left += 1 }
+        rows.run(.emptyTrash)
+        #expect(asked.map(\.title) == ["Empty Trash"])
+        #expect(asked.first?.button == "Empty Trash")
+        #expect(left == 0, "the panel stays up for the question")
+    }
 }

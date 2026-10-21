@@ -73,6 +73,8 @@ final class LauncherModel: ObservableObject {
     var noteDeskSave: Task<Bool, Never>?
     /// The question on screen and its answer, while the panel shows them instead of the root search.
     @Published var askAI: AskAIModel?
+    /// A question asked before something that cannot be taken back, over whatever the panel shows.
+    @Published var question: PanelQuestion?
     /// Answers the question. A test replaces it: the real thing reaches the chosen AI source.
     var askAIRequest: AskAIModel.Request = AskAIModel.live
     /// Whether an AI source can answer. The app delegate sets it; without one no Ask AI row is offered.
@@ -234,6 +236,8 @@ final class LauncherModel: ObservableObject {
     /// The panel closed. The open command survives for the configured delay, so reopening resumes it.
     func panelDidHide() {
         isPanelShown = false
+        // Closing the panel is no answer to go ahead on.
+        question = nil
         pendingReset?.cancel()
         let delay = settings.popToRootDelay
         guard delay > 0, runner.session != nil || setup != nil else {
