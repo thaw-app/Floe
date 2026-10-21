@@ -172,8 +172,7 @@ extension ExtensionSession {
         _ base: [String: String],
         preferences: Data?,
         hasAI: Bool,
-        launch: (type: String, context: [String: Any]?) = ("userInitiated", nil),
-        fallbackText: String? = nil,
+        launch: (type: String, context: [String: Any]?, fallbackText: String?) = ("userInitiated", nil, nil),
         recordsAccess: Bool = true,
         isDevelopment: Bool = false,
         isDark: Bool? = nil
@@ -187,7 +186,7 @@ extension ExtensionSession {
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launch.type
         variables["FLOE_LAUNCH_CONTEXT"] = CommandLauncher.data(launch.context).flatMap { String(bytes: $0, encoding: .utf8) }
-        variables["FLOE_FALLBACK_TEXT"] = fallbackText
+        variables["FLOE_FALLBACK_TEXT"] = launch.fallbackText
         variables[referencesVariable] = String(KeptRender.referenceVersion)
         variables[accessVariable] = recordsAccess ? nil : accessOff
         variables[developmentVariable] = isDevelopment ? "1" : nil

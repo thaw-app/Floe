@@ -45,7 +45,9 @@ struct PrivacyNetworkTests {
     }
 
     @Test func everyPrivacyResultOpensTheTabThatHoldsIt() {
-        let tabs = Dictionary(SearchIndex.entries(for: .privacy).filter { $0.id != "pane.privacy" }.map { ($0.id, PrivacyTab(entry: $0.id)) }) { first, _ in first }
+        let ids = SearchIndex.entries(for: .privacy).map(\.id).filter { $0 != "pane.privacy" }
+        #expect(Set(ids).count == ids.count, "every result on the page has an id of its own")
+        let tabs = Dictionary(ids.map { ($0, PrivacyTab(entry: $0)) }) { first, _ in first }
         #expect(tabs.values.allSatisfy { $0 != nil }, "a result on the page names its tab")
         #expect(tabs["privacy.permissions"] == .access)
         #expect(tabs["privacy.searchSources.files"] == .access)

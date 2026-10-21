@@ -287,7 +287,7 @@ describe("what is sent", () => {
     await follow(list(), "onChange", { renamed: "Fifth again" });
     before = renders().length;
     await follow(row("row-20"), "onBump");
-    expect(renders().length).toBe(before + 1);
+    expect(renders()).toHaveLength(before + 1);
 
     const lines = normalized(renders().slice(start));
     const golden = Bun.file(new URL("fixtures/sent-lines.json", import.meta.url));

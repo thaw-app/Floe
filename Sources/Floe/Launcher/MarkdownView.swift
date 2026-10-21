@@ -118,7 +118,10 @@ private struct MarkdownImage: View {
         .frame(maxHeight: Self.maxHeight)
         .task(id: url) {
             image = nil
-            image = await RemoteImage.picture(at: url, maxPixels: Int(Self.maxWidth * displayScale))
+            let picture = await RemoteImage.picture(at: url, maxPixels: Int(Self.maxWidth * displayScale))
+            // A fetch for an address no longer shown must not replace the picture of the one that is.
+            guard !Task.isCancelled else { return }
+            image = picture
         }
     }
 }

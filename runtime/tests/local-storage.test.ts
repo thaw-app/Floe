@@ -245,7 +245,7 @@ describe("LocalStorage ceilings", () => {
         for (const key of ["a", "b", "c"]) await storage.setItem(key, 1);
         await expect(storage.setItem("d", 1)).rejects.toThrow("it holds 3 keys");
         await storage.setItem("c", 2);
-        expect(await storage.getItem("c")).toBe(2);
+        expect(await storage.getItem<number>("c")).toBe(2);
     });
 
     test("a storage written before the ceilings is counted when it opens", async () => {

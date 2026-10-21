@@ -43,7 +43,7 @@ function touch(node: Instance | undefined) {
 
 // Marks a node and the nodes above it as changed. A node never written is changed already, so the climb stops there.
 function mark(node: Child | undefined) {
-  while (node && node.stale === false) {
+  while (node?.stale === false) {
     node.stale = true;
     node = node.parent;
   }
