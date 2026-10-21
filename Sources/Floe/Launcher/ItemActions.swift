@@ -86,10 +86,16 @@ struct ActionsAnchor: NSViewRepresentable {
 enum Confirm {
     /// Asks before something that cannot be taken back, and answers whether to go on.
     /// The panel is gone by then, so Floe comes forward for the question.
-    static func destructive(_ question: String, detail: String, button: String) -> Bool {
-        let alert = destructiveAlert(question, detail: detail, button: button)
+    /// `show` puts the question on screen and waits for the answer; a test answers it instead.
+    static func destructive(
+        _ question: String, detail: String, button: String, show: @MainActor (NSAlert) -> NSApplication.ModalResponse = showInFront
+    ) -> Bool {
+        show(destructiveAlert(question, detail: detail, button: button)) == .alertFirstButtonReturn
+    }
+
+    private static func showInFront(_ alert: NSAlert) -> NSApplication.ModalResponse {
         NSApp.activate()
-        return alert.runModal() == .alertFirstButtonReturn
+        return alert.runModal()
     }
 
     static func destructiveAlert(_ question: String, detail: String, button: String) -> NSAlert {

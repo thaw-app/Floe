@@ -231,4 +231,9 @@ struct ItemActionTests {
         #expect(confirm.keyEquivalent == "\r", "the command was run from the keyboard, so Return answers it")
         #expect(alert.buttons[1].keyEquivalent == "\u{1B}")
     }
+
+    @Test func onlyTheRedButtonGoesAhead() {
+        #expect(Confirm.destructive("Empty Trash", detail: "", button: "Empty Trash") { _ in .alertFirstButtonReturn })
+        #expect(!Confirm.destructive("Empty Trash", detail: "", button: "Empty Trash") { _ in .alertSecondButtonReturn }, "Cancel")
+    }
 }
