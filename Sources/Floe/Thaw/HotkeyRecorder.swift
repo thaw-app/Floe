@@ -80,7 +80,7 @@ struct HotkeyRecorder<Label: View>: View {
         }
         // Fixed, unlike Thaw's: the segments are shapes and take whatever a form row offers,
         // which is less beside a label that carries a description.
-        .frame(width: 160, height: 24)
+        .frame(width: 160, height: SegmentButtonStyle.outerRadius * 2)
     }
 
     private func startCapture() {
@@ -222,6 +222,8 @@ private final class KeyCapture {
 /// The style shared by the recorder's two halves, which round off the outer
 /// end of the control and leave the inner end square.
 private struct SegmentButtonStyle: ButtonStyle {
+    /// Half the control's height, so the outer ends are round like the capsule buttons.
+    static let outerRadius: CGFloat = 12
     /// The end of the control a segment sits at.
     enum Side {
         case leading
@@ -232,7 +234,7 @@ private struct SegmentButtonStyle: ButtonStyle {
     var isHighlighted: Bool
 
     private var outline: some InsettableShape {
-        let r: CGFloat = 6
+        let r = Self.outerRadius
         let radii = switch side {
         case .leading: RectangleCornerRadii(topLeading: r, bottomLeading: r)
         case .trailing: RectangleCornerRadii(bottomTrailing: r, topTrailing: r)

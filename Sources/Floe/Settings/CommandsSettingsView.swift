@@ -55,6 +55,7 @@ struct CommandsSettingsView: View {
                 ForEach(settings.hiddenResults.sorted { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }, id: \.key) { hidden in
                     LabeledContent(hidden.value) {
                         Button("Show Again") { settings.hiddenResults[hidden.key] = nil }
+                            .buttonStyle(.settingsGlass)
                     }
                 }
             }
@@ -69,12 +70,13 @@ struct CommandsSettingsView: View {
             }
             LabeledContent("Extensions folder") {
                 Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.extensions]) }
+                    .buttonStyle(.settingsGlass)
             }
             LabeledContent("Runtime") {
                 if Paths.isBunBundled {
-                    Text("Bun, bundled with the app").foregroundStyle(.secondary)
+                    Text("Bun, bundled with the app").foregroundStyle(ThawInk.supporting)
                 } else if let bun = Paths.bun {
-                    Text(bun).foregroundStyle(.secondary).textSelection(.enabled)
+                    Text(bun).foregroundStyle(ThawInk.supporting).textSelection(.enabled)
                 } else {
                     Text("Bun not found. Install it with brew install bun.").foregroundStyle(.red)
                 }
@@ -86,16 +88,18 @@ struct CommandsSettingsView: View {
         ThawSection("Script Commands") {
             LabeledContent("Scripts folder") {
                 Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.scripts]) }
+                    .buttonStyle(.settingsGlass)
             }
             LabeledContent("New") {
                 Button("New Script") { Self.makeScript(catalog: catalog) }
+                    .buttonStyle(.settingsGlass)
             }
             if catalog.allScripts.isEmpty, catalog.scriptFailures.isEmpty {
-                Text("No script commands yet. Scripts are executable files with @raycast metadata.").foregroundStyle(.secondary)
+                Text("No script commands yet. Scripts are executable files with @raycast metadata.").foregroundStyle(ThawInk.supporting)
             }
             ForEach(catalog.allScripts) { script in
                 LabeledContent(script.title) {
-                    Text(script.mode.rawValue).foregroundStyle(.secondary)
+                    Text(script.mode.rawValue).foregroundStyle(ThawInk.supporting)
                 }
             }
             ForEach(catalog.scriptFailures) { failure in

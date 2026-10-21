@@ -20,10 +20,10 @@ struct ExtensionAccessSection: View {
         ThawSection("What It Has Reached") {
             if !records {
                 Text("The record is switched off. Settings › Privacy turns it on.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThawInk.supporting)
             } else if access.isEmpty {
                 Text("Nothing has been recorded for this extension yet.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThawInk.supporting)
             } else {
                 row("Contacted", access.hosts)
                 row("Read from", access.reads)
@@ -34,13 +34,14 @@ struct ExtensionAccessSection: View {
                         store.forget(extensionName)
                         access = ExtensionAccess()
                     }
+                    .buttonStyle(.settingsGlass)
                 } label: {
                     Text(ExtensionAccessSection.since(access.since))
                 }
             }
             Text("Floe sees only part of what an extension does, files least of all. Extensions run with everything your account may do.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+                .font(ThawType.detail)
+                .foregroundStyle(ThawInk.supporting)
         }
         .onAppear { access = store.access(of: extensionName) }
     }

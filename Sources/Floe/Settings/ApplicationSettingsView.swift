@@ -66,7 +66,7 @@ struct ApplicationSettingsView: View {
                         .id(app.url)
                 }
                 if apps.isEmpty {
-                    ContentUnavailableView.search(text: filter)
+                    NoMatchesState(query: filter)
                 }
             }
         }
@@ -117,7 +117,7 @@ private struct ApplicationSettingsRow: View {
                     }
                     if let hotkey = settings.commandHotkeys[key] {
                         Text(hotkey.displayValue)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThawInk.supporting)
                             .monospacedDigit()
                     }
                 }

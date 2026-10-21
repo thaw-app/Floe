@@ -21,6 +21,7 @@ struct DiagnosticsSettingsSection: View {
             }
             LabeledContent {
                 Button("Show Log Files in Finder") { NSWorkspace.shared.open(DiagnosticLogger.shared.logDirectory) }
+                    .buttonStyle(.settingsGlass)
             } label: {
                 Text("Log files")
                 Text(logFileName ?? String(localized: "None yet", bundle: .floe, comment: "Shown in place of a log file's name when no log has been written."))

@@ -136,6 +136,7 @@ struct PrivacySettingsPane: View {
                     usage.forgetQueries()
                     forgotSearches = true
                 }
+                .buttonStyle(.settingsGlass)
                 .disabled(!settings.remembersSearches || forgotSearches)
             }
         }
@@ -157,6 +158,7 @@ struct PrivacySettingsPane: View {
                     receipts.forget()
                     forgotReceipts = true
                 }
+                .buttonStyle(.settingsGlass)
                 .disabled(!settings.keepsReceipts || forgotReceipts)
             }
         }
@@ -203,9 +205,9 @@ struct PrivacySettingsPane: View {
     }
 
     private func row(_ title: LocalizedStringKey, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: ThawSpacing.hairline) {
             Text(title)
-            Text(detail).font(.callout).foregroundStyle(ThawInk.supporting)
+            Text(detail).font(ThawType.detail).foregroundStyle(ThawInk.supporting)
         }
     }
 }

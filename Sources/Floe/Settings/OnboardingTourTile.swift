@@ -99,7 +99,7 @@ struct OnboardingTourTile: View {
             }
             Text((try? AttributedString(markdown: caption)) ?? AttributedString(caption))
                 .font(ThawType.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ThawInk.supporting)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
         }

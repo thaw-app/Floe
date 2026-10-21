@@ -25,26 +25,30 @@ struct FallbacksSettingsPage: View {
                 content: {
                     if chosen.isEmpty {
                         Text("No fallbacks. Searches end with what they found.")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThawInk.supporting)
                     }
                     ForEach(chosen) { choice in
                         HStack(spacing: ThawSpacing.row) {
                             FallbackLabel(row: choice.row)
                             Spacer()
-                            Button { move(choice, by: -1, shown: chosen) } label: {
-                                Image(systemName: "chevron.up")
+                            ThawActionGroup {
+                                Button { move(choice, by: -1, shown: chosen) } label: {
+                                    Label("Move Up", systemImage: "chevron.up")
+                                }
+                                .disabled(chosen.first?.id == choice.id)
+                                .help("Move Up")
+                                Button { move(choice, by: 1, shown: chosen) } label: {
+                                    Label("Move Down", systemImage: "chevron.down")
+                                }
+                                .disabled(chosen.last?.id == choice.id)
+                                .help("Move Down")
+                                Button { remove(choice) } label: {
+                                    Label("Remove", systemImage: "minus")
+                                }
+                                .help("Remove")
                             }
-                            .disabled(chosen.first?.id == choice.id)
-                            .help("Move Up")
-                            Button { move(choice, by: 1, shown: chosen) } label: {
-                                Image(systemName: "chevron.down")
-                            }
-                            .disabled(chosen.last?.id == choice.id)
-                            .help("Move Down")
-                            Button { remove(choice) } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .help("Remove")
+                            .buttonStyle(.thawGrouped)
+                            .labelStyle(.iconOnly)
                         }
                     }
                 },
@@ -57,8 +61,10 @@ struct FallbacksSettingsPage: View {
                             FallbackLabel(row: choice.row)
                             Spacer()
                             Button { add(choice) } label: {
-                                Image(systemName: "plus.circle")
+                                Label("Add", systemImage: "plus")
                             }
+                            .buttonStyle(.settingsGlass)
+                            .labelStyle(.iconOnly)
                             .help("Add")
                         }
                     }
@@ -96,7 +102,7 @@ private struct FallbackLabel: View {
                 Text(row.title)
                 Text(row.subtitle ?? row.kind)
                     .font(ThawType.footnote)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThawInk.supporting)
             }
         }
     }

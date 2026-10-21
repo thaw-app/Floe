@@ -44,6 +44,8 @@ struct SettingsView: View {
         }
         .settingsSearchField(search, selection: selection)
         .updateConsentSheet(stores.updates)
+        // Glass buttons are capsules, as in macOS's own glass windows.
+        .buttonBorderShape(.capsule)
     }
 
     @ViewBuilder
@@ -140,7 +142,7 @@ struct GeneralSettingsView: View {
                 LaunchAtLoginToggle(settings: settings)
                 Toggle("Show in Dock", isOn: $settings.showInDock)
                 AutomaticUpdateCheckToggle(updatesManager: updates)
-                Picker(selection: $settings.popToRootDelay) {
+                ThawPicker(selection: $settings.popToRootDelay) {
                     Text("Immediately").tag(0)
                     Text("After 30 seconds").tag(30)
                     Text("After 90 seconds").tag(90)

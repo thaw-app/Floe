@@ -28,7 +28,7 @@ struct AISettingsSection: View {
 
     var body: some View {
         ThawSection("AI") {
-            Picker(selection: $settings.aiSource) {
+            ThawPicker(selection: $settings.aiSource) {
                 Text("A command line tool you are signed in to").tag(AISource.tools)
                 Text("An OpenAI-compatible API").tag(AISource.api)
                 Text("Apple Intelligence, on this Mac").tag(AISource.appleIntelligence)
@@ -47,11 +47,11 @@ struct AISettingsSection: View {
                     warning(problem)
                 } else {
                     LabeledContent("Model") {
-                        Text("Runs on this Mac. Nothing is sent anywhere.").foregroundStyle(.secondary)
+                        Text("Runs on this Mac. Nothing is sent anywhere.").foregroundStyle(ThawInk.supporting)
                     }
                 }
             case .api:
-                Picker("Service", selection: $service) {
+                ThawPicker("Service", selection: $service) {
                     ForEach(AIService.allCases) { service in
                         Text(service.title).tag(service)
                     }
@@ -86,7 +86,7 @@ struct AISettingsSection: View {
     /// The tool that answers, where it is, and its model when it takes one.
     @ViewBuilder private var toolRows: some View {
         let which: (String) -> URL? = { LoginEnvironment.which($0) }
-        Picker(selection: $settings.aiTool) {
+        ThawPicker(selection: $settings.aiTool) {
             ForEach(AIToolOption.options(chosen: settings.aiTool, which: which)) { option in
                 Text(option.title).tag(option.tool)
             }
@@ -96,7 +96,7 @@ struct AISettingsSection: View {
         }
         if let engine = AIEngine.resolve(model: nil, setup: AIEngine.Setup(settings), which: which) {
             LabeledContent("Path") {
-                Text(engine.executable.path).foregroundStyle(.secondary).textSelection(.enabled)
+                Text(engine.executable.path).foregroundStyle(ThawInk.supporting).textSelection(.enabled)
             }
             if engine.tool.takesModel {
                 TextField("Model", text: toolModel(engine.tool), prompt: Text("provider/model, or empty for the default set in \(engine.toolName)"))

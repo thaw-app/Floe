@@ -53,10 +53,11 @@ struct SyncSettingsSection: View {
             }
             .disabled(isUnavailable || !settings.syncsWithICloud)
             LabeledContent("Status") {
-                Text(SettingsSyncText.line(for: sync.status, backend: Self.backend)).foregroundStyle(.secondary)
+                Text(SettingsSyncText.line(for: sync.status, backend: Self.backend)).foregroundStyle(ThawInk.supporting)
             }
             LabeledContent {
                 Button("Remove Settings from iCloud…") { removeFromCloud() }
+                    .buttonStyle(.settingsGlass)
                     .disabled(isUnavailable || sync.status.state == .noAccount)
             } label: {
                 Text("iCloud copy")
@@ -68,10 +69,11 @@ struct SyncSettingsSection: View {
             }
             .disabled(!canSwitchPasswords)
             LabeledContent("Passwords") {
-                Text(SettingsSyncText.passwordLine(for: passwords)).foregroundStyle(.secondary)
+                Text(SettingsSyncText.passwordLine(for: passwords)).foregroundStyle(ThawInk.supporting)
             }
             LabeledContent {
                 Button("Remove Passwords from iCloud Keychain…") { removePasswords() }
+                    .buttonStyle(.settingsGlass)
                     .disabled(!passwords.isAvailable)
             } label: {
                 Text("iCloud Keychain copy")

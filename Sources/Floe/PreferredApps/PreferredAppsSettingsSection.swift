@@ -32,7 +32,7 @@ struct NotesAppPicker: View {
     @State private var knownFolders: [KnownNoteFolders.Folder] = []
 
     var body: some View {
-        Picker(selection: $settings.notesApp) {
+        ThawPicker(selection: $settings.notesApp) {
             ForEach(NotesApp.allCases) { app in
                 Label {
                     Text(app.title)
@@ -139,7 +139,7 @@ struct PreferredAppPicker: View {
     }
 
     var body: some View {
-        Picker(selection: selection) {
+        ThawPicker(selection: selection) {
             ForEach(options) { option in
                 Label {
                     Text(option.title)

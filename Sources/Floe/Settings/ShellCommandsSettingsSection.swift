@@ -18,12 +18,10 @@ struct ShellCommandsSettingsSection: View {
                 Text("Run shell commands from the search")
                 Text("Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal.")
             }
-            Picker("Prefix", selection: $settings.shell.prefix) {
-                ForEach(CommandPrefix.allCases) { prefix in
-                    Text(verbatim: prefix.rawValue).tag(prefix)
-                }
+            LabeledContent("Prefix") {
+                ThawPillPicker(selection: $settings.shell.prefix, values: CommandPrefix.allCases, title: \.rawValue)
+                    .accessibilityLabel(Text("Prefix"))
             }
-            .pickerStyle(.segmented)
             .disabled(!settings.shell.runs)
             Toggle(isOn: $settings.shell.suggests) {
                 Text("Suggest while typing a command")

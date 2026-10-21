@@ -37,7 +37,7 @@ struct StoreDetail: View {
                     StoreScreenshotStrip(screenshots: screenshots) { enlarged = $0 }
                 }
                 if let details, !details.commands.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: ThawSpacing.base) {
                         Text("Commands")
                             .font(.headline)
                             .accessibilityAddTraits(.isHeader)
@@ -85,7 +85,7 @@ private struct StoreDetailHeader: View {
 
     var body: some View {
         let installed = store.isInstalled(name)
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: ThawSpacing.base) {
             HStack(alignment: .top, spacing: 14) {
                 StoreIcon(store: store, url: details?.iconURL, size: 64)
                 VStack(alignment: .leading, spacing: 3) {
@@ -95,7 +95,7 @@ private struct StoreDetailHeader: View {
                         .accessibilityAddTraits(.isHeader)
                     if let author = details?.author, !author.isEmpty {
                         Text(author)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(ThawInk.supporting)
                             .lineLimit(1)
                     }
                     if updateAvailable {
@@ -104,14 +104,14 @@ private struct StoreDetailHeader: View {
                         StoreTag(text: String(localized: "Installed", bundle: .floe, comment: "Said of an extension that is already installed."))
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, ThawSpacing.tight)
                 Spacer(minLength: 8)
                 actions(installed: installed)
-                    .padding(.top, 6)
+                    .padding(.top, ThawSpacing.compact)
             }
             if let error = store.error, !store.busy.contains(name) {
                 Text(error)
-                    .font(.footnote)
+                    .font(ThawType.footnote)
                     .foregroundStyle(.red)
                     .textSelection(.enabled)
             }
@@ -119,7 +119,7 @@ private struct StoreDetailHeader: View {
     }
 
     private func actions(installed: Bool) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: ThawSpacing.compact) {
             if store.busy.contains(name) {
                 ProgressView()
                     .controlSize(.small)
@@ -127,7 +127,7 @@ private struct StoreDetailHeader: View {
                 Button("Install") {
                     Task { await store.install(name) }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.thawProminent)
             } else if updateAvailable {
                 Button("Update") {
                     Task {
@@ -135,7 +135,7 @@ private struct StoreDetailHeader: View {
                         updateAvailable = await store.hasUpdate(name)
                     }
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.thawProminent)
             }
             Menu {
                 if installed {
@@ -165,14 +165,14 @@ private struct StoreFacts: View {
     let details: StoreDetails
 
     var body: some View {
-        StoreTagFlow(spacing: 6) {
+        StoreTagFlow(spacing: ThawSpacing.compact) {
             ForEach(details.categories, id: \.self) { category in
                 StoreTag(text: category)
             }
             Text(String(localized: "\(details.commands.count) commands", bundle: .floe, comment: "The placeholder is how many commands an extension has."))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .padding(.vertical, 2)
+                .font(ThawType.caption)
+                .foregroundStyle(ThawInk.supporting)
+                .padding(.vertical, ThawSpacing.hairline)
             if details.needsSetup {
                 StoreTag(text: String(localized: "Needs setup", bundle: .floe, comment: "A tag on an extension with a setting that must be filled in before it runs."), tint: .orange)
             }
@@ -186,10 +186,10 @@ private struct StoreCommandCard: View {
     let extensionIcon: URL?
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: ThawSpacing.row) {
             StoreIcon(store: store, url: command.iconURL ?? extensionIcon, size: 24)
             VStack(alignment: .leading, spacing: 3) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: ThawSpacing.base) {
                     Text(command.title)
                         .fontWeight(.medium)
                     Spacer(minLength: 0)
@@ -197,21 +197,21 @@ private struct StoreCommandCard: View {
                 }
                 if let description = command.description, !description.isEmpty {
                     Text(description)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .font(ThawType.detail)
+                        .foregroundStyle(ThawInk.supporting)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if !command.arguments.isEmpty {
-                    StoreTagFlow(spacing: 4) {
+                    StoreTagFlow(spacing: ThawSpacing.tight) {
                         ForEach(command.arguments, id: \.name) { argument in
                             StoreTag(text: argument.placeholder ?? argument.name, symbol: "character.cursor.ibeam")
                         }
                     }
-                    .padding(.top, 2)
+                    .padding(.top, ThawSpacing.hairline)
                 }
             }
         }
-        .padding(10)
+        .padding(ThawSpacing.row)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.quinary, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
         .overlay {
@@ -244,10 +244,10 @@ struct StoreTag: View {
             Text(text)
                 .lineLimit(1)
         }
-        .font(.caption)
+        .font(ThawType.caption)
         .foregroundStyle(tint)
         .padding(.horizontal, 7)
-        .padding(.vertical, 2)
+        .padding(.vertical, ThawSpacing.hairline)
         .background(tint.opacity(0.12), in: Capsule())
     }
 }
@@ -331,11 +331,11 @@ private struct StoreScreenshotStrip: View {
     /// Raycast's screenshots are 16:10.
     private static let height: CGFloat = 180
     private static let width = height * 1.6
-    private static let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+    private static let shape = RoundedRectangle(cornerRadius: ThawRadius.row, style: .continuous)
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 10) {
+            HStack(spacing: ThawSpacing.row) {
                 ForEach(screenshots) { screenshot in
                     Button {
                         open(screenshot)
@@ -364,19 +364,20 @@ private struct StoreScreenshotSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: ThawSpacing.inset) {
             Image(decorative: large ?? screenshot.image, scale: 1)
                 .resizable()
                 .scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: ThawRadius.row, style: .continuous))
                 .frame(maxWidth: 720, maxHeight: 450)
             HStack {
                 Spacer()
                 Button("Done") { dismiss() }
+                    .buttonStyle(.settingsGlass)
                     .keyboardShortcut(.cancelAction)
             }
         }
-        .padding(16)
+        .padding(ThawSpacing.gutter)
         .task { large = await StoreScreenshot.decoded(screenshot.file, pixels: StoreScreenshot.sheetPixels) }
     }
 }

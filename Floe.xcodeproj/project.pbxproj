@@ -135,6 +135,7 @@
 		4E0D222D8B25ACF24D81A565 /* Calculator+Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C111C74FE8C998059BB71F9 /* Calculator+Result.swift */; };
 		4E1766F160310A9E2F6577A9 /* SetupFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8529561777F9EC462CCC310A /* SetupFormModel.swift */; };
 		4E4C9533B7BEAFD7E5C064B7 /* CatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED07D9CF5094570E7B60CE62 /* CatalogStore.swift */; };
+		4F3A33A2B78D31083476E3D4 /* ThawPillPicker+Floe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 035F25C61308BBEF5C1382E5 /* ThawPillPicker+Floe.swift */; };
 		4FA9265CC5740450C852C2B0 /* FloatingNoteModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58C10F9ED246DB97BBD5DF88 /* FloatingNoteModel.swift */; };
 		515574D9FBFA46DBB599CA2D /* OpencodeTextStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2505656E388B4F78C6E04841 /* OpencodeTextStream.swift */; };
 		516FEE584F3FE29D436BE2EC /* AppleScript.swift in Sources */ = {isa = PBXBuildFile; fileRef = 975C93B46D2CE2C1CB09E1ED /* AppleScript.swift */; };
@@ -278,6 +279,7 @@
 		A10E7B2DBE9FE26F7059D6D7 /* SettingsPageHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BACEDACC6B12A4DCEF77FDE /* SettingsPageHeader.swift */; };
 		A1D15AAC45FDE80BED5CE0C1 /* SystemCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA43444C49957E7742747429 /* SystemCommands.swift */; };
 		A2354990CC49B38386F33165 /* Model+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0454DDF1AC4E2934C468C3A3 /* Model+Search.swift */; };
+		A2FE663E18FBB71BADCEB12E /* SettingsChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C2B6642F80CB1D2BC1EB81 /* SettingsChrome.swift */; };
 		A31CA4A5723901F2F47665C6 /* ItemActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B395B312CE9AFB208F23F69 /* ItemActions.swift */; };
 		A48B203D236A4DC4E1BC47FF /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC32C86FE1E2384F4C5452DB /* Bookmarks.swift */; };
 		A5C431E905CA8078C4556247 /* AskAISearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2773C6E3783917FF5AFFAC4E /* AskAISearchProvider.swift */; };
@@ -440,6 +442,7 @@
 		01C95DCE1D4F4B3F5992F739 /* ClipboardWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWatcher.swift; sourceTree = "<group>"; };
 		01DE9A8F192C3A915D449B54 /* ShellCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellCommand.swift; sourceTree = "<group>"; };
 		02E73F6083825F4859C962AC /* Model+CommandLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+CommandLinks.swift"; sourceTree = "<group>"; };
+		035F25C61308BBEF5C1382E5 /* ThawPillPicker+Floe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThawPillPicker+Floe.swift"; sourceTree = "<group>"; };
 		03E2064C17DB821332617CDB /* AIConversation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIConversation.swift; sourceTree = "<group>"; };
 		0454DDF1AC4E2934C468C3A3 /* Model+Search.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Search.swift"; sourceTree = "<group>"; };
 		05230EAF05CC25AF3298E02F /* project.yml */ = {isa = PBXFileReference; lastKnownFileType = text.yaml; path = project.yml; sourceTree = "<group>"; };
@@ -854,6 +857,7 @@
 		F74EB72FFA02A1DE5E406A34 /* CalculatorFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorFormatter.swift; sourceTree = "<group>"; };
 		F77C745DA743B0614BA37A16 /* FloatingNoteStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingNoteStore.swift; sourceTree = "<group>"; };
 		F7A3F75C4D5BA5A1EF2838C8 /* AcknowledgementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AcknowledgementsView.swift; sourceTree = "<group>"; };
+		F9C2B6642F80CB1D2BC1EB81 /* SettingsChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsChrome.swift; sourceTree = "<group>"; };
 		FA6EFD0EAE310EE1C88BF029 /* SSHHosts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHHosts.swift; sourceTree = "<group>"; };
 		FA8B7D0D47E3C50C9CB1F9D0 /* AITool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AITool.swift; sourceTree = "<group>"; };
 		FA91226DE1AE2317FB66E176 /* Model+Favorites.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Favorites.swift"; sourceTree = "<group>"; };
@@ -933,6 +937,7 @@
 				FB366C323BC449BC6B784D8D /* PrivacySettingsPane.swift */,
 				C71DBBF84C644A103F04FB66 /* ReadingPage.swift */,
 				442606CB5ED8AC44669CA4D4 /* SearchPanelStyle.swift */,
+				F9C2B6642F80CB1D2BC1EB81 /* SettingsChrome.swift */,
 				604318B576A5FA49A67E10A4 /* ThawHUD.swift */,
 				15BDEE94D408295874A7461E /* ThawHUDPlacement.swift */,
 				15F463C41E01C04BDA443705 /* UpdateChannel.swift */,
@@ -1225,6 +1230,7 @@
 				F309AEDF8D21B519596790F8 /* SyncSettingsSection.swift */,
 				12DB115D3714A1A3D1C7C3D6 /* SyncSettingsView.swift */,
 				3C178B96CB145E8FEA3F3778 /* SystemStores.swift */,
+				035F25C61308BBEF5C1382E5 /* ThawPillPicker+Floe.swift */,
 				48B2AC0720E49E53A9E3E6C6 /* ThawSupportNotice.swift */,
 				4F9E804FCFAE9C367F19FF6F /* WelcomeSettingsSection.swift */,
 			);
@@ -1998,6 +2004,7 @@
 				CBC030F783199B84520121FB /* Session+ViewState.swift in Sources */,
 				3FEBFBEC7FD0A3FC09F83008 /* Session.swift in Sources */,
 				C1891D04D4AEAC923DF54C31 /* Settings.swift in Sources */,
+				A2FE663E18FBB71BADCEB12E /* SettingsChrome.swift in Sources */,
 				CA7A52E9DC1740EDB22FC43A /* SettingsFilterField.swift in Sources */,
 				812D7F552D2AFB08DB00480E /* SettingsMerge.swift in Sources */,
 				E8F562A6C0BF3A1DCBFEDB33 /* SettingsMode.swift in Sources */,
@@ -2057,6 +2064,7 @@
 				62233FAC9FE04DFB2C994F79 /* ThawHUD.swift in Sources */,
 				0214D1658AFF0A195F3C0604 /* ThawHUDPlacement.swift in Sources */,
 				2998C9BB3632559AFA952A3F /* ThawIntegration.swift in Sources */,
+				4F3A33A2B78D31083476E3D4 /* ThawPillPicker+Floe.swift in Sources */,
 				E0FC20F661321DBDFBBABA35 /* ThawSupportNotice.swift in Sources */,
 				0F19BCEBA7CE82395F375208 /* TimedCache.swift in Sources */,
 				2AAC5097F19A8EBBE9480A49 /* TimerRows.swift in Sources */,

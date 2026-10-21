@@ -56,7 +56,7 @@ struct ClipboardAppPicker: View {
     }
 
     var body: some View {
-        Picker(selection: selection) {
+        ThawPicker(selection: selection) {
             ForEach(options) { option in
                 Label {
                     Text(option.title)
@@ -87,6 +87,7 @@ struct ClipboardAppPicker: View {
         LabeledContent("Clipboard history") {
             // The history is the launcher's: it is the one that watches the clipboard.
             Button("Clear History") { ProcessLink.current?.send(.clearClipboardHistory) }
+                .buttonStyle(.settingsGlass)
         }
     }
 

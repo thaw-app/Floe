@@ -16,6 +16,7 @@ struct WelcomeSettingsSection: View {
         ThawSection("Welcome") {
             LabeledContent {
                 Button("Show Welcome") { showWelcome() }
+                    .buttonStyle(.settingsGlass)
             } label: {
                 Text("Welcome window")
                 Text("The introduction from the first launch.")

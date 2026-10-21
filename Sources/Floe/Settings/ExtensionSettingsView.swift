@@ -36,6 +36,7 @@ struct ExtensionSettingsView: View {
                     ForEach(LentProvider.lent(to: first.extensionName, in: settings.lentSignIns), id: \.self) { provider in
                         LabeledContent {
                             Button("Take Back") { settings.lentSignIns.remove(provider.key(for: first.extensionName)) }
+                                .buttonStyle(.settingsGlass)
                         } label: {
                             Text("\(provider.name) sign-in", comment: "The placeholder is a service, such as GitHub.")
                             Text("This extension uses the sign-in of the \(provider.toolName) on this Mac.", comment: "The placeholder is the name of a command line tool, such as GitHub CLI.")
@@ -162,7 +163,7 @@ private struct ExtensionHeader: View {
                 if let description = command.extensionDescription {
                     Text(description)
                         .font(ThawType.body)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(ThawInk.supporting)
                         .textCase(nil)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -214,7 +215,7 @@ struct CommandSettingsRow: View {
             .labelsHidden()
             .fixedSize()
             Toggle("Enabled", isOn: settings.enabledBinding(for: command))
-                .toggleStyle(.checkbox)
+                .toggleStyle(.thawCheckbox)
                 .labelsHidden()
                 .disabled(settings.disabledExtensions.contains(command.extensionName))
                 .help("A command that is off is left out of the launcher and is not run by its hotkey, the menu bar or Shortcuts.")

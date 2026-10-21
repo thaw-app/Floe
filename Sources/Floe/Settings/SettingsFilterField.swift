@@ -37,11 +37,26 @@ struct SettingsFilterField: View {
                 .accessibilityLabel(Text("Clear"))
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, ThawSpacing.inset)
         .frame(height: 36)
-        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .background(.quaternary.opacity(0.6), in: Self.shape)
         // A click anywhere on the field, the glass included, puts the cursor in it.
-        .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .contentShape(Self.shape)
         .onTapGesture { isFocused = true }
+    }
+
+    private static let shape = RoundedRectangle(cornerRadius: ThawRadius.control, style: .continuous)
+}
+
+/// What a page's filter shows when nothing matches, in the empty state the rest of Settings uses.
+struct NoMatchesState: View {
+    let query: String
+
+    var body: some View {
+        ThawEmptyState(
+            systemImage: "magnifyingglass",
+            title: "No results for “\(query.trimmingCharacters(in: .whitespacesAndNewlines))”",
+            caption: "Check the spelling or try a shorter term."
+        )
     }
 }

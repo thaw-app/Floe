@@ -79,10 +79,11 @@ struct SyncSettingsView: View {
             SyncSettingsSection(settings: settings, sync: sync)
             ThawSection("Your Settings") {
                 LabeledContent {
-                    HStack {
+                    ThawActionGroup {
                         Button("Export…") { exportSettings() }
                         Button("Import…") { importSettings() }
                     }
+                    .buttonStyle(.thawGrouped)
                 } label: {
                     Text("Settings file")
                     Text("Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out.")

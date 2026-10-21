@@ -28,15 +28,15 @@ struct AppearanceSettingsPane: View {
 
     private func footnote(_ text: LocalizedStringKey) -> some View {
         Text(text)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(ThawType.footnote)
+            .foregroundStyle(ThawInk.supporting)
     }
 
     /// A footnote whose text is already in the user's language.
     private func footnote(resolved text: String) -> some View {
         Text(verbatim: text)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(ThawType.footnote)
+            .foregroundStyle(ThawInk.supporting)
     }
 
     /// The tint the single editor writes: light when the tints are separate,
@@ -103,9 +103,9 @@ struct AppearanceSettingsPane: View {
                     separateFieldShape: settings.separatesSearchField ? settings.searchFieldShape : nil
                 )
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
+                .padding(.vertical, ThawSpacing.gutter)
                 // Glass over the form's card would show nothing behind it; this stands in for a desktop.
-                .background(PreviewBackdrop(), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .background(PreviewBackdrop(), in: RoundedRectangle(cornerRadius: ThawRadius.control, style: .continuous))
             }
             // Shown without Thaw too while it is on, so it can always be turned off.
             if thawIsInstalled || settings.followsThawAppearance {
@@ -128,37 +128,40 @@ struct AppearanceSettingsPane: View {
 
     private var layoutSection: some View {
         ThawSection("Layout") {
-            Picker("Launcher layout", selection: $settings.launcherLayout) {
-                ForEach(LauncherLayout.allCases) { layout in
-                    Text(layout.title).tag(layout)
-                }
+            LabeledContent {
+                ThawPillPicker(selection: $settings.launcherLayout, values: LauncherLayout.allCases, title: \.title)
+                    .accessibilityLabel(Text("Launcher layout"))
+            } label: {
+                Text("Launcher layout")
+                Text("Extended always shows the list. Compact shows only the search bar until you type.")
             }
-            .pickerStyle(.segmented)
-            footnote("Extended always shows the list. Compact shows only the search bar until you type.")
-            Picker("Search field shape", selection: $settings.searchFieldShape) {
-                ForEach(SearchFieldShape.allCases) { shape in
-                    Text(shape.title).tag(shape)
-                }
+            LabeledContent("Search field shape") {
+                ThawPillPicker(selection: $settings.searchFieldShape, values: SearchFieldShape.allCases, title: \.title)
+                    .accessibilityLabel(Text("Search field shape"))
             }
-            .pickerStyle(.segmented)
-            Picker("Search field beam", selection: $settings.searchFieldBeam) {
+            ThawPicker(selection: $settings.searchFieldBeam) {
                 ForEach(SearchFieldBeam.allCases) { beam in
                     Text(beam.title).tag(beam)
                 }
+            } label: {
+                Text("Search field beam")
+                Text("Light that sweeps around the inside of the search field's border.")
             }
-            footnote("Light that sweeps around the inside of the search field's border.")
             if settings.searchFieldBeam != .off {
-                Slider(value: $settings.searchFieldBeamFrameRate, in: 15 ... 120, step: 15) {
+                LabeledContent {
+                    ThawSlider(value: $settings.searchFieldBeamFrameRate, in: 15 ... 120, step: 15) {
+                        Text(verbatim: "\(Int(settings.searchFieldBeamFrameRate)) fps")
+                            .monospacedDigit()
+                    }
+                } label: {
                     Text("Beam frame rate")
-                } minimumValueLabel: {
-                    Text("15 fps")
-                } maximumValueLabel: {
-                    Text("120 fps")
+                    Text("Fewer frames are lighter on the graphics card; more are smoother.")
                 }
-                footnote("\(Int(settings.searchFieldBeamFrameRate)) frames a second. Fewer are lighter on the graphics card; more are smoother.")
             }
-            Toggle("Separate the search field from the results", isOn: $settings.separatesSearchField)
-            footnote("The search field is its own piece of glass, and the results are a second piece below it.")
+            Toggle(isOn: $settings.separatesSearchField) {
+                Text("Separate the search field from the results")
+                Text("The search field is its own piece of glass, and the results are a second piece below it.")
+            }
         }
     }
 
@@ -197,7 +200,7 @@ struct AppearanceSettingsPane: View {
     }
 
     private var glassControls: some View {
-        Picker("Effect", selection: glassChoice) {
+        ThawPicker("Effect", selection: glassChoice) {
             Text("Match System").tag(GlassChoice.matchSystem)
             ForEach(LauncherGlassStyle.allCases) { style in
                 Text(style.title).tag(GlassChoice.style(style))
@@ -222,12 +225,11 @@ struct AppearanceSettingsPane: View {
         Toggle("Draw a border", isOn: $settings.launcherShowsBorder)
         if settings.launcherShowsBorder {
             ColorPicker("Color", selection: borderColor, supportsOpacity: false)
-            Slider(value: $settings.launcherBorder.width, in: 0.5 ... 4) {
-                Text("Width")
-            } minimumValueLabel: {
-                Text("0.5 pt")
-            } maximumValueLabel: {
-                Text("4 pt")
+            LabeledContent("Width") {
+                ThawSlider(value: $settings.launcherBorder.width, in: 0.5 ... 4) {
+                    Text(verbatim: "\(settings.launcherBorder.width.formatted(.number.precision(.fractionLength(0 ... 1)))) pt")
+                        .monospacedDigit()
+                }
             }
         }
     }
@@ -242,12 +244,10 @@ struct AppearanceSettingsPane: View {
             get: { tint.wrappedValue.opacity },
             set: { tint.wrappedValue.opacity = $0 }
         )
-        Picker(title, selection: tint.kind) {
-            ForEach(LauncherTintKind.allCases) { kind in
-                Text(kind.title).tag(kind)
-            }
+        LabeledContent(title) {
+            ThawPillPicker(selection: tint.kind, values: LauncherTintKind.allCases, title: \.title)
+                .accessibilityLabel(Text(title))
         }
-        .pickerStyle(.segmented)
         switch tint.wrappedValue.kind {
         case .none:
             EmptyView()
@@ -256,21 +256,19 @@ struct AppearanceSettingsPane: View {
         case .gradient:
             ColorPicker("Start color", selection: colorBinding(tint, \.start), supportsOpacity: false)
             ColorPicker("End color", selection: colorBinding(tint, \.end), supportsOpacity: false)
-            Slider(value: tint.gradient.angle, in: 0 ... 360) {
-                Text("Angle")
-            } minimumValueLabel: {
-                Text("0°")
-            } maximumValueLabel: {
-                Text("360°")
+            LabeledContent("Angle") {
+                ThawSlider(value: tint.gradient.angle, in: 0 ... 360) {
+                    Text(verbatim: "\(Int(tint.wrappedValue.gradient.angle))°")
+                        .monospacedDigit()
+                }
             }
         }
         if tint.wrappedValue.kind != .none {
-            Slider(value: opacity, in: 0.05 ... 1) {
-                Text("Opacity")
-            } minimumValueLabel: {
-                Text("5%")
-            } maximumValueLabel: {
-                Text("100%")
+            LabeledContent("Opacity") {
+                ThawSlider(value: opacity, in: 0.05 ... 1) {
+                    Text(opacity.wrappedValue, format: .percent.precision(.fractionLength(0)))
+                        .monospacedDigit()
+                }
             }
         }
     }

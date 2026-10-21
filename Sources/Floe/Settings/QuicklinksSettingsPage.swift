@@ -28,18 +28,20 @@ struct QuicklinksSettingsPage: View {
                             Text(link.name)
                             Text(link.keyword)
                                 .font(ThawType.footnote)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(ThawInk.supporting)
                             Text(link.url)
                                 .font(ThawType.footnote)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(ThawInk.supporting)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
                         Spacer()
                         Button("Edit") { edit(link) }
+                            .buttonStyle(.settingsGlass)
                     }
                 }
                 Button("New Quicklink") { add() }
+                    .buttonStyle(.settingsGlass)
             })
         }
         .formStyle(.grouped)
@@ -72,7 +74,7 @@ struct QuicklinksSettingsPage: View {
                 TextField("URL", text: $draft.url)
                 TextField("Symbol", text: $draft.symbol, prompt: Text("SF Symbol name"))
             } footer: {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: ThawSpacing.tight) {
                     Text("Use {query} where the search text goes.")
                     if !editorError.isEmpty {
                         Text(editorError).foregroundStyle(.red)
@@ -89,6 +91,7 @@ struct QuicklinksSettingsPage: View {
                             pendingDelete = link
                         }
                     }
+                    .buttonStyle(.settingsGlass)
                 }
             }
         }

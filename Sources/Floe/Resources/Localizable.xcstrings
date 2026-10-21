@@ -363,9 +363,6 @@
         }
       }
     },
-    "%lld frames a second. Fewer are lighter on the graphics card; more are smoother." : {
-
-    },
     "%lld items" : {
       "comment" : "How many lines a list has.",
       "localizations" : {
@@ -485,30 +482,6 @@
     },
     "(no output)" : {
       "comment" : "Shown in place of what a script printed when it printed nothing."
-    },
-    "0.5 pt" : {
-
-    },
-    "0°" : {
-      "shouldTranslate" : false
-    },
-    "100%" : {
-      "shouldTranslate" : false
-    },
-    "120 fps" : {
-
-    },
-    "15 fps" : {
-
-    },
-    "360°" : {
-      "shouldTranslate" : false
-    },
-    "4 pt" : {
-
-    },
-    "5%" : {
-      "shouldTranslate" : false
     },
     ";sig" : {
 
@@ -1005,9 +978,6 @@
     "Browser Tabs" : {
 
     },
-    "Build" : {
-      "comment" : "A label before the build number of this app."
-    },
     "Built-in" : {
 
     },
@@ -1102,6 +1072,9 @@
     "Charging, %@ until full" : {
       "comment" : "About the battery. The placeholder is a length of time, such as 1 hr 20 min."
     },
+    "Check" : {
+      "comment" : "Automatic updates, in a narrow pill: check, and do not download."
+    },
     "Check Automatically" : {
 
     },
@@ -1119,6 +1092,9 @@
     },
     "Check only" : {
       "comment" : "Automatic updates: check, and do not download."
+    },
+    "Check the spelling or try a shorter term." : {
+
     },
     "Checking asks %@ whether a newer version exists. Floe asked before it started. The switch is in General." : {
       "comment" : "The placeholder is the address of a server."
@@ -1236,9 +1212,6 @@
     },
     "Commands" : {
       "comment" : "The name of a settings page."
-    },
-    "Commit" : {
-      "comment" : "A label before the source code revision this app was built from."
     },
     "Compact" : {
       "comment" : "A launcher layout: only the search field until you type."
@@ -1661,6 +1634,9 @@
     "Don’t Allow" : {
 
     },
+    "Download" : {
+      "comment" : "Automatic updates, in a narrow pill: check, and download what is found."
+    },
     "Download and install updates automatically" : {
 
     },
@@ -1842,6 +1818,9 @@
 
     },
     "Fetching release notes is off." : {
+
+    },
+    "Fewer frames are lighter on the graphics card; more are smoother." : {
 
     },
     "File" : {
@@ -2808,6 +2787,9 @@
     },
     "No recipient" : {
       "comment" : "Beside a mail or message draft whose text names nobody to send it to."
+    },
+    "No results for “%@”" : {
+
     },
     "No running process matches" : {
 
@@ -4728,8 +4710,15 @@
         }
       }
     },
-    "Version" : {
-      "comment" : "A label before the version number of this app."
+    "Version %@, build %@, commit %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Version %1$@, build %2$@, commit %3$@"
+          }
+        }
+      }
     },
     "View" : {
       "comment" : "A command that opens its own view in the launcher."

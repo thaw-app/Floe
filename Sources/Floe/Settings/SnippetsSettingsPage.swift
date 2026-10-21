@@ -25,14 +25,14 @@ struct SnippetsSettingsPage: View {
             )
             ThawSection("Snippets") {
                 if store.snippets.isEmpty {
-                    Text("No snippets yet.").foregroundStyle(.secondary)
+                    Text("No snippets yet.").foregroundStyle(ThawInk.supporting)
                 }
                 ForEach(store.snippets) { snippet in
                     Button {
                         editing = snippet
                     } label: {
                         LabeledContent {
-                            Text(snippet.keyword).font(.body.monospaced()).foregroundStyle(.secondary)
+                            Text(snippet.keyword).font(.body.monospaced()).foregroundStyle(ThawInk.supporting)
                         } label: {
                             Text(snippet.name)
                             Text(snippet.firstLine).lineLimit(1)
@@ -42,6 +42,7 @@ struct SnippetsSettingsPage: View {
                     .buttonStyle(.plain)
                 }
                 Button("New Snippet") { editing = Snippet(name: "", keyword: "", text: "") }
+                    .buttonStyle(.settingsGlass)
             }
         }
         .formStyle(.grouped)
@@ -94,14 +95,17 @@ private struct SnippetEditor: View {
             HStack {
                 if !isNew {
                     Button("Delete…", role: .destructive) { confirmingDelete = true }
+                        .buttonStyle(.settingsGlass)
                 }
                 Spacer()
                 Button("Cancel") { onDone(nil) }
+                    .buttonStyle(.settingsGlass)
                     .keyboardShortcut(.cancelAction)
                 Button("Save") {
                     snippet.keyword = snippet.keyword.trimmingCharacters(in: .whitespacesAndNewlines)
                     onDone(snippet)
                 }
+                .buttonStyle(.thawProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(snippet.name.trimmingCharacters(in: .whitespaces).isEmpty || problem != nil)
             }

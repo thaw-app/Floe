@@ -78,6 +78,8 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         }
         .frame(minWidth: size.width, idealWidth: size.width, minHeight: size.height, idealHeight: size.height)
         .ignoresSafeArea()
+        // Glass buttons are capsules here too, as in Settings.
+        .buttonBorderShape(.capsule)
         window.contentView = NSHostingView(rootView: view)
         window.setContentSize(size)
         window.center()

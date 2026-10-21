@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import SwiftUI
+import ThawUI
 
 nonisolated extension AIAnswer {
     /// The extension whose `AI.ask` is being answered; nil for Ask AI, which uses the choice on the AI page.
@@ -43,7 +44,7 @@ struct ExtensionAISourcePicker: View {
     let extensionName: String
 
     var body: some View {
-        Picker(selection: Binding(
+        ThawPicker(selection: Binding(
             get: { settings.aiSourceByExtension[extensionName] },
             set: { settings.aiSourceByExtension[extensionName] = $0 }
         )) {

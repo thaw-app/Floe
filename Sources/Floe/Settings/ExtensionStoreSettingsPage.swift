@@ -32,8 +32,8 @@ struct ExtensionStoreSettingsPage: View {
             content
             Divider()
             Text("Extensions come from Raycast's open source repository. Some need Raycast features Floe doesn't have yet.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                .font(ThawType.footnote)
+                .foregroundStyle(ThawInk.supporting)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(ThawSpacing.inset)
         }
@@ -92,23 +92,16 @@ struct ExtensionStoreSettingsPage: View {
     @ViewBuilder
     private var content: some View {
         if store.isLoading, store.catalog.isEmpty {
-            VStack(spacing: ThawSpacing.base) {
-                ProgressView()
-                Text("Loading extensions…")
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            ThawEmptyState(systemImage: "bag", title: "Loading extensions…", isLoading: true)
         } else if let error = store.error, store.catalog.isEmpty {
-            VStack(spacing: ThawSpacing.base) {
-                Text("Could not load the extension store.")
-                Text(error)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Button("Try Again") {
-                    Task { await store.loadCatalog(force: true) }
-                }
+            ThawEmptyState(
+                systemImage: "exclamationmark.triangle",
+                title: "Could not load the extension store.",
+                caption: .verbatim(error),
+                actionTitle: "Try Again"
+            ) {
+                Task { await store.loadCatalog(force: true) }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             // A plain list beside the details: a split view inside Settings' own split view collapses
             // its list and pushes the window wider.
@@ -149,7 +142,7 @@ struct ExtensionStoreSettingsPage: View {
                     }
                     .overlay {
                         if filtered.isEmpty, !query.isEmpty {
-                            ContentUnavailableView.search(text: query)
+                            NoMatchesState(query: query)
                         }
                     }
                 }
@@ -161,7 +154,7 @@ struct ExtensionStoreSettingsPage: View {
                                 .id(name)
                         } else {
                             Text("Select an extension to see its details.")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(ThawInk.supporting)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                     }
@@ -181,20 +174,20 @@ private struct StoreRow: View {
     var body: some View {
         // What an earlier row already learned shows at once, so typing does not blank the rows it keeps.
         let details = store.cachedDetails(for: name) ?? loaded
-        VStack(spacing: 8) {
+        VStack(spacing: ThawSpacing.base) {
             StoreIcon(store: store, url: details?.iconURL, size: 40)
-            VStack(spacing: 2) {
+            VStack(spacing: ThawSpacing.hairline) {
                 Text(details?.title ?? name)
                     .lineLimit(1)
                 Text(details?.description ?? " ")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(ThawType.footnote)
+                    .foregroundStyle(ThawInk.supporting)
                     .lineLimit(2, reservesSpace: true)
             }
             .multilineTextAlignment(.center)
             StoreActionButton(store: store, name: name, details: details, updateAvailable: updateAvailable)
         }
-        .padding(10)
+        .padding(ThawSpacing.row)
         .frame(maxWidth: .infinity)
         .task(id: name) {
             loaded = await store.details(for: name, after: ExtensionStore.settleDelay)
@@ -221,16 +214,19 @@ private struct StoreActionButton: View {
                 Button("Install") {
                     Task { await store.install(name) }
                 }
+                .buttonStyle(.settingsGlass)
             } else if updateAvailable {
                 Button("Update") {
                     Task { await store.update(name) }
                 }
+                .buttonStyle(.settingsGlass)
             } else {
                 Text("Installed")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThawInk.supporting)
             }
         }
-        .font(.footnote)
+        .font(ThawType.footnote)
+        .controlSize(.small)
     }
 }
 
