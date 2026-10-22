@@ -12,11 +12,14 @@
 import AppKit
 
 /// A menu item that runs a closure.
-final class ClosureMenuItem: NSMenuItem {
+final class ClosureMenuItem: NSMenuItem, NSMenuItemValidation {
     private let handler: () -> Void
+    /// A menu enables an item whose target answers its action unless the target says otherwise.
+    private let isAvailable: Bool
 
     init(title: String, isEnabled: Bool = true, handler: @escaping () -> Void) {
         self.handler = handler
+        isAvailable = isEnabled
         super.init(title: title, action: #selector(run), keyEquivalent: "")
         target = self
         self.isEnabled = isEnabled
@@ -35,5 +38,9 @@ final class ClosureMenuItem: NSMenuItem {
 
     @objc private func run() {
         handler()
+    }
+
+    func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        item !== self || isAvailable
     }
 }

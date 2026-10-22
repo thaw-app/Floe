@@ -25,4 +25,18 @@ struct ClosureMenuItemTests {
     @Test func anItemCanStartOff() {
         #expect(!ClosureMenuItem(title: "Paste", isEnabled: false) {}.isEnabled)
     }
+
+    @Test func aMenuKeepsEachItemAsItWasMade() {
+        // Without an application a menu's update asks no item and turns every one off.
+        _ = NSApplication.shared
+        let menu = NSMenu()
+        let off = ClosureMenuItem(title: "Paste", isEnabled: false) {}
+        let on = ClosureMenuItem(title: "Copy") {}
+        menu.addItem(off)
+        menu.addItem(on)
+        menu.update()
+        #expect(menu.autoenablesItems)
+        #expect(!off.isEnabled, "the menu's own check leaves it off")
+        #expect(on.isEnabled)
+    }
 }
