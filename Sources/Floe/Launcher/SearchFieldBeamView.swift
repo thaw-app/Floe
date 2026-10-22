@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Draws the beam inside an outline: each side's colour seen through a window that turns every two seconds, as a
+/// Draws the beam inside an outline: each side's colour seen through a slowly turning window, as a
 /// hairline, a glow into the field and a glint. The still parts are drawn once for the field's size, and Core
 /// Animation turns the windows, so the launcher does no work while the beam goes round. With Reduce Motion the
 /// window stands still.
@@ -31,7 +31,7 @@ struct SearchFieldBeamView<Outline: InsettableShape>: View {
 
     /// Seconds for the window to go once round.
     static var turn: Double {
-        2
+        3.2
     }
 
     /// How bright the whole beam is: every layer's strength is a share of it.
@@ -162,7 +162,10 @@ struct SearchFieldBeamView<Outline: InsettableShape>: View {
 
 /// How the beam's light falls round the field, as stops from nothing to full and back: each a part of the turn
 /// and how strong the light is there.
-private enum BeamLight {
+enum BeamLight {
+    /// Shared by the speed mapping and the two highlights so their brightest point travels together.
+    static let glintCenter = 0.66
+
     /// Where round the field the hairline shows, from nothing to full and back, as parts of the turn.
     static let hairlineWindow: [(Double, Double)] = [
         (0, 0), (0.3, 0), (0.36, 0.1), (0.44, 0.35), (0.52, 1), (0.8, 1), (0.86, 0.35), (0.92, 0.1), (0.95, 0), (1, 0),
@@ -175,11 +178,11 @@ private enum BeamLight {
 
     /// The bright place on the hairline, near the window's leading end.
     static let glint: [(Double, Double)] = [
-        (0, 0), (0.54, 0), (0.57, 0.1), (0.6, 0.3), (0.63, 0.6), (0.66, 0.75), (0.69, 0.6), (0.72, 0.3), (0.75, 0.1), (0.78, 0), (1, 0),
+        (0, 0), (0.54, 0), (0.57, 0.1), (0.6, 0.3), (0.63, 0.6), (glintCenter, 0.75), (0.69, 0.6), (0.72, 0.3), (0.75, 0.1), (0.78, 0), (1, 0),
     ]
 
     /// The glint's softer twin, which the blur spreads.
     static let bloom: [(Double, Double)] = [
-        (0, 0), (0.58, 0), (0.65, 0.08), (0.69, 0.45), (0.7, 0.85), (0.705, 0.85), (0.715, 0.45), (0.75, 0.08), (0.82, 0), (1, 0),
+        (0, 0), (0.54, 0), (0.59, 0.08), (0.63, 0.45), (glintCenter, 0.85), (0.69, 0.45), (0.73, 0.08), (0.78, 0), (1, 0),
     ]
 }

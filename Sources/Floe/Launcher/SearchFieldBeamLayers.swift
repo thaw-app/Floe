@@ -50,6 +50,8 @@ final class BeamLayerView: NSView {
         let frameRate: Float
     }
 
+    // One monotonic clock for the edge, spill and rebuilt layers, independent of image-rendering time.
+    private static let animationEpoch = CACurrentMediaTime()
     private var key: Key?
 
     override init(frame: NSRect) {
@@ -73,6 +75,9 @@ final class BeamLayerView: NSView {
     func show(_ key: Key, _ layers: () -> [BeamLayer]) {
         guard key != self.key, key.size.width > 0, key.size.height > 0, let root = layer else { return }
         self.key = key
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer { CATransaction.commit() }
         let bounds = CGRect(origin: .zero, size: key.size)
         let clip = CALayer()
         clip.frame = bounds
@@ -91,7 +96,7 @@ final class BeamLayerView: NSView {
         group.opacity = beamLayer.opacity
         for (index, image) in beamLayer.colour.enumerated() {
             let colour = picture(image, in: bounds, scale: key.scale)
-            if index > 0 {
+            if index > 0, !key.isStill {
                 colour.add(Self.drift(at: key.frameRate), forKey: "drift")
             }
             group.addSublayer(colour)
@@ -130,36 +135,66 @@ final class BeamLayerView: NSView {
         if key.isStill {
             gradient.transform = CATransform3DMakeRotation(-.pi / 2, 0, 0, 1)
         } else {
-            gradient.add(Self.spin(at: key.frameRate), forKey: "turn")
+            gradient.add(Self.spin(at: key.frameRate, in: key.size), forKey: "turn")
         }
         return gradient
     }
 
     /// One turn every `turn` seconds, at the same place in the turn for every layer, the field's and the glow's.
-    private static func spin(at frameRate: Float) -> CAAnimation {
+    /// The light keeps one speed along the border, so on a wide field it does not rush round the short ends.
+    static func spin(at frameRate: Float, in size: CGSize) -> CAAnimation {
         let turn = SearchFieldBeamView<Rectangle>.turn
-        let spin = CABasicAnimation(keyPath: "transform.rotation.z")
-        spin.fromValue = 0
-        spin.toValue = 2 * Double.pi
-        spin.duration = turn
-        spin.repeatCount = .infinity
-        spin.timeOffset = Date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: turn)
-        spin.preferredFrameRateRange = CAFrameRateRange(minimum: frameRate, maximum: frameRate, preferred: frameRate)
-        return spin
+        return interpolated("transform.rotation.z", over: turn, at: frameRate) {
+            // The bright spot, not the transparent start of the gradient, follows the border.
+            angle(along: $0, of: size) - BeamLight.glintCenter * 2 * .pi
+        }
     }
 
     /// The second hue fades in and out over the first, as the colours drift one way and back.
-    private static func drift(at frameRate: Float) -> CAAnimation {
+    static func drift(at frameRate: Float) -> CAAnimation {
         let period = SearchFieldBeamView<Rectangle>.drift.period
-        let drift = CABasicAnimation(keyPath: "opacity")
-        drift.fromValue = 0
-        drift.toValue = 1
-        drift.duration = period / 2
-        drift.autoreverses = true
-        drift.repeatCount = .infinity
-        drift.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        drift.timeOffset = (Date.timeIntervalSinceReferenceDate + period / 4).truncatingRemainder(dividingBy: period)
-        drift.preferredFrameRateRange = CAFrameRateRange(minimum: frameRate, maximum: frameRate, preferred: frameRate)
+        let drift = interpolated("opacity", over: period, at: frameRate) { (1 - cos(2 * .pi * $0)) / 2 }
+        drift.timeOffset = period / 4
         return drift
+    }
+
+    /// The angle from the middle of a field of that size to the point a share of the way round its border,
+    /// starting at the middle of the right side. It only grows, from 0 to a full turn.
+    static func angle(along share: Double, of size: CGSize) -> Double {
+        let half = (width: max(size.width, 1) / 2, height: max(size.height, 1) / 2)
+        // Round from the right side's middle: the rest of that side, a long side, a short side, a long side, back.
+        var left = share * 4 * (half.width + half.height)
+        let sides: [(length: CGFloat, point: (CGFloat) -> CGPoint)] = [
+            (half.height, { CGPoint(x: half.width, y: $0) }),
+            (2 * half.width, { CGPoint(x: half.width - $0, y: half.height) }),
+            (2 * half.height, { CGPoint(x: -half.width, y: half.height - $0) }),
+            (2 * half.width, { CGPoint(x: -half.width + $0, y: -half.height) }),
+            (half.height, { CGPoint(x: half.width, y: -half.height + $0) }),
+        ]
+        for side in sides {
+            guard left < side.length else {
+                left -= side.length
+                continue
+            }
+            let point = side.point(left)
+            let angle = atan2(point.y, point.x)
+            return angle < 0 ? angle + 2 * .pi : angle
+        }
+        return 2 * .pi
+    }
+
+    /// Samples describe the curve, not a frame cap. Interpolation lets the compositor follow its actual cadence.
+    private static func interpolated(_ keyPath: String, over duration: Double, at frameRate: Float, value: (Double) -> Double) -> CAKeyframeAnimation {
+        let steps = max(1, Int((duration * 120).rounded()))
+        let animation = CAKeyframeAnimation(keyPath: keyPath)
+        animation.values = (0 ... steps).map { value(Double($0) / Double(steps)) }
+        animation.keyTimes = (0 ... steps).map { NSNumber(value: Double($0) / Double(steps)) }
+        animation.calculationMode = .linear
+        animation.timingFunction = CAMediaTimingFunction(name: .linear)
+        animation.duration = duration
+        animation.beginTime = animationEpoch
+        animation.repeatCount = .infinity
+        animation.preferredFrameRateRange = CAFrameRateRange(minimum: frameRate, maximum: frameRate, preferred: frameRate)
+        return animation
     }
 }
