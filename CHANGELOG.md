@@ -37,8 +37,9 @@ After you install:
 ### New
 
 #### Search
-
-- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, and ranks them by how often and how recently you use each. Web apps a browser installed are found too, and so are Finder and the apps in macOS's CoreServices folder, such as Archive Utility. Two apps with the same name each get their own row. Scattered letters match, and the ones that matched show in a stronger weight.
+- **One hotkey opens the search.** It finds applications, extension commands, script commands, quicklinks and System Settings panes, ranked by how often and how recently you use each.
+- **Web apps, Finder and the apps in macOS's CoreServices folder are found too**, such as Archive Utility. Two apps with the same name each get their own row.
+- **Scattered letters match**, and the letters that matched show in a stronger weight.
 - **Aliases, hotkeys and favorites.** Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search, Search Menu Bar Items, Search Menu Items, Floating Note and the system commands take an alias and a hotkey too, in Settings > Commands. Favorites stay at the top.
 - **Scopes narrow a search to one place:** `files invoice`, `menu wifi`, `tabs invoice`.
 - **A web address or a path typed in full leads the results.** `github.com/thaw-app` opens in the browser. `~/Downloads` is the folder itself, with the file actions. A `file://` address opens its file or folder too.
@@ -92,18 +93,16 @@ After you install:
 - **Raycast extensions run unmodified** inside the app, including the ones Raycast already installed.
 - **An Extension Store page** browses, installs and updates extensions. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6), with its look reworked by @unsecretised in [#16](https://github.com/thaw-app/Floe/pull/16).
 - **An extension's page in the store** shows its screenshots, its categories, how many commands it has and whether it needs setup before it runs. Each command is listed with how it runs and the arguments it takes. Click a screenshot to see it larger.
-- **Lists, details, forms, preferences, arguments, toasts, confirmation dialogs, and background and interval commands work.** Passwords go in the Keychain.
+- **Lists, grids, details, forms, preferences and arguments work**, and so do toasts, confirmation dialogs, and background and interval commands. Grids draw as tiles, and the arrow keys move through them. Passwords go in the Keychain.
 - **You add menu bar commands by hand**, from the search or from Settings. None starts on its own at launch. A fresh install offers to add ready menu bar commands that are not already enabled. Commands needing preferences show setup guidance instead.
 - **When a command throws, crashes or hangs**, Floe shows the log and lets you run it again.
 - **An extension that holds more than 1 GB of memory is stopped.** Floe says so, and how much it held.
-- **Grids draw as tiles**, in the columns, shape and inset each section asks for. The arrow keys move through them.
-- **Commands can start other commands** with `launchCommand` or a `raycast://extensions/…` link, which takes the command's arguments, set the subtitle shown beside them in the search, follow the selected item and load the next page at the end of a list.
-- **More actions work.** Open With lists the apps that open a file, Quick Look previews it, Create Snippet and Create Quicklink keep what you confirm, and Pick Date hands the date on.
-- **Extensions read the browser tab in front** in Safari, Dia, Helium, Chrome, Brave, Edge and Vivaldi, through AppleScript where Raycast uses its browser extension.
-- **An extension's Swift helper is built the first time a command calls it**, which takes a few minutes. Rust helpers do not run on macOS, as in Raycast.
-- **`Clipboard.read` with an offset reads Floe's clipboard history**, and Raycast's icon names draw as SF Symbols.
-- **More extensions build and run as they do in Raycast:** self-signed certificates and proxies through node-fetch, undici and ws, better-sqlite3 on Bun's SQLite, and packages whose module build lacks what Node's build has. An extension's support folder holds only its own files.
-- **[Raycast API compatibility](docs/COMPAT.md) goes through the API part by part**: what works as in Raycast, what works with a difference, and what does not yet. 6,035 of the 6,052 macOS commands in 1,850 store extensions built.
+- **A command can start another**, with `launchCommand` or with a `raycast://extensions/…` link the extension opens. A link passes its arguments along.
+- **Extension actions include Open With, Quick Look, Create Snippet, Create Quicklink and Pick Date.**
+- **Extensions read the browser tab in front** in Safari, Dia, Helium, Chrome, Brave, Edge and Vivaldi, with no browser extension to install.
+- **An extension with a Swift helper takes a few minutes the first time**, while Floe builds the helper. Extensions with Rust helpers do not run on macOS, as in Raycast.
+- **Extensions that read your clipboard history read Floe's.**
+- **[Raycast API compatibility](docs/COMPAT.md) lists what works as in Raycast**, what works with a difference and what does not yet. In a test of 1,850 store extensions, 6,035 of their 6,052 commands built.
 - **An extension you are writing runs again when you save it.** While one of its commands is open, a save under `src` or `assets`, or of `package.json`, runs the command again with the same arguments. A change that fails to build or load leaves the last working view up, with a toast that says why.
 
 #### Extension settings and sign-in
@@ -111,7 +110,7 @@ After you install:
 - **Each extension's page has one line per command**, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension, whether Floe or Raycast installed it.
 - **Each extension's page shows what it has reached:** the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It records what the extension did and stops none of it. Settings > Privacy switches the record off and forgets it.
 - **GitHub and GitLab extensions sign in with the GitHub CLI and the GitLab CLI.** If `gh` or `glab` is signed in on your Mac, Floe asks once per extension whether it may use that sign-in. For GitHub it lists what the sign-in may do. The extension's page in Settings takes it back.
-- **Other extensions sign in in the browser.** When the provider returns to Raycast's own app address, Floe takes `raycast://` and `com.raycast:/` links while the sign-in waits and gives them back after. Where the browser's answer cannot reach Floe, Floe asks for the token the extension takes and runs the command again. Known issues says whose service the sign-in uses for now.
+- **Other extensions sign in in the browser.** If the browser's answer cannot reach Floe, Floe asks for the extension's token instead and runs the command again. Known issues says whose sign-in service this uses for now.
 
 #### Built in
 - **Snippets with text expansion, and quicklinks** with fallback searches. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
@@ -135,15 +134,21 @@ After you install:
 - **`base64 hello` changes a text**, and so do `unbase64`, `urlencode`, `urldecode`, `uppercase`, `lowercase`, `titlecase` and `sha256`. With nothing after the word, it works on the clipboard.
 - **Command-Y shows a file in Quick Look** from the search, and a file's Actions menu has Quick Look.
 - **Emoji and symbols.** Hands and people use the skin tone you choose in Settings > Commands. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
-- **File search, calendar events and menu bar item search.** Menu bar search lists the menu bar's items and opens their menus from the keyboard. File search asks Spotlight. Switch on Fast file search in Settings > Privacy and Floe keeps the names of the files in your home folder, in memory and in a file on this Mac, and answers from those: scattered letters match, at each key, and files you opened lately come first. Later launches read the file and only what changed since; switching it off deletes the file. macOS then asks whether Floe may read your Desktop, Documents and Downloads folders. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **File search, calendar events and menu bar item search.** File search asks Spotlight. Menu bar search lists the menu bar's items and opens their menus from the keyboard. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6).
+- **Fast file search** keeps the names of the files in your home folder on this Mac and answers as you type, with files you opened lately first. Switch it on in Settings > Privacy, and macOS asks whether Floe may read your Desktop, Documents and Downloads folders. Switching it off deletes the names it kept.
 - **Search Menu Items lists the commands in the menus of the app in front**, submenus included, with the menus each one is in and its shortcut. Type part of a name to narrow them, and Return runs the command in that app. Commands that are greyed out are left out. `menus export` does the same from the search. It needs Accessibility. The menus are read with CMD-Z's menu scanner, by Toni Förster.
 - **System commands:** sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By @OwenCope in [#6](https://github.com/thaw-app/Floe/pull/6). Quit Floe is one of them. By @unsecretised in [#19](https://github.com/thaw-app/Floe/pull/19).
 
 #### Your own apps
 - **Preferred apps:** a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. The editor can be one that runs in your terminal: Helix, Neovim, Vim, Emacs and others on your Mac are offered by name. Open With sends one link to another browser.
 - **Clipboard history.** Floe keeps the text, links, images and files you copy, up to 300 of them, and text keeps its formatting. Return pastes one, and pinned copies survive Clear. A copy a password manager marks private is left out. Choose Off for Clipboard in Settings > Applications to stop saving copies.
-- **Browse Notes** lists the notes of your notes app in the panel, beside the one you pick: Floe's folder in Apple Notes, or a folder of Markdown notes such as an Obsidian or Octarine vault. A note reads as a document, with the Markdown marks hidden and tasks you tick with a click, and a bar of formatting buttons shows while you write. Command-B, Command-I, Command-E and Command-K format the selection, and Option-Command-1 to 6 turn a line into a heading or a list. Return starts writing and Escape ends it, Command-N makes a note named by what you typed, and Command-O opens the note in its app. Floe keeps no copy: it reads and writes the notes where they are, and shows the icon of the app or folder that keeps them. With a folder it picks up what that app writes, and a note changed elsewhere while you wrote is not overwritten; yours is saved beside it. It takes a hotkey in Settings > Commands.
-- **Floating Note** keeps one note in a window above other apps, on every Space and beside full-screen apps, where it stays when the launcher closes. It stores nothing of its own: with a folder of notes it reads and writes the files, and picks up what another app writes; with Apple Notes it works in a folder named Floe, which it makes when missing, and keeps the notes there as plain text. The note reads as a document, as in Browse Notes, with its name and where it is kept in the title bar. The button beside them lists your other notes, Command-[ and Command-] step through them, and Command-N makes one. It saves after a pause in typing and when you switch or close. A save that fails keeps your text in the window and says why. With Antinote or another app, it holds one scratch note until Send hands it over. Escape or Command-W closes it, and the window keeps its place. It takes an alias and a hotkey in Settings > Commands.
+- **Browse Notes lists your notes in the panel**, beside the one you pick: Floe's folder in Apple Notes, or a folder of Markdown notes such as an Obsidian or Octarine vault. It takes a hotkey in Settings > Commands.
+- **A note reads as a document**, with the Markdown marks hidden and tasks you tick with a click. A formatting bar shows while you write. Command-B, Command-I, Command-E and Command-K format the selection, and Option-Command-1 to 6 turn a line into a heading or a list.
+- **Return starts writing and Escape ends it.** Command-N makes a note named by what you typed, and Command-O opens the note in its app.
+- **Floe keeps no copy of your notes.** It reads and writes them where they are and picks up what another app writes. A note changed elsewhere while you wrote is not overwritten: yours is saved beside it.
+- **Floating Note keeps one note above other apps**, on every Space and beside full-screen apps, and stays when the launcher closes. It takes an alias and a hotkey in Settings > Commands.
+- **It writes where your notes are:** the files of a notes folder, or a folder named Floe in Apple Notes, as plain text. Command-[ and Command-] step through your notes, and Command-N makes one.
+- **It saves after a pause in typing**, and when you switch notes or close it. If a save fails, your text stays in the window and Floe says why. With Antinote or another app, it holds one scratch note until Send hands it over.
 - **A preferred clipboard app.** Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies.
 - **SSH hosts.** The hosts in `~/.ssh/config` are in the search, and `ssh` and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.
 - **Apple Shortcuts**, once turned on in Settings > Privacy. Return runs one in the background. If it fails, Floe shows the reason Shortcuts gave.
@@ -169,7 +174,8 @@ After you install:
 - **The search field is rounded, a capsule or square.** It can also float as its own piece of glass, with the results in a second piece below it.
 - **A beam of light runs around the search field**, with a soft glow just inside it. Settings > Appearance picks Colorful, Mono, Ocean or Sunset, or turns it off, and sets its frame rate, from 15 to 120.
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
-- **A welcome at first launch** gives a short tour, then shows each permission on a card with what it switches on and whether it is already granted: Accessibility, Screen Recording, your Desktop, Documents and Downloads folders, notifications, Calendar, Reminders and Contacts. Each one asks only when you press its button, and all can wait until later. If a later version needs a permission you have not answered, that step comes back by itself.
+- **A welcome at first launch** gives a short tour, then shows each permission on a card: what it switches on and whether you have granted it.
+- **A permission asks only when you press its button**, and all of them can wait: Accessibility, Screen Recording, your Desktop, Documents and Downloads folders, notifications, Calendar, Reminders and Contacts. If a later version needs one you have not answered, that step comes back.
 - **The Settings sidebar groups the pages.** General, Appearance and Privacy come first. Search holds Commands, Applications, Quicklinks and Snippets, and Connections holds AI, Sync and the Extension Store. Each extension has a page of its own, and About comes last.
 - **Search the settings** from the top of the Settings window's sidebar.
 - **Export your settings to one file** and import them on another Mac.
@@ -185,8 +191,8 @@ After you install:
 - **Some things stay on each Mac:** folders, permissions, AI settings, an extension's files, folders and chosen apps, sign-ins and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.
 
 ### Known issues
-- **Extension sign-in goes through Raycast's sign-in service for now.** Floe has none of its own yet: the browser returns through raycast.com, and some extensions get their token from Raycast's servers. Floe says so before the first sign-in. This is temporary and may stop working, and Floe's own sign-in service is planned to replace it. GitHub and GitLab use their command line tools first, and an extension whose sign-in cannot be received is asked for its token.
-- **AI tools and window management** for extensions are not built yet, and a `raycast://extensions/…` link opened from a browser or another app goes to Raycast. [Limitations](docs/LIMITATIONS.md) lists the rest.
+- **Extension sign-in uses Raycast's sign-in service for now.** The browser returns through raycast.com, and some extensions get their token from Raycast's servers. Floe says so before the first sign-in. It may stop working before Floe's own service replaces it. GitHub and GitLab extensions sign in with their command line tools instead.
+- **AI tools and window management for extensions are not built yet.** A `raycast://extensions/…` link opened from a browser or another app goes to Raycast. [Limitations](docs/LIMITATIONS.md) lists the rest.
 - **The record of what an extension reaches misses some file access.** It sees hosts and programs more reliably than files.
 - **Timers end when Floe quits.** They are held in memory.
 - **Fast file search leaves out iCloud Drive**, which macOS keeps inside Library.
@@ -197,7 +203,7 @@ After you install:
 - @OwenCope wrote the Extension Store page, snippets, quicklinks, emoji, file search, calendar events, menu bar item search and the system commands ([#6](https://github.com/thaw-app/Floe/pull/6)).
 - @lylythechosenone wrote the calculator ([#7](https://github.com/thaw-app/Floe/pull/7)) and its superscripts, tested Floe and suggested features.
 - HiroMike on Discord tested Floe and sent feedback.
-- dor4a on Discord tested Floe and asked whether commands could have a key of their own, such as ⌘E for emoji or ⇧⌘V for the clipboard. Emoji, Clipboard History, File Search and the system commands take a hotkey now.
+- dor4a on Discord tested Floe and asked whether commands could have a key of their own, such as ⌘E for emoji or ⇧⌘V for the clipboard. Emoji, Clipboard History, File Search and the system commands take a hotkey.
 - @unsecretised reported the first bugs, in the Settings window ([#3](https://github.com/thaw-app/Floe/issues/3)), reworked the Extension Store page ([#16](https://github.com/thaw-app/Floe/pull/16)) and added Quit Floe to the search ([#19](https://github.com/thaw-app/Floe/pull/19)).
 
 ### Acknowledgements
