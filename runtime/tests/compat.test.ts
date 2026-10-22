@@ -20,12 +20,15 @@ const WebSocket = require("../compat/ws.ts");
 let secure: ReturnType<typeof Bun.serve>;
 let proxy: ReturnType<typeof Bun.serve>;
 let folder: string;
+// The server's own certificate, which the tests trust as an extension trusts a self-hosted server's.
+let ca: string;
 beforeAll(() => {
   folder = makeTempDir("tls");
   const key = path.join(folder, "key.pem");
   const cert = path.join(folder, "cert.pem");
-  const made = Bun.spawnSync(["openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes", "-keyout", key, "-out", cert, "-days", "1", "-subj", "/CN=localhost"]);
+  const made = Bun.spawnSync(["openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes", "-keyout", key, "-out", cert, "-days", "1", "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost"]);
   if (made.exitCode !== 0) throw new Error(`openssl could not make the test certificate: ${made.stderr.toString()}`);
+  ca = fs.readFileSync(cert, "utf8");
   secure = Bun.serve({
     port: 0,
     tls: { key: Bun.file(key), cert: Bun.file(cert) },
@@ -46,7 +49,7 @@ const secureURL = () => `https://localhost:${secure.port}/`;
 describe("certificate settings written for Node", () => {
   test("node-fetch takes them from an https.Agent, and from a function that returns one", async () => {
     await expect(fetch(secureURL())).rejects.toThrow();
-    const agent = new https.Agent({ rejectUnauthorized: false });
+    const agent = new https.Agent({ ca });
     expect(await (await fetch(secureURL(), { agent })).text()).toBe("secure ");
     expect(await (await fetch(secureURL(), { agent: () => agent })).text()).toBe("secure ");
     expect(fetch.default).toBe(fetch);
@@ -54,7 +57,7 @@ describe("certificate settings written for Node", () => {
   });
 
   test("undici's fetch takes them from an Agent's connect options, and from the global dispatcher", async () => {
-    const dispatcher = new undici.Agent({ connect: { rejectUnauthorized: false } });
+    const dispatcher = new undici.Agent({ connect: { ca } });
     expect(await (await undici.fetch(secureURL(), { dispatcher })).text()).toBe("secure ");
 
     undici.setGlobalDispatcher(dispatcher);
@@ -65,9 +68,9 @@ describe("certificate settings written for Node", () => {
     }
   });
 
-  test("ws takes rejectUnauthorized as Node's ws does", async () => {
+  test("ws takes a certificate authority as Node's ws does", async () => {
     const opened = await new Promise<boolean>((resolve) => {
-      const socket = new WebSocket(`wss://localhost:${secure.port}/`, { rejectUnauthorized: false });
+      const socket = new WebSocket(`wss://localhost:${secure.port}/`, { ca });
       socket.on("open", () => {
         socket.close();
         resolve(true);

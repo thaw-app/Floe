@@ -1,5 +1,6 @@
 // An extension's LocalStorage: one SQLite database in its support folder, shared by every process of the extension.
 import { Database } from "bun:sqlite";
+import { randomInt } from "node:crypto";
 import fs from "node:fs";
 
 type Items = Record<string, any>;
@@ -62,8 +63,8 @@ async function patiently<T>(work: () => T | Promise<T>, deadline = Date.now() + 
         return await work();
     } catch (error) {
         if (Date.now() >= deadline || !isHeld(error)) throw error;
-        // A fraction of the range, so no modulo leans the wait one way.
-        await Bun.sleep(25 + Math.floor((crypto.getRandomValues(new Uint32Array(1))[0] / 2 ** 32) * 50));
+        // A random wait, so processes held up together do not all try again at once.
+        await Bun.sleep(randomInt(25, 75));
         return patiently(work, deadline);
     }
 }
