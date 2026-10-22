@@ -76,23 +76,28 @@ struct PanelSections<Header: View, Content: View>: View {
     var body: some View {
         if let pieces {
             VStack(spacing: pieces.heights.gap) {
-                // Each piece's content keeps a container of its own, as the panel's content has under its glass.
-                GlassEffectContainer { header }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: pieces.heights.field)
-                    .environment(\.fieldPieceOutline, pieces.fieldOutline())
-                    .modifier(pieces.fieldAppearance(facesResults: showsContent))
+                // Each piece's glass and content get containers of their own: in one shared container,
+                // the field's glass frosts over once the results' glass appears beside it.
+                GlassEffectContainer {
+                    GlassEffectContainer { header }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: pieces.heights.field)
+                        .environment(\.fieldPieceOutline, pieces.fieldOutline())
+                        .modifier(pieces.fieldAppearance(facesResults: showsContent))
+                }
                 if showsContent {
                     GlassEffectContainer {
-                        VStack(spacing: 0) { content }
-                            // The scroll bar starts below the corner, and what still reaches it is cut off there.
-                            .contentMargins(.top, pieces.fieldShape.panelPieceRadius, for: .scrollIndicators)
-                            .clipShape(pieces.resultsOutline())
+                        GlassEffectContainer {
+                            VStack(spacing: 0) { content }
+                                // The scroll bar starts below the corner, and what still reaches it is cut off there.
+                                .contentMargins(.top, pieces.fieldShape.panelPieceRadius, for: .scrollIndicators)
+                                .clipShape(pieces.resultsOutline())
+                        }
+                        .frame(maxWidth: .infinity)
+                        .frame(height: pieces.heights.results)
+                        .environment(\.searchRowCornerRadius, pieces.rowRadius)
+                        .modifier(pieces.resultsAppearance())
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: pieces.heights.results)
-                    .environment(\.searchRowCornerRadius, pieces.rowRadius)
-                    .modifier(pieces.resultsAppearance())
                 }
             }
         } else {
