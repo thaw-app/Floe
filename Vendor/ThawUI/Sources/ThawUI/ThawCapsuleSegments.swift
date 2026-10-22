@@ -84,7 +84,7 @@ struct ThawCapsuleSegments<Value: Hashable>: View {
         let isSelected = segment.value == selection
         let shape = Capsule(style: .continuous)
         // Styled on each part: a section header sets its own text colour over the label's.
-        let style = isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(.secondary)
+        let style = isSelected ? AnyShapeStyle(.primary) : AnyShapeStyle(ThawInk.supporting)
         let weight: Font.Weight = isSelected ? .semibold : .regular
         return Button {
             selection = segment.value
@@ -111,7 +111,7 @@ struct ThawCapsuleSegments<Value: Hashable>: View {
                 maxHeight: sizing.maxHeight
             )
             .thawSelectedFill(isSelected, in: shape)
-            .contentShape(shape)
+            .contentShape([.interaction, .focusEffect], shape)
         }
         .buttonStyle(.plain)
         .thawSelectionCue(isSelected: isSelected, in: shape)
