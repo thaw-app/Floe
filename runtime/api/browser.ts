@@ -32,6 +32,9 @@ export function pageContent(format: string, selector: string | null): string {
   if (format === "text") return JSON.stringify({ content: root.innerText });
   const skipped = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "TEMPLATE", "SVG", "HEAD", "IFRAME", "CANVAS", "BUTTON", "SELECT", "INPUT"]);
   const blocks = new Set(["P", "DIV", "SECTION", "ARTICLE", "HEADER", "FOOTER", "MAIN", "ASIDE", "NAV", "FIGURE", "TABLE", "FORM", "DL", "DD", "DT"]);
+  // The page's text can hold brackets and its addresses parentheses, which would end the Markdown early.
+  const label = (text: string) => text.replace(/[\\[\]]/g, String.raw`\$&`);
+  const address = (url: string) => url.replace(/[()]/g, (char) => (char === "(" ? "%28" : "%29"));
   const walk = (node: any, depth: number, pre: boolean): string => {
     if (node.nodeType === 3) return pre ? node.textContent : node.textContent.replace(/\s+/g, " ");
     if (node.nodeType !== 1) return "";
@@ -62,10 +65,10 @@ export function pageContent(format: string, selector: string | null): string {
       case "A": {
         const text = inner().trim();
         // node.href is the resolved address; a link that runs or embeds something keeps only its text.
-        return text && /^(https?|mailto):/i.test(node.href ?? "") ? `[${text}](${node.href})` : text;
+        return text && /^(https?|mailto):/i.test(node.href ?? "") ? `[${label(text)}](${address(node.href)})` : text;
       }
       case "IMG":
-        return node.src ? `![${node.getAttribute("alt") ?? ""}](${node.src})` : "";
+        return node.src ? `![${label(node.getAttribute("alt") ?? "")}](${address(node.src)})` : "";
       case "UL":
       case "OL": {
         const items = Array.from(node.children as any[]).filter((child) => child.tagName.toUpperCase() === "LI");

@@ -179,10 +179,10 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 
 [Raycast API compatibility](docs/COMPAT.md) goes through the API part by part.
 
-On 2026-10-18, 1,850 of the 3,443 extensions in Raycast's extensions repository were installed with install scripts off, built with Floe's runtime, and had their view commands run without the app.
+On 2026-10-18, 1,850 of the 3,443 extensions in Raycast's extensions repository were installed with install scripts off and built with Floe's runtime. The view commands that could run without the app were run.
 
 - **Built:** 6,035 of 6,052 macOS commands. The 17 that failed are in 6 extensions.
-- **Ran:** up to two view commands per extension, for 10 seconds each, with no app to answer requests such as the clipboard or the browser. Of 1,741 view commands, 677 showed content, 192 showed a form, 62 showed an empty view, 9 showed nothing and 97 failed. 40 stopped at sign-in.
+- **Ran:** up to two view commands per extension, for 10 seconds each, with no app to answer requests such as the clipboard or the browser. Of the 1,077 view commands that ran, 677 showed content, 192 showed a form, 62 showed an empty view, 9 showed nothing, 97 failed and 40 stopped at sign-in.
 - **Not run:** 626 view commands that need preferences first and 38 that need arguments. 588 extensions whose code runs AppleScript or shell commands, moves files to the Trash or calls Swift or Rust. 90 extensions with no view command.
 - **Not covered:** no-view and menu bar commands, commands that need preferences, arguments or sign-in, extensions that run AppleScript or shell commands, and how a command looks.
 
@@ -195,7 +195,7 @@ The build failures, by cause:
 | An import of something not installed, in code that does not run | 2 | 2 |
 | A Git dependency that its install script builds | 2 | 1 |
 
-Built again on 2026-10-21, the commands of the first three causes build. The Git dependency still fails.
+Built again on 2026-10-21, every command in the first three causes built. The 2 with the Git dependency still fail.
 
 </details>
 

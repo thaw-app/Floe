@@ -67,7 +67,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | `environment` | Partial | `textSize` is always `medium` and `raycastVersion` always `1.100.0`. `appearance` is read once, when the command starts. |
 | `launchCommand` | Supported | |
 | `updateCommandMetadata` | Supported | |
-| Deeplinks | Partial | A `raycast://extensions/…` link that an extension opens runs the command in Floe, with its `arguments`. `launchContext` and `fallbackText` in the link are ignored. The same link opened from a browser or another app goes to Raycast. |
+| Deeplinks | Partial | A `raycast://extensions/…` link that an extension opens runs the command in Floe, with its `arguments`, when that command is installed and enabled (and its owner matches, when the extension names one). A menu bar command already in the menu bar is left as it is. `launchContext` and `fallbackText` in the link are ignored. Any other link, and the same link opened from a browser or another app, goes to the system. |
 
 ## AI, sign-in, browser and windows
 

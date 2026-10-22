@@ -56,6 +56,11 @@ describe("the page reader", () => {
     expect(read(body, "markdown").content).toBe("herehereherehere[mail](mailto:a@floe.test)");
   });
 
+  test("brackets in a link's text and parentheses in its address cannot end the link early", () => {
+    const body = element("BODY", {}, element("P", {}, element("A", { href: "https://floe.test/(x)" }, "a] [b](https://evil.test)")));
+    expect(read(body, "markdown").content).toBe(String.raw`[a\] \[b\](https://evil.test)](https://floe.test/%28x%29)`);
+  });
+
   test("html is the whole document, or the matched element's; text is what the browser shows", () => {
     const body = { ...element("MAIN", {}), outerHTML: "<main>part</main>", innerText: "shown" };
     expect(read(body, "html").content).toBe("<html>whole</html>");

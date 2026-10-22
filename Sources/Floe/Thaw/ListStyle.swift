@@ -90,7 +90,7 @@ struct ListSectionHeading: View {
             if let detail {
                 Text(detail)
                     .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ThawInk.supporting)
                     .lineLimit(1)
             }
         }
