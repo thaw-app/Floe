@@ -21,7 +21,7 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [0.1.0] - 2026-10-21
+## [0.1.0] - 2026-10-22
 
 **macOS 26 and later · Build 1**
 
