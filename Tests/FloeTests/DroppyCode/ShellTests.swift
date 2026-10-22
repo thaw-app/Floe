@@ -44,9 +44,10 @@ struct ShellTests {
 
     @Test func stopsAProcessThatOutlivesItsDeadline() async throws {
         let started = Date()
-        let result = try await Shell.run(tool("/bin/sleep"), ["30"], environment: [:], timeout: 0.2)
+        let result = try await Shell.run(tool("/bin/sleep"), ["60"], environment: [:], timeout: 0.2)
         #expect(!result.succeeded)
-        #expect(Date().timeIntervalSince(started) < 10)
+        // Well under the minute: a busy CI runner has taken 13 seconds to stop it.
+        #expect(Date().timeIntervalSince(started) < 30)
     }
 
     @Test func aProcessThatClosesItsOwnStreamsKeepsRunningToItsEnd() async throws {

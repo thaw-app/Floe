@@ -105,7 +105,8 @@ struct ToolTextStreamTests {
 
     @Test func aStopLineEndsTheToolAtOnce() async throws {
         let started = Date()
-        #expect(try await failure("echo 'stop:tried a tool'; sleep 30; echo 'text:too late'") == "tried a tool")
-        #expect(Date().timeIntervalSince(started) < 10, "the tool was stopped, not waited for")
+        #expect(try await failure("echo 'stop:tried a tool'; sleep 60; echo 'text:too late'") == "tried a tool")
+        // Well under the minute: a busy CI runner has taken 15 seconds to stop it.
+        #expect(Date().timeIntervalSince(started) < 30, "the tool was stopped, not waited for")
     }
 }
