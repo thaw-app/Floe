@@ -171,7 +171,6 @@ After you install:
 - **A Privacy page** lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.
 - **A welcome at first launch** gives a short tour, then shows each permission on a card with what it switches on and whether it is already granted: Accessibility, Screen Recording, your Desktop, Documents and Downloads folders, notifications, Calendar, Reminders and Contacts. Each one asks only when you press its button, and all can wait until later. If a later version needs a permission you have not answered, that step comes back by itself.
 - **The Settings sidebar groups the pages.** General, Appearance and Privacy come first. Search holds Commands, Applications, Quicklinks and Snippets, and Connections holds AI, Sync and the Extension Store. Each extension has a page of its own, and About comes last.
-- **Settings have capsule buttons, pills for short choices, sliders that show their value and grouped buttons.** Secondary text is dark enough to read at 4.5:1.
 - **Search the settings** from the top of the Settings window's sidebar.
 - **Export your settings to one file** and import them on another Mac.
 - **Launch at login, and updates.** Floe asks once whether it may check for updates, and whether to install them by itself. Settings chooses between the Stable and the Beta channel.
