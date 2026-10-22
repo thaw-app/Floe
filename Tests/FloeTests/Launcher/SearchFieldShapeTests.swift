@@ -43,6 +43,13 @@ struct SearchFieldShapeTests {
 
     // MARK: The beam
 
+    @Test func everyBeamHasItsOwnNameAndID() {
+        let beams = SearchFieldBeam.allCases
+        #expect(beams.map(\.title) == ["Off", "Colorful", "Mono", "Ocean", "Sunset"])
+        #expect(Set(beams.map(\.id)).count == beams.count)
+        #expect(beams.allSatisfy { $0.id == $0.rawValue })
+    }
+
     @Test func theBeamIsColorfulUntilChosenAndIsStored() {
         let defaults = MemoryDefaults()
         let settings = AppSettings(defaults: defaults, savesAfterEdits: false)

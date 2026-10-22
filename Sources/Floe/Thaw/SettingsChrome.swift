@@ -7,7 +7,7 @@
 //
 //  Floe changes © 2026 René Jiménez, under the same license.
 //
-//  Ported to Floe from Thaw 3's SettingsView and LayoutBarItemMenu, and moved out of
+//  Ported to Floe from Thaw 3's SettingsView, and moved out of
 //  AboutSettingsPane.swift since the rest of Floe uses them too.
 
 import AppKit
@@ -42,32 +42,5 @@ struct BehindWindowMaterialBackground: NSViewRepresentable {
 extension PrimitiveButtonStyle where Self == GlassButtonStyle {
     static var settingsGlass: GlassButtonStyle {
         .glass
-    }
-}
-
-/// A menu item that runs a closure.
-final class ClosureMenuItem: NSMenuItem {
-    private let handler: () -> Void
-
-    init(title: String, isEnabled: Bool = true, handler: @escaping () -> Void) {
-        self.handler = handler
-        super.init(title: title, action: #selector(run), keyEquivalent: "")
-        target = self
-        self.isEnabled = isEnabled
-    }
-
-    /// AppKit's initializers are nonisolated, and so must be what stands in for them here.
-    @available(*, unavailable)
-    override nonisolated init(title _: String, action _: Selector?, keyEquivalent _: String) {
-        fatalError("init(title:action:keyEquivalent:) has not been implemented")
-    }
-
-    @available(*, unavailable)
-    required nonisolated init(coder _: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    @objc private func run() {
-        handler()
     }
 }

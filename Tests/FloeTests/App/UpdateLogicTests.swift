@@ -115,6 +115,7 @@ struct AutomaticUpdatesTests {
 
     @Test func titles() {
         #expect(AutomaticUpdates.allCases.map(\.title) == ["Off", "Check only", "Check and download"])
+        #expect(AutomaticUpdates.allCases.map(\.shortTitle) == ["Off", "Check", "Download"], "short enough for a pill")
     }
 }
 
