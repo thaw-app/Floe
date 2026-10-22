@@ -164,7 +164,8 @@ The [changelog](CHANGELOG.md) describes each in more detail.
 
 - Run Raycast extensions unmodified, including ones Raycast already installed.
 - Browse, install and update extensions in the Extension Store page.
-- Use their lists, details, forms, preferences, arguments, and background and interval commands.
+- Use their lists, grids, details, forms, preferences, arguments, and background and interval commands.
+- Let a command start another, with `launchCommand` or a `raycast://extensions/…` link.
 - Add extension menu bar commands by hand.
 - Switch off an extension or a single command, and set an alias, hotkey or custom icon per command.
 - Remove an extension, whether Floe or Raycast installed it.
@@ -208,6 +209,7 @@ Built again on 2026-10-21, the commands of the first three causes build. The Git
 - Pick a glass style, tint, border and shadow for the launcher, with a live preview.
 - Choose the search field's shape, or float it as its own piece of glass.
 - Use a compact layout that shows only the search bar until you type.
+- Run a beam of light around the search field, in one of four colour sets, or switch it off.
 
 ### Settings, privacy and sync
 
@@ -270,7 +272,7 @@ Next, in this order. The order can change.
 
 1. **Documentation.** A guide for extension authors first: how to run a local extension in Floe, what works and what does not. Then Floe's section on the Thaw website.
 2. **Floe's own sign-in service** for extensions, in place of Raycast's.
-3. **More of the extension API:** the grid layout, `launchCommand` and deeplinks.
+3. **More of the extension API:** deeplinks opened from outside Floe.
 4. **Settings sync switched on:** releases signed for iCloud, then the same sync in Thaw.
 
 Later:
