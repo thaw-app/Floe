@@ -80,20 +80,14 @@ struct SearchFieldShapeTests {
     }
 
     @Test(arguments: [Float(15), 30, 45, 60, 75, 90, 105, 120])
-    func theBeamInterpolatesAndClosesItsLoop(frameRate: Float) throws {
-        let spin = try #require(BeamLayerView.spin(at: frameRate, in: CGSize(width: 680, height: 44)) as? CAKeyframeAnimation)
-        let angles = try #require(spin.values as? [Double])
-        #expect(spin.calculationMode == .linear)
-        #expect(spin.keyTimes?.count == angles.count)
-        #expect(spin.keyTimes?.first == 0)
-        #expect(spin.keyTimes?.last == 1)
-        #expect(spin.preferredFrameRateRange.preferred == frameRate)
-        #expect(spin.duration == SearchFieldBeamView<Rectangle>.turn)
-        let first = try #require(angles.first)
-        let last = try #require(angles.last)
-        #expect(abs(last - first - 2 * .pi) < 1e-9, "the loop closes with one full turn, without a missing last frame")
-        #expect(zip(angles, angles.dropFirst()).allSatisfy { $0 < $1 })
-        #expect(abs(first + BeamLight.glintCenter * 2 * .pi) < 1e-9, "the bright spot starts at the border path's origin")
+    func theBeamRunsOneLapAndDrifts(frameRate: Float) throws {
+        let lap = try #require(BeamLayerView.run(from: 0.3, along: 1000, at: frameRate) as? CABasicAnimation)
+        #expect(lap.keyPath == "lineDashPhase")
+        #expect(lap.fromValue as? CGFloat == -300)
+        #expect(lap.toValue as? CGFloat == -1300, "one lap of the border, so the loop closes without a jump")
+        #expect(lap.timingFunction == CAMediaTimingFunction(name: .linear), "one speed all the way round")
+        #expect(lap.preferredFrameRateRange.preferred == frameRate)
+        #expect(lap.duration == SearchFieldBeamView<Rectangle>.turn)
 
         let drift = try #require(BeamLayerView.drift(at: frameRate) as? CAKeyframeAnimation)
         let opacities = try #require(drift.values as? [Double])
@@ -106,16 +100,13 @@ struct SearchFieldShapeTests {
         #expect(abs(opacities[opacities.count / 2] - 1) < 1e-9, "fully in halfway through, then back out")
     }
 
-    @Test func rebuildingOrChangingFrameRateKeepsTheSameClockAndCurve() throws {
-        let field = CGSize(width: 680, height: 44)
-        let edge = try #require(BeamLayerView.spin(at: 60, in: field) as? CAKeyframeAnimation)
-        let spill = try #require(BeamLayerView.spin(at: 30, in: field) as? CAKeyframeAnimation)
+    @Test func rebuildingOrChangingFrameRateKeepsTheSameClock() {
+        let edge = BeamLayerView.run(from: 0, along: 800, at: 60)
+        let spill = BeamLayerView.run(from: 0, along: 800, at: 30)
         let drift = BeamLayerView.drift(at: 60)
         #expect(edge.beginTime > 0)
         #expect(edge.beginTime == spill.beginTime)
         #expect(edge.beginTime == drift.beginTime)
-        #expect(edge.timeOffset == spill.timeOffset)
-        #expect(edge.values as? [Double] == spill.values as? [Double])
         #expect(drift.timeOffset == SearchFieldBeamView<Rectangle>.drift.period / 4)
     }
 
@@ -126,15 +117,25 @@ struct SearchFieldShapeTests {
         #expect(bloom.0 == glint.0)
     }
 
-    @Test func theLightKeepsOneSpeedAlongTheBorder() throws {
-        let field = CGSize(width: 680, height: 44)
-        #expect(BeamLayerView.angle(along: 0, of: field) == 0)
-        #expect(abs(BeamLayerView.angle(along: 0.5, of: field) - .pi) < 1e-9, "halfway round is the left side's middle")
-        #expect(abs(BeamLayerView.angle(along: 0.25, of: field) - .pi / 2) < 1e-9, "a quarter round is the top's middle")
-        let turn = (0 ..< 400).map { BeamLayerView.angle(along: Double($0) / 400, of: field) }
-        #expect(zip(turn, turn.dropFirst()).allSatisfy { $0 < $1 }, "the angle only grows")
-        #expect(try #require(turn.last) < 2 * .pi)
-        // The top right corner is 22 points of the 1,448 round the border away from the start.
-        #expect(abs(BeamLayerView.angle(along: 22.0 / 1448, of: field) - atan2(22, 340)) < 1e-9)
+    @Test func theLightsStretchesNestAndAddUpToItsLevel() throws {
+        for stops in [BeamLight.hairlineWindow, BeamLight.glowWindow, BeamLight.glint, BeamLight.bloom] {
+            let bands = BeamLayerView.bands(stops)
+            #expect(!bands.isEmpty)
+            #expect(zip(bands, bands.dropFirst()).allSatisfy { $0.from <= $1.from && $0.to >= $1.to }, "each stretch lies inside the fainter one")
+            let peak = try #require(stops.map(\.1).max())
+            let shown = bands.reduce(0.0) { $0 + $1.alpha * (1 - $0) }
+            // A peak that is a single point has no stretch of its own, so the light stops one level short of it.
+            #expect(shown <= peak + 1e-9 && shown >= peak * 31 / 32 - 1e-9, "the stretches laid over one another reach the light's peak")
+        }
+        let glint = BeamLayerView.bands(BeamLight.glint)
+        let middle = try #require(glint.last)
+        #expect(abs((middle.from + middle.to) / 2 - BeamLight.glintCenter) < 0.01, "the brightest stretch is centred on the glint")
+    }
+
+    @Test func aPathsLengthFollowsItsCurves() {
+        let square = Path(CGRect(x: 0, y: 0, width: 100, height: 50)).cgPath
+        #expect(abs(BeamLayerView.length(of: square) - 300) < 1e-9)
+        let circle = Path(ellipseIn: CGRect(x: 0, y: 0, width: 100, height: 100)).cgPath
+        #expect(abs(BeamLayerView.length(of: circle) - 100 * .pi) < 0.1)
     }
 }

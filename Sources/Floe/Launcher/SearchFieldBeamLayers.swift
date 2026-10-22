@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-/// One layer of the beam: still colour, a turning light over it, or both, seen through a turning window.
+/// One layer of the beam: still colour, a running light over it, or both, seen through a running window.
 struct BeamLayer {
-    /// A light that turns with the window, seen through a still mask.
+    /// A light that runs with the window, seen through a still mask.
     struct Glint {
         let stops: [(Double, Double)]
         let light: CGColor
@@ -105,11 +105,11 @@ final class BeamLayerView: NSView {
             let holder = CALayer()
             holder.frame = bounds
             holder.mask = picture(glint.mask, in: bounds, scale: key.scale)
-            holder.addSublayer(turning(glint.stops, light: glint.light, in: bounds, key: key))
+            holder.addSublayer(running(glint.stops, light: glint.light, in: bounds, key: key))
             group.addSublayer(holder)
         }
         if let window = beamLayer.window {
-            group.mask = turning(window, light: NSColor.white.cgColor, in: bounds, key: key)
+            group.mask = running(window, light: NSColor.white.cgColor, in: bounds, key: key)
         }
         return group
     }
@@ -122,32 +122,41 @@ final class BeamLayerView: NSView {
         return layer
     }
 
-    /// A light going round from the field's middle, as wide as the field's diagonal so turning it never shows a corner.
-    private func turning(_ stops: [(Double, Double)], light: CGColor, in bounds: CGRect, key: Key) -> CALayer {
-        let side = hypot(bounds.width, bounds.height).rounded(.up)
-        let gradient = CAGradientLayer()
-        gradient.type = .conic
-        gradient.frame = CGRect(x: bounds.midX - side / 2, y: bounds.midY - side / 2, width: side, height: side)
-        gradient.startPoint = CGPoint(x: 0.5, y: 0.5)
-        gradient.endPoint = CGPoint(x: 1, y: 0.5)
-        gradient.colors = stops.map { light.copy(alpha: light.alpha * $0.1) ?? light }
-        gradient.locations = stops.map { NSNumber(value: $0.0) }
-        if key.isStill {
-            gradient.transform = CATransform3DMakeRotation(-.pi / 2, 0, 0, 1)
-        } else {
-            gradient.add(Self.spin(at: key.frameRate, in: key.size), forKey: "turn")
+    /// A light running along the border, drawn as stretches of it from the faint long one to the bright short one.
+    /// It reaches halfway into the field, so it never lights the side across from it.
+    private func running(_ stops: [(Double, Double)], light: CGColor, in bounds: CGRect, key: Key) -> CALayer {
+        let path = key.outline.cgPath
+        let length = Self.length(of: path)
+        let holder = CALayer()
+        holder.frame = bounds
+        for band in Self.bands(stops) {
+            let stretch = CAShapeLayer()
+            stretch.frame = bounds
+            stretch.path = path
+            stretch.fillColor = nil
+            stretch.strokeColor = light.copy(alpha: light.alpha * band.alpha) ?? light
+            stretch.lineWidth = min(bounds.width, bounds.height)
+            stretch.lineDashPattern = [band.to - band.from, 1 - (band.to - band.from)].map { NSNumber(value: $0 * length) }
+            stretch.lineDashPhase = -band.from * length
+            if !key.isStill {
+                stretch.add(Self.run(from: band.from, along: length, at: key.frameRate), forKey: "run")
+            }
+            holder.addSublayer(stretch)
         }
-        return gradient
+        return holder
     }
 
-    /// One turn every `turn` seconds, at the same place in the turn for every layer, the field's and the glow's.
-    /// The light keeps one speed along the border, so on a wide field it does not rush round the short ends.
-    static func spin(at frameRate: Float, in size: CGSize) -> CAAnimation {
-        let turn = SearchFieldBeamView<Rectangle>.turn
-        return interpolated("transform.rotation.z", over: turn, at: frameRate) {
-            // The bright spot, not the transparent start of the gradient, follows the border.
-            angle(along: $0, of: size) - BeamLight.glintCenter * 2 * .pi
-        }
+    /// One lap every `turn` seconds at one speed, at the same place in the lap for every layer, the field's and the glow's.
+    static func run(from start: Double, along length: CGFloat, at frameRate: Float) -> CAAnimation {
+        let lap = CABasicAnimation(keyPath: "lineDashPhase")
+        lap.fromValue = -start * length
+        lap.toValue = -(start + 1) * length
+        lap.duration = SearchFieldBeamView<Rectangle>.turn
+        lap.timingFunction = CAMediaTimingFunction(name: .linear)
+        lap.beginTime = animationEpoch
+        lap.repeatCount = .infinity
+        lap.preferredFrameRateRange = CAFrameRateRange(minimum: frameRate, maximum: frameRate, preferred: frameRate)
+        return lap
     }
 
     /// The second hue fades in and out over the first, as the colours drift one way and back.
@@ -158,29 +167,75 @@ final class BeamLayerView: NSView {
         return drift
     }
 
-    /// The angle from the middle of a field of that size to the point a share of the way round its border,
-    /// starting at the middle of the right side. It only grows, from 0 to a full turn.
-    static func angle(along share: Double, of size: CGSize) -> Double {
-        let half = (width: max(size.width, 1) / 2, height: max(size.height, 1) / 2)
-        // Round from the right side's middle: the rest of that side, a long side, a short side, a long side, back.
-        var left = share * 4 * (half.width + half.height)
-        let sides: [(length: CGFloat, point: (CGFloat) -> CGPoint)] = [
-            (half.height, { CGPoint(x: half.width, y: $0) }),
-            (2 * half.width, { CGPoint(x: half.width - $0, y: half.height) }),
-            (2 * half.height, { CGPoint(x: -half.width, y: half.height - $0) }),
-            (2 * half.width, { CGPoint(x: -half.width + $0, y: -half.height) }),
-            (half.height, { CGPoint(x: half.width, y: -half.height + $0) }),
-        ]
-        for side in sides {
-            guard left < side.length else {
-                left -= side.length
-                continue
-            }
-            let point = side.point(left)
-            let angle = atan2(point.y, point.x)
-            return angle < 0 ? angle + 2 * .pi : angle
+    /// The light's stops as nested stretches of a lap, each with the opacity that, laid over the ones under it,
+    /// brings the light to its level there.
+    static func bands(_ stops: [(Double, Double)], levels: Int = 32) -> [(from: Double, to: Double, alpha: Double)] {
+        let peak = stops.map(\.1).max() ?? 0
+        guard peak > 0 else { return [] }
+        var below = 0.0
+        return (1 ... levels).compactMap { step in
+            let level = peak * Double(step) / Double(levels)
+            guard let from = crossing(stops, at: level, rising: true), let to = crossing(stops, at: level, rising: false), to > from else { return nil }
+            let alpha = level >= 1 ? 1 : 1 - (1 - level) / (1 - below)
+            below = level
+            return (from, min(to, from + 0.999), alpha)
         }
-        return 2 * .pi
+    }
+
+    /// Where the light first comes up to `level`, or last goes down from it.
+    private static func crossing(_ stops: [(Double, Double)], at level: Double, rising: Bool) -> Double? {
+        let pairs = Array(zip(stops, stops.dropFirst()))
+        for (a, b) in rising ? pairs : pairs.reversed() {
+            let (low, high) = rising ? (a, b) : (b, a)
+            guard low.1 < level, high.1 >= level else { continue }
+            return low.0 + (high.0 - low.0) * (level - low.1) / (high.1 - low.1)
+        }
+        return (rising ? stops.first { $0.1 >= level } : stops.last { $0.1 >= level }).map(\.0)
+    }
+
+    /// How long a path is, with its curves followed in short straight steps.
+    static func length(of path: CGPath) -> CGFloat {
+        var total: CGFloat = 0
+        var start = CGPoint.zero
+        var point = CGPoint.zero
+        func walk(_ position: (CGFloat) -> CGPoint) {
+            for step in 1 ... 24 {
+                let next = position(CGFloat(step) / 24)
+                total += hypot(next.x - point.x, next.y - point.y)
+                point = next
+            }
+        }
+        path.applyWithBlock { element in
+            let p = element.pointee.points
+            switch element.pointee.type {
+            case .moveToPoint:
+                start = p[0]
+                point = p[0]
+            case .addLineToPoint:
+                total += hypot(p[0].x - point.x, p[0].y - point.y)
+                point = p[0]
+            case .addQuadCurveToPoint:
+                let from = point
+                walk { t in
+                    let u = 1 - t
+                    return CGPoint(x: u * u * from.x + 2 * u * t * p[0].x + t * t * p[1].x, y: u * u * from.y + 2 * u * t * p[0].y + t * t * p[1].y)
+                }
+            case .addCurveToPoint:
+                let from = point
+                walk { t in
+                    let u = 1 - t
+                    let x = u * u * u * from.x + 3 * u * u * t * p[0].x + 3 * u * t * t * p[1].x + t * t * t * p[2].x
+                    let y = u * u * u * from.y + 3 * u * u * t * p[0].y + 3 * u * t * t * p[1].y + t * t * t * p[2].y
+                    return CGPoint(x: x, y: y)
+                }
+            case .closeSubpath:
+                total += hypot(start.x - point.x, start.y - point.y)
+                point = start
+            @unknown default:
+                break
+            }
+        }
+        return total
     }
 
     /// Samples describe the curve, not a frame cap. Interpolation lets the compositor follow its actual cadence.

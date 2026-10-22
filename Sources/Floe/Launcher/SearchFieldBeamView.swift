@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-/// Draws the beam inside an outline: each side's colour seen through a slowly turning window, as a
+/// Draws the beam inside an outline: each side's colour seen through a window that runs along the border, as a
 /// hairline, a glow into the field and a glint. The still parts are drawn once for the field's size, and Core
-/// Animation turns the windows, so the launcher does no work while the beam goes round. With Reduce Motion the
+/// Animation runs the windows round, so the launcher does no work while the beam goes round. With Reduce Motion the
 /// window stands still.
 struct SearchFieldBeamView<Outline: InsettableShape>: View {
     /// The beam is drawn in two layers, one over the field and one under its text.
@@ -160,13 +160,13 @@ struct SearchFieldBeamView<Outline: InsettableShape>: View {
     }
 }
 
-/// How the beam's light falls round the field, as stops from nothing to full and back: each a part of the turn
+/// How the beam's light falls along the border, as stops from nothing to full and back: each a part of the lap
 /// and how strong the light is there.
 enum BeamLight {
-    /// Shared by the speed mapping and the two highlights so their brightest point travels together.
+    /// Where the glint and its bloom are brightest, so the two travel together.
     static let glintCenter = 0.66
 
-    /// Where round the field the hairline shows, from nothing to full and back, as parts of the turn.
+    /// Where round the field the hairline shows, from nothing to full and back, as parts of the lap.
     static let hairlineWindow: [(Double, Double)] = [
         (0, 0), (0.3, 0), (0.36, 0.1), (0.44, 0.35), (0.52, 1), (0.8, 1), (0.86, 0.35), (0.92, 0.1), (0.95, 0), (1, 0),
     ]

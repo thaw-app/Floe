@@ -10,19 +10,19 @@ import SwiftUI
 import Testing
 
 struct SearchFieldBeamLayersTests {
-    @Test func reduceMotionRemovesRotationAndColourDrift() throws {
+    @Test func reduceMotionStopsTheRunAndColourDrift() throws {
         let view = BeamLayerView()
         let beam = try fixture()
         view.show(key(isStill: false)) { [beam] }
         let root = try #require(view.layer)
-        #expect(animations(in: root).count == 3)
+        #expect(keyPaths(of: animations(in: root)) == ["opacity", "lineDashPhase"])
 
         view.show(key(isStill: true)) { [beam] }
         #expect(animations(in: root).isEmpty)
 
         view.show(key(isStill: false)) { [beam] }
         let resumed = animations(in: root)
-        #expect(resumed.count == 3)
+        #expect(keyPaths(of: resumed) == ["opacity", "lineDashPhase"])
         #expect(Set(resumed.map(\.beginTime)).count == 1)
     }
 
@@ -66,5 +66,9 @@ struct SearchFieldBeamLayersTests {
         let own = (layer.animationKeys() ?? []).compactMap { layer.animation(forKey: $0) }
         let children = (layer.sublayers ?? []) + [layer.mask].compactMap(\.self)
         return own + children.flatMap { animations(in: $0) }
+    }
+
+    private func keyPaths(of animations: [CAAnimation]) -> Set<String> {
+        Set(animations.compactMap { ($0 as? CAPropertyAnimation)?.keyPath })
     }
 }
