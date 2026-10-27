@@ -152,8 +152,8 @@ targets:
           rayon: https://github.com/rayon-rs/rayon
         # Filled in from git by the Embed Runtime step.
         GitCommitSHA: unknown
-        CFBundleShortVersionString: "0.1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "0.1.1"
+        CFBundleVersion: "2"
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         LSUIElement: true
         # Thaw answers Floe's appearance request by opening floe://thaw-appearance. IncomingURLRouter takes every floe:// link.

@@ -21,6 +21,34 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [0.1.1] - 2026-10-27
+
+**macOS 26 and later · Build 2**
+
+### Changed
+- **An AI service on another machine needs an `https://` address.** Your API key is never sent over plain `http://`. A service on this Mac still takes `http://`.
+- **Pictures in Ask AI answers show as links.** They open only when you click them, so an answer can't send your conversation to an address of its own.
+
+### Fixed
+- **Quit works from the menu bar menu and from the Dock.** Floe could stay open when a notes app didn't answer while Floe was saving a note ([#39](https://github.com/thaw-app/Floe/issues/39)).
+- **The beam runs round the search field's border** instead of lighting one half and then the other.
+- **The search field's glass stays clear while you type.**
+- **A menu item that is turned off stays off** when its menu updates.
+
+#### Security
+These come from [CodeRabbit](https://www.coderabbit.ai)'s deep scan of 0.1.0 ([#45](https://github.com/thaw-app/Floe/pull/45)).
+- **Names completed into shell commands are text.** An app, file or command whose name holds `$`, a backtick or `;` no longer runs anything when you complete it or open its manual.
+- **Settings and the launcher sign the messages they send each other**, so another app on your Mac can't send one, such as Remove from iCloud.
+- **An extension can't use a name that reaches outside its own folder or Floe's own secrets**, and its sign-in tokens stay on this Mac.
+- **A server on this Mac never gets the key you saved for another AI service.**
+- **Codex answers without its shell tools**, in an empty folder of its own.
+- **An extension's certificate pinning is kept, and an encrypted database it asks for is refused** rather than written in the clear.
+- **A daily note always lands inside its vault.**
+
+### Contributors
+
+- @matthrz reported that Quit stayed greyed out ([#39](https://github.com/thaw-app/Floe/issues/39)).
+
 ## [0.1.0] - 2026-10-22
 
 **macOS 26 and later · Build 1**
