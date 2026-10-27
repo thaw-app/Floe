@@ -19,7 +19,7 @@ case "$name" in
         if [[ "$1" == "find-identity" ]]; then
             printf '%s\n' "$TEST_IDENTITIES"
         else
-            printf '%s\n' '<?xml version="1.0"?><plist version="1.0"><dict><key>Entitlements</key><dict><key>com.apple.application-identifier</key><string>TEAM.org.thaw.floe</string></dict></dict></plist>'
+            printf '%s%s%s\n' '<?xml version="1.0"?><plist version="1.0"><dict><key>Entitlements</key><dict><key>com.apple.application-identifier</key><string>' "$TEST_APPLICATION" '</string></dict></dict></plist>'
         fi
         ;;
     lipo) echo 'arm64 x86_64' ;;
@@ -54,7 +54,7 @@ class DevRunSigningTests(unittest.TestCase):
             (self.root / "tools" / tool).symlink_to(mock)
         self.log = self.root / "commands.log"
 
-    def run_script(self, *arguments, identities="", identity=None):
+    def run_script(self, *arguments, identities="", identity=None, application="ABCDE12345.org.thaw.floe"):
         environment = os.environ.copy()
         environment.pop("FLOE_SIGN_IDENTITY", None)
         environment.update({
@@ -62,6 +62,7 @@ class DevRunSigningTests(unittest.TestCase):
             "FLOE_PROVISIONING_PROFILE": str(self.root / "profile.provisionprofile"),
             "TEST_LOG": str(self.log),
             "TEST_IDENTITIES": identities,
+            "TEST_APPLICATION": application,
             "TMPDIR": str(self.root),
         })
         if identity is not None:
@@ -94,6 +95,11 @@ class DevRunSigningTests(unittest.TestCase):
         result, _ = self.run_script("--icloud")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("No Developer ID Application certificate", result.stderr)
+
+    def test_a_team_that_is_no_team_identifier_is_refused_before_sed(self):
+        result, _ = self.run_script("--icloud", identity="EXPLICIT", application="A/e w/x.org.thaw.floe")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("is not a team identifier", result.stderr)
 
 
 if __name__ == "__main__":
