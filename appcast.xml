@@ -4,218 +4,52 @@
         <title>Floe</title>
         <language>en</language>
         <item>
+            <title>0.1.1</title>
+            <pubDate>Tue, 27 Oct 2026 10:10:41 +0000</pubDate>
+            <link>https://github.com/thaw-app/Floe/releases/tag/0.1.1</link>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<p><strong>macOS 26 and later · Build 2</strong></p>
+<h3>Changed</h3>
+<ul>
+<li><strong>An AI service on another machine needs an <code class="notranslate">https://</code> address.</strong> Your API key is never sent over plain <code class="notranslate">http://</code>. A service on this Mac still takes <code class="notranslate">http://</code>.</li>
+<li><strong>Pictures in Ask AI answers show as links.</strong> They open only when you click them, so an answer can't send your conversation to an address of its own.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Quit works from the menu bar menu and from the Dock.</strong> Floe could stay open when a notes app didn't answer while Floe was saving a note (<a href="https://github.com/thaw-app/Floe/issues/39" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/39/hovercard">#39</a>).</li>
+<li><strong>The beam runs round the search field's border</strong> instead of lighting one half and then the other.</li>
+<li><strong>The search field's glass stays clear while you type.</strong></li>
+<li><strong>A menu item that is turned off stays off</strong> when its menu updates.</li>
+</ul>
+<h4>Security</h4>
+<p>These come from <a href="https://www.coderabbit.ai" rel="nofollow">CodeRabbit</a>'s deep scan of 0.1.0 (<a href="https://github.com/thaw-app/Floe/pull/45" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/45/hovercard">#45</a>).</p>
+<ul>
+<li><strong>Names completed into shell commands are text.</strong> An app, file or command whose name holds <code class="notranslate">$</code>, a backtick or <code class="notranslate">;</code> no longer runs anything when you complete it or open its manual.</li>
+<li><strong>Settings and the launcher sign the messages they send each other</strong>, so another app on your Mac can't send one, such as Remove from iCloud.</li>
+<li><strong>An extension can't use a name that reaches outside its own folder or Floe's own secrets</strong>, and its sign-in tokens stay on this Mac.</li>
+<li><strong>A server on this Mac never gets the key you saved for another AI service.</strong></li>
+<li><strong>Codex answers without its shell tools</strong>, in an empty folder of its own.</li>
+<li><strong>An extension's certificate pinning is kept, and an encrypted database it asks for is refused</strong> rather than written in the clear.</li>
+<li><strong>A daily note always lands inside its vault.</strong></li>
+</ul>
+<h3>Contributors</h3>
+<ul>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/matthrz/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/matthrz">@matthrz</a> reported that Quit stayed greyed out (<a href="https://github.com/thaw-app/Floe/issues/39" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/39/hovercard">#39</a>).</li>
+</ul>]]></description>
+            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.1/Floe_0.1.1.zip" length="46743445" type="application/octet-stream" sparkle:edSignature="8pb2eCDOtum8MgcdTWH0P2leHSougl14yzKP2TtaMxKbSb2dc2dPaEuAkQRHbtPVXg41RYn8HDbms5BNVzlmAw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.1/Floe2-1.delta" sparkle:deltaFrom="1" length="1961698" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="oWiHxBUKU3RYomYuaA/zCh6XKKFbW7Yvb1X/0Ihtby3gAtlY9CzjEyvVlgKqV/v7kBKhl3V41RTZS1oXYtTKBw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>0.1.0</title>
             <pubDate>Thu, 22 Oct 2026 10:46:02 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.1.0</link>
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p><strong>macOS 26 and later · Build 1</strong></p>
-<p>Floe is a launcher for macOS. It runs Raycast extensions unmodified and opens things in the apps you already use. This is the first release, and it is early.</p>
-<p>After you install:</p>
-<ol>
-<li>Press ⌃⌥Space to open the search. Settings &gt; General changes the hotkey.</li>
-<li>Open the Extension Store from the search to install extensions.</li>
-<li>Look at Settings &gt; Privacy. Files, browser tabs, Shortcuts, Fast file search and currency rates are off until you turn them on.</li>
-<li>If something looks wrong, <a href="https://github.com/thaw-app/Floe/issues">open an issue</a>.</li>
-</ol>
-<h3>New</h3>
-<h4>Search</h4>
-<ul>
-<li><strong>One hotkey opens the search.</strong> It finds applications, extension commands, script commands, quicklinks and System Settings panes, ranked by how often and how recently you use each.</li>
-<li><strong>Web apps, Finder and the apps in macOS's CoreServices folder are found too</strong>, such as Archive Utility. Two apps with the same name each get their own row.</li>
-<li><strong>Scattered letters match</strong>, and the letters that matched show in a stronger weight.</li>
-<li><strong>Aliases, hotkeys and favorites.</strong> Give an application or a command an alias or a hotkey. Emoji, Clipboard History, File Search, Search Menu Bar Items, Search Menu Items, Floating Note and the system commands take an alias and a hotkey too, in Settings &gt; Commands. Favorites stay at the top.</li>
-<li><strong>Scopes narrow a search to one place:</strong> <code class="notranslate">files invoice</code>, <code class="notranslate">menu wifi</code>, <code class="notranslate">tabs invoice</code>.</li>
-<li><strong>A web address or a path typed in full leads the results.</strong> <code class="notranslate">github.com/thaw-app</code> opens in the browser. <code class="notranslate">~/Downloads</code> is the folder itself, with the file actions. A <code class="notranslate">file://</code> address opens its file or folder too.</li>
-<li><strong><code class="notranslate">keywords</code> or <code class="notranslate">?</code> lists every word the search answers to</strong>, each with an example and what it does: <code class="notranslate">remind call mom tomorrow at 5pm</code>, <code class="notranslate">timer 10 minutes tea</code>. Type more to narrow the list. Return puts the keyword in the search for you to finish. What is switched off is left out.</li>
-</ul>
-<h4>Results and actions</h4>
-<ul>
-<li><strong>An Actions menu (⌘K)</strong> on applications and files: hide, quit, restart, force quit, show in Finder, open with, copy, move to Trash.</li>
-<li><strong>Hide from Search</strong> takes an application or a command out of the search. Settings &gt; Commands lists what is hidden and brings it back.</li>
-<li><strong>The Up arrow brings back earlier searches:</strong> the last 50 that opened something. Settings &gt; Privacy turns this off and forgets them.</li>
-<li><strong>Optional search sources.</strong> Files and open browser tabs (Safari, Dia, Helium) add up to three rows to a search. Both are off until you turn them on in Privacy.</li>
-<li><strong><code class="notranslate">Floe --pick</code> lends the search panel to a script.</strong> It reads lines on standard input and prints the one you choose. A tab splits a line into a title and what is shown beside it.</li>
-</ul>
-<h4>Shell commands</h4>
-<ul>
-<li><strong>Type <code class="notranslate">&gt;</code> and a command to run it.</strong> Return runs it in the background and shows the first line of output. Your shell aliases work. Settings &gt; Commands changes the prefix to <code class="notranslate">$</code> or <code class="notranslate">!</code>, or turns this off.</li>
-<li><strong>Other ways to run it.</strong> ⌘Return opens it in your terminal, ⌥Return shows everything it printed, and ⇧Return runs it in the Finder folder in front.</li>
-<li><strong>Suggestions while you type:</strong> earlier commands from your shell history, programs, paths, application names after <code class="notranslate">open -a</code> and hosts after <code class="notranslate">ssh</code>. Tab finishes the selected one.</li>
-<li><strong>A command works without the prefix</strong> when it starts with a program on your Mac and has a flag, a path or a pipe in it. It is offered under the other results.</li>
-<li><strong>Save a command under a name</strong> and the search finds it afterwards. <code class="notranslate">man</code> and a program's name opens its manual.</li>
-<li><strong>Script commands.</strong> Scripts written for Raycast, put in Floe's Scripts folder, are in the search and take up to three arguments.</li>
-</ul>
-<h4>Checkpoints</h4>
-<ul>
-<li><strong><code class="notranslate">pause</code> and a name saves what you were doing:</strong> the files and folders selected in Finder, the tabs of the browser window in front, and a note after a colon. <code class="notranslate">pause website redesign: fix the nav next</code>.</li>
-<li><strong>Search for the name to resume it.</strong> Text and code files open in the editor you chose in Settings, other files in their own apps, folders in Finder and the tabs in your browser. Floe shows your note.</li>
-<li><strong>Floe says what is missing</strong> when a file has moved or gone, and lists it. What is still there opens.</li>
-<li><strong>Pausing again under the same name</strong> replaces the checkpoint with what is open now.</li>
-</ul>
-<h4>Receipts</h4>
-<ul>
-<li><strong>Floe keeps a receipt of what it changed:</strong> commands it ran, files it moved to the Trash, processes it quit and extensions it removed. Type <code class="notranslate">receipts</code> to see them.</li>
-<li><strong>Return puts a file back</strong> from the Trash to where it was. If something newer is there now, Floe leaves both alone and says so.</li>
-<li><strong>A command or a quit process cannot be undone</strong>, and the receipt says that. Settings &gt; Privacy turns receipts off and forgets them.</li>
-<li><strong>Notes and checkpoints leave receipts too.</strong> A note written to your folder goes to the Trash from its receipt if you have not changed it, and a checkpoint's receipt deletes it. A line added to the day's note cannot be undone.</li>
-</ul>
-<h4>Reminders and events</h4>
-<ul>
-<li><strong><code class="notranslate">remind</code> and a sentence adds a reminder to Apple Reminders.</strong> <code class="notranslate">remind call mom tomorrow at 5pm</code> is due tomorrow at five, and the row shows the date before you press Return. Without a date in it, the reminder has none.</li>
-<li><strong>Its receipt deletes it again.</strong> macOS asks once whether Floe may use Reminders.</li>
-<li><strong>End the sentence with a list's name to put it there.</strong> <code class="notranslate">remind call mom tomorrow at 5pm in Work</code>, or <code class="notranslate">list Work</code>. The row shows the list.</li>
-<li><strong><code class="notranslate">event</code> and a sentence adds an event to Apple Calendar.</strong> <code class="notranslate">event lunch with Ana Thursday noon</code> lasts an hour from Thursday at twelve, and a day with no time makes an all-day event. Its receipt deletes it again.</li>
-</ul>
-<h4>Timers, people and controls</h4>
-<ul>
-<li><strong><code class="notranslate">timer 10 minutes</code> starts a countdown.</strong> <code class="notranslate">timer 25m</code>, <code class="notranslate">timer 1h 30m</code> and <code class="notranslate">timer 5 min tea</code> work too, and a notification with a sound says when it ends. <code class="notranslate">timers</code> lists the ones running, and Return stops one. Timers end when Floe quits.</li>
-<li><strong><code class="notranslate">contact ana</code> finds people in your Contacts</strong> by name, with a phone number or an email address beside each. Return opens the card, and the Actions menu calls, starts FaceTime, writes a message or an email, or copies the number or the address. macOS asks once whether Floe may read Contacts.</li>
-<li><strong><code class="notranslate">mail</code> and <code class="notranslate">message</code> open a draft.</strong> <code class="notranslate">mail toni@example.com the build is ready</code> opens a new email to Toni in your mail app, and <code class="notranslate">message +15551234567 running late</code> a new message in Messages. Without an address or a number first, the draft has no recipient. Nothing is sent until you send it.</li>
-<li><strong>Play/Pause, Next Track, Previous Track and Now Playing</strong> control Spotify or Music, whichever is open. Search for <code class="notranslate">pause</code>, <code class="notranslate">skip</code>, <code class="notranslate">previous</code> or <code class="notranslate">what's playing</code>. Now Playing shows the track and its artist. macOS asks once whether Floe may control the app.</li>
-<li><strong>Toggle Focus, <code class="notranslate">focus 1 hour</code> and <code class="notranslate">focus off</code></strong> run a Shortcut you name in Settings &gt; Commands. macOS gives apps no switch for Focus, so the Shortcut sets it: Floe hands it the minutes, or the word <code class="notranslate">off</code> or <code class="notranslate">toggle</code>. Until you name one, the row says so and Return opens Shortcuts.</li>
-</ul>
-<h4>Processes and ports</h4>
-<ul>
-<li><strong><code class="notranslate">kill</code> and a name lists the running processes that match</strong>, with the memory each one holds. Return asks one to quit. Force Quit asks first.</li>
-<li><strong><code class="notranslate">port</code> and a number lists what is listening there.</strong></li>
-</ul>
-<h4>Extensions</h4>
-<ul>
-<li><strong>Raycast extensions run unmodified</strong> inside the app, including the ones Raycast already installed.</li>
-<li><strong>An Extension Store page</strong> browses, installs and updates extensions. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/OwenCope/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/OwenCope">@OwenCope</a> in <a href="https://github.com/thaw-app/Floe/pull/6" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/6/hovercard">#6</a>, with its look reworked by <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> in <a href="https://github.com/thaw-app/Floe/pull/16" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/16/hovercard">#16</a>.</li>
-<li><strong>An extension's page in the store</strong> shows its screenshots, its categories, how many commands it has and whether it needs setup before it runs. Each command is listed with how it runs and the arguments it takes. Click a screenshot to see it larger.</li>
-<li><strong>Lists, grids, details, forms, preferences and arguments work</strong>, and so do toasts, confirmation dialogs, and background and interval commands. Grids draw as tiles, and the arrow keys move through them. Passwords go in the Keychain.</li>
-<li><strong>You add menu bar commands by hand</strong>, from the search or from Settings. None starts on its own at launch. A fresh install offers to add ready menu bar commands that are not already enabled. Commands needing preferences show setup guidance instead.</li>
-<li><strong>When a command throws, crashes or hangs</strong>, Floe shows the log and lets you run it again.</li>
-<li><strong>An extension that holds more than 1 GB of memory is stopped.</strong> Floe says so, and how much it held.</li>
-<li><strong>A command can start another</strong>, with <code class="notranslate">launchCommand</code> or with a <code class="notranslate">raycast://extensions/…</code> link the extension opens. A link passes its arguments along.</li>
-<li><strong>Extension actions include Open With, Quick Look, Create Snippet, Create Quicklink and Pick Date.</strong></li>
-<li><strong>Extensions read the browser tab in front</strong> in Safari, Dia, Helium, Chrome, Brave, Edge and Vivaldi, with no browser extension to install.</li>
-<li><strong>An extension with a Swift helper takes a few minutes the first time</strong>, while Floe builds the helper. Extensions with Rust helpers do not run on macOS, as in Raycast.</li>
-<li><strong>Extensions that read your clipboard history read Floe's.</strong></li>
-<li><strong><a href="docs/COMPAT.md">Raycast API compatibility</a> lists what works as in Raycast</strong>, what works with a difference and what does not yet. In a test of 1,850 store extensions, 6,035 of their 6,052 commands built.</li>
-<li><strong>An extension you are writing runs again when you save it.</strong> While one of its commands is open, a save under <code class="notranslate">src</code> or <code class="notranslate">assets</code>, or of <code class="notranslate">package.json</code>, runs the command again with the same arguments. A change that fails to build or load leaves the last working view up, with a toast that says why.</li>
-</ul>
-<h4>Extension settings and sign-in</h4>
-<ul>
-<li><strong>Turn off an extension, or one of its commands</strong>, on its page in Settings. Floe leaves what is off out of the search, and a hotkey, the menu bar or Shortcuts will not run it.</li>
-<li><strong>Each extension's page has one line per command</strong>, with its alias, hotkey and switch. You can give the extension an icon of your own, or remove an extension, whether Floe or Raycast installed it.</li>
-<li><strong>Each extension's page shows what it has reached:</strong> the hosts it contacted, the folders it read and changed, and the programs it started, as far as Floe's runtime sees them. It records what the extension did and stops none of it. Settings &gt; Privacy switches the record off and forgets it.</li>
-<li><strong>GitHub and GitLab extensions sign in with the GitHub CLI and the GitLab CLI.</strong> If <code class="notranslate">gh</code> or <code class="notranslate">glab</code> is signed in on your Mac, Floe asks once per extension whether it may use that sign-in. For GitHub it lists what the sign-in may do. The extension's page in Settings takes it back.</li>
-<li><strong>Other extensions sign in in the browser.</strong> If the browser's answer cannot reach Floe, Floe asks for the extension's token instead and runs the command again. Known issues says whose sign-in service this uses for now.</li>
-</ul>
-<h4>Built in</h4>
-<ul>
-<li><strong>Snippets with text expansion, and quicklinks</strong> with fallback searches. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/OwenCope/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/OwenCope">@OwenCope</a> in <a href="https://github.com/thaw-app/Floe/pull/6" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/6/hovercard">#6</a>.</li>
-<li><strong>Settings &gt; Fallbacks chooses what is offered under every search, and in what order.</strong> Running the text as a shell command, Search Files, Ask AI, any quicklink that searches, and any extension command that takes text can be added, moved and removed. A command gets what you typed in its first argument and as <code class="notranslate">fallbackText</code>. Return opens the first fallback when nothing else matches.</li>
-<li><strong>A calculator with unit conversion.</strong> It converts money with the European Central Bank's daily rates once you turn that on in Settings &gt; Privacy, and shows the day the rates are from. Powers are drawn as real superscripts, and <code class="notranslate">pi</code> is π. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/lylythechosenone/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/lylythechosenone">@lylythechosenone</a> in <a href="https://github.com/thaw-app/Floe/pull/7" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/7/hovercard">#7</a>.</li>
-<li><strong>The calculator reads sums the way people type them.</strong> <code class="notranslate">200 + 10%</code> is 220, <code class="notranslate">100 f to c</code> converts a temperature, <code class="notranslate">5 ft 10 in to cm</code> is 177.8 cm and <code class="notranslate">today + 3 days</code> is a date. <code class="notranslate">today</code> on its own shows the date.</li>
-<li><strong><code class="notranslate">define tide</code> shows what the dictionary says about a word.</strong> The answer comes from the dictionaries on your Mac, the ones switched on in the Dictionary app, so nothing is sent anywhere. Return opens the word in Dictionary, and the Actions menu copies the definition.</li>
-<li><strong><code class="notranslate">windows</code> lists your open windows</strong>, and text after it narrows them by title or app. Return switches to one, out of the Dock if it is minimized. The Actions menu minimizes or closes it. It shows titles, not thumbnails, and needs Accessibility.</li>
-<li><strong>Tab on an application lists the recently used files that open in it</strong>, and so does <code class="notranslate">recent preview</code>. Spotlight says which files you used in the last 30 days, and macOS says which app opens each. It is not the app's own Open Recent list, which Floe may not read.</li>
-<li><strong><code class="notranslate">bookmarks invoice</code> finds a bookmark</strong> of Chrome, Brave, Edge, Arc, Vivaldi, Dia or Helium. Floe reads the browser's own file when you type the word, and nothing leaves your Mac. Safari is not covered.</li>
-<li><strong><code class="notranslate">time in tokyo</code> shows the time there</strong>, and how far it is from yours. <code class="notranslate">time 5pm in berlin</code> takes a time of day here to there.</li>
-<li><strong><code class="notranslate">uuid</code>, <code class="notranslate">password 24</code> and <code class="notranslate">lorem 3</code> make something to paste.</strong> A password is copied so that clipboard managers leave it out.</li>
-<li><strong><code class="notranslate">translate hola mundo</code> translates a text.</strong> It goes to your first language the text is not already in, or to the one you name: <code class="notranslate">translate to german good morning</code>. The word alone translates the clipboard. The translation is Apple's, made on this Mac, and the row says so and that it can be rough. A pair of languages macOS has not downloaded says so, and Return opens the settings that download it.</li>
-<li><strong>Pick Color from Screen</strong> shows the system's eyedropper and copies the color under it as hex, such as <code class="notranslate">#A1B2C3<span class="ml-1 d-inline-block border circle color-border-subtle" style="background-color: #A1B2C3; height: 8px; width: 8px;"></span></code>.</li>
-<li><strong>Copy Text from Screen</strong> reads the text in the part of the screen you drag over and copies it. A QR code or a barcode there is read, and what it says is copied. The reading is done on this Mac, and macOS asks for Screen Recording the first time.</li>
-<li><strong><code class="notranslate">qr https://example.com</code> makes a QR code.</strong> Return copies the picture, and the actions show it in Quick Look or save it to Downloads.</li>
-<li><strong><code class="notranslate">maps coffee in lisbon</code> finds a place.</strong> The places come from Apple Maps, so the text after <code class="notranslate">maps</code> is sent to Apple; Floe asks for no location and sends nothing for any other search. Return shows the place in Maps, and the actions open the way there or copy the address. Settings &gt; Privacy lists it under Network Access.</li>
-<li><strong><code class="notranslate">output airpods</code> and <code class="notranslate">input macbook</code> choose where sound goes.</strong> <code class="notranslate">output</code> or <code class="notranslate">input</code> alone lists every device, the one in use first, and Return makes the selected one the default. AirPods show the battery of each bud and of the case. The devices are read with Audio Priority Bar's sources, by Camille Guillory and originally by tobi.</li>
-<li><strong><code class="notranslate">battery</code>, <code class="notranslate">disk</code>, <code class="notranslate">memory</code> and <code class="notranslate">ip</code> show a fact about this Mac.</strong> The battery's charge, time left, cycles and health, with the battery of each connected mouse, keyboard or headphones that reports one, the room on the startup disk, the memory in use and the local address. They sit under the other results, so <code class="notranslate">disk</code> and Return still open Disk Utility. The battery, memory and address are read with Barometer's system sources, by mackid1993.</li>
-<li><strong><code class="notranslate">brew ripgrep</code> finds a Homebrew package.</strong> Return installs it in your terminal, or upgrades one you have, and the actions uninstall it. <code class="notranslate">brew</code> alone lists what is installed. The names come from the lists Homebrew keeps on disk, so <code class="notranslate">brew</code> is not started until you choose.</li>
-<li><strong><code class="notranslate">base64 hello</code> changes a text</strong>, and so do <code class="notranslate">unbase64</code>, <code class="notranslate">urlencode</code>, <code class="notranslate">urldecode</code>, <code class="notranslate">uppercase</code>, <code class="notranslate">lowercase</code>, <code class="notranslate">titlecase</code> and <code class="notranslate">sha256</code>. With nothing after the word, it works on the clipboard.</li>
-<li><strong>Command-Y shows a file in Quick Look</strong> from the search, and a file's Actions menu has Quick Look.</li>
-<li><strong>Emoji and symbols.</strong> Hands and people use the skin tone you choose in Settings &gt; Commands. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/OwenCope/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/OwenCope">@OwenCope</a> in <a href="https://github.com/thaw-app/Floe/pull/6" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/6/hovercard">#6</a>.</li>
-<li><strong>File search, calendar events and menu bar item search.</strong> File search asks Spotlight. Menu bar search lists the menu bar's items and opens their menus from the keyboard. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/OwenCope/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/OwenCope">@OwenCope</a> in <a href="https://github.com/thaw-app/Floe/pull/6" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/6/hovercard">#6</a>.</li>
-<li><strong>Fast file search</strong> keeps the names of the files in your home folder on this Mac and answers as you type, with files you opened lately first. Switch it on in Settings &gt; Privacy, and macOS asks whether Floe may read your Desktop, Documents and Downloads folders. Switching it off deletes the names it kept.</li>
-<li><strong>Search Menu Items lists the commands in the menus of the app in front</strong>, submenus included, with the menus each one is in and its shortcut. Type part of a name to narrow them, and Return runs the command in that app. Commands that are greyed out are left out. <code class="notranslate">menus export</code> does the same from the search. It needs Accessibility. The menus are read with CMD-Z's menu scanner, by Toni Förster.</li>
-<li><strong>System commands:</strong> sleep, lock, empty Trash, volume up and down, eject all disks, and toggles for Wi-Fi, Bluetooth, mute and keeping the Mac awake. System Settings panes open from the search too. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/OwenCope/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/OwenCope">@OwenCope</a> in <a href="https://github.com/thaw-app/Floe/pull/6" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/6/hovercard">#6</a>. Quit Floe is one of them. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> in <a href="https://github.com/thaw-app/Floe/pull/19" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/19/hovercard">#19</a>.</li>
-</ul>
-<h4>Your own apps</h4>
-<ul>
-<li><strong>Preferred apps:</strong> a terminal, an editor, a browser and a notes app. Files, folders and the Finder selection open in them, and web links open in the browser you choose. The editor can be one that runs in your terminal: Helix, Neovim, Vim, Emacs and others on your Mac are offered by name. Open With sends one link to another browser.</li>
-<li><strong>Clipboard history.</strong> Floe keeps the text, links, images and files you copy, up to 300 of them, and text keeps its formatting. Return pastes one, and pinned copies survive Clear. A copy a password manager marks private is left out. Choose Off for Clipboard in Settings &gt; Applications to stop saving copies.</li>
-<li><strong>Browse Notes lists your notes in the panel</strong>, beside the one you pick: Floe's folder in Apple Notes, or a folder of Markdown notes such as an Obsidian or Octarine vault. It takes a hotkey in Settings &gt; Commands.</li>
-<li><strong>A note reads as a document</strong>, with the Markdown marks hidden and tasks you tick with a click. A formatting bar shows while you write. Command-B, Command-I, Command-E and Command-K format the selection, and Option-Command-1 to 6 turn a line into a heading or a list.</li>
-<li><strong>Return starts writing and Escape ends it.</strong> Command-N makes a note named by what you typed, and Command-O opens the note in its app.</li>
-<li><strong>Floe keeps no copy of your notes.</strong> It reads and writes them where they are and picks up what another app writes. A note changed elsewhere while you wrote is not overwritten: yours is saved beside it.</li>
-<li><strong>Floating Note keeps one note above other apps</strong>, on every Space and beside full-screen apps, and stays when the launcher closes. It takes an alias and a hotkey in Settings &gt; Commands.</li>
-<li><strong>It writes where your notes are:</strong> the files of a notes folder, or a folder named Floe in Apple Notes, as plain text. Command-[ and Command-] step through your notes, and Command-N makes one.</li>
-<li><strong>It saves after a pause in typing</strong>, and when you switch notes or close it. If a save fails, your text stays in the window and Floe says why. With Antinote or another app, it holds one scratch note until Send hands it over.</li>
-<li><strong>A preferred clipboard app.</strong> Choose a clipboard manager and Clipboard History opens it. Floe then saves no copies.</li>
-<li><strong>SSH hosts.</strong> The hosts in <code class="notranslate">~/.ssh/config</code> are in the search, and <code class="notranslate">ssh</code> and a space lists them. Return connects in your terminal. Floe reads the names and keeps nothing.</li>
-<li><strong>Apple Shortcuts</strong>, once turned on in Settings &gt; Privacy. Return runs one in the background. If it fails, Floe shows the reason Shortcuts gave.</li>
-</ul>
-<h4>Notes</h4>
-<ul>
-<li><strong><code class="notranslate">note</code> and some text</strong> goes to Apple Notes, Antinote, any app with a URL scheme, or a folder of Markdown files, which is what Obsidian and Octarine read. With a folder, <code class="notranslate">append</code> adds a line to the day's note.</li>
-<li><strong>In an Obsidian vault, the day's note is the one Obsidian opens.</strong> Floe follows the folder and the date format set under Daily notes, such as <code class="notranslate">YYYY/MM/DD</code> or <code class="notranslate">dddd, MMMM Do YYYY</code>, with English month and day names. A format it cannot read falls back to <code class="notranslate">YYYY-MM-DD</code>.</li>
-<li><strong><code class="notranslate">todo</code> and <code class="notranslate">log</code> write to the day's note.</strong> <code class="notranslate">todo renew passport</code> adds a checkbox, <code class="notranslate">- [ ] renew passport</code>, and <code class="notranslate">log shipped the build</code> adds the line with the time in front, <code class="notranslate">- 14:05 shipped the build</code>. <code class="notranslate">append</code> alone opens the day's note.</li>
-</ul>
-<h4>AI</h4>
-<ul>
-<li><strong>Ask AI.</strong> Type <code class="notranslate">ask</code> and a question, or pick the Ask AI row under any search. The answer shows in the launcher, with who answered and whether it stayed on your Mac.</li>
-<li><strong>Follow-up questions</strong> keep the earlier ones as context. The conversation ends when the view closes, and no history is kept.</li>
-<li><strong>Three kinds of source:</strong> a command line tool you are already signed in to (<code class="notranslate">claude</code>, <code class="notranslate">codex</code>, <code class="notranslate">opencode</code> or <code class="notranslate">pi</code>), Apple Intelligence, or an OpenAI-compatible API (OpenAI, OpenRouter, Z.ai, Ollama, LM Studio).</li>
-<li><strong>A switch keeps all AI on your Mac.</strong> One extension can have a source of its own. No source falls back to another.</li>
-</ul>
-<h4>With Thaw</h4>
-<ul>
-<li><strong>Thaw 3's actions are in the search</strong> when Thaw is installed: the hidden sections, swap, Zen Mode, the Thaw Bar, the layout and the application menus.</li>
-<li><strong>The launcher can follow Thaw's menu bar appearance:</strong> its tint, glass, border and shadow.</li>
-</ul>
-<h4>Appearance and settings</h4>
-<ul>
-<li><strong>Glass styles, a tint, a border and a shadow</strong> for the launcher, with a preview that changes as you choose.</li>
-<li><strong>A compact layout</strong> shows only the search bar until you type.</li>
-<li><strong>The search field is rounded, a capsule or square.</strong> It can also float as its own piece of glass, with the results in a second piece below it.</li>
-<li><strong>A beam of light runs around the search field</strong>, with a soft glow just inside it. Settings &gt; Appearance picks Colorful, Mono, Ocean or Sunset, or turns it off, and sets its frame rate, from 15 to 120.</li>
-<li><strong>A Privacy page</strong> lists the permissions and their reasons, the search sources, and everything Floe contacts over the network.</li>
-<li><strong>A welcome at first launch</strong> gives a short tour, then shows each permission on a card: what it switches on and whether you have granted it.</li>
-<li><strong>A permission asks only when you press its button</strong>, and all of them can wait: Accessibility, Screen Recording, your Desktop, Documents and Downloads folders, notifications, Calendar, Reminders and Contacts. If a later version needs one you have not answered, that step comes back.</li>
-<li><strong>The Settings sidebar groups the pages.</strong> General, Appearance and Privacy come first. Search holds Commands, Applications, Quicklinks and Snippets, and Connections holds AI, Sync and the Extension Store. Each extension has a page of its own, and About comes last.</li>
-<li><strong>Search the settings</strong> from the top of the Settings window's sidebar.</li>
-<li><strong>Export your settings to one file</strong> and import them on another Mac.</li>
-<li><strong>Launch at login, and updates.</strong> Floe asks once whether it may check for updates, and whether to install them by itself. Settings chooses between the Stable and the Beta channel.</li>
-<li><strong>What's New and detailed logging.</strong> What's New, in About, shows these notes in the app. Detailed logging, in Settings &gt; Privacy, is off by default and writes to <code class="notranslate">~/Library/Logs/Floe</code>. It never logs what you type or ask.</li>
-</ul>
-<h4>Shortcuts and Siri</h4>
-<ul>
-<li><strong>Three actions in Apple's Shortcuts app:</strong> Open Floe, Run Command and Search Menu Bar Items. Siri runs them too.</li>
-</ul>
-<h4>Sync</h4>
-<ul>
-<li><strong>Settings sync with iCloud</strong>, off until you switch it on in Settings &gt; Sync. Aliases, hotkeys, favorites, hidden results, appearance, snippets, quicklinks and extension settings are the same on your Macs, and the newest change wins.</li>
-<li><strong>Passwords through iCloud Keychain</strong>, a second switch that is off until you choose it. Extension passwords and API keys become iCloud Keychain items; off copies them back to this Mac and leaves them in iCloud Keychain.</li>
-<li><strong>Some things stay on each Mac:</strong> folders, permissions, AI settings, an extension's files, folders and chosen apps, sign-ins and receipts. Remove Settings from iCloud deletes iCloud's copy and switches sync off on every Mac.</li>
-</ul>
-<h3>Known issues</h3>
-<ul>
-<li><strong>Extension sign-in uses Raycast's sign-in service for now.</strong> The browser returns through raycast.com, and some extensions get their token from Raycast's servers. Floe says so before the first sign-in. It may stop working before Floe's own service replaces it. GitHub and GitLab extensions sign in with their command line tools instead.</li>
-<li><strong>AI tools and window management for extensions are not built yet.</strong> A <code class="notranslate">raycast://extensions/…</code> link opened from a browser or another app goes to Raycast. <a href="docs/LIMITATIONS.md">Limitations</a> lists the rest.</li>
-<li><strong>The record of what an extension reaches misses some file access.</strong> It sees hosts and programs more reliably than files.</li>
-<li><strong>Timers end when Floe quits.</strong> They are held in memory.</li>
-<li><strong>Fast file search leaves out iCloud Drive</strong>, which macOS keeps inside Library.</li>
-<li><strong>Floe is in English only.</strong> Its text can be translated on <a href="https://crowdin.com/project/floe" rel="nofollow">Crowdin</a>.</li>
-</ul>
-<h3>Contributors</h3>
-<ul>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/OwenCope/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/OwenCope">@OwenCope</a> wrote the Extension Store page, snippets, quicklinks, emoji, file search, calendar events, menu bar item search and the system commands (<a href="https://github.com/thaw-app/Floe/pull/6" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/6/hovercard">#6</a>).</li>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/lylythechosenone/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/lylythechosenone">@lylythechosenone</a> wrote the calculator (<a href="https://github.com/thaw-app/Floe/pull/7" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/7/hovercard">#7</a>) and its superscripts, tested Floe and suggested features.</li>
-<li>HiroMike on Discord tested Floe and sent feedback.</li>
-<li>dor4a on Discord tested Floe and asked whether commands could have a key of their own, such as ⌘E for emoji or ⇧⌘V for the clipboard. Emoji, Clipboard History, File Search and the system commands take a hotkey.</li>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> reported the first bugs, in the Settings window (<a href="https://github.com/thaw-app/Floe/issues/3" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/3/hovercard">#3</a>), reworked the Extension Store page (<a href="https://github.com/thaw-app/Floe/pull/16" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/16/hovercard">#16</a>) and added Quit Floe to the search (<a href="https://github.com/thaw-app/Floe/pull/19" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/19/hovercard">#19</a>).</li>
-</ul>
-<h3>Acknowledgements</h3>
-<ul>
-<li><a href="https://github.com/printfn/fend">fend</a> by printfn is the calculator's engine. Exchange rates are the European Central Bank's euro foreign exchange reference rates.</li>
-<li>Code from <a href="https://getdroppycode.app" rel="nofollow">Droppy Code</a> by Jordy Spruit is used with his permission.</li>
-<li>Extensions are written for the <a href="https://github.com/raycast/extensions">Raycast extensions</a> API. Raycast is a trademark of Raycast Technologies Inc.; Floe is not affiliated with Raycast.</li>
-<li><a href="https://github.com/thaw-app/Floe/blob/main/CREDITS.md">Credits</a> lists every package Floe ships with.</li>
-</ul>]]></description>
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.0/Floe_0.1.0.zip" length="46700364" type="application/octet-stream" sparkle:edSignature="MddBGRXneacZCtclp+mlBfZg+GZUr+8qBH3Bch7Akoc322djY9PMCso4GChejf+9Y0OGQ2Cb50RmSFiEREOQDA=="/>
         </item>
     </channel>
