@@ -284,7 +284,13 @@ enum NoteFiles {
         }
         if let chosen = (obsidianDailyNotes(in: folder)["folder"] as? String)?.trimmingCharacters(in: CharacterSet(charactersIn: "/")),
            MomentPattern.staysInside(chosen) {
-            return folder.appendingPathComponent(chosen, isDirectory: true)
+            let place = folder.appendingPathComponent(chosen, isDirectory: true)
+            // A link inside the vault can still lead out of it, so the place is checked where it really is.
+            let vault = folder.resolvingSymlinksInPath().path
+            let resolved = place.resolvingSymlinksInPath().path
+            if resolved == vault || resolved.hasPrefix(vault + "/") {
+                return place
+            }
         }
         return folder
     }

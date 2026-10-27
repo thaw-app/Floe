@@ -131,16 +131,19 @@ nonisolated enum ShellCommand {
     }
 
     /// A word for the shell as it is, with each character the shell would act on behind a backslash.
-    /// A backslash cannot keep a line break, so a word with one is quoted whole.
+    /// A backslash cannot keep a line break, so a word with one is quoted whole. Scalars, not characters:
+    /// `$` with a combining mark is one character to Swift, and still a `$` to the shell.
     static func escaped(_ word: String) -> String {
         guard !word.contains(where: \.isNewline) else { return TerminalEditor.quoted(word) }
-        return word.reduce(into: "") { escaped, character in
-            if shellSyntax.contains(character) {
+        var escaped = String.UnicodeScalarView()
+        for scalar in word.unicodeScalars {
+            if shellSyntax.contains(scalar) {
                 escaped.append("\\")
             }
-            escaped.append(character)
+            escaped.append(scalar)
         }
+        return String(escaped)
     }
 
-    private static let shellSyntax = Set(" \t!\"#$&'()*;<=>?[\\]^`{|}~")
+    private static let shellSyntax = Set(" \t!\"#$&'()*;<=>?[\\]^`{|}~".unicodeScalars)
 }

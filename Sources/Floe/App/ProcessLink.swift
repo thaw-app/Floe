@@ -222,8 +222,11 @@ final class ProcessLink: NSObject {
     private let transport: Transport
     /// Numbers this process's messages, so one copied off the session's notifications cannot be sent again.
     private var sent: UInt64 = 0
-    /// The last number taken from each sender; a message must count up from it.
+    /// The last number taken from each sender under the current key; a message must count up from it.
     private var lastTaken: [Int32: UInt64] = [:]
+    /// The key `lastTaken` was counted under. A new settings process brings a new key and numbers from one again,
+    /// even when it has the pid an earlier one had.
+    private var takenUnder: Data?
     /// What a received message is handed to.
     var handler: (LinkMessage) -> Void = { _ in
         // Set by the owner before `start()`.
@@ -267,6 +270,11 @@ final class ProcessLink: NSObject {
 
     /// The message in a notification, when it is one this process should act on. Taking it uses up its number.
     func message(name: Notification.Name, info: [String: String]) -> LinkMessage? {
+        let session = gate.key().map { key in key.withUnsafeBytes { Data($0) } }
+        if session != takenUnder {
+            lastTaken = [:]
+            takenUnder = session
+        }
         guard let kind = LinkMessage.Kind.allCases.first(where: { $0.name == name }),
               kind.isMeant(for: role),
               let payload = info[Self.payloadKey],

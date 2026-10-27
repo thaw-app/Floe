@@ -48,10 +48,28 @@ struct TextGenerationTests {
         let settings = zip(arguments, arguments.dropFirst()).filter { $0.0 == "--config" }.map(\.1)
         #expect(settings.contains("features.shell_tool=false"))
         #expect(settings.contains("features.unified_exec=false"))
+        #expect(settings.contains("features.plugins=false"))
+        let withServers = TextGeneration.arguments(for: .codex(executable: output, model: nil), output: output, mcpServers: ["GitKraken", "node_repl"])
+        let serverSettings = zip(withServers, withServers.dropFirst()).filter { $0.0 == "--config" }.map(\.1)
+        #expect(serverSettings.contains("mcp_servers.GitKraken.enabled=false"))
+        #expect(serverSettings.contains("mcp_servers.node_repl.enabled=false"))
+    }
+
+    @Test func codexsServersAreReadOrTheRunIsRefused() async throws {
+        #expect(TextGeneration.codexServers(in: Data(#"[{"name":"GitKraken"},{"name":"computer-use"}]"#.utf8)) == ["GitKraken", "computer-use"])
+        #expect(TextGeneration.codexServers(in: Data("[]".utf8)) == [])
+        #expect(TextGeneration.codexServers(in: Data(#"[{"name":"a.b"}]"#.utf8)) == nil, "a name --config would read as a path")
+        #expect(TextGeneration.codexServers(in: Data("not json".utf8)) == nil)
+
+        // A Codex that cannot list its servers gives no answer rather than one with its tools on.
+        let engine = try TextGeneration.Engine.codex(executable: script("[ \"$1\" = mcp ] && exit 1; echo ran > /dev/null"), model: nil)
+        await #expect(throws: ShellError.self) {
+            try await TextGeneration.run("why?", engine: engine, environment: environment)
+        }
     }
 
     @Test func codexRunsInAnEmptyFolderOfItsOwn() async throws {
-        let body = "while [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\n: > \"$out\"; n=$(ls -A | wc -l | tr -d ' '); { echo \"$n\"; pwd; } > \"$out\""
+        let body = "[ \"$1\" = mcp ] && { echo '[]'; exit 0; }\nwhile [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\n: > \"$out\"; n=$(ls -A | wc -l | tr -d ' '); { echo \"$n\"; pwd; } > \"$out\""
         let engine = try TextGeneration.Engine.codex(executable: script(body), model: nil)
         let lines = try await TextGeneration.run("why?", engine: engine, environment: environment).split(separator: "\n").map(String.init)
         // The answer file is the one thing in the folder, and the folder is gone once the run is over.
@@ -67,7 +85,7 @@ struct TextGenerationTests {
 
     @Test func codexsAnswerIsTheFileItWrites() async throws {
         // The file is the argument after --output-last-message; standard output is the session's noise.
-        let body = "while [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\necho noise; printf '  from codex\\n' > \"$out\""
+        let body = "[ \"$1\" = mcp ] && { echo '[]'; exit 0; }\nwhile [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\necho noise; printf '  from codex\\n' > \"$out\""
         let engine = try TextGeneration.Engine.codex(executable: script(body), model: nil)
         #expect(try await TextGeneration.run("why?", engine: engine, environment: environment) == "from codex")
     }

@@ -46,7 +46,7 @@ nonisolated enum TextGeneration {
 
     /// The arguments for one run. Codex writes its last message to `output`, since its standard
     /// output carries the whole session. For opencode, `output` is the empty folder it runs in.
-    static func arguments(for engine: Engine, output: URL) -> [String] {
+    static func arguments(for engine: Engine, output: URL, mcpServers: [String] = []) -> [String] {
         switch engine {
         case let .claude(_, model):
             [
@@ -55,16 +55,32 @@ nonisolated enum TextGeneration {
                 "--no-session-persistence",
             ]
         case let .codex(_, model):
-            // Codex has no switch for no tools; these turn off its commands, the way it reads files.
             ["exec", "--ephemeral", "--skip-git-repo-check", "-s", "read-only"]
                 + (model.map { ["--model", $0] } ?? [])
-                + ["--config", "model_reasoning_effort=\"low\"", "--config", "features.shell_tool=false", "--config", "features.unified_exec=false"]
+                + ["--config", "model_reasoning_effort=\"low\""] + codexToolsOff
+                + mcpServers.flatMap { ["--config", "mcp_servers.\($0).enabled=false"] }
                 + ["--output-last-message", output.path, "-"]
         case let .opencode(_, model):
             OpencodeTextStream.arguments(model: model, directory: output)
         case let .pi(_, model):
             PiTextStream.arguments(model: model)
         }
+    }
+
+    /// Codex has no switch for no tools: these turn off its commands, its plugins and what drives the Mac.
+    /// The user's own MCP servers are turned off by name, from `codexServers(in:)`.
+    static let codexToolsOff = [
+        "features.shell_tool=false", "features.unified_exec=false", "features.plugins=false",
+        "features.apps=false", "features.browser_use=false", "features.computer_use=false",
+    ].flatMap { ["--config", $0] }
+
+    /// The MCP servers in `codex mcp list --json`, or nil when a name cannot be written as a bare key in `--config`:
+    /// a server Floe cannot turn off would stay on for the answer.
+    static func codexServers(in listing: Data) -> [String]? {
+        guard let servers = try? JSONSerialization.jsonObject(with: listing) as? [[String: Any]] else { return nil }
+        let names = servers.compactMap { $0["name"] as? String }
+        let bare = names.allSatisfy { !$0.isEmpty && $0.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "_" || $0 == "-") } }
+        return names.count == servers.count && bare ? names : nil
     }
 
     /// Answers a prompt, with text handed to `onText` as it arrives. Claude and pi stream. Codex's one-shot run
@@ -128,9 +144,17 @@ nonisolated enum TextGeneration {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let output = directory.appendingPathComponent("answer.txt")
+        var servers: [String] = []
+        if case .codex = engine {
+            let listing = try await Shell.run(engine.executable, ["mcp", "list", "--json"] + codexToolsOff, in: directory, environment: environment, timeout: 30)
+            guard listing.succeeded, let names = codexServers(in: Data(listing.trimmedOutput.utf8)) else {
+                throw ShellError(String(localized: "Codex can't answer here: Floe couldn't turn off its MCP servers for the answer.", bundle: .floe))
+            }
+            servers = names
+        }
         let result = try await Shell.run(
             engine.executable,
-            arguments(for: engine, output: output),
+            arguments(for: engine, output: output, mcpServers: servers),
             in: directory,
             environment: environment,
             input: Data(prompt.utf8),

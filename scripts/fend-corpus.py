@@ -58,11 +58,13 @@ def main() -> int:
     with urllib.request.urlopen(SOURCE.format(version=version), timeout=30) as response:
         source = response.read().decode("utf-8")
     calls = CALL.findall(source)
-    # The fixture is a ##-raw string: its closing delimiter or a \##( interpolation in the source would be Swift code.
-    if not calls or '"""##' in source or "\\##(" in source:
-        sys.exit("error: no calls found, or the source holds the fixture's own delimiter or interpolation")
+    if not calls:
+        sys.exit("error: no test_eval calls found")
     # Indented as the literal is, so Swift takes the indentation back off every line.
     body = "\n".join("    " + line if line else "" for call in calls for line in call.split("\n"))
+    # The fixture is a ##-raw string: its closing delimiter or a \##( interpolation in the calls would be Swift code.
+    if '"""##' in body or "\\##(" in body:
+        sys.exit("error: the calls hold the fixture's own delimiter or an interpolation")
     FIXTURE.write_text(HEADER.format(version=version, calls=body), encoding="utf-8")
     print(f"wrote {FIXTURE.relative_to(ROOT)}: {len(calls)} calls from fend {version}")
     return 0

@@ -172,6 +172,21 @@ struct ProcessLinkTests {
         #expect(received == [.removeSyncedSettings, .quit])
     }
 
+    @Test func aNewSettingsProcessWithAnOldPidCountsFromOneAgain() {
+        var key = SymmetricKey(size: .bits256)
+        var received: [LinkMessage] = []
+        let link = ProcessLink(role: .launcher, gate: LinkGate(ownPid: 7, key: { key }, peerPid: { 50 }), transport: Outbox().transport)
+        link.handler = { received.append($0) }
+        func signed(_ message: LinkMessage, sequence: UInt64) -> [String: String] {
+            let signature = LinkGate(ownPid: 50, key: { key }, peerPid: { 7 }).signature(of: message, sequence: sequence) ?? ""
+            return ["pid": "50", "payload": message.payload, "sequence": String(sequence), "signature": signature]
+        }
+        link.receive(name: LinkMessage.Kind.ready.name, info: signed(.ready, sequence: 9))
+        key = SymmetricKey(size: .bits256)
+        link.receive(name: LinkMessage.Kind.ready.name, info: signed(.ready, sequence: 1))
+        #expect(received == [.ready, .ready])
+    }
+
     @Test func aMessageForTheOtherSideOrWithABadPayloadIsDropped() {
         var received: [LinkMessage] = []
         let link = ProcessLink(role: .launcher, gate: gate(own: 7) { 50 }, transport: Outbox().transport)

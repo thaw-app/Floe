@@ -161,6 +161,12 @@ describe("better-sqlite3 over bun:sqlite", () => {
     }
     expect(() => db.exec("PRAGMA key = 'secret'")).toThrow("Floe can't open encrypted databases");
     expect(() => db.prepare("pragma main.hexkey = '00'")).toThrow("Floe can't open encrypted databases");
+    for (const sql of ["PRAGMA/**/key = 'secret'", "PRAGMA -- a note\nkey = 'x'", "PRAGMA\"key\" = 'x'", "SELECT '--'; PRAGMA key = 'x'"]) {
+      expect(() => db.exec(sql), sql).toThrow("Floe can't open encrypted databases");
+    }
     expect(db.pragma("user_version", { simple: true })).toBe(0);
+    db.exec("CREATE TABLE notes (body TEXT); INSERT INTO notes VALUES ('PRAGMA key = 1'), ('/* -- */')");
+    expect(db.prepare("SELECT count(*) FROM notes").pluck().get()).toBe(2);
+    expect(db.prepare("SELECT 'PRAGMA'cipher_note").pluck().get()).toBe("PRAGMA");
   });
 });

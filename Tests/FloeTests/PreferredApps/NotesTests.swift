@@ -381,4 +381,22 @@ struct DailyNoteFolderTests {
         try json.write(to: vault.appendingPathComponent(".obsidian/daily-notes.json"))
         #expect(NoteFiles.dayFolder(in: vault) == vault, "the note stays at the top of the vault")
     }
+
+    @Test func aDailyNotesFolderThatLinksOutOfTheVaultIsNotFollowed() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("floe-notes-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let vault = root.appendingPathComponent("Vault")
+        let outside = root.appendingPathComponent("Outside")
+        try FileManager.default.createDirectory(at: vault.appendingPathComponent(".obsidian"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: vault.appendingPathComponent("Daily"), withDestinationURL: outside)
+        try FileManager.default.createDirectory(at: vault.appendingPathComponent("Journal"), withIntermediateDirectories: true)
+        let settings = vault.appendingPathComponent(".obsidian/daily-notes.json")
+
+        try JSONSerialization.data(withJSONObject: ["folder": "Daily"]).write(to: settings)
+        #expect(NoteFiles.dayFolder(in: vault) == vault, "a link that leads outside is not followed")
+
+        try JSONSerialization.data(withJSONObject: ["folder": "Journal"]).write(to: settings)
+        #expect(NoteFiles.dayFolder(in: vault) == vault.appendingPathComponent("Journal", isDirectory: true))
+    }
 }

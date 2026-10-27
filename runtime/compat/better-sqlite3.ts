@@ -66,10 +66,36 @@ class Statement {
 
 // The multiple-ciphers build encrypts with these pragmas, with or without a schema before the name. The SQLite under
 // Bun has no cipher, and ignoring the key would write in the clear what the user asked to have encrypted.
-const encryption = /\bPRAGMA\s+(?:["'`[]?\w+["'`\]]?\s*\.\s*)?["'`[]?(?:cipher\w*|key|rekey|hexkey|hexrekey)\b/i;
+const encryption = /(?<!["'`[])\bPRAGMA(?:\s+|(?=["'`[]))(?:["'`[]?\w+["'`\]]?\s*\.\s*)?["'`[]?(?:cipher\w*|key|rekey|hexkey|hexrekey)\b/i;
+
+/// The SQL as SQLite reads its words: a comment is a space, so PRAGMA/**/key cannot hide, and a quoted text that is
+/// no one word is blanked, so a value that reads "PRAGMA key" is no pragma and a "--" in it starts no comment.
+function words(source: string) {
+  let out = "";
+  let at = 0;
+  while (at < source.length) {
+    const char = source[at];
+    if (char === "'" || char === '"' || char === "`" || char === "[") {
+      const close = source.indexOf(char === "[" ? "]" : char, at + 1);
+      const end = close === -1 ? source.length : close + 1;
+      const quoted = source.slice(at, end);
+      out += /^.\w+.$/.test(quoted) ? quoted : `${char}${char === "[" ? "]" : char}`;
+      at = end;
+    } else if (source.startsWith("--", at) || source.startsWith("/*", at)) {
+      const block = source.startsWith("/*", at);
+      const close = source.indexOf(block ? "*/" : "\n", at + 2);
+      at = close === -1 ? source.length : close + (block ? 2 : 0);
+      out += " ";
+    } else {
+      out += char;
+      at += 1;
+    }
+  }
+  return out;
+}
 
 function refuseEncryption(source: string) {
-  if (encryption.test(source)) {
+  if (encryption.test(words(source))) {
     throw new Error("Floe can't open encrypted databases: the SQLite it runs extensions with has no encryption");
   }
 }
