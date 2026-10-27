@@ -247,9 +247,8 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
             settings.save()
         }
         let deskSave = model.noteDeskSave
-        Task { [floatingNote] in
-            _ = await deskSave?.value
-            floatingNote.finish(then: done)
-        }
+        // A notes app that never answers must not keep Floe from quitting: the desk's save gets five seconds,
+        // then the floating note saves with five of its own.
+        waitAtMost(.seconds(5), for: { _ = await deskSave?.value }, then: { [floatingNote] in floatingNote.finish(then: done) })
     }
 }

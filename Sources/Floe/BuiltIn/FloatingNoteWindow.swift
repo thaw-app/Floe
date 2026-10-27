@@ -51,7 +51,6 @@ final class FloatingNoteWindowController: NSObject, NSWindowDelegate {
     private var panel: FloatingNotePanel?
     private var model: FloatingNoteModel?
     private var keyMonitor: Any?
-    private var afterFinish: (() -> Void)?
 
     init(
         settings: AppSettings,
@@ -92,22 +91,7 @@ final class FloatingNoteWindowController: NSObject, NSWindowDelegate {
             done()
             return
         }
-        afterFinish = done
-        Task {
-            _ = await model.commit()
-            endFinish()
-        }
-        Task {
-            try? await Task.sleep(for: .seconds(5))
-            endFinish()
-        }
-    }
-
-    /// Whichever comes first, the save or the wait, calls back; the other finds nothing to do.
-    private func endFinish() {
-        let done = afterFinish
-        afterFinish = nil
-        done?()
+        waitAtMost(.seconds(5), for: { _ = await model.commit() }, then: done)
     }
 
     private func makePanel() -> FloatingNotePanel {
