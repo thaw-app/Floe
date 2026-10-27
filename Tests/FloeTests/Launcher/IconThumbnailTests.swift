@@ -296,3 +296,16 @@ struct IconThumbnailTests {
         #expect(loaded.image(for: Self.key(.workspace(path: "/Applications/First.app"), scale: 1)) == nil)
     }
 }
+
+extension IconThumbnailTests {
+    @Test func aVectorFileOfAnyShapeGetsABoundedBitmap() throws {
+        try Self.withAssets { folder in
+            let vector = folder.appendingPathComponent("line.svg")
+            let svg = #"<svg xmlns="http://www.w3.org/2000/svg" width="1" height="100000" viewBox="0 0 1 100000"><rect width="1" height="100000"/></svg>"#
+            try Data(svg.utf8).write(to: vector)
+            let image = try #require(IconThumbnail.render(Self.key(.file(path: vector.path))))
+            #expect(image.height == 48 * Int(IconThumbnail.longestSide), "the longer side stops at its limit")
+            #expect(image.width <= 48)
+        }
+    }
+}

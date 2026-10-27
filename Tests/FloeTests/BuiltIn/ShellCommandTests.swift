@@ -233,6 +233,10 @@ struct ShellCommandTests {
         #expect(ShellCommand.program(of: "pkill -f x") == "pkill")
         #expect(ShellCommand.program(of: "sudo purge") == "purge")
         #expect(ShellCommand.program(of: "") == nil)
+        #expect(ShellCommand.manualCommand(for: "rsync") == "man rsync")
+        #expect(ShellCommand.manualCommand(for: "$(touch${IFS}x)") == "man \\$\\(touch\\$\\{IFS\\}x\\)", "a program's name is never run")
+        #expect(ShellCommand.examples(for: "a;b") == "tldr a\\;b")
+        #expect(ShellCommand.escaped("a\nb") == "'a\nb'", "a line break is quoted, since a backslash would join the lines")
         #expect(ShellCommand.plain("\u{1B}[1;32mgreen\u{1B}[0m and plain") == "green and plain")
     }
 

@@ -230,7 +230,7 @@ final class ShellRows {
         guard let program = ShellCommand.program(of: command) else { return [] }
         var actions: [ItemAction?] = [
             ItemAction(title: String(localized: "Show Manual for \(program)", bundle: .floe, comment: "The placeholder is the name of a command-line program."), symbol: "book") { [weak self] in
-                self?.runShellCommand("man \(program)", terminal: terminal)
+                self?.runShellCommand(ShellCommand.manualCommand(for: program), terminal: terminal)
             },
         ]
         if environment.hasProgram("tldr") {

@@ -74,6 +74,17 @@ import Testing
         #expect(line.range(of: stamp, options: .regularExpression) != nil)
     }
 
+    @Test func aMessageWithLineBreaksStaysOneRecord() throws {
+        logger.attachToFile(at: file)
+        defer { stopLogging() }
+
+        logger.log(level: .error, category: category, message: "failed\n2026-01-01 00:00:00.000 [INFO] [\(category)] forged\r\n")
+
+        let lines = try ownLines(in: file)
+        #expect(lines.count == 1)
+        #expect(lines.first?.hasSuffix(#"failed\n2026-01-01 00:00:00.000 [INFO] [\#(category)] forged\r\n"#) == true)
+    }
+
     @Test func eachDiagLogMethodWritesALineAtItsOwnLevel() throws {
         logger.attachToFile(at: file)
         defer { stopLogging() }

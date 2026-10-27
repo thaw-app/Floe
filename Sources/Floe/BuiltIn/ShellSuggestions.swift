@@ -103,17 +103,18 @@ nonisolated enum ShellSuggestions {
         let words = typed.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
         guard let program = words.first else { return [] }
         if program == "open", let flag = words.firstIndex(of: "-a") {
-            // An application's name may have spaces in it, so everything after the flag is its start.
+            // An application's name may have spaces in it, so everything after the flag is its start,
+            // and the name goes in with the shell's characters escaped, as a path does.
             let start = words[(flag + 1)...].joined(separator: " ")
             let line = words[...flag].joined(separator: " ")
             return apps.filter { $0.lowercased().hasPrefix(start.lowercased()) && $0.lowercased() != start.lowercased() }
-                .prefix(5).map { line + " " + ($0.contains(" ") ? "\"\($0)\"" : $0) }
+                .prefix(5).map { line + " " + ShellCommand.escaped($0) }
         }
         guard program == "ssh" || program == "scp", !hosts.isEmpty else { return [] }
         let start = !typed.hasSuffix(" ") && words.count > 1 ? words.last ?? "" : ""
         guard typed.hasSuffix(" ") || words.count > 1, !start.hasPrefix("-") else { return [] }
         let line = String(typed.dropLast(start.count))
-        return hosts.filter { $0.hasPrefix(start) && $0 != start }.prefix(5).map { line + $0 }
+        return hosts.filter { $0.hasPrefix(start) && $0 != start }.prefix(5).map { line + ShellCommand.escaped($0) }
     }
 
     /// The typed line with its last word, a path, finished by each entry of the folder that starts as it does.
@@ -129,7 +130,7 @@ nonisolated enum ShellSuggestions {
             .filter { $0.lowercased().hasPrefix(start.lowercased()) && ($0.hasPrefix(".") == start.hasPrefix(".")) }
             .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
             .prefix(5)
-            .map { line + folder + $0.replacingOccurrences(of: " ", with: "\\ ") }
+            .map { line + folder + ShellCommand.escaped($0) }
     }
 
     /// The names in a folder as they are on disk, a folder's with a slash after it. Empty for what cannot be read.

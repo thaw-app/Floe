@@ -120,8 +120,27 @@ nonisolated enum ShellCommand {
         text.replacing(/\u{1B}\[[0-9;]*[A-Za-z]/, with: "")
     }
 
+    /// The command that shows a program's manual, with the name taken as it is and never run.
+    static func manualCommand(for program: String) -> String {
+        "man \(escaped(program))"
+    }
+
     /// The command that shows a program's common uses, for a Mac that has `tldr`.
     static func examples(for program: String) -> String {
-        "tldr \(program)"
+        "tldr \(escaped(program))"
     }
+
+    /// A word for the shell as it is, with each character the shell would act on behind a backslash.
+    /// A backslash cannot keep a line break, so a word with one is quoted whole.
+    static func escaped(_ word: String) -> String {
+        guard !word.contains(where: \.isNewline) else { return TerminalEditor.quoted(word) }
+        return word.reduce(into: "") { escaped, character in
+            if shellSyntax.contains(character) {
+                escaped.append("\\")
+            }
+            escaped.append(character)
+        }
+    }
+
+    private static let shellSyntax = Set(" \t!\"#$&'()*;<=>?[\\]^`{|}~")
 }

@@ -34,6 +34,8 @@ struct ShellSuggestionsTests {
         let entries = ["~/": ["Desktop/", "Documents/", "Downloads/", ".zshrc", "notes.txt"], "~/Documents/": ["My Notes.txt", "more/"], "/": ["usr/", "Users/"]]
         #expect(texts("open ~/D", entries: entries) == ["open ~/Desktop/", "open ~/Documents/", "open ~/Downloads/"])
         #expect(texts("cat ~/Documents/my", entries: entries) == ["cat ~/Documents/My\\ Notes.txt"], "letters match in either case, and a space is escaped")
+        let odd = ["~/": ["a;touch x", "$(id).txt", "it's"]]
+        #expect(texts("cat ~/", entries: odd) == ["cat ~/\\$\\(id\\).txt", "cat ~/a\\;touch\\ x", "cat ~/it\\'s"], "a name's shell syntax is escaped and never run")
         #expect(texts("cat ~/.z", entries: entries) == ["cat ~/.zshrc"])
         #expect(!texts("cat ~/", entries: entries).contains("cat ~/.zshrc"), "hidden files wait for the dot")
         #expect(texts("ls /u", entries: entries) == ["ls /Users/", "ls /usr/"])
@@ -47,11 +49,12 @@ struct ShellSuggestionsTests {
         func names(_ typed: String) -> [String] {
             ShellSuggestions.names(for: typed, apps: apps, hosts: hosts)
         }
-        #expect(names("open -a S") == ["open -a Safari", "open -a \"Script Editor\"", "open -a \"System Settings\""])
-        #expect(names("open -a script e") == ["open -a \"Script Editor\""], "a name with a space in it is quoted")
+        #expect(names("open -a S") == ["open -a Safari", "open -a Script\\ Editor", "open -a System\\ Settings"])
+        #expect(names("open -a script e") == ["open -a Script\\ Editor"], "a name with a space in it is escaped")
         #expect(names("open -a Safari").isEmpty, "a name typed in full has nothing to finish")
-        #expect(names("open -a ") == ["open -a Safari", "open -a \"Script Editor\"", "open -a \"System Settings\"", "open -a Notes"])
+        #expect(names("open -a ") == ["open -a Safari", "open -a Script\\ Editor", "open -a System\\ Settings", "open -a Notes"])
         #expect(names("open S").isEmpty)
+        #expect(ShellSuggestions.names(for: "open -a M", apps: ["My $(id) App"], hosts: []) == ["open -a My\\ \\$\\(id\\)\\ App"], "the shell runs nothing in a name")
         #expect(names("ssh b") == ["ssh build-box", "ssh bastion"])
         #expect(names("ssh ") == ["ssh build-box", "ssh bastion", "ssh web1"])
         #expect(names("scp file.txt w") == ["scp file.txt web1"])

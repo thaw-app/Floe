@@ -215,12 +215,19 @@ nonisolated enum IconThumbnail {
         return bitmap(width: width, height: height) { $0.draw(decoded, in: CGRect(x: 0, y: 0, width: width, height: height)) }
     }
 
-    /// For what ImageIO does not downsample, SVG above all: drawn so its shorter side is `pixels`.
+    /// How many times `pixels` a drawing's longer side may reach: a stranger shape is drawn smaller.
+    static let longestSide: CGFloat = 4
+
+    /// For what ImageIO does not downsample, SVG above all: drawn so its shorter side is `pixels`,
+    /// unless that would make the longer side more than `longestSide` times as long.
     private static func drawn(_ image: NSImage, pixels: Int) -> CGImage? {
         let shorter = min(image.size.width, image.size.height)
-        guard shorter > 0 else { return nil }
-        let factor = CGFloat(pixels) / shorter
-        return draw(image, width: Int((image.size.width * factor).rounded()), height: Int((image.size.height * factor).rounded()), scale: factor)
+        let longer = max(image.size.width, image.size.height)
+        guard shorter > 0, longer.isFinite else { return nil }
+        let factor = min(CGFloat(pixels) / shorter, CGFloat(pixels) * longestSide / longer)
+        let width = max(1, Int((image.size.width * factor).rounded()))
+        let height = max(1, Int((image.size.height * factor).rounded()))
+        return draw(image, width: width, height: height, scale: factor)
     }
 
     /// The context is scaled, so a workspace icon picks the artwork it has for this point size on this display.

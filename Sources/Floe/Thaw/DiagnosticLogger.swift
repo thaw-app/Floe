@@ -266,7 +266,7 @@ final nonisolated class DiagnosticLogger: Sendable {
         guard isEnabled else { return }
 
         let timestamp = Self.timestampStyle.format(Date())
-        let line = "\(timestamp) [\(level.rawValue)] [\(category)] \(message)\n"
+        let line = "\(timestamp) [\(level.rawValue)] [\(category)] \(Self.oneLine(message))\n"
 
         guard let data = line.data(using: .utf8) else { return }
 
@@ -275,6 +275,11 @@ final nonisolated class DiagnosticLogger: Sendable {
                 handle?.write(data)
             }
         }
+    }
+
+    /// A message on one line, its breaks written as `\n` and `\r`, so text from elsewhere cannot start a record of its own.
+    static func oneLine(_ message: String) -> String {
+        message.replacingOccurrences(of: "\r", with: "\\r").replacingOccurrences(of: "\n", with: "\\n")
     }
 }
 
