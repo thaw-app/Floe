@@ -13,11 +13,13 @@ struct MarkdownView: View {
     /// Detail views keep the compact size; an answer that is read at length passes a larger one.
     var font = Font.system(size: 13)
     var lineSpacing: CGFloat = 0
+    /// Off for text a model wrote: its picture addresses could carry the conversation away, so they show as links.
+    var loadsImages = true
     /// Selectable text does not draw off screen, so `--panel-snapshot` turns this off.
     static var isSelectable = true
 
     var body: some View {
-        MarkdownBlocks(pieces: content.pieces, lineSpacing: lineSpacing)
+        MarkdownBlocks(pieces: content.pieces, lineSpacing: lineSpacing, loadsImages: loadsImages)
             .font(font)
             .modifier(Selectable(isOn: Self.isSelectable))
     }
@@ -49,6 +51,7 @@ private struct Selectable: ViewModifier {
 private struct MarkdownBlocks: View {
     let pieces: [MarkdownContent.Piece]
     let lineSpacing: CGFloat
+    let loadsImages: Bool
 
     private func paragraph(_ string: AttributedString) -> some View {
         Text(string).lineSpacing(lineSpacing).fixedSize(horizontal: false, vertical: true)
@@ -75,7 +78,7 @@ private struct MarkdownBlocks: View {
                     listRow("\(number).", text)
                 case let .quote(quoted):
                     // Type-erased: a view cannot hold itself in its own body's type.
-                    AnyView(MarkdownBlocks(pieces: quoted, lineSpacing: lineSpacing))
+                    AnyView(MarkdownBlocks(pieces: quoted, lineSpacing: lineSpacing, loadsImages: loadsImages))
                         .foregroundStyle(.secondary)
                         .padding(.leading, 12)
                         .overlay(alignment: .leading) {
@@ -88,7 +91,11 @@ private struct MarkdownBlocks: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 8))
                 case let .image(url):
-                    MarkdownImage(url: url)
+                    if loadsImages {
+                        MarkdownImage(url: url)
+                    } else {
+                        paragraph(MarkdownContent.link(to: url))
+                    }
                 case .rule:
                     Divider()
                 }

@@ -42,6 +42,24 @@ struct TextGenerationTests {
         #expect(asked.contains("gpt-5"))
     }
 
+    @Test func codexRunsWithoutItsCommands() {
+        let output = URL(fileURLWithPath: "/tmp/out.txt")
+        let arguments = TextGeneration.arguments(for: .codex(executable: output, model: nil), output: output)
+        let settings = zip(arguments, arguments.dropFirst()).filter { $0.0 == "--config" }.map(\.1)
+        #expect(settings.contains("features.shell_tool=false"))
+        #expect(settings.contains("features.unified_exec=false"))
+    }
+
+    @Test func codexRunsInAnEmptyFolderOfItsOwn() async throws {
+        let body = "while [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\n: > \"$out\"; n=$(ls -A | wc -l | tr -d ' '); { echo \"$n\"; pwd; } > \"$out\""
+        let engine = try TextGeneration.Engine.codex(executable: script(body), model: nil)
+        let lines = try await TextGeneration.run("why?", engine: engine, environment: environment).split(separator: "\n").map(String.init)
+        // The answer file is the one thing in the folder, and the folder is gone once the run is over.
+        #expect(lines.first == "1")
+        #expect(lines.last?.contains("floe-answer-") == true)
+        #expect(lines.last.map { FileManager.default.fileExists(atPath: $0) } == false)
+    }
+
     @Test func claudesAnswerIsWhatItPrints() async throws {
         let engine = try TextGeneration.Engine.claude(executable: script("printf 'answer to: '; cat; echo"), model: nil)
         #expect(try await TextGeneration.run("why?", engine: engine, environment: environment) == "answer to: why?")

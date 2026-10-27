@@ -45,6 +45,13 @@ nonisolated struct MarkdownContent: Equatable, Sendable {
         self.init(text: text, blocks: blocks, pieces: pieces)
     }
 
+    /// A picture's address as a link, for text whose pictures are not fetched: it opens only when clicked.
+    static func link(to url: URL) -> AttributedString {
+        var text = AttributedString(url.absoluteString)
+        text.link = url
+        return text
+    }
+
     /// The same as `init(_:reusing:)`, run away from the caller's actor.
     @concurrent
     static func parsed(_ text: String, reusing previous: MarkdownContent) async -> MarkdownContent {

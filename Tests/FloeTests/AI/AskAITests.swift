@@ -96,7 +96,7 @@ struct AskAITests {
         #expect(!AskAI.isOnThisMac(.tools))
         #expect(try !AskAI.isOnThisMac(.api(endpoint("https://api.openai.com/v1"))))
         #expect(try !AskAI.isOnThisMac(.api(endpoint("https://openrouter.ai/api/v1"))))
-        #expect(try !AskAI.isOnThisMac(.api(endpoint("http://192.168.1.20:11434/v1"))), "another machine on the network is not this Mac")
+        #expect(try !AskAI.isOnThisMac(.api(endpoint("https://192.168.1.20:11434/v1"))), "another machine on the network is not this Mac")
         #expect(try !AskAI.isOnThisMac(.api(endpoint("https://localhost.example.com/v1"))))
         #expect(!AskAI.isOnThisMac(.api(nil)), "an API that is not filled in is not known to be local")
     }

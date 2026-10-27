@@ -75,6 +75,13 @@ struct MarkdownContentTests {
         }
     }
 
+    @Test func aPictureThatIsNotFetchedIsALinkToItsAddress() throws {
+        let url = try #require(URL(string: "https://example.com/chart.png?q=the+question"))
+        let link = MarkdownContent.link(to: url)
+        #expect(String(link.characters) == url.absoluteString)
+        #expect(link.runs.allSatisfy { $0.link == url })
+    }
+
     @Test func inlineStylingIsWorkedOutInThePiece() {
         guard case let .paragraph(text) = MarkdownContent("some **bold** text").pieces.first else {
             Issue.record("a paragraph was expected")

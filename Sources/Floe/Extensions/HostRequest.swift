@@ -287,19 +287,28 @@ nonisolated struct AIEndpoint: Equatable, Sendable {
         !isOnThisMac(url)
     }
 
+    /// Whether a key may travel to an address: over HTTPS, or to a server on this Mac.
+    static func isPrivate(_ url: URL?) -> Bool {
+        url?.scheme?.lowercased() == "https" || isOnThisMac(url)
+    }
+
     /// Nil until the address and the model are filled in, and the key where the server asks for one.
     init?(baseURL: String, model: String, apiKey: String?) {
         let model = model.trimmingCharacters(in: .whitespacesAndNewlines)
         let apiKey = (apiKey ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let chatURL = Self.chatURL(baseURL: baseURL), !model.isEmpty else { return nil }
+        guard let chatURL = Self.chatURL(baseURL: baseURL), Self.isPrivate(chatURL), !model.isEmpty else { return nil }
         guard !apiKey.isEmpty || !Self.needsKey(chatURL) else { return nil }
         self.chatURL = chatURL
         self.model = model
-        self.apiKey = apiKey
+        // Settings takes no key for a server on this Mac, so one stored is another service's and stays here.
+        self.apiKey = Self.needsKey(chatURL) ? apiKey : ""
     }
 
     /// What an incomplete setup still needs, as one sentence for Settings; nil when it is complete.
     static func problem(baseURL: String, model: String, apiKey: String?) -> String? {
+        if let url = chatURL(baseURL: baseURL), !isPrivate(url) {
+            return String(localized: "AI can't answer yet. Its address needs to start with https://, since only a server on this Mac may use http://.", bundle: .floe)
+        }
         let address = chatURL(baseURL: baseURL) == nil
         let model = model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let key = needsKey(chatURL(baseURL: baseURL)) && (apiKey ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

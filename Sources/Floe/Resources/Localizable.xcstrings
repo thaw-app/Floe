@@ -555,6 +555,9 @@
     "AI can't answer yet. It needs an address that starts with http:// or https://." : {
 
     },
+    "AI can't answer yet. Its address needs to start with https://, since only a server on this Mac may use http://." : {
+
+    },
     "AI is set to answer with %@, which is not installed. Install it and sign in, or choose another tool under Settings › AI." : {
       "comment" : "The placeholder is the name of a command line tool such as claude."
     },

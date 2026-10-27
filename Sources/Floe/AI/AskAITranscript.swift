@@ -111,7 +111,7 @@ struct AskAITranscript: View, Equatable {
             VStack(alignment: .leading, spacing: 14) {
                 if !shown.text.isEmpty {
                     // Thaw's reading size and line spacing, for text that is read rather than scanned.
-                    MarkdownView(content: shown, font: ThawType.body, lineSpacing: 6)
+                    MarkdownView(content: shown, font: ThawType.body, lineSpacing: 6, loadsImages: false)
                 } else if state == .asking || state == .answering {
                     HStack(spacing: ThawSpacing.row) {
                         ProgressView().controlSize(.small)
@@ -163,7 +163,7 @@ struct AskAITurnView: View, Equatable {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             AskAIQuestion(text: turn.question)
-            MarkdownView(content: turn.shown, font: ThawType.body, lineSpacing: 6)
+            MarkdownView(content: turn.shown, font: ThawType.body, lineSpacing: 6, loadsImages: false)
                 .padding(EdgeInsets(top: 0, leading: 18, bottom: 18, trailing: 18))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }

@@ -55,9 +55,11 @@ nonisolated enum TextGeneration {
                 "--no-session-persistence",
             ]
         case let .codex(_, model):
+            // Codex has no switch for no tools; these turn off its commands, the way it reads files.
             ["exec", "--ephemeral", "--skip-git-repo-check", "-s", "read-only"]
                 + (model.map { ["--model", $0] } ?? [])
-                + ["--config", "model_reasoning_effort=\"low\"", "--output-last-message", output.path, "-"]
+                + ["--config", "model_reasoning_effort=\"low\"", "--config", "features.shell_tool=false", "--config", "features.unified_exec=false"]
+                + ["--output-last-message", output.path, "-"]
         case let .opencode(_, model):
             OpencodeTextStream.arguments(model: model, directory: output)
         case let .pi(_, model):
@@ -121,9 +123,11 @@ nonisolated enum TextGeneration {
         case .claude, .codex:
             break
         }
-        let directory = FileManager.default.temporaryDirectory
-        let output = directory.appendingPathComponent("floe-\(UUID().uuidString).txt")
-        defer { try? FileManager.default.removeItem(at: output) }
+        // An empty folder of the run's own, as opencode and pi get, with nothing in it for the tool to find.
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("floe-answer-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let output = directory.appendingPathComponent("answer.txt")
         let result = try await Shell.run(
             engine.executable,
             arguments(for: engine, output: output),

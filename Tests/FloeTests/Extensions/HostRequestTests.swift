@@ -302,3 +302,20 @@ struct HostRequestTests {
         #expect(AIAnswer.configured(settings) == .appleIntelligence)
     }
 }
+
+/// Where the API key may go: never to a server on this Mac, which takes none, and never over plain HTTP.
+struct AIEndpointKeyTests {
+    @Test func aKeyStoredForAnotherServiceStaysOffAServerOnThisMac() {
+        let local = AIEndpoint(baseURL: "http://localhost:11434/v1", model: "llama3.2", apiKey: "sk-cloud-key")
+        #expect(local?.apiKey.isEmpty == true)
+        let request = local.map { ChatCompletionStream.request(chatURL: $0.chatURL, apiKey: $0.apiKey, model: $0.model, prompt: "hi") }
+        #expect(request?.value(forHTTPHeaderField: "Authorization") == nil)
+    }
+
+    @Test(arguments: ["http://192.168.1.20:11434/v1", "http://ollama.local:11434/v1", "http://api.test/v1"])
+    func aKeyNeverTravelsOverPlainHTTPAwayFromThisMac(address: String) {
+        #expect(AIEndpoint(baseURL: address, model: "small", apiKey: "key") == nil)
+        #expect(AIEndpoint.problem(baseURL: address, model: "small", apiKey: "key") == "AI can't answer yet. Its address needs to start with https://, since only a server on this Mac may use http://.")
+        #expect(AIEndpoint(baseURL: address.replacingOccurrences(of: "http://", with: "https://"), model: "small", apiKey: "key") != nil)
+    }
+}
