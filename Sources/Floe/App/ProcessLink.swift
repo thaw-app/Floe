@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import CryptoKit
 import Foundation
 
 /// Everything the launcher and its settings process tell each other. Each kind is one distributed
@@ -128,16 +129,53 @@ nonisolated enum LinkScan: String, Codable, Sendable {
     case scripts, commands
 }
 
-/// Whether a message is acted on: only one that names the other process of the pair as its sender.
-/// The pid is the sender's own claim; a distributed notification carries no proof of where it came from.
+/// The secret that signs the link's messages. The launcher makes one for each settings process and writes it to that
+/// process's standard input, which no other process can read, so a notification posted by anyone else proves nothing.
+enum LinkKey {
+    static func make() -> SymmetricKey {
+        SymmetricKey(size: .bits256)
+    }
+
+    static func encoded(_ key: SymmetricKey) -> Data {
+        Data((key.withUnsafeBytes { Data($0) }.base64EncodedString() + "\n").utf8)
+    }
+
+    static func decoded(_ data: Data) -> SymmetricKey? {
+        guard let text = String(bytes: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              let bytes = Data(base64Encoded: text), bytes.count == 32 else { return nil }
+        return SymmetricKey(data: bytes)
+    }
+
+    /// The key the launcher wrote to this process's standard input. Nil when that is no pipe, as from a terminal.
+    static func fromStandardInput() -> SymmetricKey? {
+        var status = stat()
+        guard fstat(STDIN_FILENO, &status) == 0, status.st_mode & S_IFMT == S_IFIFO else { return nil }
+        return decoded(FileHandle.standardInput.readDataToEndOfFile())
+    }
+}
+
+/// Whether a message is acted on: only one that names the other process of the pair as its sender and is signed
+/// with the pair's key. The pid alone is the sender's own claim, which any process can copy.
 struct LinkGate {
     let ownPid: Int32
+    /// The key the pair shares, while there is a pair. Nil signs and accepts nothing.
+    let key: () -> SymmetricKey?
     /// The launcher's settings process while it runs, or the settings process's launcher. Nil without one.
     let peerPid: () -> Int32?
 
-    func accepts(sender: Int32?) -> Bool {
-        guard let sender, sender != ownPid, let peer = peerPid() else { return false }
-        return sender == peer
+    func signature(of message: LinkMessage, sequence: UInt64) -> String? {
+        guard let key = key() else { return nil }
+        return Data(HMAC<SHA256>.authenticationCode(for: Self.signed(message, sender: ownPid, sequence: sequence), using: key)).base64EncodedString()
+    }
+
+    func accepts(_ message: LinkMessage, sender: Int32?, sequence: UInt64?, signature: String?) -> Bool {
+        guard let sender, sender != ownPid, let peer = peerPid(), sender == peer,
+              let sequence, let key = key(), let code = signature.flatMap({ Data(base64Encoded: $0) }) else { return false }
+        return HMAC<SHA256>.isValidAuthenticationCode(code, authenticating: Self.signed(message, sender: sender, sequence: sequence), using: key)
+    }
+
+    private static func signed(_ message: LinkMessage, sender: Int32, sequence: UInt64) -> Data {
+        Data("\(message.kind.rawValue)\n\(sender)\n\(sequence)\n\(message.payload)".utf8)
     }
 }
 
@@ -176,10 +214,16 @@ final class ProcessLink: NSObject {
 
     private static let pidKey = "pid"
     private static let payloadKey = "payload"
+    private static let sequenceKey = "sequence"
+    private static let signatureKey = "signature"
 
     let role: Role
     private let gate: LinkGate
     private let transport: Transport
+    /// Numbers this process's messages, so one copied off the session's notifications cannot be sent again.
+    private var sent: UInt64 = 0
+    /// The last number taken from each sender; a message must count up from it.
+    private var lastTaken: [Int32: UInt64] = [:]
     /// What a received message is handed to.
     var handler: (LinkMessage) -> Void = { _ in
         // Set by the owner before `start()`.
@@ -199,8 +243,14 @@ final class ProcessLink: NSObject {
 
     /// Does nothing while there is no other process to hear it.
     func send(_ message: LinkMessage) {
-        guard gate.peerPid() != nil else { return }
-        transport.post(message.kind.name, [Self.pidKey: String(gate.ownPid), Self.payloadKey: message.payload])
+        guard gate.peerPid() != nil, let signature = gate.signature(of: message, sequence: sent + 1) else { return }
+        sent += 1
+        transport.post(message.kind.name, [
+            Self.pidKey: String(gate.ownPid),
+            Self.payloadKey: message.payload,
+            Self.sequenceKey: String(sent),
+            Self.signatureKey: signature,
+        ])
     }
 
     @objc private func deliver(_ notification: Notification) {
@@ -215,14 +265,18 @@ final class ProcessLink: NSObject {
         }
     }
 
-    /// The message in a notification, when it is one this process should act on.
+    /// The message in a notification, when it is one this process should act on. Taking it uses up its number.
     func message(name: Notification.Name, info: [String: String]) -> LinkMessage? {
         guard let kind = LinkMessage.Kind.allCases.first(where: { $0.name == name }),
               kind.isMeant(for: role),
-              gate.accepts(sender: info[Self.pidKey].flatMap(Int32.init)),
-              let payload = info[Self.payloadKey]
+              let payload = info[Self.payloadKey],
+              let sender = info[Self.pidKey].flatMap(Int32.init),
+              let sequence = info[Self.sequenceKey].flatMap(UInt64.init),
+              sequence > lastTaken[sender] ?? 0
         else { return nil }
         let message = LinkMessage(kind, payload)
+        guard gate.accepts(message, sender: sender, sequence: sequence, signature: info[Self.signatureKey]) else { return nil }
+        lastTaken[sender] = sequence
         return message.isWellFormed ? message : nil
     }
 

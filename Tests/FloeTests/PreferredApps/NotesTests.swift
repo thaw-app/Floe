@@ -370,3 +370,15 @@ struct NotesTests {
         }
     }
 }
+
+struct DailyNoteFolderTests {
+    @Test(arguments: ["../Elsewhere", "Journal/../../Elsewhere", "/..", " "])
+    func aDailyNotesFolderOutsideTheVaultIsNotFollowed(setting: String) throws {
+        let vault = FileManager.default.temporaryDirectory.appendingPathComponent("floe-notes-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: vault) }
+        try FileManager.default.createDirectory(at: vault.appendingPathComponent(".obsidian"), withIntermediateDirectories: true)
+        let json = try JSONSerialization.data(withJSONObject: ["folder": setting])
+        try json.write(to: vault.appendingPathComponent(".obsidian/daily-notes.json"))
+        #expect(NoteFiles.dayFolder(in: vault) == vault, "the note stays at the top of the vault")
+    }
+}

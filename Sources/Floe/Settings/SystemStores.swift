@@ -54,6 +54,7 @@ enum PreferenceStore {
     }
 
     static func save(_ values: [String: Any], fields: [FieldSpec], extensionName: String, command: ExtensionCommand?) {
+        guard ExtensionCommand.isUsableName(extensionName) else { return }
         var stored = storedValues(extensionName)
         for field in fields {
             let key = storageKey(field, command: command)
@@ -88,7 +89,9 @@ enum PreferenceStore {
     }
 
     /// Adds imported values to an extension's stored ones; the imported value wins for a key in both.
+    /// A name no extension could have, such as one with a slash, is skipped, so nothing lands outside Floe's data folder.
     static func merge(_ values: [String: Any], extensionName: String) {
+        guard ExtensionCommand.isUsableName(extensionName) else { return }
         let merged = storedValues(extensionName).merging(values) { _, imported in imported }
         try? FileManager.default.createDirectory(at: directory(for: extensionName), withIntermediateDirectories: true)
         if let data = try? JSONSerialization.data(withJSONObject: merged) {

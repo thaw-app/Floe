@@ -184,6 +184,7 @@ struct SecretVaultTests {
         #expect(SecretVault.syncs("github/search/token"))
         #expect(SecretVault.syncs(AIEndpoint.keychainAccount))
         #expect(!SecretVault.syncs("github/oauth/github"))
+        #expect(!SecretVault.syncs("team/notes/oauth/github"), "a slash in the name does not move the token into what syncs")
     }
 
     @Test func thePrivacyRowSaysWherePasswordsAre() {

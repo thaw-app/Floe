@@ -153,6 +153,12 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
         extensionPreferences + commandPreferences
     }
 
+    /// Whether a manifest's name can name an extension. It becomes a folder name and the first part of Keychain accounts,
+    /// so it has no slash, is not "." or "..", and stays clear of the "floe." names Floe's own secrets use.
+    static func isUsableName(_ name: String) -> Bool {
+        !name.isEmpty && name != "." && name != ".." && !name.contains("/") && !name.lowercased().hasPrefix("floe.")
+    }
+
     private struct Manifest: Decodable {
         let name: String
         let owner: String?
@@ -196,7 +202,7 @@ nonisolated struct ExtensionCommand: Identifiable, Sendable {
 
     /// The commands a package.json declares that Floe can run: view, no-view and menu-bar, for the Mac.
     static func commands(inManifest data: Data, folder: URL, source: Source) -> [ExtensionCommand] {
-        guard let manifest = try? JSONDecoder().decode(Manifest.self, from: data), runsOnMac(manifest.platforms?.elements) else { return [] }
+        guard let manifest = try? JSONDecoder().decode(Manifest.self, from: data), isUsableName(manifest.name), runsOnMac(manifest.platforms?.elements) else { return [] }
         let custom = CustomIcon.path(for: manifest.name)
         return manifest.commands.elements.compactMap { command in
             let mode = command.mode ?? "view"

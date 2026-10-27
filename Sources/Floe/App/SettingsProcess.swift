@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
+import CryptoKit
 
 /// The launcher's handle on its settings process: this executable again, started with `--settings`.
 /// One runs at a time, it ends by itself when its window closes, and it never outlives the launcher.
@@ -27,6 +28,7 @@ final class SettingsProcess {
     }
 
     private var process: Process?
+    private var processKey: SymmetricKey?
     /// The page the settings window last showed, reported by the settings process.
     var lastPage: String?
     /// Called on the main thread when the process has ended, however it ended.
@@ -40,6 +42,11 @@ final class SettingsProcess {
     var pid: Int32? {
         guard let process, process.isRunning else { return nil }
         return process.processIdentifier
+    }
+
+    /// The key the running settings process signs its messages with (see `LinkKey`).
+    var key: SymmetricKey? {
+        pid == nil ? nil : processKey
     }
 
     func show(page: String?) {
@@ -62,6 +69,9 @@ final class SettingsProcess {
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments
+        let key = LinkKey.make()
+        let input = Pipe()
+        process.standardInput = input
         process.terminationHandler = { [weak self] ended in
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -75,7 +85,14 @@ final class SettingsProcess {
         do {
             try process.run()
             self.process = process
+            processKey = key
+            try input.fileHandleForWriting.write(contentsOf: LinkKey.encoded(key))
+            try input.fileHandleForWriting.close()
         } catch {
+            // A settings process without its key cannot reach the launcher, so it is not left running.
+            if process.isRunning {
+                process.terminate()
+            }
             NSLog("Floe could not start its settings process: \(error.localizedDescription)")
         }
     }

@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import CryptoKit
 @testable import Floe
 import Foundation
 import Testing
@@ -23,23 +24,43 @@ private final class Outbox {
 }
 
 struct LinkGateTests {
-    @Test func onlyThePeerIsAccepted() {
-        let gate = LinkGate(ownPid: 100) { 200 }
-        #expect(gate.accepts(sender: 200))
-        #expect(!gate.accepts(sender: 100), "a process ignores what it sent itself")
-        #expect(!gate.accepts(sender: 300), "an unknown sender is ignored")
-        #expect(!gate.accepts(sender: nil), "a message that names no sender is ignored")
+    private let key = SymmetricKey(size: .bits256)
+
+    private func gate(own: Int32, peer: Int32?, key: SymmetricKey?) -> LinkGate {
+        LinkGate(ownPid: own, key: { key }, peerPid: { peer })
     }
 
-    @Test func nothingIsAcceptedWithoutAPeer() {
-        let gate = LinkGate(ownPid: 100) { nil }
-        #expect(!gate.accepts(sender: 200))
-        #expect(!gate.accepts(sender: 100))
+    @Test func onlyThePeerSigningWithTheKeyIsAccepted() throws {
+        let peer = gate(own: 200, peer: 100, key: key)
+        let mine = gate(own: 100, peer: 200, key: key)
+        let signature = try #require(peer.signature(of: .removeSyncedSettings, sequence: 1))
+        #expect(mine.accepts(.removeSyncedSettings, sender: 200, sequence: 1, signature: signature))
+        #expect(!mine.accepts(.removeSyncedSettings, sender: 200, sequence: 1, signature: nil), "the peer's pid alone proves nothing")
+        #expect(!mine.accepts(.removeSyncedSettings, sender: 200, sequence: 2, signature: signature), "the number is signed with the message")
+        #expect(!mine.accepts(.quit, sender: 200, sequence: 1, signature: signature), "so is the kind")
+        #expect(!mine.accepts(.removeSyncedSettings, sender: 300, sequence: 1, signature: signature), "an unknown sender is ignored")
+        let stranger = gate(own: 200, peer: 100, key: SymmetricKey(size: .bits256))
+        let forged = try #require(stranger.signature(of: .removeSyncedSettings, sequence: 1))
+        #expect(!mine.accepts(.removeSyncedSettings, sender: 200, sequence: 1, signature: forged), "another key's signature is refused")
     }
 
-    @Test func aSenderClaimingToBeThisProcessIsRejectedEvenIfItIsThePeer() {
-        let gate = LinkGate(ownPid: 100) { 100 }
-        #expect(!gate.accepts(sender: 100))
+    @Test func nothingIsAcceptedOrSignedWithoutAPeerOrAKey() throws {
+        let signature = try #require(gate(own: 200, peer: 100, key: key).signature(of: .quit, sequence: 1))
+        #expect(!gate(own: 100, peer: nil, key: key).accepts(.quit, sender: 200, sequence: 1, signature: signature))
+        #expect(!gate(own: 100, peer: 200, key: nil).accepts(.quit, sender: 200, sequence: 1, signature: signature))
+        #expect(gate(own: 100, peer: 200, key: nil).signature(of: .quit, sequence: 1) == nil)
+    }
+
+    @Test func aSenderClaimingToBeThisProcessIsRejectedEvenIfItIsThePeer() throws {
+        let itself = gate(own: 100, peer: 100, key: key)
+        let signature = try #require(itself.signature(of: .quit, sequence: 1))
+        #expect(!itself.accepts(.quit, sender: 100, sequence: 1, signature: signature))
+    }
+
+    @Test func theKeyTravelsAsOneLineAndComesBackWhole() throws {
+        let decoded = try #require(LinkKey.decoded(LinkKey.encoded(key)))
+        #expect(decoded == key)
+        #expect(LinkKey.decoded(Data("short\n".utf8)) == nil)
     }
 }
 
@@ -78,29 +99,42 @@ struct LinkMessageTests {
 }
 
 struct ProcessLinkTests {
-    private func info(pid: Int32, payload: String = "") -> [String: String] {
-        ["pid": String(pid), "payload": payload]
+    private let key = SymmetricKey(size: .bits256)
+
+    private func gate(own: Int32, peer: @escaping () -> Int32?) -> LinkGate {
+        LinkGate(ownPid: own, key: { [key] in key }, peerPid: peer)
     }
 
-    @Test func aMessageCarriesTheSendersPid() {
+    /// What the settings process with this pid would post, signed with the pair's key.
+    private func info(_ message: LinkMessage, pid: Int32, sequence: UInt64 = 1) -> [String: String] {
+        let signature = gate(own: pid) { 7 }.signature(of: message, sequence: sequence) ?? ""
+        return ["pid": String(pid), "payload": message.payload, "sequence": String(sequence), "signature": signature]
+    }
+
+    @Test func aMessageCarriesTheSendersPidNumberAndSignature() throws {
         let outbox = Outbox()
-        let link = ProcessLink(role: .settings, gate: LinkGate(ownPid: 7) { 1 }, transport: outbox.transport)
+        let link = ProcessLink(role: .settings, gate: gate(own: 7) { 1 }, transport: outbox.transport)
         link.send(.recording(true))
-        #expect(outbox.posted.count == 1)
-        #expect(outbox.posted.first?.name == LinkMessage.Kind.recording.name)
-        #expect(outbox.posted.first?.info == ["pid": "7", "payload": "1"])
+        link.send(.settingsChanged)
+        #expect(outbox.posted.map(\.name) == [LinkMessage.Kind.recording.name, LinkMessage.Kind.settingsChanged.name])
+        let first = try #require(outbox.posted.first?.info)
+        #expect(first["pid"] == "7")
+        #expect(first["payload"] == "1")
+        #expect(first["sequence"] == "1")
+        #expect(first["signature"] == gate(own: 7) { 1 }.signature(of: .recording(true), sequence: 1))
+        #expect(outbox.posted.last?.info["sequence"] == "2")
     }
 
-    @Test func nothingIsPostedWhileNoSettingsProcessRuns() {
+    @Test func nothingIsPostedWhileNoSettingsProcessRunsOrWithoutAKey() {
         let outbox = Outbox()
-        let link = ProcessLink(role: .launcher, gate: LinkGate(ownPid: 7) { nil }, transport: outbox.transport)
-        link.send(.settingsChanged)
+        ProcessLink(role: .launcher, gate: gate(own: 7) { nil }, transport: outbox.transport).send(.settingsChanged)
+        ProcessLink(role: .settings, gate: LinkGate(ownPid: 7, key: { nil }, peerPid: { 1 }), transport: outbox.transport).send(.settingsChanged)
         #expect(outbox.posted.isEmpty)
     }
 
     @Test func aLinkListensOnlyForWhatItsRoleTakes() {
         let outbox = Outbox()
-        let link = ProcessLink(role: .settings, gate: LinkGate(ownPid: 7) { 1 }, transport: outbox.transport)
+        let link = ProcessLink(role: .settings, gate: gate(own: 7) { 1 }, transport: outbox.transport)
         link.start()
         #expect(Set(outbox.observed) == Set([LinkMessage.Kind.settingsChanged, .storeChanged, .showPage, .updatesState, .thawStatus, .fileIndexState, .syncState].map(\.name)))
     }
@@ -108,32 +142,45 @@ struct ProcessLinkTests {
     @Test func theLauncherActsOnItsSettingsProcessOnly() {
         var child: Int32? = 50
         var received: [LinkMessage] = []
-        let link = ProcessLink(role: .launcher, gate: LinkGate(ownPid: 7) { child }, transport: Outbox().transport)
+        let link = ProcessLink(role: .launcher, gate: gate(own: 7) { child }, transport: Outbox().transport)
         link.handler = { received.append($0) }
 
-        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: info(pid: 50))
+        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: info(.settingsChanged, pid: 50))
         #expect(received == [.settingsChanged])
 
-        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: info(pid: 7))
-        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: info(pid: 51))
+        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: info(.settingsChanged, pid: 7, sequence: 2))
+        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: info(.settingsChanged, pid: 51, sequence: 2))
         link.receive(name: LinkMessage.Kind.settingsChanged.name, info: [:])
-        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: ["pid": "fifty", "payload": ""])
+        link.receive(name: LinkMessage.Kind.settingsChanged.name, info: ["pid": "fifty", "payload": "", "sequence": "2"])
         #expect(received == [.settingsChanged], "its own, a stranger's, an unsigned and a garbled message all do nothing")
 
         child = nil
-        link.receive(name: LinkMessage.Kind.quit.name, info: info(pid: 50))
+        link.receive(name: LinkMessage.Kind.quit.name, info: info(.quit, pid: 50, sequence: 3))
         #expect(received == [.settingsChanged], "a settings process that has ended is no longer listened to")
+    }
+
+    @Test func aMessageCopiedFromTheSessionCannotBeSentAgain() {
+        var received: [LinkMessage] = []
+        let link = ProcessLink(role: .launcher, gate: gate(own: 7) { 50 }, transport: Outbox().transport)
+        link.handler = { received.append($0) }
+        let removal = info(.removeSyncedSettings, pid: 50, sequence: 4)
+        link.receive(name: LinkMessage.Kind.removeSyncedSettings.name, info: removal)
+        link.receive(name: LinkMessage.Kind.removeSyncedSettings.name, info: removal)
+        link.receive(name: LinkMessage.Kind.removeSyncedSettings.name, info: info(.removeSyncedSettings, pid: 50, sequence: 3))
+        #expect(received == [.removeSyncedSettings], "a repeat, or an earlier number, is refused")
+        link.receive(name: LinkMessage.Kind.quit.name, info: info(.quit, pid: 50, sequence: 5))
+        #expect(received == [.removeSyncedSettings, .quit])
     }
 
     @Test func aMessageForTheOtherSideOrWithABadPayloadIsDropped() {
         var received: [LinkMessage] = []
-        let link = ProcessLink(role: .launcher, gate: LinkGate(ownPid: 7) { 50 }, transport: Outbox().transport)
+        let link = ProcessLink(role: .launcher, gate: gate(own: 7) { 50 }, transport: Outbox().transport)
         link.handler = { received.append($0) }
-        link.receive(name: LinkMessage.Kind.showPage.name, info: info(pid: 50, payload: "about"))
-        link.receive(name: LinkMessage.Kind.rescan.name, info: info(pid: 50, payload: "everything"))
-        link.receive(name: Notification.Name("org.thaw.floe.link.format-disk"), info: info(pid: 50))
+        link.receive(name: LinkMessage.Kind.showPage.name, info: info(LinkMessage(.showPage, "about"), pid: 50, sequence: 1))
+        link.receive(name: LinkMessage.Kind.rescan.name, info: info(LinkMessage(.rescan, "everything"), pid: 50, sequence: 2))
+        link.receive(name: Notification.Name("org.thaw.floe.link.format-disk"), info: info(.quit, pid: 50, sequence: 3))
         #expect(received.isEmpty)
-        link.receive(name: LinkMessage.Kind.rescan.name, info: info(pid: 50, payload: "scripts"))
+        link.receive(name: LinkMessage.Kind.rescan.name, info: info(.rescan(.scripts), pid: 50, sequence: 4))
         #expect(received == [.rescan(.scripts)])
     }
 }

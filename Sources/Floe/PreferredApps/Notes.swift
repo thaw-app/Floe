@@ -276,12 +276,14 @@ enum NoteFiles {
     }
 
     /// Where the app that owns a folder keeps the day's note, so a line Floe adds lands in the note the app
-    /// shows for today. Octarine keeps it in Daily; Obsidian in the vault, or in the folder its settings name.
+    /// shows for today. Octarine keeps it in Daily; Obsidian in the vault, or in the folder its settings name
+    /// when that folder is inside the vault.
     static func dayFolder(in folder: URL) -> URL {
         if FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path) {
             return folder.appendingPathComponent("Daily", isDirectory: true)
         }
-        if let chosen = obsidianDailyNotes(in: folder)["folder"] as? String, !chosen.trimmingCharacters(in: CharacterSet(charactersIn: "/ ")).isEmpty {
+        if let chosen = (obsidianDailyNotes(in: folder)["folder"] as? String)?.trimmingCharacters(in: CharacterSet(charactersIn: "/")),
+           MomentPattern.staysInside(chosen) {
             return folder.appendingPathComponent(chosen, isDirectory: true)
         }
         return folder

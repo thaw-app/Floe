@@ -148,6 +148,16 @@ struct ExtensionCommandTests {
         #expect(command.extensionTitle == "bare")
     }
 
+    @Test(arguments: ["", ".", "..", "../outside", "team/notes", "floe.ai", "Floe.AI"])
+    func aNameThatCouldReachPastItsOwnFolderOrKeysIsRefused(name: String) {
+        #expect(!ExtensionCommand.isUsableName(name))
+        #expect(ExtensionCommand.commands(inManifest: Fixture.manifest(["name": name, "commands": [["name": "run"]]]), folder: folder, source: .local).isEmpty)
+    }
+
+    @Test func storeNamesAreUsable() {
+        #expect(["spotify-player", "github", "floe-tools", "1password"].allSatisfy(ExtensionCommand.isUsableName))
+    }
+
     @Test func theOwnerIsTheManifestsOwnerElseItsAuthorInEitherShape() {
         func owner(_ fields: [String: Any]) -> String? {
             let manifest = fields.merging(["name": "bare", "commands": [["name": "run"]]]) { first, _ in first }

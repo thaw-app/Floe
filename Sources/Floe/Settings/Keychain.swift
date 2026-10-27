@@ -191,10 +191,11 @@ final nonisolated class SecretVault: Sendable {
         return identifier?.isEmpty == false || groups?.isEmpty == false
     }
 
-    /// Whether an account's secret may sync. An OAuth token is "<extension>/oauth/<provider>" and never does.
+    /// Whether an account's secret may sync. An OAuth token is "<extension>/oauth/<provider>" and never does;
+    /// an "oauth" part anywhere between the first and the last keeps the secret local, whatever the name holds.
     static func syncs(_ account: String) -> Bool {
         let parts = account.split(separator: "/", omittingEmptySubsequences: false)
-        return !(parts.count >= 3 && parts[1] == "oauth")
+        return !(parts.count >= 3 && parts.dropFirst().dropLast().contains("oauth"))
     }
 
     var isAvailable: Bool {

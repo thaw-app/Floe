@@ -34,7 +34,7 @@ final class LauncherSettingsLink {
         self.settings = settings
         self.hotkeys = hotkeys
         let process = process
-        link = ProcessLink(role: .launcher, gate: LinkGate(ownPid: getpid()) { process.pid })
+        link = ProcessLink(role: .launcher, gate: LinkGate(ownPid: getpid(), key: { process.key }, peerPid: { process.pid }))
     }
 
     /// Starts resident-owned synchronization and publishes service state to Settings.

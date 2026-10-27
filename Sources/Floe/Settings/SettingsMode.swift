@@ -7,6 +7,7 @@
 
 import AppKit
 import Combine
+import CryptoKit
 
 /// `Floe --settings`: the settings window in a process of its own, which ends when the window closes.
 /// It is the same executable, so the defaults, the Keychain items and the permissions are the app's own.
@@ -36,7 +37,9 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
     private lazy var stores = SettingsStores.live { [weak self] in self?.onboarding.showIfNeeded(replayRequested: true) }
     private lazy var window = SettingsWindowController(catalog: catalog, stores: stores)
     private let launcherPid = getppid()
-    private lazy var link = ProcessLink(role: .settings, gate: LinkGate(ownPid: getpid()) { [launcherPid] in launcherPid })
+    /// The launcher writes the key to standard input as it starts this process.
+    private let linkKey = LinkKey.fromStandardInput()
+    private lazy var link = ProcessLink(role: .settings, gate: LinkGate(ownPid: getpid(), key: { [linkKey] in linkKey }, peerPid: { [launcherPid] in launcherPid }))
     private let startPage: SettingsPage?
     private var appWatcher: AppFolderWatcher?
     private var launcherWatch: DispatchSourceProcess?

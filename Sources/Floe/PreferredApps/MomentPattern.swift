@@ -85,7 +85,7 @@ nonisolated enum MomentPattern {
     }
 
     /// Whether a path names a file under the folder it starts from: no empty step, and none that goes up or stays.
-    private static func staysInside(_ path: String) -> Bool {
+    static func staysInside(_ path: String) -> Bool {
         path.split(separator: "/", omittingEmptySubsequences: false).allSatisfy { !$0.trimmingCharacters(in: .whitespaces).isEmpty && $0 != "." && $0 != ".." }
     }
 
