@@ -3,7 +3,7 @@
 # thaw-app/Floe with gh. The signing secrets go in the "prod" environment, so
 # only jobs approved for that environment can read them. Press Return to skip
 # one; skipped secrets are left as they are. Input is hidden and never written to disk. Answer with @ and a path
-# to read a value from a file.
+# to read a value from a file, or with @@ for a value that itself starts with @.
 #
 # Usage:
 #   ./scripts/set-secrets.sh          # ask for every secret
@@ -52,12 +52,15 @@ for entry in "${SECRETS[@]}"; do
         echo "Skipped."
         continue
     fi
-    # "@path" reads the value from a file; a .p12 is base64-encoded on the way.
-    if [[ "$value" == @* ]]; then
+    # "@path" reads the value from a file; a .p12 is base64-encoded on the way. "@@" stands for a value that starts with @.
+    if [[ "$value" == @@* ]]; then
+        printf '%s' "${value#@}" | gh secret set "$name" "${target[@]}"
+    elif [[ "$value" == @* ]]; then
         file="${value#@}"
         file="${file/#\~/$HOME}"
         [[ -f "$file" ]] || {
-            echo "No such file: $file" >&2
+            # The path stays unprinted: it was typed hidden, and may be a mistyped secret.
+            echo "No file at that path. $name was not set." >&2
             continue
         }
         if [[ "$file" == *.p12 ]]; then

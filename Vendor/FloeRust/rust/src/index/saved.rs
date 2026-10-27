@@ -9,6 +9,9 @@ use super::*;
 const MAGIC: &[u8; 8] = b"FLOEIDX\x01";
 /// What one entry takes in the file: its parent, where its name starts, the name's length, its depth, its flags.
 const ENTRY_BYTES: usize = 12;
+/// The longest path a read entry may have under the root: far past what macOS opens, and a bound on what a search
+/// puts together for each entry, since names in a damaged file may share their bytes.
+const PATH_BYTES: u32 = 64 * 1024;
 
 impl Rules {
     /// The rules as one text. A file saved under other rules lists other names, so it is not read back.
@@ -52,7 +55,7 @@ impl Tree {
     }
 
     /// Only a tree with nothing removed is written: the file has no way to say an entry is gone.
-    fn write(&self, into: &mut impl Write, rules: &Rules) -> std::io::Result<()> {
+    pub(super) fn write(&self, into: &mut impl Write, rules: &Rules) -> std::io::Result<()> {
         into.write_all(MAGIC)?;
         write_text(into, &self.root)?;
         write_text(into, &rules.text())?;
@@ -83,6 +86,7 @@ impl Tree {
         }
         let mut entries = Vec::with_capacity(count);
         let mut inside = vec![0u32; count];
+        let mut lengths = vec![0u32; count];
         for id in 0..count {
             let mut bytes = [0; ENTRY_BYTES];
             from.read_exact(&mut bytes).ok()?;
@@ -91,10 +95,13 @@ impl Tree {
             let parent: &Entry = if id == 0 { &entry } else { entries.get(entry.parent as usize)? };
             let fits = entry.name_start as usize + usize::from(entry.name_len) <= names_len;
             let is_top = id == 0 && entry.parent == 0 && entry.name_len == 0 && entry.depth == 0;
-            let is_inside = id > 0 && entry.name_len > 0 && entry.depth == parent.depth.saturating_add(1);
-            if !fits || entry.flags & !DIR != 0 || parent.flags & DIR == 0 || !(is_top || is_inside) {
+            // Checked, not saturating: past 255 a saturated depth would let a chain of any length through.
+            let is_inside = id > 0 && entry.name_len > 0 && parent.depth.checked_add(1) == Some(entry.depth);
+            let length = if id == 0 { 0 } else { lengths[entry.parent as usize] + 1 + u32::from(entry.name_len) };
+            if !fits || entry.flags & !DIR != 0 || parent.flags & DIR == 0 || !(is_top || is_inside) || length > PATH_BYTES {
                 return None;
             }
+            lengths[id] = length;
             inside[entry.parent as usize] += u32::from(id > 0);
             entries.push(entry);
         }

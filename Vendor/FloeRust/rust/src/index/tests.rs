@@ -619,6 +619,46 @@ fn a_file_that_is_cut_short_damaged_or_something_else_is_refused() {
     let _ = fs::remove_file(file);
 }
 
+/// Saves a tree made by hand, as a damaged or crafted file could hold one.
+fn saved_tree(scratch: &Scratch, tree: &Tree) -> String {
+    let mut bytes = Vec::new();
+    tree.write(&mut bytes, &rules()).unwrap();
+    let file = saved_file(scratch);
+    fs::write(&file, bytes).unwrap();
+    file
+}
+
+#[test]
+fn a_file_deeper_than_its_depths_say_or_with_too_long_a_path_is_refused() {
+    let scratch = Scratch::new();
+    let loaded = FileIndex::new();
+
+    // A depth stops at 255, so the levels past it would carry the same depth as their folder.
+    let mut deep = Tree::empty(scratch.root());
+    let mut folder = 0;
+    for _ in 0..300 {
+        folder = deep.push(folder, "a", true);
+    }
+    let file = saved_tree(&scratch, &deep);
+    assert_eq!(loaded.load(&file, scratch.root(), rules()), None);
+
+    let mut long = Tree::empty(scratch.root());
+    let name = "n".repeat(30_000);
+    let mut folder = 0;
+    for _ in 0..3 {
+        folder = long.push(folder, &name, true);
+    }
+    let file = saved_tree(&scratch, &long);
+    assert_eq!(loaded.load(&file, scratch.root(), rules()), None);
+
+    let mut fine = Tree::empty(scratch.root());
+    let top = fine.push(0, &name, true);
+    fine.push(top, "inside.txt", false);
+    let file = saved_tree(&scratch, &fine);
+    assert_eq!(loaded.load(&file, scratch.root(), rules()), Some(2));
+    let _ = fs::remove_file(file);
+}
+
 #[test]
 fn an_index_that_was_never_built_saves_nothing() {
     let scratch = Scratch::new();

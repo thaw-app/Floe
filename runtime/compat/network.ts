@@ -8,7 +8,7 @@
 // Node's fetch takes certificate and proxy settings from an agent or an undici dispatcher; Bun's takes them as
 // tls and proxy, and ignores the others. Self-hosted servers with their own certificate, and proxies, need them.
 
-type TLS = { rejectUnauthorized?: boolean; ca?: unknown; cert?: unknown; key?: unknown };
+type TLS = { rejectUnauthorized?: boolean; ca?: unknown; cert?: unknown; key?: unknown; checkServerIdentity?: unknown };
 type Settings = { tls?: TLS; proxy?: string };
 type Init = RequestInit & { agent?: unknown; dispatcher?: object; tls?: TLS; proxy?: string };
 
@@ -30,7 +30,7 @@ export function getGlobalDispatcher() {
 export function pickTLS(source: unknown): TLS | undefined {
   if (typeof source !== "object" || source === null) return undefined;
   const record = source as Record<string, unknown>;
-  const picked = Object.fromEntries(["rejectUnauthorized", "ca", "cert", "key"].filter((key) => record[key] !== undefined).map((key) => [key, record[key]]));
+  const picked = Object.fromEntries(["rejectUnauthorized", "ca", "cert", "key", "checkServerIdentity"].filter((key) => record[key] !== undefined).map((key) => [key, record[key]]));
   return Object.keys(picked).length > 0 ? picked : undefined;
 }
 

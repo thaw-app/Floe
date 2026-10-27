@@ -123,6 +123,8 @@ sign_for_icloud() {
     security cms -D -i "$PROFILE" >"$work/profile.plist"
     application=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$work/profile.plist")
     team=${application%%.*}
+    # Checked before sed sees it: a team identifier is ten capital letters and digits.
+    [[ "$team" =~ ^[A-Z0-9]{10}$ ]] || fail "The profile's team, $team, is not a team identifier."
     [[ "$application" == "$team.$BUNDLE_ID" ]] || fail "The profile is for $application, not $BUNDLE_ID."
 
     # What Xcode fills in when it signs with a profile: the two variables, the app's identifier and the environment.

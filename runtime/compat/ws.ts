@@ -20,5 +20,6 @@ class WebSocket extends builtin {
   }
 }
 
-Object.assign(WebSocket, builtin, { WebSocket });
+// The class inherits ws's other exports; only its own name is set again, so ws.WebSocket is this one.
+Object.defineProperty(WebSocket, "WebSocket", { value: WebSocket, enumerable: true });
 module.exports = WebSocket;

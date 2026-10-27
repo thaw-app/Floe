@@ -64,6 +64,16 @@ class Statement {
   }
 }
 
+// The multiple-ciphers build encrypts with these pragmas, with or without a schema before the name. The SQLite under
+// Bun has no cipher, and ignoring the key would write in the clear what the user asked to have encrypted.
+const encryption = /\bPRAGMA\s+(?:["'`[]?\w+["'`\]]?\s*\.\s*)?["'`[]?(?:cipher\w*|key|rekey|hexkey|hexrekey)\b/i;
+
+function refuseEncryption(source: string) {
+  if (encryption.test(source)) {
+    throw new Error("Floe can't open encrypted databases: the SQLite it runs extensions with has no encryption");
+  }
+}
+
 class Database {
   private readonly inner: InstanceType<typeof BunDatabase>;
 
@@ -80,10 +90,12 @@ class Database {
   }
 
   prepare(source: string) {
+    refuseEncryption(source);
     return new Statement(this.inner.prepare(source), source);
   }
 
   exec(source: string) {
+    refuseEncryption(source);
     this.inner.exec(source);
     return this;
   }
@@ -93,11 +105,7 @@ class Database {
   }
 
   pragma(source: string, options?: { simple?: boolean }) {
-    // The multiple-ciphers build encrypts with these; the SQLite under Bun has no cipher, and ignoring the key would
-    // write in the clear what the user asked to have encrypted.
-    if (/^\s*(cipher|key|rekey|hexkey|hexrekey)\b/i.test(source)) {
-      throw new Error("Floe can't open encrypted databases: the SQLite it runs extensions with has no encryption");
-    }
+    refuseEncryption(`PRAGMA ${source}`);
     const rows = this.inner.prepare(`PRAGMA ${source}`).all() as Record<string, unknown>[];
     return options?.simple ? Object.values(rows[0] ?? {})[0] : rows;
   }

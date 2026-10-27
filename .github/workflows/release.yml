@@ -95,6 +95,24 @@ jobs:
           sparse-checkout: .github/actions
           persist-credentials: false
 
+      # Only a new release is made a draft: one already published keeps its state, and new assets would show at once.
+      - name: Refuse a published release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if ! draft="$(gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft 2>&1)"; then
+            [[ "$draft" == *"release not found"* ]] && exit 0
+            echo "::error::Could not look up the release for $TAG_NAME: $draft"
+            exit 1
+          fi
+          if [[ "$draft" != "true" ]]; then
+            echo "::error::$TAG_NAME is already published. Release it under a new tag instead."
+            exit 1
+          fi
+
       - name: Checkout source
         id: source
         uses: thaw-app/org-ci/actions/checkout-source@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
