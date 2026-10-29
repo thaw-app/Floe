@@ -1,8 +1,8 @@
 <p align="center">
   <a href="https://www.getthaw.app/floe">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/header-dark.gif">
-      <img src=".github/assets/header-light.gif" alt="Floe" height="128">
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/thaw-app/brand-assets/main/headers/floe-dark.gif">
+      <img src="https://raw.githubusercontent.com/thaw-app/brand-assets/main/headers/floe-light.gif" alt="Floe" height="128">
     </picture>
   </a>
 </p>
@@ -27,6 +27,10 @@
 <img alt="Floe's launcher with suggestions and commands under the search field" src="https://raw.githubusercontent.com/thaw-app/brand-assets/main/marketing/screenshots/floe-01.jpg">
 
 Floe opens with one hotkey and searches your applications, commands, quicklinks and System Settings panes. It runs Raycast extensions unmodified, has snippets, emoji, file search, a calculator and a clipboard history built in, and hands work to the terminal, editor and browser you already use. You choose the AI that answers, and it can stay on your Mac. Free under AGPL-3.0, with no tracking and no account.
+
+Beyond the search, Floe gives any command an alias, a hotkey or a place among your favorites, runs the shortcuts you made in Apple's Shortcuts app by name, and reaches the menu bar and the front app's menus from the keyboard.
+
+[Explore all features →](https://www.getthaw.app/floe#features)
 
 ## Install
 
