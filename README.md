@@ -1,7 +1,11 @@
-<div align="center">
-  <img src="docs/images/icon.png" alt="Floe's icon" width="160" height="160" />
-  <h1>Floe</h1>
-</div>
+<p align="center">
+  <a href="https://www.getthaw.app/floe">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/header-dark.gif">
+      <img src=".github/assets/header-light.gif" alt="Floe" width="830">
+    </picture>
+  </a>
+</p>
 
 <!-- Badges: shieldcn, as in Thaw's README (light/dark) -->
 <p align="center">
