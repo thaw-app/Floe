@@ -88,6 +88,9 @@ final class AppSettings: ObservableObject {
     @Published var searchFieldBeamFrameRate = 60.0
     /// The search field and the results as two pieces of glass, in either layout.
     @Published var separatesSearchField = false
+    /// The UUID of the screen the launcher opens on (see `LauncherScreen`); empty for the screen with the pointer.
+    /// Not synced: a screen belongs to one Mac.
+    @Published var launcherScreen = ""
     @Published var launcherTintIsDynamic = false
     @Published var launcherTintLight = LauncherTint()
     @Published var launcherTintDark = LauncherTint()
@@ -184,6 +187,7 @@ final class AppSettings: ObservableObject {
         var searchFieldBeam: SearchFieldBeam?
         var searchFieldBeamFrameRate: Double?
         var separatesSearchField: Bool?
+        var launcherScreen: String?
         var aiSource: AISource?
         var aiBaseURL: String?
         var aiModel: String?
@@ -349,6 +353,7 @@ final class AppSettings: ObservableObject {
         searchFieldBeam = stored.searchFieldBeam ?? .colorful
         searchFieldBeamFrameRate = stored.searchFieldBeamFrameRate ?? 60
         separatesSearchField = stored.separatesSearchField ?? false
+        launcherScreen = stored.launcherScreen ?? ""
     }
 
     /// Runs on its own shortly after any change; callable directly when the change must be on disk now.
@@ -397,6 +402,7 @@ final class AppSettings: ObservableObject {
             searchFieldBeam: searchFieldBeam,
             searchFieldBeamFrameRate: searchFieldBeamFrameRate,
             separatesSearchField: separatesSearchField,
+            launcherScreen: launcherScreen,
             aiSource: aiSource,
             aiBaseURL: aiBaseURL,
             aiModel: aiModel,

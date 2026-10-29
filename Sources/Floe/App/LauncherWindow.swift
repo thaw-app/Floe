@@ -156,7 +156,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
             panel = created
         }
         guard let panel, !panel.isVisible || !panel.isKeyWindow else { return }
-        let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
+        let screen = LauncherScreen.screen(chosen: settings.launcherScreen)
         if let frame = screen?.visibleFrame {
             panel.setFrameOrigin(model.panelState.origin(in: frame, panelSize: panel.frame.size))
         }

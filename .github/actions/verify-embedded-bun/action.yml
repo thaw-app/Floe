@@ -43,10 +43,6 @@ runs:
           exit 1
         fi
 
-        info="$(codesign -dvvv "$bun" 2>&1)"
-        echo "$info" | grep -E '^(Identifier|Format|CodeDirectory|Authority|Timestamp|TeamIdentifier)='
-        entitlements="$(codesign -d --entitlements - --xml "$bun" 2>/dev/null || true)"
-
         fail=0
         check() {
           if ! grep -Eq "$1" <<<"$2"; then
@@ -54,13 +50,27 @@ runs:
             fail=1
           fi
         }
-        check '^Authority=Developer ID Application: ' "$info" "not signed with a Developer ID Application certificate."
-        check '^CodeDirectory .*flags=0x[0-9a-f]+\(.*runtime.*\)' "$info" "hardened runtime is not enabled."
-        check '^Timestamp=' "$info" "signature has no secure timestamp."
-        check 'com\.apple\.security\.cs\.allow-jit' "$entitlements" "com.apple.security.cs.allow-jit entitlement is missing, so Bun cannot run under the hardened runtime."
-        if [[ -n "$EXPECTED_TEAM_ID" ]]; then
-          check "^TeamIdentifier=${EXPECTED_TEAM_ID}\$" "$info" "not signed by team ${EXPECTED_TEAM_ID}."
-        fi
+
+        # Floe runs on Apple silicon and Intel, and so must the Bun its extensions run on.
+        archs="$(lipo -archs "$bun")"
+        echo "Architectures: $archs"
+        check '(^| )arm64( |$)' "$archs" "has no Apple silicon (arm64) code."
+        check '(^| )x86_64( |$)' "$archs" "has no Intel (x86_64) code, so extensions would not run on an Intel Mac."
+
+        # codesign shows the runner's own half unless asked for another, so each half is checked by name.
+        for arch in arm64 x86_64; do
+          info="$(codesign -dvvv --arch "$arch" "$bun" 2>&1)"
+          echo "$arch:"
+          echo "$info" | grep -E '^(Identifier|Format|CodeDirectory|Authority|Timestamp|TeamIdentifier)='
+          entitlements="$(codesign -d --arch "$arch" --entitlements - --xml "$bun" 2>/dev/null || true)"
+          check '^Authority=Developer ID Application: ' "$info" "$arch is not signed with a Developer ID Application certificate."
+          check '^CodeDirectory .*flags=0x[0-9a-f]+\(.*runtime.*\)' "$info" "$arch does not have the hardened runtime."
+          check '^Timestamp=' "$info" "$arch's signature has no secure timestamp."
+          check 'com\.apple\.security\.cs\.allow-jit' "$entitlements" "$arch lacks the com.apple.security.cs.allow-jit entitlement, so Bun cannot run under the hardened runtime."
+          if [[ -n "$EXPECTED_TEAM_ID" ]]; then
+            check "^TeamIdentifier=${EXPECTED_TEAM_ID}\$" "$info" "$arch is not signed by team ${EXPECTED_TEAM_ID}."
+          fi
+        done
         if ! codesign --verify --strict "$bun"; then
           echo "::error::Embedded Bun: signature does not verify."
           fail=1

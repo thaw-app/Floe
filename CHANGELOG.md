@@ -21,6 +21,27 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [0.2.0] - 2026-10-28
+
+**macOS 26 and later · Build 3**
+
+### New
+- **Floe runs on Intel Macs, extensions included** ([#46](https://github.com/thaw-app/Floe/issues/46)).
+- **Choose the screen the launcher opens on**, in Settings > Appearance > Layout. Until you pick one, and whenever the one you picked is not connected, it opens on the screen with the pointer ([#41](https://github.com/thaw-app/Floe/discussions/41)).
+
+### Fixed
+- **Extensions that use `ws`'s server or streams load again.** A named import such as `WebSocketServer` failed in 0.1.1.
+- **Shell path completion keeps going inside a folder whose name has a space or brackets**, such as `~/Photos\ \(2024\)/`.
+- **Floe stays open when Settings closes as it starts.** It could quit without a word.
+
+#### Security
+- **An extension's encrypted database is refused however its schema is named.** A name with a space or an accent got past the check, and the data was written unencrypted.
+
+### Contributors
+
+- @BYIIHub asked for Intel support ([#46](https://github.com/thaw-app/Floe/issues/46)).
+- @Dent13 asked to choose the screen the launcher opens on ([#41](https://github.com/thaw-app/Floe/discussions/41)).
+
 ## [0.1.1] - 2026-10-27
 
 **macOS 26 and later · Build 2**

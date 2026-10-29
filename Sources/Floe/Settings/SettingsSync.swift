@@ -64,6 +64,7 @@ enum SettingsSync {
     /// The settings that never leave this Mac, each with why.
     static let thisMacOnly: [String: String] = [
         "notesFolder": "a path on this Mac",
+        "launcherScreen": "names a screen connected to this Mac",
         "terminalApp": "holds the app's path on this Mac",
         "editorApp": "holds the app's path on this Mac",
         "browserApp": "holds the app's path on this Mac",

@@ -243,6 +243,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         .appearance(
+            "launcherScreen",
+            String(localized: "Opens on", bundle: .floe, comment: "The setting for which screen the launcher opens on."),
+            section: String(localized: "Layout", bundle: .floe, comment: "The heading over the settings for how the launcher is arranged."),
+            keywords: String(
+                localized: "screen, monitor, display, external, second screen, pointer, open on",
+                bundle: .floe,
+                comment: "Words that find the Opens on setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .appearance(
             "searchFieldShape",
             String(localized: "Search field shape", bundle: .floe),
             section: String(localized: "Layout", bundle: .floe, comment: "The heading over the settings for how the launcher is arranged."),

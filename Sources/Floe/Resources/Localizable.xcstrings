@@ -1204,7 +1204,7 @@
     "Code" : {
 
     },
-    "Codex can't answer here: Floe couldn't turn off its MCP servers for the answer." : {
+    "Codex can't answer: Floe couldn't turn off its MCP servers." : {
 
     },
     "Color" : {
@@ -3081,6 +3081,9 @@
     "Opens from Clipboard History in the search. With Off or another app, Floe saves no new copies and keeps the ones it has." : {
 
     },
+    "Opens on" : {
+      "comment" : "The setting for which screen the launcher opens on."
+    },
     "Opens web addresses, quicklinks and the other web links you open from Floe." : {
 
     },
@@ -4275,6 +4278,9 @@
     "The checkpoint %@ was already deleted" : {
       "comment" : "The placeholder is the name the user gave a checkpoint."
     },
+    "The chosen screen, not connected" : {
+
+    },
     "The clipboard link isn't a URL. Change it in Settings" : {
 
     },
@@ -4375,6 +4381,9 @@
 
     },
     "The same time as here" : {
+
+    },
+    "The screen with the pointer" : {
 
     },
     "The search field is its own piece of glass, and the results are a second piece below it." : {
@@ -4814,6 +4823,9 @@
 
     },
     "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept." : {
+
+    },
+    "While the chosen screen is not connected, the launcher opens on the screen with the pointer." : {
 
     },
     "Wi-Fi Off" : {
@@ -5316,6 +5328,9 @@
     },
     "screen sharing, file sharing, remote login, computer name" : {
       "comment" : "Words that find the Sharing pane of System Settings, separated by commas."
+    },
+    "screen, monitor, display, external, second screen, pointer, open on" : {
+      "comment" : "Words that find the Opens on setting in the settings search, separated by commas."
     },
     "script, scripts, script commands, raycast, finder, directory, new script" : {
       "comment" : "Words that find the Scripts folder setting in the settings search, separated by commas."

@@ -135,6 +135,7 @@ struct AppearanceSettingsPane: View {
                 Text("Launcher layout")
                 Text("Extended always shows the list. Compact shows only the search bar until you type.")
             }
+            LauncherScreenPicker(selection: $settings.launcherScreen)
             LabeledContent("Search field shape") {
                 ThawPillPicker(selection: $settings.searchFieldShape, values: SearchFieldShape.allCases, title: \.title)
                     .accessibilityLabel(Text("Search field shape"))
@@ -341,6 +342,31 @@ nonisolated enum AppearanceTab: SettingsTab {
         case .layout: "rectangle.split.1x2"
         case .glass: "drop"
         case .edges: "square.dashed"
+        }
+    }
+}
+
+/// The screen the launcher opens on. The list follows screens as they are connected and disconnected;
+/// a chosen screen that is disconnected stays listed, so the choice survives until it is back.
+private struct LauncherScreenPicker: View {
+    @Binding var selection: String
+    @State private var screens = LauncherScreen.connected()
+
+    var body: some View {
+        ThawPicker(selection: $selection) {
+            Text("The screen with the pointer").tag("")
+            ForEach(screens, id: \.id) { screen in
+                Text(verbatim: screen.name).tag(screen.id)
+            }
+            if !selection.isEmpty, !screens.contains(where: { $0.id == selection }) {
+                Text("The chosen screen, not connected").tag(selection)
+            }
+        } label: {
+            Text("Opens on")
+            Text("While the chosen screen is not connected, the launcher opens on the screen with the pointer.")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
+            screens = LauncherScreen.connected()
         }
     }
 }

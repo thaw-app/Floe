@@ -48,6 +48,7 @@
 		17A580DE3C75679335A417B3 /* SearchCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFCE42B5277736D7F8DD7E0D /* SearchCommand.swift */; };
 		17A8AE401EEDE0AD68A2D7D2 /* CommandLookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F80A75E8196D747DD4B2179 /* CommandLookup.swift */; };
 		180A9E2DF8F3C829DCD32EE9 /* AppleShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B3DECA8FD4F8313470E18 /* AppleShortcuts.swift */; };
+		18E25628FF18030C49F2375B /* LauncherScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 779C5B731F068CF670E7537B /* LauncherScreen.swift */; };
 		18E8EEF186A9F490A22E583D /* FloatingNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC45D1B448D58D60D7BC36D2 /* FloatingNoteView.swift */; };
 		196C4C500D1583D356D70557 /* PrivacySettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB366C323BC449BC6B784D8D /* PrivacySettingsPane.swift */; };
 		19CD1AC41F779A3539AF82DD /* AppRole.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72FAF12B5CA3132E1CA5CDBA /* AppRole.swift */; };
@@ -655,6 +656,7 @@
 		728DBFD5129A4F82B5C9DE49 /* LauncherPanelAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherPanelAppearance.swift; sourceTree = "<group>"; };
 		72FAF12B5CA3132E1CA5CDBA /* AppRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRole.swift; sourceTree = "<group>"; };
 		73B1ED3FE0FCC105F40CCBC2 /* SearchFieldShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchFieldShape.swift; sourceTree = "<group>"; };
+		779C5B731F068CF670E7537B /* LauncherScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherScreen.swift; sourceTree = "<group>"; };
 		78D37EBDD2D6EF547319287E /* ThawUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ThawUI; path = Vendor/ThawUI; sourceTree = SOURCE_ROOT; };
 		78E2DD9407CEA946488F4FC2 /* HotReload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotReload.swift; sourceTree = "<group>"; };
 		79F677180E72D99949B2F7FB /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
@@ -700,6 +702,7 @@
 		93CC1FFD5ABAD049CD92E1D3 /* FieldEditorViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FieldEditorViews.swift; sourceTree = "<group>"; };
 		9456693ED86BFF04EA2861CF /* SyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStore.swift; sourceTree = "<group>"; };
 		955281ED200D7C89B75825BD /* Model+Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Keys.swift"; sourceTree = "<group>"; };
+		955F9E94EE7564DF5E00AE5C /* universal-bun.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "universal-bun.sh"; sourceTree = "<group>"; };
 		95D5E9CBA2030703F9BE0381 /* FormViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormViews.swift; sourceTree = "<group>"; };
 		95F42770ECB0255BA11434C8 /* Timers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timers.swift; sourceTree = "<group>"; };
 		962E6B4A1AD362AEF3BE6C57 /* build-rust.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-rust.sh"; sourceTree = "<group>"; };
@@ -991,6 +994,7 @@
 				B5F79E7C261FEF649D619BE4 /* release.sh */,
 				1E248280C8BC41591C09710E /* set-secrets.sh */,
 				1D7504FB669B2427B3BF4A39 /* sync-strings.sh */,
+				955F9E94EE7564DF5E00AE5C /* universal-bun.sh */,
 			);
 			path = scripts;
 			sourceTree = "<group>";
@@ -1465,6 +1469,7 @@
 				31D54FF1A21ED74AD3CB719E /* EarlierIdentifier.swift */,
 				C2E2C5C29CB5FB6EA6176046 /* IncomingURLRouter.swift */,
 				E136CF4B2667B202C87327F9 /* IntentHandler.swift */,
+				779C5B731F068CF670E7537B /* LauncherScreen.swift */,
 				06C21CDFCE7404F918FB0818 /* LauncherSettingsLink.swift */,
 				57AF924655AAF233FC7A5A80 /* LauncherWindow.swift */,
 				5FEFD6D0D5FE1E1CB1726CA6 /* Localization.swift */,
@@ -1680,7 +1685,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\n# Copies the extension host and its React dependencies into the app, plus Bun itself,\n# so the installed app runs without this checkout or a system Bun.\nDEST=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/runtime\"\nif [ ! -d \"$SRCROOT/runtime/node_modules/react-reconciler\" ]; then\n  echo \"error: runtime dependencies are missing; run 'bun install' in runtime/\"\n  exit 1\nfi\nmkdir -p \"$DEST/bin\"\nrsync -a --delete --exclude smoke.ts --exclude survey.ts --exclude testing.ts --exclude tests --exclude bunfig.toml --exclude bin \"$SRCROOT/runtime/\" \"$DEST/\"\n# rsync leaves excluded names alone, so drop test files an earlier build copied.\nrm -rf \"$DEST/tests\" \"$DEST/bunfig.toml\" \"$DEST/testing.ts\"\nBUN=\"\"\nfor candidate in \"${BUN_PATH:-}\" /opt/homebrew/bin/bun \"$HOME/.bun/bin/bun\" /usr/local/bin/bun; do\n  if [ -n \"$candidate\" ] && [ -x \"$candidate\" ]; then BUN=$(realpath \"$candidate\"); break; fi\ndone\nif [ -n \"$BUN\" ]; then\n  cmp -s \"$BUN\" \"$DEST/bin/bun\" || cp -f \"$BUN\" \"$DEST/bin/bun\"\nelse\n  echo \"warning: Bun not found; the app will look for a system copy at runtime\"\nfi\n# Stamp the commit into the built Info.plist for the About page; signing happens after this step.\nCOMMIT=$(git -C \"$SRCROOT\" rev-parse --short HEAD 2>/dev/null || echo \"uncommitted\")\nif [ -n \"$(git -C \"$SRCROOT\" status --porcelain 2>/dev/null | head -1)\" ]; then COMMIT=\"$COMMIT-dirty\"; fi\n/usr/libexec/PlistBuddy -c \"Set :GitCommitSHA $COMMIT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n";
+			shellScript = "set -euo pipefail\n# Copies the extension host and its React dependencies into the app, plus Bun itself,\n# so the installed app runs without this checkout or a system Bun.\nDEST=\"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/runtime\"\nif [ ! -d \"$SRCROOT/runtime/node_modules/react-reconciler\" ]; then\n  echo \"error: runtime dependencies are missing; run 'bun install' in runtime/\"\n  exit 1\nfi\nmkdir -p \"$DEST/bin\"\nrsync -a --delete --exclude smoke.ts --exclude survey.ts --exclude testing.ts --exclude tests --exclude bunfig.toml --exclude bin \"$SRCROOT/runtime/\" \"$DEST/\"\n# rsync leaves excluded names alone, so drop test files an earlier build copied.\nrm -rf \"$DEST/tests\" \"$DEST/bunfig.toml\" \"$DEST/testing.ts\"\n# BUN_PATH is the universal Bun a release build makes (scripts/universal-bun.sh); a local build takes the Mac's own.\nBUN=\"\"\nfor candidate in \"${BUN_PATH:-}\" /opt/homebrew/bin/bun \"$HOME/.bun/bin/bun\" /usr/local/bin/bun; do\n  if [ -n \"$candidate\" ] && [ -x \"$candidate\" ]; then BUN=$(realpath \"$candidate\"); break; fi\ndone\nif [ -n \"$BUN\" ]; then\n  cmp -s \"$BUN\" \"$DEST/bin/bun\" || cp -f \"$BUN\" \"$DEST/bin/bun\"\nelse\n  echo \"warning: Bun not found; the app will look for a system copy at runtime\"\nfi\n# Stamp the commit into the built Info.plist for the About page; signing happens after this step.\nCOMMIT=$(git -C \"$SRCROOT\" rev-parse --short HEAD 2>/dev/null || echo \"uncommitted\")\nif [ -n \"$(git -C \"$SRCROOT\" status --porcelain 2>/dev/null | head -1)\" ]; then COMMIT=\"$COMMIT-dirty\"; fi\n/usr/libexec/PlistBuddy -c \"Set :GitCommitSHA $COMMIT\" \"$TARGET_BUILD_DIR/$INFOPLIST_PATH\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1852,6 +1857,7 @@
 				FABB403BBB3C3189958DD1BF /* LauncherGlass.swift in Sources */,
 				CABB2AAE0CB58A33DCC1A8A0 /* LauncherLayout.swift in Sources */,
 				D00E7B600C05D1A53076F0BB /* LauncherPanelAppearance.swift in Sources */,
+				18E25628FF18030C49F2375B /* LauncherScreen.swift in Sources */,
 				7B7FABA4592B5310EB2C87C5 /* LauncherSettingsLink.swift in Sources */,
 				CBBD95A624BFDE78DABFFCB8 /* LauncherWindow.swift in Sources */,
 				CE4980D0D2FB7C31D9D92402 /* LentSignIn.swift in Sources */,

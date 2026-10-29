@@ -194,12 +194,18 @@ jobs:
           release-notes: ${{ inputs.release_notes }}
           changelog-paths: CHANGELOG.md
 
-      # Installs to ~/.bun/bin/bun, one of the places the Embed Runtime build
-      # phase looks for the Bun it copies into the app. This is the Bun that ships.
+      # Installs to ~/.bun/bin/bun, the Bun the build's own steps run on.
       - name: Install Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: "1.4.3"
+
+      # The Bun that ships: Apple silicon and Intel in one file, pinned in the script. The Embed Runtime
+      # build phase takes BUN_PATH before the Bun installed above.
+      - name: Make Bun universal
+        run: |
+          ./scripts/universal-bun.sh "$RUNNER_TEMP/universal-bun/bun"
+          echo "BUN_PATH=$RUNNER_TEMP/universal-bun/bun" >> "$GITHUB_ENV"
 
       # The Embed Runtime build phase fails without runtime/node_modules.
       - name: Install runtime dependencies

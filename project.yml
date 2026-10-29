@@ -98,6 +98,7 @@ targets:
           rsync -a --delete --exclude smoke.ts --exclude survey.ts --exclude testing.ts --exclude tests --exclude bunfig.toml --exclude bin "$SRCROOT/runtime/" "$DEST/"
           # rsync leaves excluded names alone, so drop test files an earlier build copied.
           rm -rf "$DEST/tests" "$DEST/bunfig.toml" "$DEST/testing.ts"
+          # BUN_PATH is the universal Bun a release build makes (scripts/universal-bun.sh); a local build takes the Mac's own.
           BUN=""
           for candidate in "${BUN_PATH:-}" /opt/homebrew/bin/bun "$HOME/.bun/bin/bun" /usr/local/bin/bun; do
             if [ -n "$candidate" ] && [ -x "$candidate" ]; then BUN=$(realpath "$candidate"); break; fi
@@ -152,8 +153,8 @@ targets:
           rayon: https://github.com/rayon-rs/rayon
         # Filled in from git by the Embed Runtime step.
         GitCommitSHA: unknown
-        CFBundleShortVersionString: "0.1.1"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "0.2.0"
+        CFBundleVersion: "3"
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         LSUIElement: true
         # Thaw answers Floe's appearance request by opening floe://thaw-appearance. IncomingURLRouter takes every floe:// link.
