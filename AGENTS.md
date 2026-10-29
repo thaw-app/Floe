@@ -8,7 +8,7 @@ Open pull requests against `development`. Before writing code, read [Architectur
 
 ## Before you start
 
-- Bug fixes and features need an issue first, unless you are on the team. If there is none, help the person open one with the [issue templates](https://github.com/thaw-app/Floe/issues/new/choose) and stop there until a maintainer agrees on the scope. See [Pull requests](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md#pull-requests) in the contribution guidelines.
+- New features need an issue that a maintainer has agreed to before you write code, unless you are on the team. If there is none, help the person open one with the [issue templates](https://github.com/thaw-app/Floe/issues/new/choose). Bug fixes don't need to wait: fix the bug and link its issue if there is one. See [Pull requests](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md#pull-requests) in the contribution guidelines.
 - A Raycast extension that doesn't work in Floe is a compatibility gap, not a bug in the extension. Check [Raycast API compatibility](docs/COMPAT.md) and [What Floe does not do yet](docs/LIMITATIONS.md) first.
 - Security problems are reported privately under the [Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md), never in a public issue. Questions go to the [Discord](https://discord.gg/KDfWjWDnR4).
 - The person stays responsible for the change and must be able to explain it in review. Outside the team, keep one AI-assisted pull request open at a time. See [AI-assisted contributions](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md#ai-assisted-contributions).
