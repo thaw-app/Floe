@@ -399,4 +399,72 @@ struct DailyNoteFolderTests {
         try JSONSerialization.data(withJSONObject: ["folder": "Journal"]).write(to: settings)
         #expect(NoteFiles.dayFolder(in: vault) == vault.appendingPathComponent("Journal", isDirectory: true))
     }
+
+    private func vaultBesideOutside() throws -> (root: URL, vault: URL, outside: URL) {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("floe-notes-\(UUID().uuidString)")
+        let vault = root.appendingPathComponent("Vault")
+        let outside = root.appendingPathComponent("Outside")
+        try FileManager.default.createDirectory(at: vault, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: outside, withIntermediateDirectories: true)
+        return (root, vault, outside)
+    }
+
+    private var noon: Date {
+        Calendar.current.date(from: DateComponents(year: 2026, month: 10, day: 8, hour: 12)) ?? Date()
+    }
+
+    private func outsideIsEmpty(_ outside: URL) -> Bool {
+        let found = FileManager.default.enumerator(atPath: outside.path)?.allObjects ?? []
+        return found.isEmpty
+    }
+
+    @Test func aSubfolderInTheNotesNameThatLinksOutIsNotWrittenThrough() throws {
+        let (root, vault, outside) = try vaultBesideOutside()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: vault.appendingPathComponent(".obsidian"), withIntermediateDirectories: true)
+        try JSONSerialization.data(withJSONObject: ["format": "YYYY/MM-DD"]).write(to: vault.appendingPathComponent(".obsidian/daily-notes.json"))
+        try FileManager.default.createSymbolicLink(at: vault.appendingPathComponent("2026"), withDestinationURL: outside)
+
+        #expect(throws: NoteFiles.OutsideTheFolder.self) {
+            try NoteFiles.append("a line", in: vault, now: noon)
+        }
+        #expect(outsideIsEmpty(outside))
+    }
+
+    @Test func octarinesDailyFolderThatLinksOutIsNotWrittenThrough() throws {
+        let (root, vault, outside) = try vaultBesideOutside()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: vault.appendingPathComponent(".octarine"), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: vault.appendingPathComponent("Daily"), withDestinationURL: outside)
+
+        #expect(NoteFiles.perform(.today, text: "a line", folder: vault.path, now: noon) == "Couldn’t save the note: Today’s note would be outside your notes folder")
+        #expect(outsideIsEmpty(outside))
+    }
+
+    @Test func todaysNoteThatIsALinkOutIsNotReadOrOpened() throws {
+        let (root, vault, outside) = try vaultBesideOutside()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let secret = outside.appendingPathComponent("secret.md")
+        try Data("secret\n".utf8).write(to: secret)
+        let today = NoteFiles.dayFile(in: vault, now: noon)
+        try FileManager.default.createSymbolicLink(at: today, withDestinationURL: secret)
+
+        #expect(throws: NoteFiles.OutsideTheFolder.self) {
+            try NoteFiles.append("a line", in: vault, now: noon)
+        }
+        #expect(try String(contentsOf: secret, encoding: .utf8) == "secret\n")
+        var opened: [URL] = []
+        _ = NoteFiles.perform(.today, text: "", folder: vault.path, now: noon, open: { opened.append($0) })
+        #expect(opened.map(\.lastPathComponent) == [vault.lastPathComponent], "the folder opens, not the file it links to")
+    }
+
+    @Test func aSubfolderInTheNotesNameInsideTheVaultIsMade() throws {
+        let (root, vault, _) = try vaultBesideOutside()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: vault.appendingPathComponent(".obsidian"), withIntermediateDirectories: true)
+        try JSONSerialization.data(withJSONObject: ["format": "YYYY/MM-DD"]).write(to: vault.appendingPathComponent(".obsidian/daily-notes.json"))
+        let file = try NoteFiles.append("a line", in: vault, now: noon)
+        #expect(file.path == vault.appendingPathComponent("2026/10-08.md").path)
+        #expect(try String(contentsOf: file, encoding: .utf8) == "a line\n")
+    }
 }

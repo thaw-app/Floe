@@ -125,16 +125,24 @@ sign_for_icloud() {
     security cms -D -i "$PROFILE" >"$work/profile.plist"
     application=$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$work/profile.plist")
     team=${application%%.*}
-    # Checked before sed sees it: a team identifier is ten capital letters and digits.
+    # Checked before PlistBuddy sees them: a team identifier is ten capital letters and digits, and the
+    # bundle identifier is letters, digits, dots and hyphens, so neither can end a command and start another.
     [[ "$team" =~ ^[A-Z0-9]{10}$ ]] || fail "The profile's team, $team, is not a team identifier."
+    [[ "$BUNDLE_ID" =~ ^[A-Za-z0-9.-]+$ ]] || fail "$BUNDLE_ID is not a bundle identifier."
     [[ "$application" == "$team.$BUNDLE_ID" ]] || fail "The profile is for $application, not $BUNDLE_ID."
 
-    # What Xcode fills in when it signs with a profile: the two variables, the app's identifier and the environment.
-    sed -e "s/\$(TeamIdentifierPrefix)/$team./" -e "s/\$(CFBundleIdentifier)/$BUNDLE_ID/" Resources/Floe-iCloud.entitlements >"$work/entitlements.plist"
+    # What Xcode fills in when it signs with a profile: the key-value store's identifier, the app's
+    # identifier, the team and the environment. A value set by key, not text replaced, so nothing in it is a pattern.
+    cp Resources/Floe-iCloud.entitlements "$work/entitlements.plist"
     /usr/libexec/PlistBuddy \
+        -c "Set :com.apple.developer.ubiquity-kvstore-identifier $application" \
         -c "Add :com.apple.application-identifier string $application" \
         -c "Add :com.apple.developer.team-identifier string $team" \
         -c "Add :com.apple.developer.icloud-container-environment string Production" "$work/entitlements.plist"
+    # A variable added to the template later would reach the signature as written.
+    if grep -qF "\$(" "$work/entitlements.plist"; then
+        fail "Resources/Floe-iCloud.entitlements has a variable devrun.sh does not fill in."
+    fi
 
     say "Signing for iCloud with the Developer ID certificate and $(basename "$PROFILE")…"
     cp "$PROFILE" "$APP/Contents/embedded.provisionprofile"

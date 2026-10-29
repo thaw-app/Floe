@@ -261,6 +261,29 @@ fn a_rescan_sees_a_folder_removed_renamed_and_moved_in() {
 }
 
 #[test]
+fn a_folder_that_becomes_a_link_is_not_followed_out_of_the_root() {
+    let scratch = Scratch::new();
+    let outside = Scratch::new();
+    outside.file("secret/private.txt");
+    scratch.file("docs/report.txt");
+    let index = built(&scratch);
+
+    // The tree still has docs as a folder; the rescan must not read where the link now leads.
+    fs::remove_dir_all(scratch.path("docs")).unwrap();
+    std::os::unix::fs::symlink(outside.root(), scratch.path("docs")).unwrap();
+    index.rescan(&scratch.path("docs"), false);
+    index.rescan(&scratch.path("docs/secret"), true);
+    assert!(found(&index, &scratch, "private").is_empty());
+    assert!(found(&index, &scratch, "secret").is_empty());
+    assert!(!index.read().tree.search("docs", 10)[0].is_folder, "the link is listed as an entry of its own");
+
+    let top = Folder::open(scratch.root()).unwrap();
+    assert!(top.inside("docs").is_none());
+    assert!(top.inside("docs/secret").is_none(), "nor is a link on the way to a folder");
+    assert!(Folder::open(&scratch.path("docs")).is_some(), "the root itself may be reached through a link");
+}
+
+#[test]
 fn a_recursive_rescan_reads_the_whole_subtree_again() {
     let scratch = Scratch::new();
     scratch.file("tree/a/b/deep.txt");
@@ -656,6 +679,86 @@ fn a_file_deeper_than_its_depths_say_or_with_too_long_a_path_is_refused() {
     fine.push(top, "inside.txt", false);
     let file = saved_tree(&scratch, &fine);
     assert_eq!(loaded.load(&file, scratch.root(), rules()), Some(2));
+    let _ = fs::remove_file(file);
+}
+
+#[test]
+fn rules_that_differ_never_save_as_the_same() {
+    let joined = Rules { excluded_names: vec!["a\nb".into()], package_suffixes: Vec::new() };
+    let split = Rules { excluded_names: vec!["a".into(), "b".into()], package_suffixes: Vec::new() };
+    let moved = Rules { excluded_names: Vec::new(), package_suffixes: vec!["a\nb".into()] };
+    assert_ne!(joined.identity(), split.identity());
+    assert_ne!(joined.identity(), moved.identity());
+
+    let scratch = Scratch::new();
+    scratch.file("one.txt");
+    let index = FileIndex::new();
+    index.build(scratch.root(), joined);
+    let file = saved_file(&scratch);
+    assert!(index.save(&file));
+    assert_eq!(FileIndex::new().load(&file, scratch.root(), split), None);
+
+    let mut old = fs::read(&file).unwrap();
+    old[7] = 1;
+    fs::write(&file, old).unwrap();
+    assert_eq!(FileIndex::new().load(&file, scratch.root(), Rules { excluded_names: vec!["a\nb".into()], package_suffixes: Vec::new() }), None, "a file of the version before");
+    let _ = fs::remove_file(file);
+}
+
+#[test]
+fn a_file_whose_names_share_bytes_or_leave_some_over_is_refused() {
+    let scratch = Scratch::new();
+    let loaded = FileIndex::new();
+    let mut tree = Tree::empty(scratch.root());
+    let folder = tree.push(0, "folder", true);
+    tree.push(folder, "a", false);
+    tree.push(folder, "b", false);
+    let file = saved_tree(&scratch, &tree);
+    assert_eq!(loaded.load(&file, scratch.root(), rules()), Some(3));
+
+    // Every entry pointing at one long name would make each search put together far more than the file holds.
+    let mut shared = Tree::empty(scratch.root());
+    shared.push(0, &"n".repeat(1000), false);
+    for _ in 0..3 {
+        shared.entries.push(shared.entries[1]);
+    }
+    let file = saved_tree(&scratch, &shared);
+    assert_eq!(loaded.load(&file, scratch.root(), rules()), None);
+
+    let mut over = Tree::empty(scratch.root());
+    over.push(0, "a", false);
+    over.names.extend_from_slice(b"unused");
+    let file = saved_tree(&scratch, &over);
+    assert_eq!(loaded.load(&file, scratch.root(), rules()), None);
+    assert_eq!(count(&loaded), 3, "a refused file leaves the index as it was");
+    let _ = fs::remove_file(file);
+}
+
+#[test]
+fn a_save_writes_over_nothing_but_its_own_file() {
+    let scratch = Scratch::new();
+    scratch.file("one.txt");
+    let index = built(&scratch);
+    let file = saved_file(&scratch);
+    let victim = scratch.path("victim.txt");
+    fs::write(&victim, "keep").unwrap();
+    // The name the unfinished file once had, set as a trap: a link to a file of someone else's, and a plain file.
+    std::os::unix::fs::symlink(&victim, format!("{file}.unfinished")).unwrap();
+
+    assert!(index.save(&file));
+    assert!(index.save(&file), "and again over the saved one");
+    assert_eq!(fs::read_to_string(&victim).unwrap(), "keep");
+    assert!(fs::symlink_metadata(format!("{file}.unfinished")).unwrap().file_type().is_symlink());
+    assert_eq!(FileIndex::new().load(&file, scratch.root(), rules()), Some(1));
+
+    let parent = std::path::Path::new(&file).parent().unwrap();
+    let prefix = std::path::Path::new(&file).file_name().unwrap().to_str().unwrap().to_owned();
+    let left: Vec<_> = fs::read_dir(parent).unwrap().flatten().filter(|entry| {
+        let name = entry.file_name().to_string_lossy().into_owned();
+        name.starts_with(&prefix) && name != prefix && name != format!("{prefix}.unfinished")
+    }).collect();
+    assert!(left.is_empty(), "no unfinished file is left behind");
+    let _ = fs::remove_file(format!("{file}.unfinished"));
     let _ = fs::remove_file(file);
 }
 

@@ -73,7 +73,7 @@ nonisolated enum SSHConnection {
     /// What Copy SSH Command copies. An alias that is not safe as it is goes in quotes, after the
     /// "--" that ends ssh's options.
     static func command(for alias: String) -> String {
-        isSafe(alias) ? "ssh \(alias)" : "ssh -- '\(alias.replacingOccurrences(of: "'", with: "'\\''"))'"
+        isSafe(alias) ? "ssh \(alias)" : "ssh -- " + TerminalEditor.quoted(alias)
     }
 
     /// The link a terminal that answers "ssh://" opens. The alias is the host, so the configuration applies to it.
@@ -118,8 +118,7 @@ nonisolated enum SSHConnection {
         if let terminal, let step = step(alias: alias, app: terminal.url, using: connector) {
             return SSHConnectionPlan(step: step, app: terminal.name)
         }
-        guard let fallback = connector.systemTerminal(), fallback != terminal?.url,
-              let step = step(alias: alias, app: fallback, using: connector)
+        guard let fallback = connector.systemTerminal(), fallback != terminal?.url, let step = step(alias: alias, app: fallback, using: connector)
         else { return SSHConnectionPlan(step: .nothing, notice: noTerminalNotice) }
         let name = ResolvedApp(url: fallback).name
         let notice = terminal.map { String(localized: "\($0.name) takes no command from Floe, so the connection opened in \(name)", bundle: .floe, comment: "Both placeholders are names of terminal apps.") }

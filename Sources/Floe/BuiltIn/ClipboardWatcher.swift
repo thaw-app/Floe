@@ -86,6 +86,13 @@ final class ClipboardWatcher {
         self.timer = timer
     }
 
+    /// Takes the pasteboard as it is now as seen, and drops the reads left for an earlier change. Called when
+    /// recording comes back on, so a copy made while it was off and not looked at yet is never read.
+    func skipToNow() {
+        seen = changeCount()
+        readsLeft = 0
+    }
+
     /// Looks once, and answers how long to wait before the next look.
     func tick() -> TimeInterval {
         let count = changeCount()

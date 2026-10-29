@@ -58,6 +58,9 @@ nonisolated extension Fuzzy {
     /// Scales the per-character points so a perfect scattered match lands exactly on 54.
     private static let pointScale = 4
     private static let unreachable = Int.min / 2
+    /// The most cells of query by candidate a scattered match keeps to say where its letters are. The table is
+    /// built on the main thread as a row is drawn, so a longer pair is scored the same and shown without a highlight.
+    static let positionBudget = 1 << 16
 
     /// The score and the offsets of the matched characters in `candidate`, counted in characters.
     static func match(_ query: String, _ candidate: String) -> Match? {
@@ -147,6 +150,7 @@ nonisolated extension Fuzzy {
             return (boundaries[column] ? boundaryPoints * pointScale : 0) + count * max(0, earlyPoints - column)
         }
         var current = previous
+        let wantPositions = wantPositions && count * length <= positionBudget
         var origins = wantPositions ? [Int](repeating: -1, count: count * length) : []
         for row in 1 ..< count {
             // The best total of the previous letter anywhere left of the adjacent position.

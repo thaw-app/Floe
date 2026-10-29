@@ -15,6 +15,21 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
         case note, noteLine, checkpoint
         /// A timer started. Its identifier is the timer's, and stops it while it runs.
         case timer
+
+        /// How a receipt of this kind is taken back.
+        var undo: Undo {
+            switch self {
+            case .trash, .extensionRemoved: .putBack
+            case .reminder, .event, .checkpoint, .timer: .delete
+            case .note: .discard
+            case .command, .process, .noteLine: .none
+            }
+        }
+    }
+
+    /// Put back out of the Trash, deleted by its identifier, moved to the Trash while unchanged, or not at all.
+    enum Undo {
+        case putBack, delete, discard, none
     }
 
     var id = UUID()
@@ -33,21 +48,28 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
     var size: Int?
     var modified: Date?
     var undone: Date?
+    /// For what went to the Trash: the folder it was in with every link resolved, so putting it back goes there and
+    /// through no link. Receipts written before this have none.
+    var folder: String?
 
     /// Receipts written before events have the identifier under the name it had then.
     private enum CodingKeys: String, CodingKey {
-        case id, date, kind, subject, detail, original, trashed, size, modified, undone
+        case id, date, kind, subject, detail, original, trashed, size, modified, undone, folder
         case identifier = "reminder"
     }
 
     /// What went to the Trash can be put back, what Floe added deleted, and a note it wrote moved to the Trash.
-    /// A command that ran, a process that quit and a line added to a note cannot be taken back.
+    /// A command that ran, a process that quit and a line added to a note cannot be taken back. The receipts' file
+    /// can be edited, so a receipt holding what another kind would, such as a Trash receipt naming a reminder,
+    /// cannot be undone either.
     var canUndo: Bool {
         guard undone == nil else { return false }
-        if kind == .note {
-            return original != nil && size != nil && modified != nil
+        switch kind.undo {
+        case .putBack: return original != nil && trashed != nil && identifier == nil
+        case .delete: return identifier != nil && original == nil && trashed == nil
+        case .discard: return original != nil && size != nil && modified != nil && identifier == nil && trashed == nil
+        case .none: return false
         }
-        return identifier != nil || (original != nil && trashed != nil)
     }
 
     var title: String {
@@ -80,10 +102,11 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
                 ? String(localized: "\(when) · stopped", bundle: .floe, comment: "Beside the receipt of a timer that was stopped. The placeholder is a time, such as 2 hr. ago.")
                 : String(localized: "\(when) · can be stopped", bundle: .floe, comment: "Beside the receipt of a timer Floe started. The placeholder is a time, such as 2 hr. ago.")
         }
-        if identifier != nil {
-            return undone != nil
-                ? String(localized: "\(when) · deleted", bundle: .floe, comment: "Beside the receipt of something Floe added that was deleted again. The placeholder is a time, such as 2 hr. ago.")
-                : String(localized: "\(when) · can be deleted", bundle: .floe, comment: "Beside the receipt of something Floe added. The placeholder is a time, such as 2 hr. ago.")
+        if kind.undo == .delete {
+            if undone != nil {
+                return String(localized: "\(when) · deleted", bundle: .floe, comment: "Beside the receipt of something Floe added that was deleted again. The placeholder is a time, such as 2 hr. ago.")
+            }
+            return canUndo ? String(localized: "\(when) · can be deleted", bundle: .floe, comment: "Beside the receipt of something Floe added. The placeholder is a time, such as 2 hr. ago.") : when
         }
         if undone != nil {
             return String(localized: "\(when) · put back", bundle: .floe, comment: "Beside a receipt. The placeholder is a time, such as 2 hr. ago.")
@@ -114,7 +137,7 @@ nonisolated struct Receipt: Codable, Identifiable, Hashable, Sendable {
         if kind == .timer {
             return String(localized: "Stopped \(when)", bundle: .floe, comment: "When a timer Floe started was stopped. The placeholder is a date and time.")
         }
-        return identifier != nil
+        return kind.undo == .delete
             ? String(localized: "Deleted \(when)", bundle: .floe, comment: "When something Floe added was deleted again. The placeholder is a date and time.")
             : String(localized: "Put back \(when)", bundle: .floe, comment: "The placeholder is a date and time.")
     }
@@ -163,6 +186,8 @@ nonisolated enum ReceiptUndo {
         case changed
         /// The note is not where Floe wrote it.
         case missing
+        /// The folder it was in is a link now, or is reached through one: it stays in the Trash.
+        case folderChanged
         case failed(String)
         case notUndoable
     }
@@ -175,27 +200,72 @@ nonisolated enum ReceiptUndo {
         trash: (URL) throws -> Receipt = { try ReceiptStore.trash($0) }
     ) -> Outcome {
         guard receipt.canUndo else { return .notUndoable }
-        if receipt.kind == .note {
+        switch receipt.kind.undo {
+        case .discard:
             return discard(receipt, fileManager: fileManager, trash: trash)
-        }
-        if let identifier = receipt.identifier {
-            guard let delete else { return .notUndoable }
+        case .delete:
+            guard let identifier = receipt.identifier, let delete else { return .notUndoable }
             do {
                 return try delete(identifier) ? .deleted : .alreadyDeleted
             } catch {
                 return .failed(error.localizedDescription)
             }
+        case .putBack:
+            guard let original = receipt.original, let trashed = receipt.trashed else { return .notUndoable }
+            return putBack(trashed, to: original, folder: receipt.folder, fileManager: fileManager)
+        case .none:
+            return .notUndoable
         }
-        guard let original = receipt.original, let trashed = receipt.trashed else { return .notUndoable }
+    }
+
+    /// Moves an item out of the Trash into the folder it was in. That folder is opened one name at a time from the
+    /// root, following no link, and the item is moved relative to it: a link put in place of the folder or of one
+    /// above it cannot send the item elsewhere, not even between the check and the move. A receipt from before the
+    /// resolved folder was kept goes by the path it has, so it is put back only when no folder on that path is a link.
+    private static func putBack(_ trashed: String, to original: String, folder: String?, fileManager: FileManager) -> Outcome {
         guard fileManager.fileExists(atPath: trashed) else { return .gone }
-        guard !fileManager.fileExists(atPath: original) else { return .inTheWay }
-        do {
-            try fileManager.createDirectory(atPath: (original as NSString).deletingLastPathComponent, withIntermediateDirectories: true)
-            try fileManager.moveItem(atPath: trashed, toPath: original)
-            return .putBack
-        } catch {
-            return .failed(error.localizedDescription)
+        let target = URL(fileURLWithPath: original)
+        let name = target.lastPathComponent
+        let folder = folder ?? target.deletingLastPathComponent().path
+        guard !name.isEmpty, name != "/" else { return .notUndoable }
+        let opened = openFolder(folder)
+        guard opened >= 0 else {
+            return errno == ENOTDIR || errno == ELOOP ? .folderChanged : failure(errno)
         }
+        defer { close(opened) }
+        guard renameatx_np(AT_FDCWD, trashed, opened, name, UInt32(RENAME_EXCL)) == 0 else {
+            return errno == EEXIST ? .inTheWay : failure(errno)
+        }
+        return .putBack
+    }
+
+    private static func failure(_ code: Int32) -> Outcome {
+        .failed(POSIXError(POSIXErrorCode(rawValue: code) ?? .EIO).localizedDescription)
+    }
+
+    /// The folder at an absolute path, made where it is missing, with no link followed on the way. -1 with errno
+    /// set when it cannot be, ELOOP or ENOTDIR when a name on the way is a link or a file.
+    private static func openFolder(_ path: String) -> Int32 {
+        var current = open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+        for part in path.split(separator: "/") where part != "." {
+            guard current >= 0 else { return -1 }
+            // A ".." on the way could step out of a folder opened through no link into one that is not checked.
+            guard part != ".." else {
+                close(current)
+                errno = ELOOP
+                return -1
+            }
+            let name = String(part)
+            var next = openat(current, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            if next < 0, errno == ENOENT, mkdirat(current, name, 0o777) == 0 || errno == EEXIST {
+                next = openat(current, name, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC)
+            }
+            let failure = errno
+            close(current)
+            errno = failure
+            current = next
+        }
+        return current
     }
 
     /// Moves a note Floe wrote to the Trash, unless its size or date say it was changed since.
@@ -214,9 +284,7 @@ nonisolated enum ReceiptUndo {
 
     static func message(for outcome: Outcome, subject: String, kind: Receipt.Kind = .trash) -> String {
         switch outcome {
-        case .putBack: String(localized: "Put \(subject) back", bundle: .floe, comment: "The placeholder is a file name.")
-        case .inTheWay: String(localized: "Something else is where \(subject) was, so it stays in the Trash", bundle: .floe, comment: "The placeholder is a file name.")
-        case .gone: String(localized: "\(subject) is no longer in the Trash", bundle: .floe, comment: "The placeholder is a file name.")
+        case .putBack, .inTheWay, .gone, .folderChanged: putBackMessage(for: outcome, subject: subject)
         case .deleted: deleted(subject, kind: kind)
         case .alreadyDeleted: alreadyDeleted(subject, kind: kind)
         case .trashed: String(localized: "Moved \(subject) to the Trash", bundle: .floe, comment: "A receipt. The placeholder is a file name.")
@@ -224,6 +292,15 @@ nonisolated enum ReceiptUndo {
         case .missing: String(localized: "\(subject) is no longer where Floe wrote it", bundle: .floe, comment: "The placeholder is the name of a note's file.")
         case let .failed(reason): reason
         case .notUndoable: String(localized: "This cannot be undone.", bundle: .floe)
+        }
+    }
+
+    private static func putBackMessage(for outcome: Outcome, subject: String) -> String {
+        switch outcome {
+        case .inTheWay: String(localized: "Something else is where \(subject) was, so it stays in the Trash", bundle: .floe, comment: "The placeholder is a file name.")
+        case .gone: String(localized: "\(subject) is no longer in the Trash", bundle: .floe, comment: "The placeholder is a file name.")
+        case .folderChanged: String(localized: "The folder \(subject) was in is not as it was, so it stays in the Trash", bundle: .floe, comment: "The placeholder is a file name.")
+        default: String(localized: "Put \(subject) back", bundle: .floe, comment: "The placeholder is a file name.")
         }
     }
 
@@ -286,10 +363,20 @@ final nonisolated class ReceiptStore: Sendable {
 
     /// Moves something to the Trash and answers with the receipt that can put it back.
     static func trash(_ url: URL, as kind: Receipt.Kind = .trash, subject: String? = nil, now: Date = Date()) throws -> Receipt {
+        let folder = resolvedPath(url.deletingLastPathComponent().path)
         var inTrash: NSURL?
         try FileManager.default.trashItem(at: url, resultingItemURL: &inTrash)
         let name = subject ?? FileManager.default.displayName(atPath: url.path)
         let place = (url.path as NSString).abbreviatingWithTildeInPath
-        return Receipt(date: now, kind: kind, subject: name, detail: place, original: url.path, trashed: inTrash?.path)
+        var receipt = Receipt(date: now, kind: kind, subject: name, detail: place, original: url.path, trashed: inTrash?.path)
+        receipt.folder = folder
+        return receipt
+    }
+
+    /// A path with every link in it resolved, or nil when it does not exist.
+    static func resolvedPath(_ path: String) -> String? {
+        guard let resolved = realpath(path, nil) else { return nil }
+        defer { free(resolved) }
+        return String(cString: resolved)
     }
 }

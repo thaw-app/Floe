@@ -720,7 +720,7 @@
     "Alias" : {
       "comment" : "A short name typed in the search to find a command."
     },
-    "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports." : {
+    "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports, and what you allowed on this Mac stays as it is." : {
 
     },
     "Aliases, hotkeys, favorites, appearance and extension preferences. Passwords stay out." : {
@@ -4257,6 +4257,9 @@
     "The API returned status %lld." : {
       "comment" : "The placeholder is an HTTP status number such as 500."
     },
+    "The API sent the request on to another address. Floe doesn't follow it, so nothing was sent there. Check the address under Settings › AI." : {
+
+    },
     "The API set up on the AI page" : {
 
     },
@@ -4328,6 +4331,9 @@
     },
     "The file couldn't be read as text." : {
 
+    },
+    "The folder %@ was in is not as it was, so it stays in the Trash" : {
+      "comment" : "The placeholder is a file name."
     },
     "The introduction from the first launch." : {
 
@@ -4490,6 +4496,9 @@
     },
     "Today" : {
       "comment" : "The heading over what was copied today."
+    },
+    "Today’s note would be outside your notes folder" : {
+
     },
     "Toggle Application Menus" : {
 

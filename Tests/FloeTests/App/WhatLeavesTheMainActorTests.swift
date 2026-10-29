@@ -159,7 +159,7 @@ struct WhatLeavesTheMainActorTests {
     @Test func theSignInBrokerAnswersOffTheMainActor() async {
         // The same from the other side: the broker refuses what is not a sign-in request before it reads a token.
         let left = await CountingExecutor.departures {
-            _ = try? await OAuthBroker.shared.perform(.selectedText, extensionName: "none")
+            _ = try? await OAuthBroker.shared.perform(.selectedText, extensionName: "none", installation: URL(fileURLWithPath: "/tmp/none"))
         }
         #expect(left > 0)
     }

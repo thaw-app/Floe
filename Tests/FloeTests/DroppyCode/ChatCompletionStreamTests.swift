@@ -16,6 +16,8 @@ private final nonisolated class StubProtocol: URLProtocol {
     enum Reply {
         case response(status: Int, body: String)
         case failure(URLError.Code)
+        /// Sends the request on to `location`, keeping its method and body as a 307 or 308 does.
+        case redirect(status: Int, location: URL)
     }
 
     private static let replies = OSAllocatedUnfairLock(initialState: [String: [Reply]]())
@@ -55,6 +57,14 @@ private final nonisolated class StubProtocol: URLProtocol {
             client?.urlProtocolDidFinishLoading(self)
         case let .failure(code):
             client?.urlProtocol(self, didFailWithError: URLError(code))
+        case let .redirect(status, location):
+            guard let url = request.url, let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: "HTTP/1.1", headerFields: ["Location": location.absoluteString])
+            else { return }
+            var next = request
+            next.url = location
+            client?.urlProtocol(self, wasRedirectedTo: next, redirectResponse: response)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocolDidFinishLoading(self)
         case nil:
             client?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))
         }
@@ -212,6 +222,17 @@ struct ChatCompletionStreamTests {
         }
         #expect(error?.errorDescription?.contains("after 3 attempts") == true)
         #expect(StubProtocol.requestCount(for: path) == 3)
+    }
+
+    @Test(arguments: [301, 302, 307, 308])
+    func aRedirectIsNotFollowedSoTheQuestionAndKeyStayWithTheAddressChosen(status: Int) async {
+        let elsewhere = "/\(UUID().uuidString)/elsewhere"
+        StubProtocol.queue([.response(status: 200, body: chunk("leaked"))], for: elsewhere)
+        let error = await #expect(throws: ProviderError.self) {
+            try await run([.redirect(status: status, location: URL(string: "https://elsewhere.test\(elsewhere)") ?? URL(fileURLWithPath: "/"))])
+        }
+        #expect(error == .failed(ChatCompletionStream.redirectRefusedMessage))
+        #expect(StubProtocol.requestCount(for: elsewhere) == 0)
     }
 
     @Test func anyOtherTransportFailureIsNotRetried() async {

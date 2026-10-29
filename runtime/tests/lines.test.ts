@@ -6,7 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import { describe, expect, test } from "bun:test";
-import { lineSplitter } from "../lines";
+import { lineSplitter, oneLine } from "../lines";
 
 function linesFrom(chunks: Buffer[]): string[] {
   const lines: string[] = [];
@@ -35,5 +35,17 @@ describe("lines from a pipe", () => {
   test("what has no newline yet is held, not handed on", () => {
     expect(linesFrom([Buffer.from("no end")])).toEqual([]);
     expect(linesFrom([Buffer.from("\n\n")])).toEqual(["", ""]);
+  });
+});
+
+describe("text for one line of output", () => {
+  test("control characters are written as escapes, so a name cannot start a line or move the cursor", () => {
+    expect(oneLine("cmd\nok         fake/entry")).toBe("cmd\\u000aok         fake/entry");
+    expect(oneLine("a\rb\u001b[2Kc\u0007\u007f\u0085")).toBe("a\\u000db\\u001b[2Kc\\u0007\\u007f\\u0085");
+    expect(oneLine("x\u2028y\u202ez")).toBe("x\\u2028y\\u202ez");
+  });
+
+  test("ordinary text is left as it is", () => {
+    expect(oneLine("café ☕ 👍🏽 tab-less")).toBe("café ☕ 👍🏽 tab-less");
   });
 });

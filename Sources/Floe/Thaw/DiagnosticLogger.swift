@@ -277,9 +277,24 @@ final nonisolated class DiagnosticLogger: Sendable {
         }
     }
 
-    /// A message on one line, its breaks written as `\n` and `\r`, so text from elsewhere cannot start a record of its own.
+    /// A message on one line, so text from elsewhere cannot start a record of its own or rewrite one in a terminal.
+    /// Breaks are written as `\n`, `\r` and `\t`, every other control character and Unicode's line and paragraph
+    /// separators as `\u{…}`, and a backslash is doubled so a message cannot spell out an escape of its own.
     static func oneLine(_ message: String) -> String {
-        message.replacingOccurrences(of: "\r", with: "\\r").replacingOccurrences(of: "\n", with: "\\n")
+        var line = ""
+        line.reserveCapacity(message.utf8.count)
+        for scalar in message.unicodeScalars {
+            switch scalar {
+            case "\\": line += "\\\\"
+            case "\n": line += "\\n"
+            case "\r": line += "\\r"
+            case "\t": line += "\\t"
+            case _ where scalar.properties.generalCategory == .control || scalar == "\u{2028}" || scalar == "\u{2029}":
+                line += "\\u{\(String(scalar.value, radix: 16))}"
+            default: line.unicodeScalars.append(scalar)
+            }
+        }
+        return line
     }
 }
 

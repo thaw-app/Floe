@@ -22,7 +22,7 @@ nonisolated extension AIAnswer {
     static func configured(for extensionName: String?, _ settings: AppSettings = .shared) -> Choice {
         let source = source(for: extensionName, pinned: settings.aiSourceByExtension, general: settings.aiSource)
         return choice(source: source, baseURL: settings.aiBaseURL, model: settings.aiModel) {
-            Keychain.read(account: AIEndpoint.keychainAccount)
+            AIKeys.keychain.key(for: settings.aiBaseURL)
         }
     }
 

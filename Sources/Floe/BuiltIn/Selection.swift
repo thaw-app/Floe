@@ -61,15 +61,13 @@ nonisolated enum SelectedText {
         // On the system-wide element the limit is the whole process's, so it is given back.
         defer { AXUIElementSetMessagingTimeout(systemWide, 0) }
         var app: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute as CFString, &app) == .success,
-              let app, CFGetTypeID(app) == AXUIElementGetTypeID()
+        guard AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute as CFString, &app) == .success, let app, CFGetTypeID(app) == AXUIElementGetTypeID()
         else { return nil }
         // swiftlint:disable:next force_cast
         let appElement = app as! AXUIElement
         AXUIElementSetMessagingTimeout(appElement, 0.25)
         var focused: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focused) == .success,
-              let focused, CFGetTypeID(focused) == AXUIElementGetTypeID()
+        guard AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focused) == .success, let focused, CFGetTypeID(focused) == AXUIElementGetTypeID()
         else { return nil }
         // swiftlint:disable:next force_cast
         let element = focused as! AXUIElement
@@ -114,19 +112,31 @@ nonisolated enum SelectedText {
 
 /// The Finder's selection, as POSIX paths.
 enum FinderSelection {
-    private static nonisolated let selectionScript = """
+    /// Each path goes out as the numbers of its characters, since a file's name may hold a line break and
+    /// so no character can stand between two paths. `id of` counts by Unicode scalars, as Swift reads them back.
+    static nonisolated let codesHandler = """
+    on codes(pathText)
+      set AppleScript's text item delimiters to ","
+      return (id of pathText) as text
+    end codes
+    """
+
+    private static nonisolated let selectionScript = codesHandler + """
+
     tell application "Finder"
-      set sel to selection
       set out to ""
-      repeat with itemRef in sel
-        set out to out & POSIX path of (itemRef as alias) & "\\n"
+      repeat with itemRef in (get selection)
+        set out to out & my codes(POSIX path of (itemRef as alias)) & linefeed
       end repeat
       return out
     end tell
     """
 
     /// Where a new folder would land: the front window's folder, or the desktop without a window.
-    private static nonisolated let folderScript = #"tell application "Finder" to return POSIX path of (insertion location as alias)"#
+    private static nonisolated let folderScript = codesHandler + """
+
+    tell application "Finder" to return my codes(POSIX path of (insertion location as alias))
+    """
 
     static func current() async throws -> [[String: String]] {
         guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder" else {
@@ -149,7 +159,19 @@ enum FinderSelection {
         return URL(fileURLWithPath: path)
     }
 
-    /// The paths a script answers with, one per line.
+    /// The paths a script answers with, one per line, each as its characters' numbers with commas between.
+    /// A line that is not such numbers is left out, so no answer is taken for a path it does not name.
+    static nonisolated func paths(inAnswer answer: String) -> [String] {
+        answer.split(separator: "\n").compactMap { line in
+            var path = String.UnicodeScalarView()
+            for code in line.split(separator: ",") {
+                guard let value = UInt32(code), let scalar = Unicode.Scalar(value) else { return nil }
+                path.append(scalar)
+            }
+            return path.isEmpty ? nil : String(path)
+        }
+    }
+
     private static nonisolated func paths(from script: String) async throws -> [String] {
         let execution = await AppleScript.execute(script)
         if execution.hasError {
@@ -158,7 +180,7 @@ enum FinderSelection {
             }
             throw SelectionError.finderAutomation(execution.errorMessage ?? String(localized: "The Finder selection couldn't be read.", bundle: .floe))
         }
-        return (execution.text ?? "").split(separator: "\n").map(String.init).filter { !$0.isEmpty }
+        return paths(inAnswer: execution.text ?? "")
     }
 }
 
@@ -227,9 +249,7 @@ enum PasteboardContent {
         if let html = pasteboard.string(forType: .html), !html.isEmpty {
             result["html"] = html
         }
-        if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
-           let first = urls.first, first.isFileURL
-        {
+        if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], let first = urls.first, first.isFileURL {
             result["file"] = first.path
         } else if let fileString = pasteboard.string(forType: .fileURL), !fileString.isEmpty {
             result["file"] = URL(string: fileString)?.path ?? fileString
@@ -258,8 +278,7 @@ enum PasteboardContent {
 /// Command keystrokes posted to the frontmost app. Needs Accessibility access to land.
 nonisolated enum KeySimulation {
     static func command(keyCode: CGKeyCode) {
-        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true),
-              let up = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false)
+        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: true), let up = CGEvent(keyboardEventSource: nil, virtualKey: keyCode, keyDown: false)
         else { return }
         down.flags = .maskCommand
         up.flags = .maskCommand

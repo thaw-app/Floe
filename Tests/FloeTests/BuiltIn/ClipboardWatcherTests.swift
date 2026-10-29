@@ -119,6 +119,34 @@ import Testing
         #expect(delivered == ["after"])
     }
 
+    @Test func aCopyMadeWhileOffAndNotYetLookedAtIsNotReadOnceRecordingIsBack() {
+        let watcher = makeWatcher()
+        isRecording = false
+        count = 2
+        readings = [copy("private")]
+        isRecording = true
+        watcher.skipToNow()
+        _ = watcher.tick()
+        #expect(reads == 0)
+        count = 3
+        readings = [copy("after")]
+        _ = watcher.tick()
+        #expect(delivered == ["after"])
+    }
+
+    @Test func readsLeftForAnEarlierChangeAreDroppedWhenRecordingComesBack() {
+        let watcher = makeWatcher()
+        count = 2
+        readings = [.empty]
+        _ = watcher.tick()
+        #expect(reads == 1)
+        readings = [copy("filled in while off")]
+        watcher.skipToNow()
+        _ = watcher.tick()
+        #expect(reads == 1)
+        #expect(delivered.isEmpty)
+    }
+
     @Test func aPrivateCopyAndFloesOwnAreHandedOnOnce() {
         let watcher = makeWatcher()
         count = 2

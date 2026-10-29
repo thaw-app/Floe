@@ -85,6 +85,17 @@ import Testing
         #expect(lines.first?.hasSuffix(#"failed\n2026-01-01 00:00:00.000 [INFO] [\#(category)] forged\r\n"#) == true)
     }
 
+    @Test func everyBreakAndControlCharacterIsWrittenAsAnEscape() {
+        // Readers that split on Unicode's line and paragraph separators, or a terminal that obeys escape codes,
+        // would otherwise see a second record or a rewritten one.
+        #expect(DiagnosticLogger.oneLine("a\u{2028}b\u{2029}c\u{85}d") == #"a\u{2028}b\u{2029}c\u{85}d"#)
+        #expect(DiagnosticLogger.oneLine("a\u{0B}b\u{0C}c\u{1B}[2Kd\u{7F}\u{0}") == #"a\u{b}b\u{c}c\u{1b}[2Kd\u{7f}\u{0}"#)
+        #expect(DiagnosticLogger.oneLine("tab\tend") == #"tab\tend"#)
+        // A backslash is doubled, so a message that spells out an escape cannot pass for one.
+        #expect(DiagnosticLogger.oneLine(#"C:\new"#) == #"C:\\new"#)
+        #expect(DiagnosticLogger.oneLine("caf\u{E9} \u{1F600}") == "caf\u{E9} \u{1F600}")
+    }
+
     @Test func eachDiagLogMethodWritesALineAtItsOwnLevel() throws {
         logger.attachToFile(at: file)
         defer { stopLogging() }

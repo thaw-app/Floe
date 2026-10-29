@@ -41,6 +41,18 @@ struct FuzzyTests {
         let padded = "a" + String(repeating: "b", count: 60)
         #expect(Fuzzy.score("a", padded) == 80)
     }
+
+    @Test func aLongCandidateIsScoredTheSameButNotHighlighted() throws {
+        let query = "acegikmoqs"
+        let long = String(repeating: "x", count: Fuzzy.positionBudget / query.count) + "abcdefghijklmnopqrstuvwxyz"
+        let match = try #require(Fuzzy.match(query, long))
+        #expect(match.score == Fuzzy.score(query, long), "the ranking does not change")
+        #expect(match.matched.isEmpty, "a table of query by candidate this size is not built for a highlight")
+        let short = try #require(Fuzzy.match(query, "abcdefghijklmnopqrstuvwxyz"))
+        #expect(short.matched == [0, 2, 4, 6, 8, 10, 12, 14, 16, 18])
+        let wide = try #require(Fuzzy.match("ÄCE", String(repeating: "ö", count: Fuzzy.positionBudget) + "äbcde"))
+        #expect(wide.matched.isEmpty)
+    }
 }
 
 struct FuzzyGradingTests {
@@ -145,7 +157,7 @@ struct FuzzyGradingTests {
     @Test func theBestAlignmentIsFoundNotTheFirst() throws {
         let match = try #require(Fuzzy.match("abc", "xaxbxc ab-c"))
         #expect(match.matched == [7, 8, 10])
-        #expect(match.score > Fuzzy.score("abc", "xaxbxc")!)
+        #expect(try match.score > #require(Fuzzy.score("abc", "xaxbxc")))
     }
 
     @Test(arguments: [
@@ -357,7 +369,7 @@ struct RankingTests {
         let byName = try #require(Ranking.menuBarScore(query: "tail", name: "Tailscale", owner: "Tailscale"))
         let byOwner = try #require(Ranking.menuBarScore(query: "codex", name: "Usage 86%", owner: "CodexBar"))
         #expect(byName > byOwner)
-        #expect(byOwner == Fuzzy.score("codex", "CodexBar")! - 10)
+        #expect(try byOwner == #require(Fuzzy.score("codex", "CodexBar")) - 10)
         #expect(Ranking.menuBarScore(query: "zzz", name: "Tailscale", owner: "Tailscale") == nil)
     }
 

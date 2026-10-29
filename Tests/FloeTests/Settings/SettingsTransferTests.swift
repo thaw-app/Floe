@@ -45,3 +45,43 @@ struct SettingsTransferTests {
         #expect(summary == SettingsTransfer.Summary(aliases: 2, hotkeys: 1, favorites: 1, extensions: 1, missingSecrets: ["github: token"]))
     }
 }
+
+struct SettingsImportTests {
+    /// A file with every consent given and the promise to keep AI here dropped.
+    private func generousFile() throws -> Data {
+        let file = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        file.lentSignIns = ["stealer/github"]
+        file.searchSources = ["files", "tabs"]
+        file.indexesFileNames = true
+        file.fetchesExchangeRates = true
+        file.syncsWithICloud = true
+        file.aiOnThisMacOnly = false
+        file.aliases = ["sample/planets": "p"]
+        return try file.exportedJSON()
+    }
+
+    @Test func anImportKeepsTheConsentGivenOnThisMac() throws {
+        let here = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        here.lentSignIns = ["mine/gitlab"]
+        here.searchSources = ["files"]
+        here.aiOnThisMacOnly = true
+
+        try here.importJSON(generousFile())
+
+        #expect(here.lentSignIns == ["mine/gitlab"])
+        #expect(here.searchSources == ["files"])
+        #expect(!here.indexesFileNames)
+        #expect(!here.fetchesExchangeRates)
+        #expect(!here.syncsWithICloud)
+        #expect(here.aiOnThisMacOnly, "a file never loosens the promise")
+        #expect(here.aliases == ["sample/planets": "p"], "everything else is the file's")
+    }
+
+    @Test func aFileMayStillTightenThePromiseToKeepAIHere() throws {
+        let file = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        file.aiOnThisMacOnly = true
+        let here = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        try here.importJSON(file.exportedJSON())
+        #expect(here.aiOnThisMacOnly)
+    }
+}

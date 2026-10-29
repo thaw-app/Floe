@@ -136,3 +136,69 @@ nonisolated extension AIAnswer {
         }
     }
 }
+
+/// The API key, saved for the address it was entered for. A key is read only for that address's origin, so
+/// choosing another service, typing another address or importing one sends no key that was saved for elsewhere.
+nonisolated struct AIKeys: Sendable {
+    var read: @Sendable (_ account: String) -> String?
+    var write: @Sendable (_ key: String, _ account: String) -> Void
+    var delete: @Sendable (_ account: String) -> Void
+
+    static let keychain = AIKeys(
+        read: { Keychain.read(account: $0) },
+        write: { Keychain.write($0, account: $1) },
+        delete: { Keychain.delete(account: $0) }
+    )
+
+    /// The scheme, host and port a key is bound to, such as "https://api.openai.com". Nil for an address that
+    /// takes no key: a server on this Mac, or one that cannot be read.
+    static func origin(of url: URL?) -> String? {
+        guard let url, AIEndpoint.needsKey(url), let scheme = url.scheme?.lowercased(), let host = url.host?.lowercased() else { return nil }
+        let isDefaultPort = url.port == nil || (scheme == "https" && url.port == 443) || (scheme == "http" && url.port == 80)
+        return isDefaultPort ? "\(scheme)://\(host)" : "\(scheme)://\(host):\(url.port ?? 0)"
+    }
+
+    /// The Keychain account of the key saved for one origin. The account with no origin is a key saved before
+    /// keys were bound, which `key(for:)` binds on its first read.
+    static func account(for origin: String) -> String {
+        "\(AIEndpoint.keychainAccount)/\(origin)"
+    }
+
+    /// The key saved for the address a base address leads to, or nil when it takes none or none was saved for it.
+    /// A key saved before keys were bound is never read here: it is bound once, at launch and before an import, so
+    /// an address chosen or half typed later can't take it.
+    func key(for baseURL: String) -> String? {
+        guard let origin = Self.origin(of: AIEndpoint.chatURL(baseURL: baseURL)) else { return nil }
+        return read(Self.account(for: origin))
+    }
+
+    /// Saves the key typed for an address, or removes it when the field is emptied. An address that takes no key
+    /// keeps nothing.
+    func save(_ key: String, for baseURL: String) {
+        guard let origin = Self.origin(of: AIEndpoint.chatURL(baseURL: baseURL)) else { return }
+        if key.isEmpty {
+            delete(Self.account(for: origin))
+        } else {
+            write(key, Self.account(for: origin))
+        }
+    }
+
+    /// At launch, and before an import replaces the address: a key saved before keys were bound goes with the address
+    /// in use now, as it did until then. When that address takes no key, or has one of its own, the earlier key is removed,
+    /// since it would otherwise be bound to the address the import brings.
+    func bindEarlierKey(inUseWith baseURL: String) {
+        if let origin = Self.origin(of: AIEndpoint.chatURL(baseURL: baseURL)), read(Self.account(for: origin)) == nil {
+            bindEarlierKey(to: origin)
+        } else if read(AIEndpoint.keychainAccount) != nil {
+            Log.ai.notice("An API key saved before keys were bound to an address was removed, since the address in use does not take it")
+            delete(AIEndpoint.keychainAccount)
+        }
+    }
+
+    /// Moves a key saved before keys were bound to `origin`, the address it is in use with.
+    private func bindEarlierKey(to origin: String) {
+        guard let earlier = read(AIEndpoint.keychainAccount) else { return }
+        write(earlier, Self.account(for: origin))
+        delete(AIEndpoint.keychainAccount)
+    }
+}

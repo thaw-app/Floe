@@ -9,7 +9,9 @@ permissions:
 
 jobs:
   trigger-build:
-    if: ${{ github.repository == 'thaw-app/Floe' && github.event.issue.pull_request && startsWith(github.event.comment.body, '.build') }}
+    # github/command logs the comment before it checks permissions, and the
+    # runner reads workflow commands from that log, so outsiders never reach it.
+    if: ${{ github.repository == 'thaw-app/Floe' && github.event.issue.pull_request && startsWith(github.event.comment.body, '.build') && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association) }}
     runs-on: ubuntu-slim
     permissions:
       actions: write

@@ -69,6 +69,21 @@ nonisolated struct TerminalEditor: Equatable {
 
     /// One argument for the shell, whatever is in it.
     static func quoted(_ text: String) -> String {
-        "'" + text.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        "'" + insideSingleQuotes(text) + "'"
+    }
+
+    /// Text to put between single quotes: each apostrophe closes the quote, goes in escaped, and opens it again.
+    /// Scalars, not characters: an apostrophe with a combining mark is one character to Swift, and still an
+    /// apostrophe to the shell, so a search for the character would miss it.
+    static func insideSingleQuotes(_ text: String) -> String {
+        var quoted = String.UnicodeScalarView()
+        for scalar in text.unicodeScalars {
+            if scalar == "'" {
+                quoted.append(contentsOf: "'\\''".unicodeScalars)
+            } else {
+                quoted.append(scalar)
+            }
+        }
+        return String(quoted)
     }
 }

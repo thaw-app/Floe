@@ -190,7 +190,8 @@ nonisolated enum IconThumbnail {
     }
 
     /// ImageIO decodes at a reduced size, so a 1024 px asset never exists in memory at full size.
-    /// The shorter side ends at `pixels`, since the icon fills its square; nothing is scaled up.
+    /// The shorter side ends at `pixels`, since the icon fills its square, unless that would make the longer side
+    /// more than `longestSide` times as long; nothing is scaled up.
     private static func downsampled(_ source: CGImageSource, pixels: Int) -> CGImage? {
         // A vector file has no pixels to pick from: it is drawn at the size wanted instead.
         if let type = CGImageSourceGetType(source) as String?, vectorTypes.contains(type) {
@@ -204,11 +205,18 @@ nonisolated enum IconThumbnail {
         guard let best = sizes.indices.max(by: { sizes[$0].width < sizes[$1].width }) else { return nil }
         let longer = max(sizes[best].width, sizes[best].height)
         let shorter = min(sizes[best].width, sizes[best].height)
-        guard shorter > 0 else { return nil }
-        // Twice the size wanted: the last halving is drawn at high quality, which ImageIO's own scaling is not.
+        guard shorter > 0, longer <= maxSourcePixels / shorter else { return nil }
+        // Twice the size wanted: the last halving is drawn at high quality, which ImageIO's own scaling is not. The
+        // longer side stops at `longestSide` times that, so a long thin image is not decoded into a long bitmap.
+        let limit = Int(CGFloat(pixels * 2) * longestSide)
         let wanted = Int((Double(pixels * 2) * Double(longer) / Double(shorter)).rounded(.up))
-        guard let decoded = source.thumbnail(at: best, maxPixelSize: min(longer, wanted)) else { return nil }
-        let factor = min(1, CGFloat(pixels) / CGFloat(min(decoded.width, decoded.height)))
+        guard let decoded = source.thumbnail(at: best, maxPixelSize: min(longer, wanted, limit)), decoded.width > 0, decoded.height > 0, max(decoded.width, decoded.height) <= limit
+        else { return nil }
+        let factor = min(
+            1,
+            CGFloat(pixels) / CGFloat(min(decoded.width, decoded.height)),
+            CGFloat(pixels) * longestSide / CGFloat(max(decoded.width, decoded.height))
+        )
         let width = max(1, Int((CGFloat(decoded.width) * factor).rounded()))
         let height = max(1, Int((CGFloat(decoded.height) * factor).rounded()))
         // Drawn even at its own size, so every thumbnail is sRGB whatever profile the file carries.
@@ -217,6 +225,10 @@ nonisolated enum IconThumbnail {
 
     /// How many times `pixels` a drawing's longer side may reach: a stranger shape is drawn smaller.
     static let longestSide: CGFloat = 4
+
+    /// The most pixels an image may hold to be decoded at all, a 10,000 by 10,000 picture: ImageIO may decode more
+    /// than the thumbnail it hands back, and a file can claim any size in a few bytes.
+    static let maxSourcePixels = 100_000_000
 
     /// For what ImageIO does not downsample, SVG above all: drawn so its shorter side is `pixels`,
     /// unless that would make the longer side more than `longestSide` times as long.
@@ -298,8 +310,7 @@ nonisolated enum RemoteImage {
     static func data(at url: URL) async -> Data? {
         guard accepts(url) else { return nil }
         let request = URLRequest(url: url, timeoutInterval: timeout)
-        guard let (bytes, response) = try? await URLSession.shared.bytes(for: request, delegate: RedirectGuard()),
-              (response as? HTTPURLResponse).map({ (200 ..< 300).contains($0.statusCode) }) ?? false
+        guard let (bytes, response) = try? await URLSession.shared.bytes(for: request, delegate: RedirectGuard()), (response as? HTTPURLResponse).map({ (200 ..< 300).contains($0.statusCode) }) ?? false
         else { return nil }
         return await collect(bytes, expected: response.expectedContentLength)
     }

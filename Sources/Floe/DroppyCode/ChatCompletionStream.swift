@@ -14,7 +14,8 @@
 //  history, approvals, reasoning and token counts. Text is batched in the read loop, not by an
 //  actor, and a reply that already showed text is not restarted, since an extension has no way
 //  to take text back. The request can carry the turns before its prompt, for Ask AI's follow-up
-//  questions; they are the caller's to keep, and nothing is stored here.
+//  questions; they are the caller's to keep, and nothing is stored here. A redirect is never
+//  followed, so the question and the key go only to the address that was checked.
 
 import Foundation
 
@@ -107,6 +108,25 @@ nonisolated enum ChatCompletionStream {
         return String(localized: "The API returned status \(statusCode).", bundle: .floe, comment: "The placeholder is an HTTP status number such as 500.")
     }
 
+    static let redirectRefusedMessage = String(
+        localized: "The API sent the request on to another address. Floe doesn't follow it, so nothing was sent there. Check the address under Settings › AI.",
+        bundle: .floe
+    )
+
+    /// Refuses every redirect. The address was checked before the request (HTTPS, or a server on this Mac, and the
+    /// key bound to it), and a redirect, a 307 or 308 above all, would carry the question and the key past that check.
+    private final class RedirectRefusal: NSObject, URLSessionTaskDelegate {
+        func urlSession(
+            _: URLSession,
+            task _: URLSessionTask,
+            willPerformHTTPRedirection _: HTTPURLResponse,
+            newRequest _: URLRequest,
+            completionHandler: @escaping @Sendable (URLRequest?) -> Void
+        ) {
+            completionHandler(nil)
+        }
+    }
+
     /// What is left when the connection keeps dropping: how many times the same
     /// request was tried, and the transport's own reason, so the user can act on it.
     static func terminalTransportMessage(_ error: Error, attempts: Int) -> String {
@@ -157,24 +177,31 @@ nonisolated enum ChatCompletionStream {
         }
     }
 
+    /// Throws for any status but 200: a redirect that was not followed, or a refusal in the API's own words.
+    private static func refuseUnlessAnswered(_ response: URLResponse, bytes: URLSession.AsyncBytes) async throws {
+        guard let http = response as? HTTPURLResponse, http.statusCode != 200 else { return }
+        if (300 ..< 400).contains(http.statusCode) {
+            throw ProviderError.failed(redirectRefusedMessage)
+        }
+        // Read the error body for a useful message.
+        var body = ""
+        for try await line in bytes.lines {
+            body += line + "\n"
+            if body.count > 8000 {
+                break
+            }
+        }
+        throw ProviderError.failed(errorMessage(fromBody: body, statusCode: http.statusCode))
+    }
+
     private static func stream(
         _ request: URLRequest,
         session: URLSession,
         into answer: inout String,
         onText: @Sendable (String) async -> Void
     ) async throws {
-        let (bytes, response) = try await session.bytes(for: request)
-        if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-            // Read the error body for a useful message.
-            var body = ""
-            for try await line in bytes.lines {
-                body += line + "\n"
-                if body.count > 8000 {
-                    break
-                }
-            }
-            throw ProviderError.failed(errorMessage(fromBody: body, statusCode: http.statusCode))
-        }
+        let (bytes, response) = try await session.bytes(for: request, delegate: RedirectRefusal())
+        try await refuseUnlessAnswered(response, bytes: bytes)
         let clock = ContinuousClock()
         var pending = ""
         // The first piece goes out at once; later ones wait for the interval.

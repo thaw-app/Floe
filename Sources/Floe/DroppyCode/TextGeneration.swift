@@ -12,7 +12,8 @@
 //  thread title and commit message prompts are left out, the prompt is the caller's, every engine
 //  takes an optional model, a failure is thrown with the tool's own words, the arguments are
 //  built by a function a test can call, claude's answer can be streamed (ClaudeTextStream.swift),
-//  and opencode and pi are engines too (OpencodeTextStream.swift, PiTextStream.swift).
+//  opencode and pi are engines too (OpencodeTextStream.swift, PiTextStream.swift), and codex runs
+//  with its tools, web search, memories, MCP servers and approval escalations turned off.
 
 import Foundation
 
@@ -67,11 +68,15 @@ nonisolated enum TextGeneration {
         }
     }
 
-    /// Codex has no switch for no tools: these turn off its commands, its plugins and what drives the Mac.
+    /// Codex has no switch for no tools: these turn off its commands, its plugins, what drives the Mac, the image
+    /// viewer that reads a file by path, web search, other agents and the saved memories. With approvals never asked,
+    /// a command the user once allowed outside the sandbox cannot be escalated to either.
     /// The user's own MCP servers are turned off by name, from `codexServers(in:)`.
     static let codexToolsOff = [
         "features.shell_tool=false", "features.unified_exec=false", "features.plugins=false",
         "features.apps=false", "features.browser_use=false", "features.computer_use=false",
+        "features.view_image=false", "features.multi_agent=false", "features.image_generation=false",
+        "web_search=\"disabled\"", "memories.use_memories=false", "approval_policy=\"never\"",
     ].flatMap { ["--config", $0] }
 
     /// The MCP servers in `codex mcp list --json`, or nil when a name cannot be written as a bare key in `--config`:

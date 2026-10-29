@@ -13,6 +13,8 @@ use nucleo_matcher::pattern::{AtomKind, CaseMatching, Normalization, Pattern};
 use nucleo_matcher::{Config, Matcher, Utf32Str};
 use rayon::prelude::*;
 
+use folder::Folder;
+
 const DIR: u8 = 1;
 const DEAD: u8 = 2;
 
@@ -153,31 +155,25 @@ impl Pending {
 }
 
 /// One walking thread: reads folders until none are left, or only those above `depth` levels down. Symlinks
-/// are listed and never followed, and a folder that cannot be read is listed with nothing in it.
-fn collect(root: &str, rules: &Rules, depth: Option<usize>, pending: &Pending) -> Found {
+/// are listed and never followed, and a folder that cannot be read is listed with nothing in it. Each folder is
+/// opened from the root with no link allowed on the way, since it may have become one since it was listed.
+fn collect(root: &Folder, rules: &Rules, depth: Option<usize>, pending: &Pending) -> Found {
     lower_priority();
     let mut found = Found::default();
     let mut inside = Vec::new();
-    let mut path = String::new();
     while let Some(folder) = pending.take() {
-        path.clear();
-        path.push_str(root);
-        if !folder.is_empty() {
-            path.push('/');
-            path.push_str(&folder);
-        }
         // What is in this folder is this many levels down; its folders are read only when more levels are wanted.
         let level = if folder.is_empty() { 1 } else { folder.split('/').count() + 1 };
         let reads_inside = depth.is_none_or(|depth| level < depth);
-        for entry in std::fs::read_dir(&path).into_iter().flatten().flatten() {
-            let is_dir = entry.file_type().is_ok_and(|kind| kind.is_dir());
-            let name = entry.file_name();
-            let kind = rules.classify(&name, is_dir);
-            let (Some(name), true) = (name.to_str(), kind != Kind::Skip) else { continue };
-            found.add(&folder, name, is_dir);
-            if kind == Kind::Folder && reads_inside {
-                inside.push(if folder.is_empty() { name.to_owned() } else { format!("{folder}/{name}") });
-            }
+        if let Some(open) = root.inside(&folder) {
+            open.list(|name, is_dir| {
+                let kind = rules.classify(name, is_dir);
+                let (Some(name), true) = (name.to_str(), kind != Kind::Skip) else { return };
+                found.add(&folder, name, is_dir);
+                if kind == Kind::Folder && reads_inside {
+                    inside.push(if folder.is_empty() { name.to_owned() } else { format!("{folder}/{name}") });
+                }
+            });
         }
         pending.finish(&mut inside);
     }
@@ -204,13 +200,14 @@ impl Tree {
         Self { root: root.to_owned(), entries: vec![top], names: Vec::new(), children: BTreeMap::new(), dead: 0 }
     }
 
-    /// Everything under `root` that the rules keep, or its first `depth` levels. A root that is missing or
-    /// unreadable gives an empty tree.
-    fn walk(root: &str, rules: &Rules, threads: usize, depth: Option<usize>) -> Self {
+    /// Everything under the open folder `top`, named `root`, that the rules keep, or its first `depth` levels.
+    /// No top, for a root that is missing or unreadable, gives an empty tree.
+    fn walk(root: &str, top: Option<&Folder>, rules: &Rules, threads: usize, depth: Option<usize>) -> Self {
+        let Some(top) = top else { return Self::empty(root) };
         // The root is the one folder to read at first: the empty path under itself.
         let pending = Pending { state: Mutex::new((vec![String::new()], 0)), changed: Condvar::new() };
         let found: Vec<Found> = std::thread::scope(|scope| {
-            let walkers: Vec<_> = (0..threads.max(1)).map(|_| scope.spawn(|| collect(root, rules, depth, &pending))).collect();
+            let walkers: Vec<_> = (0..threads.max(1)).map(|_| scope.spawn(|| collect(top, rules, depth, &pending))).collect();
             walkers.into_iter().filter_map(|walker| walker.join().ok()).collect()
         });
         let mut listings: Vec<(&Found, &Listing)> = found.iter().flat_map(|chunk| chunk.folders.iter().map(move |listing| (chunk, listing))).collect();
@@ -490,7 +487,8 @@ impl FileIndex {
     /// With a depth, only that many levels are listed: a first answer while the whole walk is still to come.
     fn build_to(&self, root: &str, rules: Rules, depth: Option<usize>) -> usize {
         let _writing = self.writer.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
-        let tree = Tree::walk(without_trailing_slash(root), &rules, walk_threads(), depth);
+        let root = without_trailing_slash(root);
+        let tree = Tree::walk(root, Folder::open(root).as_ref(), &rules, walk_threads(), depth);
         let count = tree.count();
         *self.write() = State { tree, rules };
         count
@@ -502,12 +500,20 @@ impl FileIndex {
         let path = without_trailing_slash(path);
         let (change, walked) = {
             let state = self.read();
-            let Some(change) = state.change(path, recursive) else { return };
-            let folder = state.tree.absolute_path(change.folder);
+            let top = Folder::open(&state.tree.root);
+            let Some(change) = state.change(path, recursive, top.as_ref()) else { return };
+            let mut folder = String::new();
+            state.tree.relative_path(change.folder, &mut folder);
             let walked: Vec<Option<Tree>> = change
                 .added
                 .iter()
-                .map(|(name, kind)| (*kind == Kind::Folder).then(|| Tree::walk(&format!("{folder}/{name}"), &state.rules, 2, None)))
+                .map(|(name, kind)| {
+                    (*kind == Kind::Folder).then(|| {
+                        let below = if folder.is_empty() { name.clone() } else { format!("{folder}/{name}") };
+                        let inside = top.as_ref().and_then(|top| top.inside(&below));
+                        Tree::walk(&below, inside.as_ref(), &state.rules, 2, None)
+                    })
+                })
                 .collect();
             (change, walked)
         };
@@ -528,17 +534,10 @@ impl FileIndex {
     }
 }
 
-impl Tree {
-    fn absolute_path(&self, id: u32) -> String {
-        let mut relative = String::new();
-        self.relative_path(id, &mut relative);
-        if relative.is_empty() { self.root.clone() } else { format!("{}/{}", self.root, relative) }
-    }
-}
-
 impl State {
-    /// What differs between a folder on disk and the tree. None when the path is outside the index or left out by the rules.
-    fn change(&self, path: &str, recursive: bool) -> Option<Change> {
+    /// What differs between a folder on disk and the tree. None when the path is outside the index or left out by the
+    /// rules. `top` is the root, opened; the folder is opened from it with no link on the way, whatever the tree says.
+    fn change(&self, path: &str, recursive: bool, top: Option<&Folder>) -> Option<Change> {
         let tree = &self.tree;
         if tree.root.is_empty() {
             return None;
@@ -562,27 +561,28 @@ impl State {
         // A folder the index has not seen yet is found, and walked whole, from the last one it knows.
         let everything = recursive && is_known;
 
+        let mut relative = String::new();
         loop {
-            let on_disk = match std::fs::read_dir(tree.absolute_path(folder)) {
-                Ok(listing) => listing,
-                Err(_) if folder == 0 => {
+            tree.relative_path(folder, &mut relative);
+            let on_disk = match top.and_then(|top| top.inside(&relative)) {
+                Some(listing) => listing,
+                None if folder == 0 => {
                     let removed = tree.children.get(&0).cloned().unwrap_or_default();
                     return Some(Change { folder, removed, added: Vec::new() });
                 }
-                // The folder is gone: the one above it is where that shows.
-                Err(_) => {
+                // The folder is gone, or is a link now: the one above it is where that shows.
+                None => {
                     folder = tree.entries[folder as usize].parent;
                     continue;
                 }
             };
             let mut there: HashMap<String, Kind> = HashMap::new();
-            for entry in on_disk.flatten() {
-                let is_dir = entry.file_type().is_ok_and(|kind| kind.is_dir());
-                let kind = self.rules.classify(&entry.file_name(), is_dir);
-                if let (Some(name), true) = (entry.file_name().to_str(), kind != Kind::Skip) {
+            on_disk.list(|name, is_dir| {
+                let kind = self.rules.classify(name, is_dir);
+                if let (Some(name), true) = (name.to_str(), kind != Kind::Skip) {
                     there.insert(name.to_owned(), kind);
                 }
-            }
+            });
             let mut removed = Vec::new();
             for id in tree.children.get(&folder).into_iter().flatten().copied() {
                 let entry = &tree.entries[id as usize];
@@ -750,6 +750,7 @@ pub unsafe extern "C" fn floe_index_byte_size(index: *const FileIndex) -> usize 
     catch_unwind(AssertUnwindSafe(|| index.as_ref().map_or(0, |index| index.read().tree.byte_size()))).unwrap_or(0)
 }
 
+mod folder;
 mod saved;
 #[cfg(test)]
 mod tests;

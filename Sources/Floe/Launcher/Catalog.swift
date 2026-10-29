@@ -158,7 +158,31 @@ nonisolated extension ExtensionCommand {
         let roots: [(URL, Source)] = [(Paths.extensions, .local)]
             + (Paths.developmentExtensions.map { [($0, .local)] } ?? [])
             + (includeRaycast ? [(Paths.raycastExtensions, .raycast)] : [])
-        return Array(roots.flatMap { scan(root: $0.0, source: $0.1) }.uniqued(on: \.id))
+        return oneFolderPerName(roots.flatMap { scan(root: $0.0, source: $0.1) })
+    }
+
+    /// Keeps the commands of one folder for each extension name, given in scan order. The name is what an extension's
+    /// passwords, storage and sign-ins are kept under, so a second package that claims it must not run beside the
+    /// first. The first folder of extensions that has the name owns it; within that folder of extensions, the
+    /// package folder named after the extension wins over the others, else the first by name.
+    static func oneFolderPerName(_ commands: [ExtensionCommand]) -> [ExtensionCommand] {
+        var owners: [String: URL] = [:]
+        for command in commands {
+            let name = command.extensionName
+            guard let owner = owners[name] else {
+                owners[name] = command.extensionDir
+                continue
+            }
+            let sameRoot = owner.deletingLastPathComponent().path == command.extensionDir.deletingLastPathComponent().path
+            if sameRoot, owner.lastPathComponent != name, command.extensionDir.lastPathComponent == name {
+                owners[name] = command.extensionDir
+            }
+        }
+        let skipped = Set(commands.filter { owners[$0.extensionName]?.path != $0.extensionDir.path }.map(\.extensionDir.path))
+        for folder in skipped.sorted() {
+            Log.extensions.warning("Skipped \(folder): another folder already has an extension of that name")
+        }
+        return Array(commands.filter { owners[$0.extensionName]?.path == $0.extensionDir.path }.uniqued(on: \.id))
     }
 
     /// Every runnable command under a folder of extensions, one subfolder per extension.

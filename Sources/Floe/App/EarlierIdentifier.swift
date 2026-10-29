@@ -14,10 +14,14 @@ nonisolated enum EarlierIdentifier {
     static let secretService = "com.thaw.floe.preferences"
     static let importedKey = "importedEarlierIdentifier"
 
-    /// Run before anything reads the defaults. A copy without an identifier of its own, as `swift run` is, imports nothing.
+    /// Run before anything reads the defaults. A copy without an identifier of its own, as `swift run` is, imports
+    /// no defaults. An API key saved before keys were bound to an address is then bound to the one in use.
+    @MainActor
     static func importSettings() {
-        guard Bundle.main.bundleIdentifier == current else { return }
-        importDefaults(from: UserDefaults.standard.persistentDomain(forName: earlier), into: .standard)
+        if Bundle.main.bundleIdentifier == current {
+            importDefaults(from: UserDefaults.standard.persistentDomain(forName: earlier), into: .standard)
+        }
+        AIKeys.keychain.bindEarlierKey(inUseWith: AppSettings.shared.aiBaseURL)
     }
 
     /// Copies the earlier defaults once, leaving alone whatever this copy has already stored.

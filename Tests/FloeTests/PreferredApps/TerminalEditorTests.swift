@@ -94,4 +94,8 @@ struct TerminalEditorTests {
         let emacs = URL(fileURLWithPath: "/opt/homebrew/bin/emacs")
         #expect(TerminalEditor.commandLine(program: emacs, items: [file], isFolder: isFolder).hasSuffix("&& '/opt/homebrew/bin/emacs' '-nw' '/Users/someone/Projects/floe/main.swift'"), "Emacs stays in the terminal")
     }
+
+    @Test func anApostropheWithACombiningMarkIsStillEscaped() {
+        #expect(TerminalEditor.quoted("a'\u{0301}; touch x") == "'a'\\''\u{0301}; touch x'", "the shell reads the apostrophe, not the character Swift sees")
+    }
 }

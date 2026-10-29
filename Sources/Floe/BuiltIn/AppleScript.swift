@@ -93,7 +93,17 @@ nonisolated enum AppleScript {
         return .text(execution.text ?? "")
     }
 
+    /// Text as an AppleScript string literal. By scalars, as the script reads it: a quote with a combining
+    /// mark is one character to Swift, and a search for the quote character would leave it as it is.
     static func literal(_ text: String) -> String {
-        "\"" + text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+        var literal = String.UnicodeScalarView(["\""])
+        for scalar in text.unicodeScalars {
+            if scalar == "\\" || scalar == "\"" {
+                literal.append("\\")
+            }
+            literal.append(scalar)
+        }
+        literal.append("\"")
+        return String(literal)
     }
 }

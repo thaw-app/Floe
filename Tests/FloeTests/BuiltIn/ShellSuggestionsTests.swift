@@ -47,6 +47,37 @@ struct ShellSuggestionsTests {
         #expect(texts("open ~/D ", entries: entries).isEmpty, "a finished word has nothing to finish")
     }
 
+    @Test func aPathInsideQuotesIsFinishedAsTheQuotesReadIt() {
+        let entries = ["/tmp/": ["it's; touch x", "$(id) `id` \\ \"q\"", "my dir/"], "/tmp/my dir/": ["a b.txt"]]
+        #expect(texts("cat '/tmp/it", entries: entries) == ["cat '/tmp/it'\\''s; touch x"], "an apostrophe closes the quote, goes in escaped and opens it again")
+        #expect(texts("cat \"/tmp/$", entries: entries) == ["cat \"/tmp/\\$(id) \\`id\\` \\\\ \\\"q\\\""], "in double quotes only what they act on is escaped")
+        #expect(texts("ls '/tmp/my d", entries: entries) == ["ls '/tmp/my dir/"], "a space inside quotes keeps the word whole")
+        #expect(texts("ls '/tmp/my dir'/a", entries: entries) == ["ls '/tmp/my dir'/a\\ b.txt"], "after the quote closes, a name is escaped as before")
+        #expect(texts("echo 'a /tmp/it", entries: entries).isEmpty, "a path that only looks like one inside a quoted argument is left alone")
+        #expect(texts("cat '~/D", entries: ["~/": ["Desktop/"]]).isEmpty, "a quoted tilde is no home folder")
+    }
+
+    @Test func aLineTheShellWouldReadAnotherWayIsNotFinished() {
+        let entries = ["/tmp/": ["a"]]
+        for typed in ["cat $'/tmp/", "cat $\"/tmp/", "cat `ls /tmp/", "cat $(ls /tmp/", "cat \"$(ls /tmp/", "cat /tmp/\\"] {
+            #expect(texts(typed, entries: entries).isEmpty, "\(typed)")
+        }
+        #expect(ShellSuggestions.names(for: "ssh 'b", apps: [], hosts: ["build-box"]).isEmpty)
+        #expect(ShellSuggestions.names(for: "open -a \"S", apps: ["Safari"], hosts: []).isEmpty)
+    }
+
+    @Test func aWordIsReadAsTheShellReadsIt() throws {
+        for name in ["Photos (2024)", "a;b $x", "it's", "Café Menu", "back\\slash", "a\nb", "$\u{301}(id)"] {
+            let word = try #require(ShellSuggestions.lastWord(in: "cat " + ShellCommand.escaped(name)))
+            #expect(word.value == name, "what escaped writes reads back as the name")
+            #expect(word.quoting == .unquoted)
+        }
+        #expect(ShellSuggestions.lastWord(in: "a 'b c")?.value == "b c")
+        #expect(ShellSuggestions.lastWord(in: "a 'b c")?.quoting == .single)
+        #expect(ShellSuggestions.lastWord(in: #"a "b\"c\d"#)?.value == #"b"c\d"#)
+        #expect(ShellSuggestions.lastWord(in: #"a "b\"c\d"#)?.quoting == .double)
+    }
+
     @Test func anApplicationIsFinishedAfterOpenAndAHostAfterSSH() {
         let apps = ["Safari", "Script Editor", "System Settings", "Notes"]
         let hosts = ["build-box", "bastion", "web1"]

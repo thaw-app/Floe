@@ -49,6 +49,13 @@ struct TextGenerationTests {
         #expect(settings.contains("features.shell_tool=false"))
         #expect(settings.contains("features.unified_exec=false"))
         #expect(settings.contains("features.plugins=false"))
+        // The tools that read files or reach the network without a shell, and the escalation that runs a command outside the sandbox.
+        for setting in [
+            "approval_policy=\"never\"", "web_search=\"disabled\"", "features.view_image=false",
+            "features.multi_agent=false", "features.image_generation=false", "memories.use_memories=false",
+        ] {
+            #expect(settings.contains(setting), "\(setting)")
+        }
         let withServers = TextGeneration.arguments(for: .codex(executable: output, model: nil), output: output, mcpServers: ["GitKraken", "node_repl"])
         let serverSettings = zip(withServers, withServers.dropFirst()).filter { $0.0 == "--config" }.map(\.1)
         #expect(serverSettings.contains("mcp_servers.GitKraken.enabled=false"))

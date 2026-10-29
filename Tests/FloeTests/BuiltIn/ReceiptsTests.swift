@@ -69,6 +69,115 @@ struct ReceiptsTests {
         #expect(!undone.canUndo, "once is enough")
     }
 
+    @Test func aReceiptWhoseFieldsDoNotFitItsKindIsNotUndone() {
+        var deletes = 0
+        let delete: (String) throws -> Bool = { _ in
+            deletes += 1
+            return true
+        }
+        let edited = [
+            Receipt(date: Date(), kind: .trash, subject: "a.txt", detail: "", identifier: "reminder-id"),
+            Receipt(date: Date(), kind: .trash, subject: "a.txt", detail: "", original: "/a", trashed: "/b", identifier: "reminder-id"),
+            Receipt(date: Date(), kind: .command, subject: "ls", detail: "", identifier: "reminder-id"),
+            Receipt(date: Date(), kind: .noteLine, subject: "Today", detail: "", identifier: "reminder-id"),
+            Receipt(date: Date(), kind: .reminder, subject: "call mom", detail: "", original: "/a", trashed: "/b", identifier: "abc"),
+            Receipt(date: Date(), kind: .command, subject: "ls", detail: "", original: "/a", trashed: "/b"),
+        ]
+        for receipt in edited {
+            #expect(!receipt.canUndo, "\(receipt.kind)")
+            #expect(ReceiptUndo.undo(receipt, delete: delete) == .notUndoable)
+        }
+        #expect(deletes == 0, "nothing is deleted for a receipt that does not delete")
+        #expect(!edited[0].label().contains("·"))
+        let reminder = Receipt(date: Date(), kind: .reminder, subject: "call mom", detail: "", identifier: "abc")
+        #expect(ReceiptUndo.undo(reminder, delete: delete) == .deleted)
+        #expect(deletes == 1)
+    }
+
+    private func trashedByHand(_ file: URL, in folder: URL) throws -> Receipt {
+        let bin = folder.appendingPathComponent("bin", isDirectory: true)
+        try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+        let trashed = bin.appendingPathComponent(file.lastPathComponent)
+        try FileManager.default.moveItem(at: file, to: trashed)
+        return Receipt(date: Date(), kind: .trash, subject: file.lastPathComponent, detail: "", original: file.path, trashed: trashed.path)
+    }
+
+    @Test func aFolderSwappedForALinkIsNotWrittenThrough() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let place = folder.appendingPathComponent("place", isDirectory: true)
+        let elsewhere = folder.appendingPathComponent("elsewhere", isDirectory: true)
+        try FileManager.default.createDirectory(at: place, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: elsewhere, withIntermediateDirectories: true)
+        let file = place.appendingPathComponent("notes.txt")
+        try Data("kept".utf8).write(to: file)
+        var receipt = try trashedByHand(file, in: folder)
+        receipt.folder = ReceiptStore.resolvedPath(place.path)
+        #expect(receipt.folder != nil)
+
+        try FileManager.default.removeItem(at: place)
+        try FileManager.default.createSymbolicLink(at: place, withDestinationURL: elsewhere)
+        #expect(ReceiptUndo.undo(receipt) == .folderChanged)
+        #expect(!FileManager.default.fileExists(atPath: elsewhere.appendingPathComponent("notes.txt").path))
+        #expect(try FileManager.default.fileExists(atPath: #require(receipt.trashed)), "it stays in the Trash")
+        #expect(ReceiptUndo.message(for: .folderChanged, subject: "notes.txt") == "The folder notes.txt was in is not as it was, so it stays in the Trash")
+    }
+
+    @Test func aFolderThatWasRemovedIsMadeAgain() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let place = folder.appendingPathComponent("a/b", isDirectory: true)
+        try FileManager.default.createDirectory(at: place, withIntermediateDirectories: true)
+        let file = place.appendingPathComponent("notes.txt")
+        try Data("kept".utf8).write(to: file)
+        var receipt = try trashedByHand(file, in: folder)
+        receipt.folder = ReceiptStore.resolvedPath(place.path)
+        try FileManager.default.removeItem(at: folder.appendingPathComponent("a"))
+
+        #expect(ReceiptUndo.undo(receipt) == .putBack)
+        #expect(try String(contentsOf: file, encoding: .utf8) == "kept")
+    }
+
+    @Test func somethingThatAppearedWhileItWasCheckedIsNotWrittenOver() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("notes.txt")
+        try Data("old".utf8).write(to: file)
+        var receipt = try trashedByHand(file, in: folder)
+        receipt.folder = ReceiptStore.resolvedPath(folder.path)
+        try FileManager.default.createSymbolicLink(at: file, withDestinationURL: folder.appendingPathComponent("nowhere"))
+        #expect(ReceiptUndo.undo(receipt) == .inTheWay, "a link at the old place, even a broken one, is something in the way")
+    }
+
+    @Test func anOlderReceiptIsPutBackOnlyWhereNoFolderOnTheWayIsALink() throws {
+        let root = try scratch()
+        defer { try? FileManager.default.removeItem(at: root) }
+        // The temporary folder is reached through /var, a link to /private/var, so its resolved path has none.
+        let folder = try URL(fileURLWithPath: #require(ReceiptStore.resolvedPath(root.path)))
+        let file = folder.appendingPathComponent("notes.txt")
+        try Data("kept".utf8).write(to: file)
+        let receipt = try trashedByHand(file, in: folder)
+        #expect(receipt.folder == nil)
+        #expect(ReceiptUndo.undo(receipt) == .putBack)
+
+        let linked = root.appendingPathComponent("notes.txt")
+        #expect(linked.path != file.path)
+        var throughALink = try trashedByHand(file, in: folder)
+        throughALink.original = linked.path
+        #expect(ReceiptUndo.undo(throughALink) == .folderChanged)
+    }
+
+    @Test func movingToTheTrashNotesTheFolderAsItResolves() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("notes.txt")
+        try Data("kept".utf8).write(to: file)
+        let receipt = try ReceiptStore.trash(file)
+        defer { receipt.trashed.map { try? FileManager.default.removeItem(atPath: $0) } }
+        #expect(receipt.folder == ReceiptStore.resolvedPath(folder.path))
+        #expect(receipt.folder?.hasPrefix("/private/") == true)
+    }
+
     @Test func receiptsAreKeptNewestFirstUpToTheLimitAndForgotten() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }

@@ -145,20 +145,5 @@ nonisolated enum ShellCommand {
         return String(escaped)
     }
 
-    /// A word as the shell reads it: what `escaped` wrote, with each escaping backslash taken out.
-    static func unescaped(_ word: String) -> String {
-        var result = ""
-        var escaping = false
-        for character in word {
-            if !escaping, character == "\\" {
-                escaping = true
-                continue
-            }
-            escaping = false
-            result.append(character)
-        }
-        return result
-    }
-
     private static let shellSyntax = Set(" \t!\"#$&'()*;<=>?[\\]^`{|}~".unicodeScalars)
 }

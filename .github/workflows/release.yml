@@ -462,6 +462,10 @@ jobs:
           asset-prefix: Floe
           appcast-title: Floe
           sparkle-private-key: ${{ secrets.SPARKLE_ED25519_PRIVATE_KEY }}
+          # Older ZIPs come from the public release listing, and generate_appcast
+          # would sign them again with the update key. Only this build is signed,
+          # so there are no delta updates; the appcast keeps its older items.
+          previous-release-count: "0"
           # Matches the Sparkle version in Package.resolved.
           sparkle-version: "2.10.0"
           sparkle-sha256: c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c

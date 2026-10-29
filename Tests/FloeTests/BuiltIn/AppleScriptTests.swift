@@ -47,4 +47,10 @@ struct AppleScriptTests {
         #expect(await AppleScript.run("return \"día\" & linefeed & 2") == .text("día\n2"))
         #expect(await AppleScript.execute("error \"No.\" number -1743").isRefused)
     }
+
+    @Test func aLiteralKeepsAQuoteOrBackslashWithACombiningMarkInsideTheString() async {
+        let text = "a\"\u{0301} & (do shell script \"id\") & \\\u{0301}\""
+        #expect(AppleScript.literal(text) == "\"a\\\"\u{0301} & (do shell script \\\"id\\\") & \\\\\u{0301}\\\"\"")
+        #expect(await AppleScript.run("return " + AppleScript.literal(text)) == .text(text), "the script reads back the text, not a command")
+    }
 }
