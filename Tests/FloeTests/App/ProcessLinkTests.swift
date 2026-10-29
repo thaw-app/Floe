@@ -62,6 +62,19 @@ struct LinkGateTests {
         #expect(decoded == key)
         #expect(LinkKey.decoded(Data("short\n".utf8)) == nil)
     }
+
+    @Test func theKeyIsReadFromAPipeAndAPipeLeftEmptyDoesNotHang() throws {
+        let written = Pipe()
+        written.fileHandleForWriting.write(LinkKey.encoded(key))
+        #expect(LinkKey.fromStandardInput(written.fileHandleForReading.fileDescriptor, waiting: 1000) == key)
+
+        // Held open and never written to: a wrapper's pipe, which must not keep Settings from starting.
+        let held = Pipe()
+        let started = Date()
+        #expect(LinkKey.fromStandardInput(held.fileHandleForReading.fileDescriptor, waiting: 50) == nil)
+        #expect(Date().timeIntervalSince(started) < 5)
+        _ = held.fileHandleForWriting
+    }
 }
 
 struct LinkMessageTests {

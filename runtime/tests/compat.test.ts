@@ -84,6 +84,10 @@ describe("certificate settings written for Node", () => {
     });
     expect(opened).toBe(true);
     expect(WebSocket.WebSocket).toBe(WebSocket);
+    // A named import needs each export to be the module's own, not inherited from ws.
+    for (const name of ["WebSocketServer", "createWebSocketStream", "Receiver", "Sender"]) {
+      expect(Object.hasOwn(WebSocket, name), name).toBe(true);
+    }
   });
 });
 
@@ -161,7 +165,7 @@ describe("better-sqlite3 over bun:sqlite", () => {
     }
     expect(() => db.exec("PRAGMA key = 'secret'")).toThrow("Floe can't open encrypted databases");
     expect(() => db.prepare("pragma main.hexkey = '00'")).toThrow("Floe can't open encrypted databases");
-    for (const sql of ["PRAGMA/**/key = 'secret'", "PRAGMA -- a note\nkey = 'x'", "PRAGMA\"key\" = 'x'", "SELECT '--'; PRAGMA key = 'x'"]) {
+    for (const sql of ["PRAGMA/**/key = 'secret'", "PRAGMA -- a note\nkey = 'x'", "PRAGMA\"key\" = 'x'", "SELECT '--'; PRAGMA key = 'x'", "PRAGMA \"my vault\".key = 'x'", "PRAGMA [schéma].rekey = 'x'"]) {
       expect(() => db.exec(sql), sql).toThrow("Floe can't open encrypted databases");
     }
     expect(db.pragma("user_version", { simple: true })).toBe(0);

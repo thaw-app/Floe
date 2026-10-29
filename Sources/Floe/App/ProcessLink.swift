@@ -146,11 +146,17 @@ enum LinkKey {
         return SymmetricKey(data: bytes)
     }
 
-    /// The key the launcher wrote to this process's standard input. Nil when that is no pipe, as from a terminal.
-    static func fromStandardInput() -> SymmetricKey? {
+    /// The key the launcher wrote to this process's standard input. Nil when that is no pipe, as from a terminal,
+    /// or when nothing arrives within two seconds, so a pipe held open by something else cannot hang Settings.
+    static func fromStandardInput(_ input: Int32 = STDIN_FILENO, waiting milliseconds: Int32 = 2000) -> SymmetricKey? {
         var status = stat()
-        guard fstat(STDIN_FILENO, &status) == 0, status.st_mode & S_IFMT == S_IFIFO else { return nil }
-        return decoded(FileHandle.standardInput.readDataToEndOfFile())
+        guard fstat(input, &status) == 0, status.st_mode & S_IFMT == S_IFIFO else { return nil }
+        var ready = pollfd(fd: input, events: Int16(POLLIN), revents: 0)
+        guard poll(&ready, 1, milliseconds) > 0 else { return nil }
+        // One read: the launcher writes the key's line in a single write, which a pipe hands over whole.
+        var bytes = [UInt8](repeating: 0, count: 128)
+        let count = read(input, &bytes, bytes.count)
+        return count > 0 ? decoded(Data(bytes[..<count])) : nil
     }
 }
 

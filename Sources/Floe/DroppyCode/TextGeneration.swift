@@ -83,6 +83,16 @@ nonisolated enum TextGeneration {
         return names.count == servers.count && bare ? names : nil
     }
 
+    /// The MCP servers this Codex would start, read from it before the answer so each can be turned off.
+    /// Throws when they cannot be read, rather than answer with them on.
+    private static func codexServers(of executable: URL, in directory: URL, environment: [String: String]) async throws -> [String] {
+        let listing = try await Shell.run(executable, ["mcp", "list", "--json"] + codexToolsOff, in: directory, environment: environment, timeout: 30)
+        guard listing.succeeded, let names = codexServers(in: Data(listing.trimmedOutput.utf8)) else {
+            throw ShellError(String(localized: "Codex can't answer: Floe couldn't turn off its MCP servers.", bundle: .floe))
+        }
+        return names
+    }
+
     /// Answers a prompt, with text handed to `onText` as it arrives. Claude and pi stream. Codex's one-shot run
     /// prints its session, not its answer, and opencode prints its text once it is complete, so theirs come whole.
     @concurrent
@@ -98,18 +108,24 @@ nonisolated enum TextGeneration {
         case .codex:
             return try await run(prompt, engine: engine, environment: environment)
         case .opencode, .pi:
-            // An empty folder of the run's own: there is no project for the tool to read, and nothing is left behind.
-            let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-answer-\(UUID().uuidString)", isDirectory: true)
-            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            defer { try? FileManager.default.removeItem(at: folder) }
-            let launch = launch(engine, in: folder, environment: environment)
-            let read = if case .pi = engine {
-                PiTextStream.event(in:)
-            } else {
-                OpencodeTextStream.event(in:)
+            return try await inAnswerFolder { folder in
+                let launch = launch(engine, in: folder, environment: environment)
+                let read = if case .pi = engine {
+                    PiTextStream.event(in:)
+                } else {
+                    OpencodeTextStream.event(in:)
+                }
+                return try await ToolTextStream.run(prompt, launch: launch, read: read, onText: onText)
             }
-            return try await ToolTextStream.run(prompt, launch: launch, read: read, onText: onText)
         }
+    }
+
+    /// Runs `work` in an empty folder of its own: there is no project for the tool to read, and nothing is left behind.
+    private static func inAnswerFolder<T>(_ work: (URL) async throws -> T) async throws -> T {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-answer-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        return try await work(folder)
     }
 
     /// How opencode or pi is started in `folder`. Claude and codex have runs of their own.
@@ -139,38 +155,33 @@ nonisolated enum TextGeneration {
         case .claude, .codex:
             break
         }
-        // An empty folder of the run's own, as opencode and pi get, with nothing in it for the tool to find.
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("floe-answer-\(UUID().uuidString)", isDirectory: true)
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let output = directory.appendingPathComponent("answer.txt")
-        var servers: [String] = []
-        if case .codex = engine {
-            let listing = try await Shell.run(engine.executable, ["mcp", "list", "--json"] + codexToolsOff, in: directory, environment: environment, timeout: 30)
-            guard listing.succeeded, let names = codexServers(in: Data(listing.trimmedOutput.utf8)) else {
-                throw ShellError(String(localized: "Codex can't answer here: Floe couldn't turn off its MCP servers for the answer.", bundle: .floe))
+        return try await inAnswerFolder { directory in
+            let output = directory.appendingPathComponent("answer.txt")
+            let servers = if case .codex = engine {
+                try await codexServers(of: engine.executable, in: directory, environment: environment)
+            } else {
+                [String]()
             }
-            servers = names
+            let result = try await Shell.run(
+                engine.executable,
+                arguments(for: engine, output: output, mcpServers: servers),
+                in: directory,
+                environment: environment,
+                input: Data(prompt.utf8),
+                timeout: engine.timeout
+            )
+            guard result.succeeded else {
+                throw ShellError(result.failureMessage)
+            }
+            let text: String = if case .codex = engine {
+                ((try? String(contentsOf: output, encoding: .utf8)) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                result.trimmedOutput
+            }
+            guard !text.isEmpty else {
+                throw ShellError(String(localized: "The model gave no answer.", bundle: .floe))
+            }
+            return text
         }
-        let result = try await Shell.run(
-            engine.executable,
-            arguments(for: engine, output: output, mcpServers: servers),
-            in: directory,
-            environment: environment,
-            input: Data(prompt.utf8),
-            timeout: engine.timeout
-        )
-        guard result.succeeded else {
-            throw ShellError(result.failureMessage)
-        }
-        let text: String = if case .codex = engine {
-            ((try? String(contentsOf: output, encoding: .utf8)) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            result.trimmedOutput
-        }
-        guard !text.isEmpty else {
-            throw ShellError(String(localized: "The model gave no answer.", bundle: .floe))
-        }
-        return text
     }
 }

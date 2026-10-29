@@ -20,6 +20,11 @@ class WebSocket extends builtin {
   }
 }
 
-// The class inherits ws's other exports; only its own name is set again, so ws.WebSocket is this one.
-Object.defineProperty(WebSocket, "WebSocket", { value: WebSocket, enumerable: true });
+// ws's exports become the class's own, which named imports need. They are defined, not assigned, because Bun 1.4.4
+// makes some read-only; ws.WebSocket is this class, the one that reads certificate settings.
+for (const [name, value] of Object.entries({ ...builtin, WebSocket })) {
+  if (!Object.hasOwn(WebSocket, name)) {
+    Object.defineProperty(WebSocket, name, { value, enumerable: true, writable: true, configurable: true });
+  }
+}
 module.exports = WebSocket;

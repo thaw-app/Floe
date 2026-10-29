@@ -71,6 +71,8 @@ final class SettingsProcess {
         process.arguments = arguments
         let key = LinkKey.make()
         let input = Pipe()
+        // A settings process that ends before it reads the key makes the write fail, not end Floe with a broken pipe.
+        _ = fcntl(input.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1)
         process.standardInput = input
         process.terminationHandler = { [weak self] ended in
             DispatchQueue.main.async {

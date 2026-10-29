@@ -119,18 +119,35 @@ nonisolated enum ShellSuggestions {
 
     /// The typed line with its last word, a path, finished by each entry of the folder that starts as it does.
     static func paths(for typed: String, entries: (String) -> [String]) -> [String] {
-        guard let word = typed.split(separator: " ", omittingEmptySubsequences: false).last.map(String.init),
-              word.hasPrefix("/") || word.hasPrefix("~") || word.hasPrefix("./") || word.hasPrefix("../") else { return [] }
+        let word = String(typed[lastWordStart(in: typed)...])
+        guard word.hasPrefix("/") || word.hasPrefix("~") || word.hasPrefix("./") || word.hasPrefix("../") else { return [] }
         let cut = word.lastIndex(of: "/").map { word.index(after: $0) } ?? word.endIndex
         let folder = String(word[..<cut])
-        let start = String(word[cut...])
+        let start = ShellCommand.unescaped(String(word[cut...]))
         guard !folder.isEmpty else { return [] }
         let line = String(typed.dropLast(word.count))
-        return entries(folder)
+        // The folder stays as typed, escapes and all; it is looked up as the shell will read it.
+        return entries(ShellCommand.unescaped(folder))
             .filter { $0.lowercased().hasPrefix(start.lowercased()) && ($0.hasPrefix(".") == start.hasPrefix(".")) }
             .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
             .prefix(5)
             .map { line + folder + ShellCommand.escaped($0) }
+    }
+
+    /// Where the last word of a typed line starts: after the last space without a backslash before it.
+    static func lastWordStart(in typed: String) -> String.Index {
+        var start = typed.startIndex
+        var escaping = false
+        for index in typed.indices {
+            if escaping {
+                escaping = false
+            } else if typed[index] == "\\" {
+                escaping = true
+            } else if typed[index] == " " {
+                start = typed.index(after: index)
+            }
+        }
+        return start
     }
 
     /// The names in a folder as they are on disk, a folder's with a slash after it. Empty for what cannot be read.

@@ -68,8 +68,8 @@ class Statement {
 // Bun has no cipher, and ignoring the key would write in the clear what the user asked to have encrypted.
 const encryption = /(?<!["'`[])\bPRAGMA(?:\s+|(?=["'`[]))(?:["'`[]?\w+["'`\]]?\s*\.\s*)?["'`[]?(?:cipher\w*|key|rekey|hexkey|hexrekey)\b/i;
 
-/// The SQL as SQLite reads its words: a comment is a space, so PRAGMA/**/key cannot hide, and a quoted text that is
-/// no one word is blanked, so a value that reads "PRAGMA key" is no pragma and a "--" in it starts no comment.
+/// The SQL as SQLite reads its words. A comment is a space, so PRAGMA/**/key cannot hide. Quoted text of several
+/// words becomes one word, so a value reading "PRAGMA key" is no pragma and a "--" in it starts no comment.
 function words(source: string) {
   let out = "";
   let at = 0;
@@ -79,7 +79,8 @@ function words(source: string) {
       const close = source.indexOf(char === "[" ? "]" : char, at + 1);
       const end = close === -1 ? source.length : close + 1;
       const quoted = source.slice(at, end);
-      out += /^.\w+.$/.test(quoted) ? quoted : `${char}${char === "[" ? "]" : char}`;
+      // A word, not nothing: "my vault".key must still read as a schema before a key.
+      out += /^.\w+.$/.test(quoted) ? quoted : `${char}text${char === "[" ? "]" : char}`;
       at = end;
     } else if (source.startsWith("--", at) || source.startsWith("/*", at)) {
       const block = source.startsWith("/*", at);

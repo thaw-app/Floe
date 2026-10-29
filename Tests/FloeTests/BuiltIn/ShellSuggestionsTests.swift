@@ -37,6 +37,10 @@ struct ShellSuggestionsTests {
         let odd = ["~/": ["a;touch x", "$(id).txt", "it's"]]
         #expect(texts("cat ~/", entries: odd) == ["cat ~/\\$\\(id\\).txt", "cat ~/a\\;touch\\ x", "cat ~/it\\'s"], "a name's shell syntax is escaped and never run")
         #expect(texts("cat ~/.z", entries: entries) == ["cat ~/.zshrc"])
+        let inside = ["~/": ["Photos (2024)/", "My Notes/"], "~/Photos (2024)/": ["beach.jpg"], "~/My Notes/": ["todo.md"]]
+        #expect(texts("open ~/Photos\\ \\(2024\\)/b", entries: inside) == ["open ~/Photos\\ \\(2024\\)/beach.jpg"], "a completed folder keeps completing")
+        #expect(texts("cat ~/My\\ Notes/t", entries: inside) == ["cat ~/My\\ Notes/todo.md"], "an escaped space keeps the word whole")
+        #expect(texts("cat ~/My\\ N", entries: inside) == ["cat ~/My\\ Notes/"])
         #expect(!texts("cat ~/", entries: entries).contains("cat ~/.zshrc"), "hidden files wait for the dot")
         #expect(texts("ls /u", entries: entries) == ["ls /Users/", "ls /usr/"])
         #expect(texts("ls u", entries: entries).isEmpty, "a word that is not a path is left alone")
