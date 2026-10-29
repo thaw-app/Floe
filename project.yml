@@ -98,7 +98,7 @@ targets:
           rsync -a --delete --exclude smoke.ts --exclude survey.ts --exclude testing.ts --exclude tests --exclude bunfig.toml --exclude bin "$SRCROOT/runtime/" "$DEST/"
           # rsync leaves excluded names alone, so drop test files an earlier build copied.
           rm -rf "$DEST/tests" "$DEST/bunfig.toml" "$DEST/testing.ts"
-          # BUN_PATH is the universal Bun a release build makes (scripts/universal-bun.sh); a local build takes the Mac's own.
+          # BUN_PATH is the universal Bun a release build makes (.github/actions/universal-bun); a local build takes the Mac's own.
           BUN=""
           for candidate in "${BUN_PATH:-}" /opt/homebrew/bin/bun "$HOME/.bun/bin/bun" /usr/local/bin/bun; do
             if [ -n "$candidate" ] && [ -x "$candidate" ]; then BUN=$(realpath "$candidate"); break; fi

@@ -83,9 +83,25 @@ nonisolated enum TextGeneration {
         return names.count == servers.count && bare ? names : nil
     }
 
+    /// The oldest Codex seen to keep a server turned off in `codex exec`, checked with a server that marks its start.
+    /// An older one may list a server as off and start it anyway.
+    static let codexKeepsServersOff = [0, 157, 1]
+
+    /// Whether `codex --version`, as "codex-cli 0.157.1", is at least `codexKeepsServersOff`. False for what does not read.
+    static func codexKeepsServersOff(version: String) -> Bool {
+        guard let number = version.split(separator: " ").last else { return false }
+        let parts = number.split(separator: ".").map { Int($0) }
+        guard parts.count == 3, parts.allSatisfy({ $0 != nil }) else { return false }
+        return parts.compactMap(\.self).lexicographicallyPrecedes(codexKeepsServersOff) == false
+    }
+
     /// The MCP servers this Codex would start, read from it before the answer so each can be turned off.
-    /// Throws when they cannot be read, rather than answer with them on.
+    /// Throws when they cannot be read, or when this Codex is too old to keep them off, rather than answer with them on.
     private static func codexServers(of executable: URL, in directory: URL, environment: [String: String]) async throws -> [String] {
+        let version = try await Shell.run(executable, ["--version"], in: directory, environment: environment, timeout: 30)
+        guard version.succeeded, codexKeepsServersOff(version: version.trimmedOutput) else {
+            throw ShellError(String(localized: "Codex can't answer: update it to 0.157.1 or later, which keeps its MCP servers off.", bundle: .floe))
+        }
         let listing = try await Shell.run(executable, ["mcp", "list", "--json"] + codexToolsOff, in: directory, environment: environment, timeout: 30)
         guard listing.succeeded, let names = codexServers(in: Data(listing.trimmedOutput.utf8)) else {
             throw ShellError(String(localized: "Codex can't answer: Floe couldn't turn off its MCP servers.", bundle: .floe))

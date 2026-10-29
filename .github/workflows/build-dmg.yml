@@ -54,12 +54,10 @@ jobs:
         with:
           bun-version: "1.4.3"
 
-      # The Bun that ships: Apple silicon and Intel in one file, pinned in the script. The Embed Runtime
-      # build phase takes BUN_PATH before the Bun installed above.
+      # The Bun that ships: Apple silicon and Intel in one file, pinned in the action's script. The Embed
+      # Runtime build phase takes BUN_PATH before the Bun installed above.
       - name: Make Bun universal
-        run: |
-          ./scripts/universal-bun.sh "$RUNNER_TEMP/universal-bun/bun"
-          echo "BUN_PATH=$RUNNER_TEMP/universal-bun/bun" >> "$GITHUB_ENV"
+        uses: ./.github/actions/universal-bun
 
       # The Embed Runtime build phase fails without runtime/node_modules.
       - name: Install runtime dependencies

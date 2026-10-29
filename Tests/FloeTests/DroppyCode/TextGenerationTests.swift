@@ -55,6 +55,21 @@ struct TextGenerationTests {
         #expect(serverSettings.contains("mcp_servers.node_repl.enabled=false"))
     }
 
+    @Test func aCodexTooOldToKeepServersOffIsRefused() async throws {
+        #expect(TextGeneration.codexKeepsServersOff(version: "codex-cli 0.157.1"))
+        #expect(TextGeneration.codexKeepsServersOff(version: "codex-cli 0.160.0"))
+        #expect(TextGeneration.codexKeepsServersOff(version: "codex-cli 1.0.0"))
+        #expect(!TextGeneration.codexKeepsServersOff(version: "codex-cli 0.149.1"))
+        #expect(!TextGeneration.codexKeepsServersOff(version: "codex-cli 0.157.0"))
+        #expect(!TextGeneration.codexKeepsServersOff(version: "codex-cli 0.157.1-alpha"))
+        #expect(!TextGeneration.codexKeepsServersOff(version: ""))
+
+        let old = try TextGeneration.Engine.codex(executable: script("[ \"$1\" = --version ] && { echo 'codex-cli 0.149.1'; exit 0; }\necho '[]'"), model: nil)
+        await #expect(throws: ShellError.self) {
+            try await TextGeneration.run("why?", engine: old, environment: environment)
+        }
+    }
+
     @Test func codexsServersAreReadOrTheRunIsRefused() async throws {
         #expect(TextGeneration.codexServers(in: Data(#"[{"name":"GitKraken"},{"name":"computer-use"}]"#.utf8)) == ["GitKraken", "computer-use"])
         #expect(TextGeneration.codexServers(in: Data("[]".utf8)) == [])
@@ -62,14 +77,14 @@ struct TextGenerationTests {
         #expect(TextGeneration.codexServers(in: Data("not json".utf8)) == nil)
 
         // A Codex that cannot list its servers gives no answer rather than one with its tools on.
-        let engine = try TextGeneration.Engine.codex(executable: script("[ \"$1\" = mcp ] && exit 1; echo ran > /dev/null"), model: nil)
+        let engine = try TextGeneration.Engine.codex(executable: script("[ \"$1\" = --version ] && { echo 'codex-cli 0.157.1'; exit 0; }\n[ \"$1\" = mcp ] && exit 1; echo ran > /dev/null"), model: nil)
         await #expect(throws: ShellError.self) {
             try await TextGeneration.run("why?", engine: engine, environment: environment)
         }
     }
 
     @Test func codexRunsInAnEmptyFolderOfItsOwn() async throws {
-        let body = "[ \"$1\" = mcp ] && { echo '[]'; exit 0; }\nwhile [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\n: > \"$out\"; n=$(ls -A | wc -l | tr -d ' '); { echo \"$n\"; pwd; } > \"$out\""
+        let body = "[ \"$1\" = --version ] && { echo 'codex-cli 0.157.1'; exit 0; }\n[ \"$1\" = mcp ] && { echo '[]'; exit 0; }\nwhile [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\n: > \"$out\"; n=$(ls -A | wc -l | tr -d ' '); { echo \"$n\"; pwd; } > \"$out\""
         let engine = try TextGeneration.Engine.codex(executable: script(body), model: nil)
         let lines = try await TextGeneration.run("why?", engine: engine, environment: environment).split(separator: "\n").map(String.init)
         // The answer file is the one thing in the folder, and the folder is gone once the run is over.
@@ -85,7 +100,7 @@ struct TextGenerationTests {
 
     @Test func codexsAnswerIsTheFileItWrites() async throws {
         // The file is the argument after --output-last-message; standard output is the session's noise.
-        let body = "[ \"$1\" = mcp ] && { echo '[]'; exit 0; }\nwhile [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\necho noise; printf '  from codex\\n' > \"$out\""
+        let body = "[ \"$1\" = --version ] && { echo 'codex-cli 0.157.1'; exit 0; }\n[ \"$1\" = mcp ] && { echo '[]'; exit 0; }\nwhile [ $# -gt 0 ]; do [ \"$1\" = --output-last-message ] && out=\"$2\"; shift; done\necho noise; printf '  from codex\\n' > \"$out\""
         let engine = try TextGeneration.Engine.codex(executable: script(body), model: nil)
         #expect(try await TextGeneration.run("why?", engine: engine, environment: environment) == "from codex")
     }

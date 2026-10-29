@@ -29,6 +29,9 @@ these four.
 - **Floe runs on Intel Macs, extensions included** ([#46](https://github.com/thaw-app/Floe/issues/46)).
 - **Choose the screen the launcher opens on**, in Settings > Appearance > Layout. Until you pick one, and whenever the one you picked is not connected, it opens on the screen with the pointer ([#41](https://github.com/thaw-app/Floe/discussions/41)).
 
+### Changed
+- **Ask AI with Codex needs Codex 0.157.1 or later.** Older versions can start their MCP servers even when Floe turns them off.
+
 ### Fixed
 - **Extensions that use `ws`'s server or streams load again.** A named import such as `WebSocketServer` failed in 0.1.1.
 - **Shell path completion keeps going inside a folder whose name has a space or brackets**, such as `~/Photos\ \(2024\)/`.

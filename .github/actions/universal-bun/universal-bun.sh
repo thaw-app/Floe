@@ -2,7 +2,7 @@
 # Makes the Bun a release embeds: Bun's Apple silicon and Intel builds in one file, so Floe's extensions run on both.
 #
 # Usage:
-#   ./scripts/universal-bun.sh <output>
+#   .github/actions/universal-bun/universal-bun.sh <output>
 #
 # Each download is checked against the SHA-256 pinned below before it is used. lipo keeps each half's own signature,
 # Bun's Developer ID with the hardened runtime and the JIT entitlement, so nothing is signed again here.

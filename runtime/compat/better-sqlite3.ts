@@ -66,37 +66,70 @@ class Statement {
 
 // The multiple-ciphers build encrypts with these pragmas, with or without a schema before the name. The SQLite under
 // Bun has no cipher, and ignoring the key would write in the clear what the user asked to have encrypted.
-const encryption = /(?<!["'`[])\bPRAGMA(?:\s+|(?=["'`[]))(?:["'`[]?\w+["'`\]]?\s*\.\s*)?["'`[]?(?:cipher\w*|key|rekey|hexkey|hexrekey)\b/i;
+const encryptionPragma = /^(?:cipher\w*|key|rekey|hexkey|hexrekey)$/i;
 
-/// The SQL as SQLite reads its words. A comment is a space, so PRAGMA/**/key cannot hide. Quoted text of several
-/// words becomes one word, so a value reading "PRAGMA key" is no pragma and a "--" in it starts no comment.
-function words(source: string) {
-  let out = "";
+/// What closes each quote SQLite reads: strings, quoted names, and names in brackets.
+const closers = new Map([["'", "'"], ['"', '"'], ["`", "`"], ["[", "]"]]);
+/// A bare word as SQLite reads one: letters, digits, _ and $, and any character past ASCII, as in schéma.
+const word = /[\w$\u0080-\u{10FFFF}]+/uy;
+
+type Token = { text: string; quoted: boolean };
+
+/// Past the end of the quoted token that opens at `at`. A doubled quote, as in "my "" vault", is part of the text.
+function quotedEnd(source: string, at: number, close: string) {
+  let end = source.indexOf(close, at + 1);
+  while (end !== -1 && close !== "]" && source[end + 1] === close) {
+    end = source.indexOf(close, end + 2);
+  }
+  return end === -1 ? source.length : end + 1;
+}
+
+/// Past the end of the comment that opens at `at`: the line's end for --, after the */ for /*.
+function commentEnd(source: string, at: number) {
+  const line = source.startsWith("--", at);
+  const end = source.indexOf(line ? "\n" : "*/", at + 2);
+  if (end === -1) return source.length;
+  return line ? end : end + 2;
+}
+
+/// The SQL in tokens as SQLite reads it. Comments are dropped, so PRAGMA/**/key cannot hide, and quoted text is one
+/// token, so a value that reads "PRAGMA key" is no pragma and a "--" in it starts no comment.
+function tokens(source: string) {
+  const found: Token[] = [];
   let at = 0;
   while (at < source.length) {
-    const char = source[at];
-    if (char === "'" || char === '"' || char === "`" || char === "[") {
-      const close = source.indexOf(char === "[" ? "]" : char, at + 1);
-      const end = close === -1 ? source.length : close + 1;
-      const quoted = source.slice(at, end);
-      // A word, not nothing: "my vault".key must still read as a schema before a key.
-      out += /^.\w+.$/.test(quoted) ? quoted : `${char}text${char === "[" ? "]" : char}`;
+    const close = closers.get(source[at]);
+    if (close) {
+      const end = quotedEnd(source, at, close);
+      found.push({ text: source.slice(at + 1, end - 1), quoted: true });
       at = end;
     } else if (source.startsWith("--", at) || source.startsWith("/*", at)) {
-      const block = source.startsWith("/*", at);
-      const close = source.indexOf(block ? "*/" : "\n", at + 2);
-      at = close === -1 ? source.length : close + (block ? 2 : 0);
-      out += " ";
-    } else {
-      out += char;
+      at = commentEnd(source, at);
+    } else if (/\s/.test(source[at])) {
       at += 1;
+    } else {
+      word.lastIndex = at;
+      const text = word.exec(source)?.[0] ?? source[at];
+      found.push({ text, quoted: false });
+      at += text.length;
     }
   }
-  return out;
+  return found;
+}
+
+/// Whether the SQL holds PRAGMA, a schema and a dot or not, then one of the encryption pragmas, quoted or bare.
+function asksForEncryption(source: string) {
+  const found = tokens(source);
+  return found.some((token, index) => {
+    if (token.quoted || token.text.toUpperCase() !== "PRAGMA") return false;
+    const dot = found[index + 2];
+    const name = dot && !dot.quoted && dot.text === "." ? found[index + 3] : found[index + 1];
+    return name !== undefined && encryptionPragma.test(name.text);
+  });
 }
 
 function refuseEncryption(source: string) {
-  if (encryption.test(words(source))) {
+  if (asksForEncryption(source)) {
     throw new Error("Floe can't open encrypted databases: the SQLite it runs extensions with has no encryption");
   }
 }

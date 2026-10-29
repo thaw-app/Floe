@@ -165,7 +165,7 @@ describe("better-sqlite3 over bun:sqlite", () => {
     }
     expect(() => db.exec("PRAGMA key = 'secret'")).toThrow("Floe can't open encrypted databases");
     expect(() => db.prepare("pragma main.hexkey = '00'")).toThrow("Floe can't open encrypted databases");
-    for (const sql of ["PRAGMA/**/key = 'secret'", "PRAGMA -- a note\nkey = 'x'", "PRAGMA\"key\" = 'x'", "SELECT '--'; PRAGMA key = 'x'", "PRAGMA \"my vault\".key = 'x'", "PRAGMA [schéma].rekey = 'x'"]) {
+    for (const sql of ["PRAGMA/**/key = 'secret'", "PRAGMA -- a note\nkey = 'x'", "PRAGMA\"key\" = 'x'", "SELECT '--'; PRAGMA key = 'x'", "PRAGMA \"my vault\".key = 'x'", "PRAGMA [schéma].rekey = 'x'", "PRAGMA \"my \"\" vault\".key = 'x'", "PRAGMA 'a''b'.rekey = 'x'", "PRAGMA schéma.key = 'x'", "PRAGMA a$b.rekey = 'x'"]) {
       expect(() => db.exec(sql), sql).toThrow("Floe can't open encrypted databases");
     }
     expect(db.pragma("user_version", { simple: true })).toBe(0);

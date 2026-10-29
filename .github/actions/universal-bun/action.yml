@@ -1,0 +1,17 @@
+name: Universal Bun
+description: >-
+  Make the Bun a release embeds, Apple silicon and Intel in one file, and point
+  BUN_PATH at it for the Embed Runtime build phase.
+
+# A local action, not a script in scripts/: checkout-source keeps .github/actions
+# from the workflow's own revision, so an older ref that predates this still builds.
+
+runs:
+  using: composite
+  steps:
+    - name: Make Bun universal
+      shell: bash
+      run: |
+        set -euo pipefail
+        "$GITHUB_ACTION_PATH/universal-bun.sh" "$RUNNER_TEMP/universal-bun/bun"
+        echo "BUN_PATH=$RUNNER_TEMP/universal-bun/bun" >> "$GITHUB_ENV"

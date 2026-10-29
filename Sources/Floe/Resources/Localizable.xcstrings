@@ -1207,6 +1207,9 @@
     "Codex can't answer: Floe couldn't turn off its MCP servers." : {
 
     },
+    "Codex can't answer: update it to 0.157.1 or later, which keeps its MCP servers off." : {
+
+    },
     "Color" : {
       "comment" : "The label of a color picker."
     },
