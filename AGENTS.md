@@ -4,7 +4,19 @@ Notes for AI coding agents and the people using them. Read this before changing 
 
 Many people who help with Floe aren't developers. They describe a bug or an idea, and an agent does the work. This file tells the agent how to work here so that what it produces can be reviewed and merged. The project's rules for everyone are in the shared [contribution guidelines](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md); this file points to them where they apply.
 
-Open pull requests against `development`. Before writing code, read [Architecture](docs/ARCHITECTURE.md) for where things live and [Coding standards](docs/CODING_STANDARDS.md) for how code is written here. [Development](docs/DEVELOPMENT.md) has the build, test and check commands.
+## What Floe is
+
+Floe is a macOS launcher that runs unmodified Raycast extensions. One process stays running and holds the launcher, Settings runs as a process of its own, and each running extension command is a Bun process. It is written in Swift with AppKit and SwiftUI, with a TypeScript runtime for the extensions and a Rust file index.
+
+## Build and run
+
+You need macOS 26 or later, Bun, Rust and Xcode 27. The steps are in [Development](docs/DEVELOPMENT.md#run): install the runtime's packages, build the Rust index, then run from Xcode.
+
+`./scripts/devrun.sh` installs the build as `/Applications/Floe.app`, which replaces the person's own Floe. Ask before you run it. Ask before launching Floe at all, too: it registers the launcher hotkey, and its first launch asks for Accessibility. Explain what that is for and let the person decide.
+
+## Where to read next
+
+Open pull requests against `development`. Before writing code, read [Architecture](docs/ARCHITECTURE.md) for where things live and [Coding standards](docs/CODING_STANDARDS.md) for how code is written here. [Development](docs/DEVELOPMENT.md) has the test and check commands and the rest.
 
 ## Before you start
 
