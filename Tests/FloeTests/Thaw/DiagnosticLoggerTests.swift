@@ -94,6 +94,8 @@ import Testing
         // A backslash is doubled, so a message that spells out an escape cannot pass for one.
         #expect(DiagnosticLogger.oneLine(#"C:\new"#) == #"C:\\new"#)
         #expect(DiagnosticLogger.oneLine("caf\u{E9} \u{1F600}") == "caf\u{E9} \u{1F600}")
+        // Marks that turn text around would make a folder's name in a warning read as another.
+        #expect(DiagnosticLogger.oneLine("evil\u{202E}gpj.app\u{202C}\u{2066}x\u{2069}\u{200F}") == #"evil\u{202e}gpj.app\u{202c}\u{2066}x\u{2069}\u{200f}"#)
     }
 
     @Test func eachDiagLogMethodWritesALineAtItsOwnLevel() throws {

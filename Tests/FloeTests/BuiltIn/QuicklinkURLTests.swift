@@ -24,6 +24,8 @@ struct QuicklinkURLTests {
         #expect(link("https://github.com/{query}", "apple/swift") == "https://github.com/apple/swift")
         #expect(link("https://time.is/{query}", "New York?x=1#y") == "https://time.is/New%20York%3Fx%3D1%23y")
         #expect(link("https://{query}.example.com/", "evil.com@") == "https://evil.com%40.example.com/", "the text cannot name another host")
+        #expect(link("https://{query}.example.com/", "evil.com/") == "https://evil.com%2F.example.com/", "nor end the host with a slash of its own")
+        #expect(link("https://{query}", "evil.com/x") == "https://evil.com%2Fx", "a host the whole text makes up keeps no slash either")
         #expect(link("https://example.com/{query}?q={query}", "a/b") == "https://example.com/a/b?q=a%2Fb", "each place is encoded for where it is")
     }
 

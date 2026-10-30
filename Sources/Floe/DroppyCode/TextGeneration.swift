@@ -75,7 +75,8 @@ nonisolated enum TextGeneration {
     static let codexToolsOff = [
         "features.shell_tool=false", "features.unified_exec=false", "features.plugins=false",
         "features.apps=false", "features.browser_use=false", "features.computer_use=false",
-        "features.view_image=false", "features.multi_agent=false", "features.image_generation=false",
+        "features.view_image=false", "features.multi_agent=false", "features.multi_agent_v2=false", "agents.enabled=false",
+        "features.image_generation=false",
         "web_search=\"disabled\"", "memories.use_memories=false", "approval_policy=\"never\"",
     ].flatMap { ["--config", $0] }
 

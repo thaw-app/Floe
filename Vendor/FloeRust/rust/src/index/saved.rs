@@ -17,6 +17,9 @@ const PATH_BYTES: u32 = 64 * 1024;
 
 /// O_NOFOLLOW from macOS's fcntl.h: an unfinished file is never opened through a link.
 const NO_FOLLOW: i32 = 0x100;
+/// How old an unfinished file left beside the index must be before a save removes it: a save that is still
+/// writing its own is never that old.
+const STALE: std::time::Duration = std::time::Duration::from_secs(60 * 60);
 
 impl Rules {
     /// The rules as bytes: each list's length, then each name's length and the name. A file saved under other rules
@@ -142,9 +145,36 @@ impl Tree {
     }
 }
 
+/// Whether `file`, a name in the folder of `path`, is one `unfinished_beside` makes for it.
+pub(super) fn is_unfinished_of(file: &str, path: &str) -> bool {
+    let Some(base) = std::path::Path::new(path).file_name().and_then(|name| name.to_str()) else { return false };
+    let token = file.strip_prefix(base).and_then(|rest| rest.strip_prefix('.')).and_then(|rest| rest.strip_suffix(".unfinished"));
+    token.is_some_and(|token| token.len() == 16 && token.bytes().all(|byte| byte.is_ascii_hexdigit()))
+}
+
+/// Removes the unfinished files a save that stopped half way left beside `path`, once they are older than `STALE`.
+/// Only plain files are removed: a link of that name is left alone, and so is whatever it points at.
+fn remove_stale_unfinished(path: &str) {
+    let folder = match std::path::Path::new(path).parent() {
+        Some(folder) if !folder.as_os_str().is_empty() => folder,
+        _ => std::path::Path::new("."),
+    };
+    let Ok(listing) = std::fs::read_dir(folder) else { return };
+    for entry in listing.flatten() {
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else { continue };
+        let Ok(metadata) = std::fs::symlink_metadata(entry.path()) else { continue };
+        let old = metadata.modified().ok().and_then(|modified| modified.elapsed().ok()).is_some_and(|age| age >= STALE);
+        if is_unfinished_of(name, path) && metadata.file_type().is_file() && old {
+            let _ = std::fs::remove_file(entry.path());
+        }
+    }
+}
+
 /// A file of its own beside `path`, under a name nobody can guess, made by this call: one already there, or a link
 /// put in its place, is never opened, so nothing else is written over.
 fn unfinished_beside(path: &str) -> Option<(String, File)> {
+    remove_stale_unfinished(path);
     for _ in 0..8 {
         let token = std::collections::hash_map::RandomState::new().build_hasher().finish();
         let unfinished = format!("{path}.{token:016x}.unfinished");

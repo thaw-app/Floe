@@ -55,6 +55,8 @@ struct SettingsImportTests {
         file.indexesFileNames = true
         file.fetchesExchangeRates = true
         file.syncsWithICloud = true
+        file.shell.runs = true
+        file.shell.prefix = .dollar
         file.aiOnThisMacOnly = false
         file.aliases = ["sample/planets": "p"]
         return try file.exportedJSON()
@@ -65,6 +67,7 @@ struct SettingsImportTests {
         here.lentSignIns = ["mine/gitlab"]
         here.searchSources = ["files"]
         here.aiOnThisMacOnly = true
+        here.shell.runs = false
 
         try here.importJSON(generousFile())
 
@@ -73,6 +76,8 @@ struct SettingsImportTests {
         #expect(!here.indexesFileNames)
         #expect(!here.fetchesExchangeRates)
         #expect(!here.syncsWithICloud)
+        #expect(!here.shell.runs, "a file never switches on running commands")
+        #expect(here.shell.prefix == .dollar, "the rest of the shell settings are the file's")
         #expect(here.aiOnThisMacOnly, "a file never loosens the promise")
         #expect(here.aliases == ["sample/planets": "p"], "everything else is the file's")
     }

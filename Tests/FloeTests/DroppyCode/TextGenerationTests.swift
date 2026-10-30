@@ -52,7 +52,8 @@ struct TextGenerationTests {
         // The tools that read files or reach the network without a shell, and the escalation that runs a command outside the sandbox.
         for setting in [
             "approval_policy=\"never\"", "web_search=\"disabled\"", "features.view_image=false",
-            "features.multi_agent=false", "features.image_generation=false", "memories.use_memories=false",
+            "features.multi_agent=false", "features.multi_agent_v2=false", "agents.enabled=false",
+            "features.image_generation=false", "memories.use_memories=false",
         ] {
             #expect(settings.contains(setting), "\(setting)")
         }

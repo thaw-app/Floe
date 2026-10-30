@@ -226,13 +226,14 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         "\(extensionName)/oauth/\(providerId)"
     }
 
-    /// The installation tokens are saved with: the extension's folder, with links resolved. A manifest's name is
-    /// the package's own say, so a second package claiming it in another folder gets none of these tokens.
+    /// The installation tokens are saved with: the extension's folder as the catalog found it. Links are not followed,
+    /// since what one points at can change between requests. A manifest's name is the package's own say, so a second
+    /// package claiming it in another folder gets none of these tokens.
     private static let installationKey = "floeInstallation"
     private static let tokensKey = "tokens"
 
     private static func installationPath(_ installation: URL) -> String {
-        installation.resolvingSymlinksInPath().standardizedFileURL.path
+        installation.standardizedFileURL.path
     }
 
     /// The stored tokens' text and the installation they belong to. Tokens saved before they had one belong to nobody.

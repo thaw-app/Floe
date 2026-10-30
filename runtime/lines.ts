@@ -25,10 +25,13 @@ export function lineSplitter(onLine: (line: string) => void): (chunk: Buffer) =>
 }
 
 // Control characters, line and paragraph separators and the marks that reverse text direction. In text a
-// manifest or an extension wrote, they could start a line of their own or move a terminal's cursor.
-const unprintable = /[\p{Cc}\u2028\u2029\u202a-\u202e\u2066-\u2069]/gu;
+// manifest or an extension wrote, they could start a line of their own or move a terminal's cursor. A backslash
+// is in the set too, so text that spells out an escape can't pass for one of these.
+const unprintable = /[\\\p{Cc}\u2028\u2029\u202a-\u202e\u2066-\u2069]/gu;
 
-// Text for one line of output, with each of those written as an escape.
+// Text for one line of output, with each of those written as an escape and a backslash doubled.
 export function oneLine(text: string): string {
-  return text.replace(unprintable, (character) => `\\u${character.codePointAt(0)!.toString(16).padStart(4, "0")}`);
+  return text.replace(unprintable, (character) =>
+    character === "\\" ? "\\\\" : `\\u${character.codePointAt(0)!.toString(16).padStart(4, "0")}`,
+  );
 }

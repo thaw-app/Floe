@@ -195,10 +195,12 @@ nonisolated struct AIKeys: Sendable {
         }
     }
 
-    /// Moves a key saved before keys were bound to `origin`, the address it is in use with.
+    /// Moves a key saved before keys were bound to `origin`, the address it is in use with. The earlier one stays
+    /// until the copy reads back, so a write that fails loses no key.
     private func bindEarlierKey(to origin: String) {
         guard let earlier = read(AIEndpoint.keychainAccount) else { return }
         write(earlier, Self.account(for: origin))
+        guard read(Self.account(for: origin)) == earlier else { return }
         delete(AIEndpoint.keychainAccount)
     }
 }

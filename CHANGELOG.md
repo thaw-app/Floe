@@ -39,7 +39,7 @@ These come from [CodeRabbit](https://www.coderabbit.ai)'s security scan of 0.2.0
 - **Your API key goes only to the AI service it was saved for**, never to one you switch to or import.
 - **An AI service can't send your question elsewhere with a redirect.**
 - **Codex answers with its image reading, web search and other tools turned off**, and never asks to run a command.
-- **Importing settings keeps what you allowed on this Mac**, such as the sign-ins you lend to extensions and whether iCloud sync is on.
+- **Importing settings keeps what you allowed on this Mac**, such as the sign-ins you lend to extensions, whether iCloud sync is on and whether shell commands run.
 - **Names completed or opened in Terminal stay text**, inside quotes too and with accented letters.
 - **Text you type into a quicklink can't add fields to it**, such as more recipients for an email.
 - **A file whose name has a line break is saved in a checkpoint as one file.**

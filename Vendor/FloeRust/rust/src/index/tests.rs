@@ -763,6 +763,36 @@ fn a_save_writes_over_nothing_but_its_own_file() {
 }
 
 #[test]
+fn a_save_clears_unfinished_files_left_long_ago_and_nothing_else() {
+    let scratch = Scratch::new();
+    scratch.file("one.txt");
+    let index = built(&scratch);
+    let file = saved_file(&scratch);
+    let victim = scratch.path("victim.txt");
+    fs::write(&victim, "keep").unwrap();
+    let hours_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 60 * 60);
+    let left_long_ago = format!("{file}.00000000000000aa.unfinished");
+    fs::File::create(&left_long_ago).unwrap().set_modified(hours_ago).unwrap();
+    // Another save may be writing this one right now.
+    let being_written = format!("{file}.00000000000000bb.unfinished");
+    fs::write(&being_written, "").unwrap();
+    let link = format!("{file}.00000000000000cc.unfinished");
+    std::os::unix::fs::symlink(&victim, &link).unwrap();
+    let not_ours = format!("{file}.notes.unfinished");
+    fs::File::create(&not_ours).unwrap().set_modified(hours_ago).unwrap();
+
+    assert!(index.save(&file));
+    assert!(fs::symlink_metadata(&left_long_ago).is_err(), "an unfinished file hours old is removed");
+    assert!(fs::metadata(&being_written).is_ok(), "a new one is left to the save writing it");
+    assert!(fs::symlink_metadata(&link).unwrap().file_type().is_symlink(), "a link is left alone");
+    assert_eq!(fs::read_to_string(&victim).unwrap(), "keep");
+    assert!(fs::metadata(&not_ours).is_ok(), "a name the index does not make is left alone");
+    for leftover in [&being_written, &link, &not_ours, &file] {
+        let _ = fs::remove_file(leftover);
+    }
+}
+
+#[test]
 fn an_index_that_was_never_built_saves_nothing() {
     let scratch = Scratch::new();
     assert!(!FileIndex::new().save(&saved_file(&scratch)));

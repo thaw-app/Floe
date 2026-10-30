@@ -215,3 +215,38 @@ fn test_saved_variables_that_claim_more_than_they_hold_are_refused() {
         fend_context_free(ctx);
     }
 }
+
+#[test]
+fn test_saved_variables_of_every_kind_are_read_back_as_they_were() {
+    unsafe {
+        let ctx = fend_context_new();
+        let definitions = [
+            ("mass", "5 kg"),
+            ("speed", "3 m/s"),
+            ("third", "1/3"),
+            ("word", "\"hello\""),
+            ("yes", "true"),
+            ("price", "3.25"),
+            ("big", "2^100"),
+            ("square", "x: x^2"),
+        ];
+        let mut expected = Vec::new();
+        for (name, definition) in definitions {
+            let assigned = value(ctx, &format!("{name} = {definition}"), false).unwrap();
+            expected.push((name, assigned));
+        }
+        let mut saved = vec![0u8; fend_context_serialize_variables(ctx, ptr::null_mut(), 0) as usize];
+        fend_context_serialize_variables(ctx, saved.as_mut_ptr(), saved.len());
+
+        let fresh = fend_context_new();
+        assert_eq!(fend_context_deserialize_variables(fresh, saved.as_ptr(), saved.len()), 0, "fend's own saved variables are accepted");
+        for (name, assigned) in &expected {
+            assert_eq!(&value(fresh, name, false).unwrap(), assigned, "{name}");
+        }
+        assert_eq!(value(fresh, "mass to g", false).unwrap(), "5000 g");
+        assert_eq!(value(fresh, "square 4", false).unwrap(), "16");
+
+        fend_context_free(fresh);
+        fend_context_free(ctx);
+    }
+}

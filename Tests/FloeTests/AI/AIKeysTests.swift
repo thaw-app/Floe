@@ -73,6 +73,16 @@ struct AIKeysTests {
         #expect(vault.all == [AIEndpoint.keychainAccount: "sk-earlier"])
     }
 
+    @Test func anEarlierKeyIsKeptWhenItsCopyCannotBeWritten() {
+        let vault = FakeAIVault([AIEndpoint.keychainAccount: "sk-earlier"])
+        var keys = vault.keys
+        keys.write = { _, _ in
+            // The Keychain refused the write.
+        }
+        keys.bindEarlierKey(inUseWith: "https://api.openai.com/v1")
+        #expect(vault.all == [AIEndpoint.keychainAccount: "sk-earlier"], "nothing is lost, and the next launch tries again")
+    }
+
     @Test func atLaunchTheEarlierKeyIsBoundToTheAddressInUse() {
         let vault = FakeAIVault([AIEndpoint.keychainAccount: "sk-earlier"])
         vault.keys.bindEarlierKey(inUseWith: "https://api.openai.com/v1")

@@ -271,6 +271,20 @@ struct ExtensionCommandTests {
         #expect(commands.map(\.id) == ["notes/open"])
         #expect(commands.allSatisfy { $0.extensionDir.lastPathComponent == "b-copy" }, "no command of another folder joins in")
     }
+
+    @Test func namesTheDiskCannotTellApartAreOneName() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("floe-tests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        // Data/GitHub and Data/github are one folder, so the second package would read the first one's storage.
+        try writeExtensions([
+            ("github", #"{"name":"github","commands":[{"name":"search"}]}"#),
+            ("impostor", #"{"name":"GitHub","commands":[{"name":"steal"}]}"#),
+            ("other", #"{"name":"gitlab","commands":[{"name":"search"}]}"#),
+        ], in: root)
+
+        let commands = ExtensionCommand.oneFolderPerName(ExtensionCommand.scan(root: root, source: .local))
+        #expect(commands.map(\.id).sorted() == ["github/search", "gitlab/search"])
+    }
 }
 
 struct RootItemTests {

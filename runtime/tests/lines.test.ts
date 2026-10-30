@@ -42,6 +42,9 @@ describe("text for one line of output", () => {
   test("control characters are written as escapes, so a name cannot start a line or move the cursor", () => {
     expect(oneLine("cmd\nok         fake/entry")).toBe("cmd\\u000aok         fake/entry");
     expect(oneLine("a\rb\u001b[2Kc\u0007\u007f\u0085")).toBe("a\\u000db\\u001b[2Kc\\u0007\\u007f\\u0085");
+    // An escape spelled out in the text stays apart from a real line break.
+    expect(oneLine("a\\u000ab")).toBe("a\\\\u000ab");
+    expect(oneLine("a\\u000ab")).not.toBe(oneLine("a\nb"));
     expect(oneLine("x\u2028y\u202ez")).toBe("x\\u2028y\\u202ez");
   });
 

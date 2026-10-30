@@ -130,11 +130,13 @@ nonisolated enum ShellSuggestions {
         // A slash means the same in and out of quotes, so the line is kept as typed up to its last one,
         // escapes and all, and the folder is looked up as the shell will read it.
         let line = String(typed.unicodeScalars[...typedSlash])
+        // The name goes in where the kept line ends, which may be inside quotes that close later in the word.
+        guard let quoting = lastWord(in: line)?.quoting else { return [] }
         return entries(folder)
             .filter { $0.lowercased().hasPrefix(start.lowercased()) && ($0.hasPrefix(".") == start.hasPrefix(".")) }
             .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
             .prefix(5)
-            .map { line + encoded($0, in: word.quoting) }
+            .map { line + encoded($0, in: quoting) }
     }
 
     /// Where the end of a typed line is: outside quotes, or inside '…' or "…".

@@ -169,20 +169,27 @@ nonisolated extension ExtensionCommand {
         var owners: [String: URL] = [:]
         for command in commands {
             let name = command.extensionName
-            guard let owner = owners[name] else {
-                owners[name] = command.extensionDir
+            let key = folderKey(name)
+            guard let owner = owners[key] else {
+                owners[key] = command.extensionDir
                 continue
             }
             let sameRoot = owner.deletingLastPathComponent().path == command.extensionDir.deletingLastPathComponent().path
             if sameRoot, owner.lastPathComponent != name, command.extensionDir.lastPathComponent == name {
-                owners[name] = command.extensionDir
+                owners[key] = command.extensionDir
             }
         }
-        let skipped = Set(commands.filter { owners[$0.extensionName]?.path != $0.extensionDir.path }.map(\.extensionDir.path))
+        let owned = { (command: ExtensionCommand) in owners[folderKey(command.extensionName)]?.path == command.extensionDir.path }
+        let skipped = Set(commands.filter { !owned($0) }.map(\.extensionDir.path))
         for folder in skipped.sorted() {
             Log.extensions.warning("Skipped \(folder): another folder already has an extension of that name")
         }
-        return Array(commands.filter { owners[$0.extensionName]?.path == $0.extensionDir.path }.uniqued(on: \.id))
+        return Array(commands.filter(owned).uniqued(on: \.id))
+    }
+
+    /// A name as the disk compares it: Data/github and Data/GitHub are one folder on a Mac's usual volume.
+    private static func folderKey(_ name: String) -> String {
+        name.precomposedStringWithCanonicalMapping.lowercased()
     }
 
     /// Every runnable command under a folder of extensions, one subfolder per extension.

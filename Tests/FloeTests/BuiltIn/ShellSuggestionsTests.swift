@@ -55,6 +55,10 @@ struct ShellSuggestionsTests {
         #expect(texts("ls '/tmp/my dir'/a", entries: entries) == ["ls '/tmp/my dir'/a\\ b.txt"], "after the quote closes, a name is escaped as before")
         #expect(texts("echo 'a /tmp/it", entries: entries).isEmpty, "a path that only looks like one inside a quoted argument is left alone")
         #expect(texts("cat '~/D", entries: ["~/": ["Desktop/"]]).isEmpty, "a quoted tilde is no home folder")
+        // The name goes in at the last slash, so it is written for the quoting there, not where the word ends.
+        #expect(texts("cat \"/tmp/i\"t", entries: entries) == ["cat \"/tmp/it's; touch x"], "a quote closed after the slash is open where the name goes")
+        #expect(texts("cat /tmp/'it", entries: entries) == ["cat /tmp/" + ShellCommand.escaped("it's; touch x")], "a quote opened after the slash is not")
+        #expect(texts("ls '/tmp/my 'd", entries: entries) == ["ls '/tmp/my dir/"], "a space inside the quote stays in the name")
     }
 
     @Test func aLineTheShellWouldReadAnotherWayIsNotFinished() {
