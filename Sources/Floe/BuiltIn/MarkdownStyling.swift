@@ -55,9 +55,11 @@ enum MarkdownStyler {
     private static let quote = try? NSRegularExpression(pattern: #"^[ \t]*>[ \t]?"#)
     private static let rule = try? NSRegularExpression(pattern: #"^[ \t]*([-*_])(?:[ \t]*\1){2,}[ \t]*$"#)
     private static let code = try? NSRegularExpression(pattern: #"(`)([^`\n]+)(`)"#)
-    private static let strong = try? NSRegularExpression(pattern: #"(\*\*|__)(?=\S)(.+?)(?<=\S)(\1)"#)
-    private static let emphasis = try? NSRegularExpression(pattern: #"(?<![*_\w])([*_])(?=\S)(.+?)(?<=\S)(\1)(?![*_\w])"#)
-    private static let link = try? NSRegularExpression(pattern: #"(\[)([^\]\n]+)(\]\(([^)\s]+)\))"#)
+    // Emphasis is looked for no further than a few hundred characters from where it opens, and a link's label holds
+    // no bracket: unbounded, a long line of marks that never close is read again from each one, while the note is typed.
+    private static let strong = try? NSRegularExpression(pattern: #"(\*\*|__)(?=\S)(.{1,300}?)(?<=\S)(\1)"#)
+    private static let emphasis = try? NSRegularExpression(pattern: #"(?<![*_\w])([*_])(?=\S)(.{1,300}?)(?<=\S)(\1)(?![*_\w])"#)
+    private static let link = try? NSRegularExpression(pattern: #"(\[)([^\[\]\n]+)(\]\(([^)\s]+)\))"#)
     private static let url = try? NSRegularExpression(pattern: #"(?<![(\[])\bhttps?://[^\s)\]]+"#)
 
     static func paragraph(_ style: MarkdownEditorStyle) -> NSMutableParagraphStyle {

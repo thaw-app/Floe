@@ -46,7 +46,7 @@ nonisolated struct OAuthBrokerTests {
 
     private func failure(of request: HostRequest) async -> String? {
         do {
-            _ = try await broker.perform(request, extensionName: name)
+            _ = try await broker.perform(request, extensionName: name, installation: URL(fileURLWithPath: "/tmp/\(name)"))
             return nil
         } catch {
             return (error as? OAuthError).map { String(describing: $0) }
@@ -63,7 +63,7 @@ nonisolated struct OAuthBrokerTests {
         #expect(waiter.outcomes.count == 1, "a sign-in is answered once")
     }
 
-    // Google's installed-app clients return to com.raycast:/oauth; Sourcegraph's OAuth app to raycast://oauth.
+    /// Google's installed-app clients return to com.raycast:/oauth; Sourcegraph's OAuth app to raycast://oauth.
     @Test(arguments: ["raycast://oauth", "com.raycast:/oauth"])
     func aRedirectToRaycastsAppAddressesAnswersTheSignIn(address: String) throws {
         let waiter = Waiter(name, state: state)
@@ -101,7 +101,7 @@ nonisolated struct OAuthBrokerTests {
     @Test func aSignInTheNoticeIsRefusedForNeverOpensTheBrowser() async {
         let refusing = OAuthBroker(notice: RaycastSignInNotice(seen: { false }, markSeen: {}, asks: { _ in false }))
         do {
-            _ = try await refusing.perform(.oauthAuthorize(url: "https://example.com/auth", state: "s1", providerName: "Notion"), extensionName: name)
+            _ = try await refusing.perform(.oauthAuthorize(url: "https://example.com/auth", state: "s1", providerName: "Notion"), extensionName: name, installation: URL(fileURLWithPath: "/tmp/\(name)"))
             Issue.record("the sign-in went ahead")
         } catch {
             #expect((error as? OAuthError).map { String(describing: $0) } == "cancelled")
@@ -198,10 +198,65 @@ nonisolated struct OAuthBrokerTests {
         let request = HostRequest.oauthAuthorize(url: "", state: "s1", providerName: "Provider")
         #expect(await failure(of: request) == #"invalidRedirect("Missing or invalid param: url")"#)
     }
+}
+
+/// Token storage over a keychain in memory: an extension's tokens belong to the folder it was installed in.
+struct OAuthTokenStorageTests {
+    private let keychain = MemoryKeychain()
+    private let broker: OAuthBroker
+    private let installed = URL(fileURLWithPath: "/Users/someone/Library/Application Support/Floe/Extensions/github")
+    private let elsewhere = URL(fileURLWithPath: "/Users/someone/Library/Application Support/Floe/Extensions/aaa-other")
+    private let tokens = #"{"accessToken":"secret","updatedAt":"2026-10-29T00:00:00Z"}"#
+
+    init() {
+        broker = OAuthBroker(vault: SecretVault(keychain: keychain, defaults: ScratchDefaults().defaults, isEntitled: { false }))
+    }
+
+    private func read(from installation: URL) async throws -> String? {
+        let answer = try await broker.perform(.oauthGetTokens(providerId: "github"), extensionName: "github", installation: installation)
+        return (answer as? [String: Any])?["accessToken"] as? String
+    }
 
     @Test func anExtensionThatNeverSignedInHasNoTokens() async throws {
-        let answer = try await broker.perform(.oauthGetTokens(providerId: "none"), extensionName: name)
+        let answer = try await broker.perform(.oauthGetTokens(providerId: "none"), extensionName: "github", installation: installed)
         #expect(answer is NSNull)
-        #expect(broker.tokens(extensionName: name, providerId: "none") == nil)
+        #expect(broker.tokens(extensionName: "github", providerId: "none", installation: installed) == nil)
+    }
+
+    @Test func anotherPackageWithTheSameNameCannotReadTheTokens() async throws {
+        _ = try await broker.perform(.oauthSetTokens(providerId: "github", tokens: tokens), extensionName: "github", installation: installed)
+        #expect(try await read(from: elsewhere) == nil)
+        #expect(try await read(from: installed) == "secret")
+    }
+
+    @Test func anotherPackageWithTheSameNameCannotRemoveTheTokens() async throws {
+        _ = try await broker.perform(.oauthSetTokens(providerId: "github", tokens: tokens), extensionName: "github", installation: installed)
+        _ = try await broker.perform(.oauthRemoveTokens(providerId: "github"), extensionName: "github", installation: elsewhere)
+        #expect(try await read(from: installed) == "secret")
+
+        _ = try await broker.perform(.oauthRemoveTokens(providerId: "github"), extensionName: "github", installation: installed)
+        #expect(try await read(from: installed) == nil)
+    }
+
+    @Test func anUpdateInTheSameFolderKeepsTheTokens() async throws {
+        _ = try await broker.perform(.oauthSetTokens(providerId: "github", tokens: tokens), extensionName: "github", installation: installed)
+        let sameFolder = installed.appendingPathComponent("assets").appendingPathComponent("..")
+        #expect(try await read(from: sameFolder) == "secret")
+    }
+
+    @Test func aSignInInTheOtherFolderStartsItsOwnTokensAndHandsNothingOver() async throws {
+        _ = try await broker.perform(.oauthSetTokens(providerId: "github", tokens: tokens), extensionName: "github", installation: installed)
+        _ = try await broker.perform(
+            .oauthSetTokens(providerId: "github", tokens: #"{"accessToken":"theirs"}"#), extensionName: "github", installation: elsewhere
+        )
+        #expect(try await read(from: elsewhere) == "theirs")
+        #expect(try await read(from: installed) == nil, "tokens another folder saved are not handed to this one either")
+    }
+
+    @Test func tokensSavedBeforeTheyHadAFolderGoToTheFirstThatAsks() async throws {
+        keychain.write(tokens, service: SecretVault.service, account: "github/oauth/github", synchronizable: false)
+        #expect(try await read(from: installed) == "secret")
+        #expect(try await read(from: elsewhere) == nil)
+        #expect(try await read(from: installed) == "secret")
     }
 }

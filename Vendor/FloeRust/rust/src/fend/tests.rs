@@ -120,3 +120,133 @@ fn test_long_evaluation_stops_at_the_time_limit() {
         fend_context_free(ctx);
     }
 }
+
+#[test]
+fn test_a_shift_too_large_for_the_deadline_is_refused() {
+    unsafe {
+        let ctx = fend_context_new();
+        assert_eq!(value(ctx, "1 << 8", false).unwrap(), "256");
+        assert_eq!(value(ctx, "(1 << 4) + 1", false).unwrap(), "17");
+        assert_eq!(value(ctx, "1 << 3 << 2", false).unwrap(), "32");
+
+        // fend would make room for these bits a word at a time, for minutes, without looking at the deadline.
+        for query in ["1 << 100000000", "1 << 65537", "1 << 10^9", "1 << (100000000)", "x = 100000000; 1 << x"] {
+            let started = Instant::now();
+            assert_eq!(value(ctx, query, false).unwrap_err(), "interrupted", "{query}");
+            assert_eq!(value(ctx, query, true).unwrap(), "", "{query}: a refused preview is empty");
+            assert!(started.elapsed() < Duration::from_secs(1), "{query}");
+        }
+        fend_context_free(ctx);
+    }
+}
+
+#[test]
+fn test_a_query_too_long_to_parse_in_time_is_refused() {
+    unsafe {
+        let ctx = fend_context_new();
+        // fend's parser copies the product so far at every term: 2000 of them take half a second before the deadline is checked.
+        let product = vec!["1"; 2000].join("*");
+        let started = Instant::now();
+        assert_eq!(value(ctx, &product, false).unwrap_err(), "interrupted");
+        assert_eq!(value(ctx, &product, true).unwrap(), "");
+        assert!(started.elapsed() < Duration::from_millis(100));
+
+        let product = vec!["1"; 500].join("*");
+        assert_eq!(value(ctx, &product, false).unwrap(), "1", "a product within the limit is answered");
+        fend_context_free(ctx);
+    }
+}
+
+#[test]
+fn test_deep_brackets_do_not_overflow_a_small_stack() {
+    // 80 brackets overflowed a 512 KB stack, the size of a background thread the app may call from, and aborted.
+    let query = format!("{}1{}", "(".repeat(500), ")".repeat(500));
+    let answer = std::thread::Builder::new()
+        .stack_size(512 * 1024)
+        .spawn(move || unsafe {
+            let ctx = fend_context_new();
+            let answer = value(ctx, &query, false);
+            fend_context_free(ctx);
+            answer
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+    assert_eq!(answer.unwrap(), "1");
+}
+
+#[test]
+fn test_saved_variables_that_claim_more_than_they_hold_are_refused() {
+    unsafe {
+        let ctx = fend_context_new();
+        assert_eq!(value(ctx, "x = 4", false).unwrap(), "4");
+        let mut saved = vec![0u8; fend_context_serialize_variables(ctx, ptr::null_mut(), 0) as usize];
+        fend_context_serialize_variables(ctx, saved.as_mut_ptr(), saved.len());
+
+        let other = fend_context_new();
+        assert_eq!(fend_context_deserialize_variables(other, saved.as_ptr(), saved.len()), 0);
+        assert_eq!(value(other, "x + 1", false).unwrap(), "5", "a context's own variables are read back");
+
+        let refused: [&[u8]; 6] = [
+            // Nine bytes that ask fend to make room for 2^60 variables.
+            &[0x1b, 0x10, 0, 0, 0, 0, 0, 0, 0],
+            // One variable claimed, nothing after it.
+            &[0x01],
+            // A name 4 GB long.
+            &[0x01, 0x7a, 0xff, 0xff, 0xff, 0xff, b'x'],
+            // An array of 2^32 items.
+            &[0x01, 0x61, b'x', 0x9a, 0xff, 0xff, 0xff, 0xff],
+            // The count cut short.
+            &[0x19, 0x01],
+            // Not an integer first.
+            &[0x61, b'x'],
+        ];
+        for bytes in refused {
+            assert_eq!(fend_context_deserialize_variables(other, bytes.as_ptr(), bytes.len()), -1, "{bytes:?}");
+        }
+        let mut nested = vec![0x01, 0x61, b'x'];
+        nested.extend(std::iter::repeat_n(0x81, 1000));
+        nested.push(0x00);
+        assert_eq!(fend_context_deserialize_variables(other, nested.as_ptr(), nested.len()), -1, "arrays 1000 deep");
+        assert_eq!(value(other, "x + 1", false).unwrap(), "5", "a refused file leaves the variables as they were");
+        assert_eq!(fend_context_deserialize_variables(other, [0u8].as_ptr(), 1), 0, "no variables at all");
+
+        fend_context_free(other);
+        fend_context_free(ctx);
+    }
+}
+
+#[test]
+fn test_saved_variables_of_every_kind_are_read_back_as_they_were() {
+    unsafe {
+        let ctx = fend_context_new();
+        let definitions = [
+            ("mass", "5 kg"),
+            ("speed", "3 m/s"),
+            ("third", "1/3"),
+            ("word", "\"hello\""),
+            ("yes", "true"),
+            ("price", "3.25"),
+            ("big", "2^100"),
+            ("saved_square", "x: x^2"),
+        ];
+        let mut expected = Vec::new();
+        for (name, definition) in definitions {
+            let assigned = value(ctx, &format!("{name} = {definition}"), false).unwrap();
+            expected.push((name, assigned));
+        }
+        let mut saved = vec![0u8; fend_context_serialize_variables(ctx, ptr::null_mut(), 0) as usize];
+        fend_context_serialize_variables(ctx, saved.as_mut_ptr(), saved.len());
+
+        let fresh = fend_context_new();
+        assert_eq!(fend_context_deserialize_variables(fresh, saved.as_ptr(), saved.len()), 0, "fend's own saved variables are accepted");
+        for (name, assigned) in &expected {
+            assert_eq!(&value(fresh, name, false).unwrap(), assigned, "{name}");
+        }
+        assert_eq!(value(fresh, "mass to g", false).unwrap(), "5000 g");
+        assert_eq!(value(fresh, "saved_square 4", false).unwrap(), "16");
+
+        fend_context_free(fresh);
+        fend_context_free(ctx);
+    }
+}

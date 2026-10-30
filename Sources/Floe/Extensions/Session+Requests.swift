@@ -100,7 +100,7 @@ extension ExtensionSession {
                         guard request.asksOnlyForTokens else { throw OAuthError.cancelled }
                         reply["result"] = NSNull()
                     } else {
-                        reply["result"] = try await OAuthBroker.shared.perform(request, extensionName: command.extensionName)
+                        reply["result"] = try await OAuthBroker.shared.perform(request, extensionName: command.extensionName, installation: command.extensionDir)
                     }
                 } else {
                     // The extension's name travels with the request, for the AI source it may be pinned to.
@@ -151,8 +151,7 @@ extension ExtensionSession {
 
     /// Tells the host a toast action was clicked, then dismisses the toast.
     func runToastAction(primary: Bool) {
-        guard let toast else { return }
-        guard (primary ? toast.primaryTitle : toast.secondaryTitle) != nil else { return }
+        guard let toast, (primary ? toast.primaryTitle : toast.secondaryTitle) != nil else { return }
         send(["type": "toastAction", "id": toast.id, "which": primary ? "primary" : "secondary"])
         self.toast = nil
     }

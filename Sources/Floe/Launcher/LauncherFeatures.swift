@@ -139,7 +139,8 @@ final class LauncherFeatures {
                 case .event: events.environment.delete
                 case .checkpoint: checkpoints.deleteCheckpoint
                 case .timer: timers.stopTimer
-                default: reminders.environment.delete
+                case .reminder: reminders.environment.delete
+                case .command, .trash, .process, .extensionRemoved, .note, .noteLine: nil
                 }
             }
         )

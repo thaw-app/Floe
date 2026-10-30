@@ -178,6 +178,15 @@ final class QuicklinkStore: ObservableObject {
 /// Links without the placeholder open as-is.
 func url(for link: Quicklink, query: String) -> URL? {
     guard link.url.contains("{query}") else { return URL(string: link.url) }
-    let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-    return URL(string: link.url.replacingOccurrences(of: "{query}", with: encoded))
+    let parts = link.url.components(separatedBy: "{query}")
+    var text = parts[0]
+    for part in parts.dropFirst() {
+        // In the query or the fragment the text is one value, so it cannot add a field such as `&bcc=`.
+        // In the path it may name a path, like owner/repo, but never end the path. In the host it keeps no slash,
+        // which would end the host there and put the text's own one in its place.
+        let inQuery = text.unicodeScalars.contains { $0 == "?" || $0 == "#" }
+        let inPath = text.range(of: "://").map { text[$0.upperBound...].contains("/") } ?? true
+        text += LinkText.escaped(query, keeping: inQuery || !inPath ? "" : "/") + part
+    }
+    return URL(string: text)
 }

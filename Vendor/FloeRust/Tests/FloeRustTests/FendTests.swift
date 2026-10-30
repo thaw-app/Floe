@@ -89,6 +89,27 @@ struct FendTests {
         #expect(result.value == "100")
     }
 
+    @Test("Saved variables that claim more than they hold are refused, not read")
+    func savedVariablesThatClaimTooMuch() throws {
+        let context = try FendContext()
+        // Nine bytes that would have fend make room for 2^60 variables, which aborts the process.
+        #expect(throws: FendError.deserializationFailed) {
+            try context.deserializeVariables(from: Data([0x1B, 0x10, 0, 0, 0, 0, 0, 0, 0]))
+        }
+    }
+
+    @Test("A shift too large to finish by the deadline is refused at once")
+    func hugeShiftIsRefused() throws {
+        let context = try FendContext()
+        let started = ContinuousClock.now
+        #expect(throws: FendError.evaluationFailed("interrupted")) {
+            try context.evaluate("1 << 100000000")
+        }
+        #expect(context.preview("1 << 100000000").isEmpty)
+        #expect(ContinuousClock.now - started < .seconds(1))
+        #expect(try context.evaluate("1 << 8").value == "256")
+    }
+
     @Test("Completions for prefix")
     func testCompletions() {
         let completions = Fend.completions(for: "sq")

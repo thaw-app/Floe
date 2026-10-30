@@ -166,6 +166,7 @@ struct SSHConnectionTests {
         #expect(SSHConnection.command(for: "web") == "ssh web")
         #expect(SSHConnection.command(for: "-v") == "ssh -- '-v'")
         #expect(SSHConnection.command(for: "it's;id") == #"ssh -- 'it'\''s;id'"#)
+        #expect(SSHConnection.command(for: "it'\u{0301};id") == "ssh -- 'it'\\''\u{0301};id'")
     }
 
     // MARK: Opening

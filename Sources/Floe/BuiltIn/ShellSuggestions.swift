@@ -101,7 +101,8 @@ nonisolated enum ShellSuggestions {
     /// The typed line finished with a name Floe already knows: an application after `open -a`, a host after `ssh` or `scp`.
     static func names(for typed: String, apps: [String], hosts: [String]) -> [String] {
         let words = typed.split(separator: " ", omittingEmptySubsequences: true).map(String.init)
-        guard let program = words.first else { return [] }
+        // A name is escaped for a word outside quotes, so a line that ends inside them gets none.
+        guard let program = words.first, lastWord(in: typed)?.quoting == .unquoted else { return [] }
         if program == "open", let flag = words.firstIndex(of: "-a") {
             // An application's name may have spaces in it, so everything after the flag is its start,
             // and the name goes in with the shell's characters escaped, as a path does.
@@ -119,35 +120,97 @@ nonisolated enum ShellSuggestions {
 
     /// The typed line with its last word, a path, finished by each entry of the folder that starts as it does.
     static func paths(for typed: String, entries: (String) -> [String]) -> [String] {
-        let word = String(typed[lastWordStart(in: typed)...])
-        guard word.hasPrefix("/") || word.hasPrefix("~") || word.hasPrefix("./") || word.hasPrefix("../") else { return [] }
-        let cut = word.lastIndex(of: "/").map { word.index(after: $0) } ?? word.endIndex
-        let folder = String(word[..<cut])
-        let start = ShellCommand.unescaped(String(word[cut...]))
-        guard !folder.isEmpty else { return [] }
-        let line = String(typed.dropLast(word.count))
-        // The folder stays as typed, escapes and all; it is looked up as the shell will read it.
-        return entries(ShellCommand.unescaped(folder))
+        guard let word = lastWord(in: typed) else { return [] }
+        let raw = String(typed.unicodeScalars[word.start...])
+        // Only a tilde outside quotes stands for the home folder.
+        guard raw.hasPrefix("~") || ["/", "./", "../"].contains(where: word.value.hasPrefix), let slash = word.value.unicodeScalars.lastIndex(of: "/"), let typedSlash = typed.unicodeScalars.lastIndex(of: "/")
+        else { return [] }
+        let folder = String(word.value.unicodeScalars[...slash])
+        let start = String(word.value.unicodeScalars[word.value.unicodeScalars.index(after: slash)...])
+        // A slash means the same in and out of quotes, so the line is kept as typed up to its last one,
+        // escapes and all, and the folder is looked up as the shell will read it.
+        let line = String(typed.unicodeScalars[...typedSlash])
+        // The name goes in where the kept line ends, which may be inside quotes that close later in the word.
+        guard let quoting = lastWord(in: line)?.quoting else { return [] }
+        return entries(folder)
             .filter { $0.lowercased().hasPrefix(start.lowercased()) && ($0.hasPrefix(".") == start.hasPrefix(".")) }
             .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
             .prefix(5)
-            .map { line + folder + ShellCommand.escaped($0) }
+            .map { line + encoded($0, in: quoting) }
     }
 
-    /// Where the last word of a typed line starts: after the last space without a backslash before it.
-    static func lastWordStart(in typed: String) -> String.Index {
-        var start = typed.startIndex
-        var escaping = false
-        for index in typed.indices {
-            if escaping {
-                escaping = false
-            } else if typed[index] == "\\" {
-                escaping = true
-            } else if typed[index] == " " {
-                start = typed.index(after: index)
+    /// Where the end of a typed line is: outside quotes, or inside '…' or "…".
+    enum Quoting {
+        case unquoted, single, double
+    }
+
+    /// The last word of a typed line: where it starts, what the shell will read it as, and the quoting the line ends in.
+    struct Word {
+        let start: String.UnicodeScalarView.Index
+        let value: String
+        let quoting: Quoting
+    }
+
+    /// The last word of a typed line as a POSIX shell reads it, by scalars, as the shell does. Nil when the line
+    /// has what this does not follow: `$'…'`, `$"…"`, a command in backticks or `$(…)`, or a backslash at the end.
+    static func lastWord(in typed: String) -> Word? {
+        let scalars = typed.unicodeScalars
+        var start = scalars.startIndex
+        var value = String.UnicodeScalarView()
+        var quoting = Quoting.unquoted
+        var index = scalars.startIndex
+        while index < scalars.endIndex {
+            let scalar = scalars[index]
+            let after = scalars.index(after: index)
+            let next = after < scalars.endIndex ? scalars[after] : nil
+            let startsCommand = quoting != .single && (scalar == "`" || scalar == "$" && next == "(")
+            let startsOtherQuote = quoting == .unquoted && scalar == "$" && (next == "'" || next == "\"")
+            guard !startsCommand, !startsOtherQuote else { return nil }
+            switch (quoting, scalar) {
+            case (.single, "'"), (.double, "\""):
+                quoting = .unquoted
+            case (.unquoted, "'"):
+                quoting = .single
+            case (.unquoted, "\""):
+                quoting = .double
+            case (.unquoted, " "):
+                start = after
+                value = String.UnicodeScalarView()
+            case (.unquoted, "\\"), (.double, "\\"):
+                guard let next else { return nil }
+                // In double quotes a backslash escapes only what they act on, and stays before anything else.
+                if quoting == .double, !"$`\"\\\n".unicodeScalars.contains(next) {
+                    value.append(scalar)
+                } else {
+                    value.append(next)
+                    index = scalars.index(after: after)
+                    continue
+                }
+            default:
+                value.append(scalar)
             }
+            index = after
         }
-        return start
+        return Word(start: start, value: String(value), quoting: quoting)
+    }
+
+    /// A name written for where the line ends, so the shell reads it as the name and runs nothing in it.
+    static func encoded(_ name: String, in quoting: Quoting) -> String {
+        switch quoting {
+        case .unquoted:
+            return ShellCommand.escaped(name)
+        case .single:
+            return TerminalEditor.insideSingleQuotes(name)
+        case .double:
+            var escaped = String.UnicodeScalarView()
+            for scalar in name.unicodeScalars {
+                if "$`\"\\".unicodeScalars.contains(scalar) {
+                    escaped.append("\\")
+                }
+                escaped.append(scalar)
+            }
+            return String(escaped)
+        }
     }
 
     /// The names in a folder as they are on disk, a folder's with a slash after it. Empty for what cannot be read.
@@ -223,8 +286,7 @@ nonisolated enum ShellHistory {
 
     /// The history of the first file there is, read again only when the file has changed.
     static func commands(from files: [URL] = files()) -> [String] {
-        guard let file = files.first(where: { FileManager.default.fileExists(atPath: $0.path) }),
-              let modified = (try? FileManager.default.attributesOfItem(atPath: file.path))?[.modificationDate] as? Date else { return [] }
+        guard let file = files.first(where: { FileManager.default.fileExists(atPath: $0.path) }), let modified = (try? FileManager.default.attributesOfItem(atPath: file.path))?[.modificationDate] as? Date else { return [] }
         if let read = last.withLock({ $0 }), read.file == file, read.modified == modified {
             return read.commands
         }

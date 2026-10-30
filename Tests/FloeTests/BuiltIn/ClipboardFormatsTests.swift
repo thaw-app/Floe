@@ -237,6 +237,37 @@ final class ClipboardFormatsTests {
         #expect((board.readObjects(forClasses: [NSURL.self]) as? [URL])?.map(\.path) == ["/tmp/floe-report.pdf"])
     }
 
+    @Test func aFormatFileThatIsALinkOrOutsideTheFolderIsNotRead() throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let outside = directory.deletingLastPathComponent().appendingPathComponent("floe-outside-\(UUID().uuidString).rtf")
+        try rtf.write(to: outside)
+        defer { try? FileManager.default.removeItem(at: outside) }
+        try FileManager.default.createSymbolicLink(at: directory.appendingPathComponent("linked.format"), withDestinationURL: outside)
+        try FileManager.default.createDirectory(at: directory.appendingPathComponent("folder.format"), withIntermediateDirectories: true)
+        var entry = try #require(ClipboardEntry.text("bold", date: Date(), sourceApp: nil))
+        entry.formats = [
+            NSPasteboard.PasteboardType.rtf.rawValue: "linked.format",
+            NSPasteboard.PasteboardType.html.rawValue: "../\(outside.lastPathComponent)",
+            NSPasteboard.PasteboardType.tiff.rawValue: "folder.format",
+        ]
+        #expect(ClipboardHistoryStore.writeToPasteboard(entry, board: board, directory: directory))
+        #expect(board.string(forType: .string) == "bold")
+        #expect(board.data(forType: .rtf) == nil)
+        #expect(board.data(forType: .html) == nil)
+        #expect(board.data(forType: .tiff) == nil)
+    }
+
+    @Test func anImageFileThatIsALinkIsNotRead() throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let outside = directory.deletingLastPathComponent().appendingPathComponent("floe-outside-\(UUID().uuidString).png")
+        let image = NSImage(size: NSSize(width: 2, height: 2), flipped: false) { _ in true }
+        try #require(image.tiffRepresentation).write(to: outside)
+        defer { try? FileManager.default.removeItem(at: outside) }
+        try FileManager.default.createSymbolicLink(at: directory.appendingPathComponent("linked.png"), withDestinationURL: outside)
+        let entry = ClipboardEntry(id: UUID(), kind: .image, imageFile: "linked.png", date: Date(), pinned: false)
+        #expect(!ClipboardHistoryStore.writeToPasteboard(entry, board: board, directory: directory))
+    }
+
     @Test func anEntryWithNothingToWriteIsNotACopy() {
         let entry = ClipboardEntry(id: UUID(), kind: .image, imageFile: "gone.png", date: Date(), pinned: false)
         #expect(!ClipboardHistoryStore.writeToPasteboard(entry, board: board, directory: directory))

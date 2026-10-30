@@ -59,6 +59,27 @@ import Testing
         return storage
     }
 
+    /// A piece and how many times it repeats, so a failure names the case and not the whole line.
+    @Test(arguments: [("[", 6000), ("*a ", 3000), ("**a ", 2000), ("_a ", 3000), ("[a](", 2000), ("[a] ", 3000), ("x", 50000)])
+    func aLongLineThatMatchesNothingStylesQuickly(piece: String, times: Int) {
+        let started = ContinuousClock.now
+        _ = styled("Title\nplain " + String(repeating: piece, count: times) + " *end")
+        #expect(ContinuousClock.now - started < .milliseconds(500))
+    }
+
+    @Test func aLongParagraphKeepsItsEmphasisAndLinks() throws {
+        let long = String(repeating: "word ", count: 600) + "*soft* **bold** [Floe](https://floe.app)"
+        let storage = styled("Title\n" + long)
+        let start = ("Title\n" + long as NSString).range(of: "soft").location
+        let font = try #require(storage.attribute(.font, at: start, effectiveRange: nil) as? NSFont)
+        #expect(font.fontDescriptor.symbolicTraits.contains(.italic))
+        let bold = ("Title\n" + long as NSString).range(of: "bold").location
+        let heavy = try #require(storage.attribute(.font, at: bold, effectiveRange: nil) as? NSFont)
+        #expect(heavy.fontDescriptor.symbolicTraits.contains(.bold))
+        let label = ("Title\n" + long as NSString).range(of: "Floe]").location
+        #expect(storage.attribute(.link, at: label, effectiveRange: nil) as? URL == URL(string: "https://floe.app"))
+    }
+
     private func font(_ storage: NSTextStorage, at index: Int) -> NSFont? {
         storage.attribute(.font, at: index, effectiveRange: nil) as? NSFont
     }

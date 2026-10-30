@@ -15,22 +15,26 @@ final class ReceiptRows {
         var showHUD: (String) -> Void = { _ in
             // Set by LauncherFeatures.
         }
+
         /// Reads the rows again: an undone receipt shows that it was.
         var refresh: () -> Void = { /* set by LauncherFeatures */ }
         /// Shows text in the output window.
         var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in
             // Set by LauncherFeatures.
         }
+
         /// Runs a shell command again.
         var runCommand: (String) -> Void = { _ in
             // Set by LauncherFeatures.
         }
+
         /// An extension was put back, so the commands are scanned again.
         var commandsChanged: () -> Void = { /* set by LauncherFeatures */ }
         /// Whether the user keeps receipts.
         var keepsReceipts: () -> Bool = { true }
-        /// Deletes what a receipt of that kind made, by its identifier. False when it is no longer there.
-        var deleter: (Receipt.Kind) -> (String) throws -> Bool = { _ in { _ in false } }
+        /// Deletes what a receipt of that kind made, by its identifier. False when it is no longer there, and nil
+        /// for a kind that deletes nothing.
+        var deleter: (Receipt.Kind) -> ((String) throws -> Bool)? = { _ in nil }
     }
 
     /// Where receipts are kept. Tests give one of their own.

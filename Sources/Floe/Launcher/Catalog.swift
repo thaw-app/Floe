@@ -158,7 +158,38 @@ nonisolated extension ExtensionCommand {
         let roots: [(URL, Source)] = [(Paths.extensions, .local)]
             + (Paths.developmentExtensions.map { [($0, .local)] } ?? [])
             + (includeRaycast ? [(Paths.raycastExtensions, .raycast)] : [])
-        return Array(roots.flatMap { scan(root: $0.0, source: $0.1) }.uniqued(on: \.id))
+        return oneFolderPerName(roots.flatMap { scan(root: $0.0, source: $0.1) })
+    }
+
+    /// Keeps the commands of one folder for each extension name, given in scan order. The name is what an extension's
+    /// passwords, storage and sign-ins are kept under, so a second package that claims it must not run beside the
+    /// first. The first folder of extensions that has the name owns it; within that folder of extensions, the
+    /// package folder named after the extension wins over the others, else the first by name.
+    static func oneFolderPerName(_ commands: [ExtensionCommand]) -> [ExtensionCommand] {
+        var owners: [String: URL] = [:]
+        for command in commands {
+            let name = command.extensionName
+            let key = folderKey(name)
+            guard let owner = owners[key] else {
+                owners[key] = command.extensionDir
+                continue
+            }
+            let sameRoot = owner.deletingLastPathComponent().path == command.extensionDir.deletingLastPathComponent().path
+            if sameRoot, owner.lastPathComponent != name, command.extensionDir.lastPathComponent == name {
+                owners[key] = command.extensionDir
+            }
+        }
+        let owned = { (command: ExtensionCommand) in owners[folderKey(command.extensionName)]?.path == command.extensionDir.path }
+        let skipped = Set(commands.filter { !owned($0) }.map(\.extensionDir.path))
+        for folder in skipped.sorted() {
+            Log.extensions.warning("Skipped \(folder): another folder already has an extension of that name")
+        }
+        return Array(commands.filter(owned).uniqued(on: \.id))
+    }
+
+    /// A name as the disk compares it: Data/github and Data/GitHub are one folder on a Mac's usual volume.
+    private static func folderKey(_ name: String) -> String {
+        name.precomposedStringWithCanonicalMapping.lowercased()
     }
 
     /// Every runnable command under a folder of extensions, one subfolder per extension.

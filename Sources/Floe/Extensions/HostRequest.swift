@@ -269,7 +269,8 @@ enum AIService: String, CaseIterable, Identifiable {
 /// Where an OpenAI-compatible API is, what to ask it for, and the key it takes.
 nonisolated struct AIEndpoint: Equatable, Sendable {
     static let defaultBaseURL = "https://api.openai.com/v1"
-    /// The key's Keychain account. Extension secrets are "<extension>/<field>", and no extension is named "floe.ai".
+    /// The Keychain account of a key saved before keys were bound to an address; each key is now saved under it and
+    /// its origin (`AIKeys`). Extension secrets are "<extension>/<field>", and no extension is named "floe.ai".
     static let keychainAccount = "floe.ai/apiKey"
 
     let chatURL: URL
@@ -367,7 +368,7 @@ nonisolated enum AIAnswer {
     @MainActor
     static func configured(_ settings: AppSettings = .shared) -> Choice {
         choice(source: settings.aiSource, baseURL: settings.aiBaseURL, model: settings.aiModel) {
-            Keychain.read(account: AIEndpoint.keychainAccount)
+            AIKeys.keychain.key(for: settings.aiBaseURL)
         }
     }
 

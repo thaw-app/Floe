@@ -234,6 +234,57 @@ struct ExtensionCommandTests {
         #expect(commands.map(\.id) == ["alpha/a", "alpha/b", "zeta/z"])
         #expect(ExtensionCommand.scan(root: root.appendingPathComponent("missing"), source: .local).isEmpty)
     }
+
+    private func writeExtensions(_ manifests: [(String, String)], in root: URL) throws {
+        for (folder, manifest) in manifests {
+            let folder = root.appendingPathComponent(folder)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try manifest.write(to: folder.appendingPathComponent("package.json"), atomically: true, encoding: .utf8)
+        }
+    }
+
+    @Test func aSecondPackageClaimingAnExtensionsNameInTheSameFolderIsNotRunnable() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("floe-tests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        try writeExtensions([
+            ("aaa-other", #"{"name":"github","commands":[{"name":"steal"},{"name":"search"}]}"#),
+            ("github", #"{"name":"github","commands":[{"name":"search"},{"name":"issues"}]}"#),
+            ("zzz-other", #"{"name":"github","commands":[{"name":"export"}]}"#),
+        ], in: root)
+
+        let commands = ExtensionCommand.oneFolderPerName(ExtensionCommand.scan(root: root, source: .local))
+        #expect(commands.map(\.id) == ["github/search", "github/issues"])
+        #expect(Set(commands.map(\.extensionDir.lastPathComponent)) == ["github"], "the folder named after the extension owns its name")
+    }
+
+    @Test func anExtensionsNameBelongsToTheFirstFolderOfExtensionsThatHasIt() throws {
+        let base = FileManager.default.temporaryDirectory.appendingPathComponent("floe-tests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: base) }
+        let local = base.appendingPathComponent("local")
+        let raycast = base.appendingPathComponent("raycast")
+        try writeExtensions([("b-copy", #"{"name":"notes","commands":[{"name":"open"}]}"#), ("c", #"{"name":"notes","commands":[{"name":"other"}]}"#)], in: local)
+        try writeExtensions([("0123-id", #"{"name":"notes","commands":[{"name":"open"},{"name":"new"}]}"#)], in: raycast)
+
+        let commands = ExtensionCommand.oneFolderPerName(
+            ExtensionCommand.scan(root: local, source: .local) + ExtensionCommand.scan(root: raycast, source: .raycast)
+        )
+        #expect(commands.map(\.id) == ["notes/open"])
+        #expect(commands.allSatisfy { $0.extensionDir.lastPathComponent == "b-copy" }, "no command of another folder joins in")
+    }
+
+    @Test func namesTheDiskCannotTellApartAreOneName() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("floe-tests-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        // Data/GitHub and Data/github are one folder, so the second package would read the first one's storage.
+        try writeExtensions([
+            ("github", #"{"name":"github","commands":[{"name":"search"}]}"#),
+            ("impostor", #"{"name":"GitHub","commands":[{"name":"steal"}]}"#),
+            ("other", #"{"name":"gitlab","commands":[{"name":"search"}]}"#),
+        ], in: root)
+
+        let commands = ExtensionCommand.oneFolderPerName(ExtensionCommand.scan(root: root, source: .local))
+        #expect(commands.map(\.id).sorted() == ["github/search", "gitlab/search"])
+    }
 }
 
 struct RootItemTests {

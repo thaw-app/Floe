@@ -109,6 +109,17 @@ struct FendCorpusReplayTests {
         #expect(changed.isEmpty, "\(changed.count) lines differ from the record. If the change is meant, rewrite it with FLOE_WRITE_FEND_LEDGER=1, first: \(changed.prefix(6))")
     }
 
+    @Test func aFieldCannotEndTheGeneratedStringOrInterpolateIntoIt() throws {
+        let line = FendCorpusReplay.escaped("\\##(exit(1))\"##" + "#\u{0301}#")
+        #expect(FendCorpusReplay.rawDelimiter(for: [line]) == "####", "one hash more than the longest run, a hash with a mark counted")
+        #expect(FendCorpusReplay.ledgerSource([line]).contains("    static let text = ####\"\"\"\n    \(line)\n    \"\"\"####\n"))
+        #expect(FendCorpusReplay.rawDelimiter(for: ["36#i i"]) == "##")
+        let held = FendCorpusReplay.lines(ofLedger: FendCorpusLedger.text)
+        #expect(try String(contentsOf: FendCorpusReplay.ledgerFile(), encoding: .utf8) == FendCorpusReplay.ledgerSource(held), "the ledger is written as it was")
+        let drawn = FendCorpusReplay.lines(ofLedger: FendCorpusDrawn.text)
+        #expect(try String(contentsOf: FendCorpusReplay.drawnFile(), encoding: .utf8) == FendCorpusReplay.drawnSource(drawn))
+    }
+
     @Test func mostOfTheCorpusIsShownAsFendAnswersIt() {
         let held = FendCorpusReplay.lines(ofLedger: FendCorpusLedger.text).count
         #expect(Self.cases.count - held > Self.cases.count / 2, "the ledger holds more of the corpus than Floe gets right")

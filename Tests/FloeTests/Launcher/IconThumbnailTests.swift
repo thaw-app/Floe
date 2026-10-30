@@ -162,6 +162,46 @@ struct IconThumbnailTests {
         }
     }
 
+    @Test(arguments: [(1, 20000), (20000, 1), (100, 30000)])
+    func aStrangelyShapedImageIsDrawnNoLongerThanTheLimit(width: Int, height: Int) throws {
+        try Self.withAssets { folder in
+            let strange = folder.appendingPathComponent("strange.png")
+            try Self.pngData(width: width, height: height).write(to: strange)
+            let image = try #require(IconThumbnail.render(Self.key(.file(path: strange.path))))
+            #expect(CGFloat(max(image.width, image.height)) <= 48 * IconThumbnail.longestSide)
+            #expect(min(image.width, image.height) >= 1)
+        }
+    }
+
+    @Test func anImageTooLargeToDecodeIsNotDecoded() throws {
+        // A PNG whose header says 100,000 by 100,000 pixels: ten billion, forty gigabytes decoded.
+        let huge = try #require(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgABhqAAAYagCAYAAACoUgvIAAAADElEQVR4nGNgoAwAAABAAAG3NHzvAAAAAElFTkSuQmCC"))
+        #expect(IconThumbnail.image(from: huge, pixels: 48) == nil)
+    }
+
+    @Test func aWholeImageTooLargeToDecodeIsRefusedAndNotHandedToNSImage() throws {
+        // A complete, valid one-bit PNG just past the limit, which NSImage would read and decode whole.
+        let side = 10001
+        let rowBytes = (side + 7) / 8
+        let provider = try #require(CGDataProvider(data: Data(count: rowBytes * side) as CFData))
+        let picture = try #require(CGImage(
+            width: side, height: side, bitsPerComponent: 1, bitsPerPixel: 1, bytesPerRow: rowBytes,
+            space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGBitmapInfo(rawValue: 0), provider: provider,
+            decode: nil, shouldInterpolate: false, intent: .defaultIntent
+        ))
+        let png = NSMutableData()
+        let destination = try #require(CGImageDestinationCreateWithData(png, UTType.png.identifier as CFString, 1, nil))
+        CGImageDestinationAddImage(destination, picture, nil)
+        #expect(CGImageDestinationFinalize(destination))
+
+        let source = try #require(CGImageSourceCreateWithData(png, nil))
+        guard case .tooLarge = IconThumbnail.downsampled(source, pixels: 48) else {
+            Issue.record("a picture past the limit is told apart from one ImageIO can't use")
+            return
+        }
+        #expect(IconThumbnail.image(from: png as Data, pixels: 48) == nil)
+    }
+
     @Test func aSmallImageIsNotScaledUp() throws {
         try Self.withAssets { folder in
             let small = folder.appendingPathComponent("small.png")

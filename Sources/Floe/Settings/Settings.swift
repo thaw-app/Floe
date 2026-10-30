@@ -98,7 +98,7 @@ final class AppSettings: ObservableObject {
     @Published var launcherShowsBorder = false
     @Published var launcherShowsShadow = false
     /// What answers an extension's `AI.ask`, and where the API is when that is the choice.
-    /// The API's key is in the Keychain (`AIEndpoint.keychainAccount`).
+    /// The API's key is in the Keychain, saved for the address it was entered for (`AIKeys`).
     @Published var aiSource = AISource.tools
     @Published var aiBaseURL = AIEndpoint.defaultBaseURL
     @Published var aiModel = ""
@@ -443,9 +443,9 @@ extension AppSettings {
         return defaults.data(forKey: Self.defaultsKey) ?? Data("{}".utf8)
     }
 
-    /// Replaces every setting with an exported copy and saves it.
+    /// Replaces every setting with an exported copy and saves it, less the consent given here (`SettingsTransfer.keepingConsent`).
     func importJSON(_ data: Data) throws {
-        guard let stored = Self.read(data) else {
+        guard let stored = Self.read(SettingsTransfer.keepingConsent(data, of: self)) else {
             throw CocoaError(.fileReadCorruptFile)
         }
         apply(stored)

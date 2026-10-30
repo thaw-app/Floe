@@ -270,8 +270,7 @@ enum NoteFiles {
 
     /// What a vault's settings say about daily notes: `folder` and `format`. Empty for a folder that is not Obsidian's, or is Octarine's.
     static func obsidianDailyNotes(in folder: URL) -> [String: Any] {
-        guard !FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path),
-              let data = try? Data(contentsOf: folder.appendingPathComponent(".obsidian/daily-notes.json")) else { return [:] }
+        guard !FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path), let data = try? Data(contentsOf: folder.appendingPathComponent(".obsidian/daily-notes.json")) else { return [:] }
         return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
     }
 
@@ -282,8 +281,7 @@ enum NoteFiles {
         if FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path) {
             return folder.appendingPathComponent("Daily", isDirectory: true)
         }
-        if let chosen = (obsidianDailyNotes(in: folder)["folder"] as? String)?.trimmingCharacters(in: CharacterSet(charactersIn: "/")),
-           MomentPattern.staysInside(chosen) {
+        if let chosen = (obsidianDailyNotes(in: folder)["folder"] as? String)?.trimmingCharacters(in: CharacterSet(charactersIn: "/")), MomentPattern.staysInside(chosen) {
             let place = folder.appendingPathComponent(chosen, isDirectory: true)
             // A link inside the vault can still lead out of it, so the place is checked where it really is.
             let vault = folder.resolvingSymlinksInPath().path
@@ -308,17 +306,41 @@ enum NoteFiles {
         let place = dayFolder(in: folder)
         let format = obsidianDailyNotes(in: folder)["format"] as? String
         let local = place.appendingPathComponent(dayName(format: format, now: now, in: timeZone))
-        guard FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path),
-              let utc = TimeZone(identifier: "UTC") else { return local }
+        guard FileManager.default.fileExists(atPath: folder.appendingPathComponent(".octarine").path), let utc = TimeZone(identifier: "UTC") else { return local }
         let elsewhere = place.appendingPathComponent(dayName(format: format, now: now, in: utc))
         let manager = FileManager.default
         return !manager.fileExists(atPath: local.path) && manager.fileExists(atPath: elsewhere.path) ? elsewhere : local
+    }
+
+    /// The day's note would land outside the notes folder: a folder on its way, or the note itself, links out.
+    struct OutsideTheFolder: LocalizedError {
+        var errorDescription: String? {
+            String(localized: "Today’s note would be outside your notes folder", bundle: .floe)
+        }
+    }
+
+    /// Whether a file is inside a folder where it really is: the part of its path that is there is read with its
+    /// links followed, and the part still to be made is added after. The whole path is checked, because the name
+    /// a pattern gives can hold subfolders and Octarine's Daily folder can be a link.
+    static func isInside(_ file: URL, folder: URL) -> Bool {
+        var there = file.standardizedFileURL
+        var toMake: [String] = []
+        var status = stat()
+        while lstat(there.path, &status) != 0 {
+            guard errno == ENOENT, there.path != "/" else { return false }
+            toMake.insert(there.lastPathComponent, at: 0)
+            there = there.deletingLastPathComponent()
+        }
+        let root = folder.resolvingSymlinksInPath().path
+        let resolved = ([there.resolvingSymlinksInPath().path] + toMake).joined(separator: "/")
+        return resolved.hasPrefix(root + "/")
     }
 
     /// Adds a line to the day's note, making the file when it is the day's first.
     @discardableResult
     static func append(_ text: String, in folder: URL, now: Date = Date()) throws -> URL {
         let file = dayFile(in: folder, now: now)
+        guard isInside(file, folder: folder) else { throw OutsideTheFolder() }
         try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
         let existing: String
         do {
@@ -349,7 +371,7 @@ enum NoteFiles {
             switch (action.addsToDaysNote, text.isEmpty) {
             case (true, true):
                 let today = dayFile(in: folder, now: now)
-                open(FileManager.default.fileExists(atPath: today.path) ? today : folder)
+                open(FileManager.default.fileExists(atPath: today.path) && isInside(today, folder: folder) ? today : folder)
                 return nil
             case (false, true):
                 open(folder)

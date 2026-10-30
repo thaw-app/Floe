@@ -21,6 +21,35 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [0.2.1] - 2026-10-29
+
+**macOS 26 and later · Build 4**
+
+### Changed
+- **Each AI service keeps its own API key.** When you switch service, the key field is empty until you enter that service's key, and switching back brings the earlier one back. The key you already saved stays with the service you use now.
+- **Updates come as a full download**, with no smaller update built from an earlier version.
+- **A calculation over 1,024 characters, or a shift by anything but a plain number up to 65,536, says it took too long** instead of holding up the calculator.
+- **Your file index is built once more** after this update.
+
+### Fixed
+
+#### Security
+These come from [CodeRabbit](https://www.coderabbit.ai)'s security scan of 0.2.0 ([#53](https://github.com/thaw-app/Floe/pull/53)).
+- **An extension can't take another's sign-in by using its name.** Only one extension of a name runs, and its sign-in tokens are given only to the folder that saved them.
+- **Your API key goes only to the AI service it was saved for**, never to one you switch to or import.
+- **An AI service can't send your question elsewhere with a redirect.**
+- **Codex answers with its image reading, web search and other tools turned off**, and never asks to run a command.
+- **Importing settings keeps what you allowed on this Mac**, such as the sign-ins you lend to extensions, whether iCloud sync is on and whether shell commands run.
+- **Names completed or opened in Terminal stay text**, inside quotes too and with accented letters.
+- **Text you type into a quicklink can't add fields to it**, such as more recipients for an email.
+- **A file whose name has a line break is saved in a checkpoint as one file.**
+- **Put Back and daily notes don't follow a folder that has been swapped for a link**, and Put Back never writes over a file.
+- **Clipboard history leaves out what you copied while recording was off**, and restoring an entry reads only Floe's own files.
+- **Undo does only what its receipt says**, so an edited receipt can't delete a reminder.
+- **The file index doesn't follow links out of the folders it covers**, and saving it can't write over another file.
+- **Long lines in notes, very tall or wide pictures, long searches and long calculations can't stall Floe.**
+- **Log lines can't be faked** by text an AI service sends back.
+
 ## [0.2.0] - 2026-10-28
 
 **macOS 26 and later · Build 3**

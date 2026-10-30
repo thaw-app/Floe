@@ -22,7 +22,7 @@ extension ClipboardHistoryStore {
             let item = NSPasteboardItem()
             item.setString(text, forType: .string)
             for (type, name) in entry.formats ?? [:] {
-                if let data = try? Data(contentsOf: directory.appendingPathComponent(name)) {
+                if let data = storedFile(name, in: directory) {
                     item.setData(data, forType: NSPasteboard.PasteboardType(type))
                 }
             }
@@ -32,14 +32,28 @@ extension ClipboardHistoryStore {
             let urls = (entry.filePaths ?? []).map { URL(fileURLWithPath: $0) as NSURL }
             written = !urls.isEmpty && board.writeObjects(urls) && mark(board, as: entry)
         case .image:
-            guard let name = entry.imageFile,
-                  let data = try? Data(contentsOf: directory.appendingPathComponent(name)),
-                  let image = NSImage(data: data)
+            guard let name = entry.imageFile, let data = storedFile(name, in: directory), let image = NSImage(data: data)
             else { return false }
             written = board.writeObjects([image]) && mark(board, as: entry)
         }
         // The count moves when the pasteboard takes the entry: pasting before it has gives the copy before this one.
         return written && board.changeCount != before
+    }
+
+    /// A file the history names, read only when it is a plain file right inside the clipboard folder. The names
+    /// come from history.json, which anyone who can write the folder can edit, so a link or a path that leaves the
+    /// folder is not followed.
+    static nonisolated func storedFile(_ name: String, in directory: URL) -> Data? {
+        guard !name.isEmpty, !name.contains("/"), name != ".", name != ".." else { return nil }
+        let folder = open(directory.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
+        guard folder >= 0 else { return nil }
+        defer { close(folder) }
+        let file = openat(folder, name, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+        guard file >= 0 else { return nil }
+        let handle = FileHandle(fileDescriptor: file, closeOnDealloc: true)
+        var status = stat()
+        guard fstat(file, &status) == 0, status.st_mode & S_IFMT == S_IFREG else { return nil }
+        return try? handle.readToEnd() ?? Data()
     }
 
     private static func mark(_ board: NSPasteboard, as entry: ClipboardEntry) -> Bool {

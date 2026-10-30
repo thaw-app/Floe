@@ -9,6 +9,7 @@
 // Runs up to two view commands per extension headlessly; no-view commands are skipped since they act on the system.
 import fs from "node:fs";
 import path from "node:path";
+import { oneLine } from "./lines";
 import { findNodes, hostMessages, isItem, sendToHost, startHost, topView, type HostMessage, type TreeNode } from "./testing";
 
 const [root, secondsArg] = process.argv.slice(2);
@@ -112,7 +113,8 @@ await Promise.all(Array.from({ length: 4 }, worker));
 results.sort((a, b) => a.status.localeCompare(b.status) || a.ext.localeCompare(b.ext));
 const counts: Record<string, number> = {};
 for (const result of results) {
-  console.log(`${result.status.padEnd(11)} ${(result.ext + "/" + result.command).padEnd(46)} ${result.detail}`);
+  // The folder, the command's name and the detail come from extensions, so each stays on its line.
+  console.log(`${result.status.padEnd(11)} ${oneLine(result.ext + "/" + result.command).padEnd(46)} ${oneLine(result.detail)}`);
   counts[result.status] = (counts[result.status] ?? 0) + 1;
 }
 console.log("\nTOTAL", results.length, JSON.stringify(counts), `(no-view commands not run: ${noView})`);

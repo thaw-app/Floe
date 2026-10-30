@@ -5,8 +5,8 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-import FloeRust
 @testable import Floe
+import FloeRust
 import Foundation
 
 /// Replay harness for the calculator, after Thaw's log replay: each input of fend's own tests is given to Floe as if typed.
@@ -199,9 +199,9 @@ enum FendCorpusReplay {
         /// What the calculator draws for each input of fend's tests it answers, one to a line: the input, a tab, the text.
         /// A change of colour is marked after the text it applies to. A change to a line is a change to what people see.
         enum FendCorpusDrawn {
-            static let text = ##\"\"\"
+            static let text = \(rawDelimiter(for: lines))\"\"\"
         \(lines.map { "    " + $0 }.joined(separator: "\n"))
-            \"\"\"##
+            \"\"\"\(rawDelimiter(for: lines))
         }
 
         """
@@ -239,6 +239,19 @@ enum FendCorpusReplay {
         }
     }
 
+    /// The hashes around a raw string that holds the lines: more than any run of them in the text, so no
+    /// field of fend's tests can end the string or start an interpolation in the file the run writes.
+    /// Counted by scalars, as the compiler reads the file: a hash with a combining mark is still a hash to it.
+    static func rawDelimiter(for lines: [String]) -> String {
+        var longest = 0
+        var run = 0
+        for scalar in lines.joined(separator: "\n").unicodeScalars {
+            run = scalar == "#" ? run + 1 : 0
+            longest = max(longest, run)
+        }
+        return String(repeating: "#", count: max(2, longest + 1))
+    }
+
     /// Where the ledger is kept, beside the fixture, for the run that rewrites it.
     static func ledgerFile(from testFile: String = #filePath) -> URL {
         URL(fileURLWithPath: testFile).deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Fixtures/FendCorpusLedger.swift")
@@ -264,9 +277,9 @@ enum FendCorpusReplay {
         ///   refused    Floe shows the calculator with an error, or empty
         ///   different  Floe shows something else
         enum FendCorpusLedger {
-            static let text = ##\"\"\"
+            static let text = \(rawDelimiter(for: lines))\"\"\"
         \(lines.map { "    " + $0 }.joined(separator: "\n"))
-            \"\"\"##
+            \"\"\"\(rawDelimiter(for: lines))
         }
 
         """

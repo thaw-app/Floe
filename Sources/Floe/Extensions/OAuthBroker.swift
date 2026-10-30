@@ -38,7 +38,7 @@ nonisolated enum OAuthError: LocalizedError {
 }
 
 /// Answers the host's `oauth.*` requests: interactive sign-in through the `floe://oauth` redirect
-/// plus per-extension token storage in the Keychain. Lock-guarded rather than main-actor bound so a
+/// plus per-installation token storage in the Keychain. Lock-guarded rather than main-actor bound so a
 /// session stopping on any thread can cancel its sign-ins.
 final nonisolated class OAuthBroker: NSObject, Sendable {
     static let shared = OAuthBroker()
@@ -60,11 +60,13 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Sign-ins waiting for the browser, keyed by extension name and state together.
     private let pending = Mutex<[String: Pending]>([:])
     private let notice: RaycastSignInNotice
+    private let vault: SecretVault
     /// How a missing browser is said, as a HUD.
     private let say = Mutex<@MainActor @Sendable (String) -> Void>({ ThawHUD.show(text: $0) })
 
-    init(notice: RaycastSignInNotice = RaycastSignInNotice()) {
+    init(notice: RaycastSignInNotice = RaycastSignInNotice(), vault: SecretVault = Keychain.vault) {
         self.notice = notice
+        self.vault = vault
     }
 
     /// Where the process that runs sign-ins shows what it has to say.
@@ -90,9 +92,9 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         }
     }
 
-    /// Answers one parsed OAuth request for the session's extension.
+    /// Answers one parsed OAuth request for the session's extension, installed in the folder `installation`.
     @concurrent
-    func perform(_ request: HostRequest, extensionName: String) async throws -> Any {
+    func perform(_ request: HostRequest, extensionName: String, installation: URL) async throws -> Any {
         switch request {
         case let .oauthAuthorize(urlString, state, providerName):
             guard let url = URL(string: urlString) else { throw OAuthError.invalidRedirect("Missing or invalid param: url") }
@@ -103,12 +105,12 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
             let callback = try await authorize(extensionName: extensionName, url: url, state: state)
             return ["url": callback]
         case let .oauthGetTokens(providerId):
-            return tokens(extensionName: extensionName, providerId: providerId).map { $0 as Any } ?? NSNull()
+            return tokens(extensionName: extensionName, providerId: providerId, installation: installation).map { $0 as Any } ?? NSNull()
         case let .oauthSetTokens(providerId, tokens):
-            saveTokens(tokens, extensionName: extensionName, providerId: providerId)
+            saveTokens(tokens, extensionName: extensionName, providerId: providerId, installation: installation)
             return NSNull()
         case let .oauthRemoveTokens(providerId):
-            deleteTokens(extensionName: extensionName, providerId: providerId)
+            deleteTokens(extensionName: extensionName, providerId: providerId, installation: installation)
             return NSNull()
         case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication, .applications, .browserTabs, .browserScript:
             throw OAuthError.unknownRequest
@@ -199,9 +201,7 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Answers the waiting sign-in whose state the callback carries; anything else is ignored.
     /// Raycast's page names every extension "Extension", so the state alone says whose sign-in it is.
     func complete(url: URL) {
-        guard Self.isCallback(url),
-              let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems,
-              let state = items.first(where: { $0.name == "state" })?.value
+        guard Self.isCallback(url), let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems, let state = items.first(where: { $0.name == "state" })?.value
         else { return }
         let entry = pending.withLock { pending in
             pending.first { $0.value.state == state }.flatMap { pending.removeValue(forKey: $0.key) }
@@ -220,25 +220,57 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         }
     }
 
-        // MARK: Token storage
+    // MARK: Token storage
 
     private func tokenAccount(extensionName: String, providerId: String) -> String {
         "\(extensionName)/oauth/\(providerId)"
     }
 
-    func tokens(extensionName: String, providerId: String) -> [String: Any]? {
-        guard let text = Keychain.read(account: tokenAccount(extensionName: extensionName, providerId: providerId)),
-              let data = text.data(using: .utf8),
-              let tokens = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    /// The installation tokens are saved with: the extension's folder as the catalog found it. Links are not followed,
+    /// since what one points at can change between requests. A manifest's name is the package's own say, so a second
+    /// package claiming it in another folder gets none of these tokens.
+    private static let installationKey = "floeInstallation"
+    private static let tokensKey = "tokens"
+
+    private static func installationPath(_ installation: URL) -> String {
+        installation.standardizedFileURL.path
+    }
+
+    /// The stored tokens' text and the installation they belong to. Tokens saved before they had one belong to nobody.
+    private func stored(account: String) -> (tokens: String, installation: String?)? {
+        guard let text = vault.read(account: account) else { return nil }
+        guard let data = text.data(using: .utf8), let bound = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let installation = bound[Self.installationKey] as? String, let tokens = bound[Self.tokensKey] as? String
+        else { return (text, nil) }
+        return (tokens, installation)
+    }
+
+    /// Tokens from before they had an installation go to the first one that asks for them, and are its own from then on.
+    func tokens(extensionName: String, providerId: String, installation: URL) -> [String: Any]? {
+        let account = tokenAccount(extensionName: extensionName, providerId: providerId)
+        guard let stored = stored(account: account) else { return nil }
+        if stored.installation == nil {
+            saveTokens(stored.tokens, extensionName: extensionName, providerId: providerId, installation: installation)
+        } else if stored.installation != Self.installationPath(installation) {
+            return nil
+        }
+        guard let data = stored.tokens.data(using: .utf8), let tokens = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
         else { return nil }
         return tokens
     }
 
-    func saveTokens(_ text: String, extensionName: String, providerId: String) {
-        Keychain.write(text, account: tokenAccount(extensionName: extensionName, providerId: providerId))
+    /// A sign-in replaces what another installation saved, which that one can then no longer read.
+    func saveTokens(_ text: String, extensionName: String, providerId: String, installation: URL) {
+        let bound = [Self.installationKey: Self.installationPath(installation), Self.tokensKey: text]
+        guard let data = try? JSONSerialization.data(withJSONObject: bound, options: [.sortedKeys]), let value = String(data: data, encoding: .utf8)
+        else { return }
+        vault.write(value, account: tokenAccount(extensionName: extensionName, providerId: providerId))
     }
 
-    func deleteTokens(extensionName: String, providerId: String) {
-        Keychain.delete(account: tokenAccount(extensionName: extensionName, providerId: providerId))
+    /// Removes the tokens only when they are this installation's, or nobody's yet.
+    func deleteTokens(extensionName: String, providerId: String, installation: URL) {
+        let account = tokenAccount(extensionName: extensionName, providerId: providerId)
+        guard let stored = stored(account: account), stored.installation == nil || stored.installation == Self.installationPath(installation)
+        else { return }
+        vault.delete(account: account)
     }
 }

@@ -13,6 +13,17 @@ use fend_core::{Context, ExchangeRateFnV2, ExchangeRateFnV2Options, Interrupt};
 
 /// How long one evaluation may run. The launcher evaluates on every keystroke and waits for the answer.
 const TIME_LIMIT: Duration = Duration::from_millis(200);
+/// The longest query handed to fend. Its parser copies the expression read so far at each term of a product, before
+/// it first looks at the deadline, so the time grows with the square of the length: 25 ms here, half a second at
+/// four times it.
+const QUERY_BYTES: usize = 1024;
+/// The largest left shift a query may write. fend makes room for the shifted bits a word at a time without looking at
+/// the deadline, so `1 << 100000000` alone would run for minutes.
+const SHIFT_BITS: u64 = 1 << 16;
+/// The stack an evaluation runs on. fend's parser recurses for each bracket, about 6 KB a level and five times that in
+/// a debug build, and a thread the app calls from may have 512 KB, which 80 brackets overflow: that aborts the
+/// launcher, it cannot be caught. This is address space set aside; only the depth a query reaches is used.
+const STACK_BYTES: usize = 64 << 20;
 
 pub struct FendContext {
     inner: Context,
@@ -107,6 +118,104 @@ impl Deadline {
 impl Interrupt for Deadline {
     fn should_interrupt(&self) -> bool {
         Instant::now() >= self.0
+    }
+}
+
+/// Whether a query is kept from fend because it could run on long past the deadline. It is answered the way fend
+/// answers one that ran out of time.
+fn is_refused(query: &str) -> bool {
+    query.len() > QUERY_BYTES || query.match_indices("<<").any(|(at, _)| !is_small_shift(&query[at + 2..]))
+}
+
+/// Whether what follows a `<<` is a number of bits up to the limit, standing on its own. A shift by a variable, a sum
+/// or anything else worked out could be of any size, so it is refused too.
+fn is_small_shift(rest: &str) -> bool {
+    let rest = rest.trim_start();
+    let digits = rest.len() - rest.trim_start_matches(|c: char| c.is_ascii_digit()).len();
+    let after = rest[digits..].trim_start().chars().next();
+    rest[..digits].parse::<u64>().is_ok_and(|bits| bits <= SHIFT_BITS)
+        && after.is_none_or(|c| matches!(c, ')' | '<' | '>' | '&' | '|' | ';'))
+}
+
+/// Runs an evaluation on a thread of its own, with a stack deep enough for fend's parser whatever thread called in.
+/// None when the thread could not start or the evaluation panicked.
+fn on_own_stack<T: Send>(work: impl FnOnce() -> T + Send) -> Option<T> {
+    std::thread::scope(|scope| {
+        let thread = std::thread::Builder::new().stack_size(STACK_BYTES).spawn_scoped(scope, work).ok()?;
+        thread.join().ok()
+    })
+}
+
+/// How deeply arrays, maps and tags may nest in saved variables. fend reads them by recursion.
+const SAVED_NESTING: usize = 64;
+
+/// Whether `bytes` are whole CBOR items, fend's format for saved variables, that ask for no more than they hold.
+/// fend makes room for as many variables as the first item says before it reads one, so a few bytes claiming
+/// billions would abort the launcher; each variable takes two items, its name and its value.
+fn is_well_formed_variables(bytes: &[u8]) -> bool {
+    if bytes.first().is_none_or(|first| first >> 5 != 0) {
+        return false;
+    }
+    let mut at = 0;
+    let mut items = 0u64;
+    let mut count = None;
+    while at < bytes.len() {
+        let start = at;
+        if !skip_item(bytes, &mut at, 0) {
+            return false;
+        }
+        if count.is_none() {
+            count = Some(argument(bytes, start));
+        } else {
+            items += 1;
+        }
+    }
+    count.is_some_and(|count| count <= items / 2)
+}
+
+/// The number an item's head carries: the value of an integer, or the length of a text, an array or a map.
+/// Only called on a head `skip_item` has checked.
+fn argument(bytes: &[u8], at: usize) -> u64 {
+    let size = match bytes[at] & 0x1f {
+        0x18 => 1,
+        0x19 => 2,
+        0x1a => 4,
+        0x1b => 8,
+        small => return u64::from(small),
+    };
+    bytes[at + 1..at + 1 + size].iter().fold(0, |number, byte| number << 8 | u64::from(*byte))
+}
+
+/// Steps over the item at `at` the way fend reads it. False for one that runs past the end, claims more than the
+/// bytes left, nests too deeply, or that fend does not read.
+fn skip_item(bytes: &[u8], at: &mut usize, depth: usize) -> bool {
+    let Some(&head) = bytes.get(*at) else { return false };
+    let size = match head & 0x1f {
+        0..=0x17 => 0,
+        0x18 => 1,
+        0x19 => 2,
+        0x1a => 4,
+        0x1b => 8,
+        _ => return false,
+    };
+    if bytes.len() - *at <= size {
+        return false;
+    }
+    let number = argument(bytes, *at);
+    *at += 1 + size;
+    let left = (bytes.len() - *at) as u64;
+    let nested = |at: &mut usize, items: u64| depth < SAVED_NESTING && (0..items).all(|_| skip_item(bytes, at, depth + 1));
+    match head >> 5 {
+        2 | 3 if number <= left => {
+            *at += number as usize;
+            true
+        }
+        4 if number <= left => nested(at, number),
+        5 if number <= left => nested(at, number * 2),
+        6 => nested(at, 1),
+        7 => matches!(number, 0x14..=0x17),
+        0 | 1 => true,
+        _ => false,
     }
 }
 
@@ -212,6 +321,9 @@ pub unsafe extern "C" fn fend_context_deserialize_variables(
             return -1;
         }
         let slice = slice::from_raw_parts(bytes, len);
+        if !is_well_formed_variables(slice) {
+            return -1;
+        }
         let mut read = slice;
         if ctx.inner.deserialize_variables(&mut read).is_err() {
             return -1;
@@ -248,7 +360,16 @@ pub unsafe extern "C" fn fend_evaluate(
             }
         };
 
-        match fend_core::evaluate_with_interrupt(query_str, &mut ctx.inner, &Deadline::from_now()) {
+        let evaluated = if is_refused(query_str) {
+            Err("interrupted".to_owned())
+        } else {
+            let inner = &mut ctx.inner;
+            let Some(evaluated) = on_own_stack(|| fend_core::evaluate_with_interrupt(query_str, inner, &Deadline::from_now())) else {
+                return ptr::null_mut();
+            };
+            evaluated
+        };
+        match evaluated {
             Ok(res) => {
                 let main_res = res.get_main_result();
                 let is_empty = res.output_is_empty();
@@ -311,7 +432,13 @@ pub unsafe extern "C" fn fend_evaluate_preview(
             }
         };
 
-        let res = fend_core::evaluate_preview_with_interrupt(query_str, &ctx.inner, &Deadline::from_now());
+        if is_refused(query_str) {
+            return Box::into_raw(Box::new(FendResult { is_ok: true, value: Some(CString::default()), error: None, is_empty: true, spans: Vec::new() }));
+        }
+        let inner = &ctx.inner;
+        let Some(res) = on_own_stack(|| fend_core::evaluate_preview_with_interrupt(query_str, inner, &Deadline::from_now())) else {
+            return ptr::null_mut();
+        };
         let main_res = res.get_main_result();
         let is_empty = res.output_is_empty();
         let val_cstring = CString::new(main_res).unwrap_or_default();

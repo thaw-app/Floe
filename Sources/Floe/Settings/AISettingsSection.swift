@@ -13,11 +13,13 @@ struct AISettingsSection: View {
     @ObservedObject var settings: AppSettings
     @State private var apiKey: String
     @State private var service: AIService
+    private let keys: AIKeys
 
-    /// `storedKey` is the Keychain's unless a snapshot passes its own.
-    init(settings: AppSettings, storedKey: String? = Keychain.read(account: AIEndpoint.keychainAccount)) {
+    /// `storedKey` is the one saved for the address unless a snapshot passes its own.
+    init(settings: AppSettings, storedKey: String? = nil, keys: AIKeys = .keychain) {
         self.settings = settings
-        _apiKey = State(initialValue: storedKey ?? "")
+        self.keys = keys
+        _apiKey = State(initialValue: storedKey ?? keys.key(for: settings.aiBaseURL) ?? "")
         _service = State(initialValue: AIService.matching(settings.aiBaseURL))
     }
 
@@ -61,6 +63,10 @@ struct AISettingsSection: View {
                         settings.aiBaseURL = address
                     }
                 }
+                // Each address has its own key, so another address shows its own or none.
+                .onChange(of: settings.aiBaseURL) { _, address in
+                    apiKey = keys.key(for: address) ?? ""
+                }
                 if service == .other {
                     TextField("Address", text: $settings.aiBaseURL, prompt: Text(AIEndpoint.defaultBaseURL))
                 }
@@ -69,11 +75,7 @@ struct AISettingsSection: View {
                 if AIEndpoint.needsKey(AIEndpoint.chatURL(baseURL: settings.aiBaseURL)) {
                     SecureField("API key", text: $apiKey, prompt: Text("Kept in the Keychain"))
                         .onChange(of: apiKey) { _, key in
-                            if key.isEmpty {
-                                Keychain.delete(account: AIEndpoint.keychainAccount)
-                            } else {
-                                Keychain.write(key, account: AIEndpoint.keychainAccount)
-                            }
+                            keys.save(key, for: settings.aiBaseURL)
                         }
                 }
                 if let problem = AIEndpoint.problem(baseURL: settings.aiBaseURL, model: settings.aiModel, apiKey: apiKey) {

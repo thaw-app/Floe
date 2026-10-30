@@ -39,8 +39,9 @@ struct SyncSettingsView: View {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             let archive = try SettingsTransfer.decode(Data(contentsOf: url))
-            let detail = String(localized: "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports.", bundle: .floe)
+            let detail = String(localized: "Aliases, hotkeys, favorites and appearance are replaced by the file's. Passwords aren't included in exports, and what you allowed on this Mac stays as it is.", bundle: .floe)
             guard Confirm.destructive(String(localized: "Replace your settings?", bundle: .floe), detail: detail, button: String(localized: "Replace", bundle: .floe, comment: "The button that replaces the settings with the ones in a file.")) else { return }
+            AIKeys.keychain.bindEarlierKey(inUseWith: settings.aiBaseURL)
             try settings.importJSON(archive.settings)
             for (name, values) in archive.preferences {
                 PreferenceStore.merge(values, extensionName: name)
