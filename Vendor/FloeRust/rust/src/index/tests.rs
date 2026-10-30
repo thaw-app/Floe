@@ -767,10 +767,13 @@ fn a_save_clears_unfinished_files_left_long_ago_and_nothing_else() {
     let scratch = Scratch::new();
     scratch.file("one.txt");
     let index = built(&scratch);
-    let file = saved_file(&scratch);
-    let victim = scratch.path("victim.txt");
+    // A folder of its own for the saved files, so it is removed with all of them even when an assertion fails.
+    let saves = Scratch::new();
+    let file = saves.path("saved.index");
+    let victim = saves.path("victim.txt");
     fs::write(&victim, "keep").unwrap();
     let hours_ago = std::time::SystemTime::now() - std::time::Duration::from_secs(2 * 60 * 60);
+    fs::File::options().write(true).open(&victim).unwrap().set_modified(hours_ago).unwrap();
     let left_long_ago = format!("{file}.00000000000000aa.unfinished");
     fs::File::create(&left_long_ago).unwrap().set_modified(hours_ago).unwrap();
     // Another save may be writing this one right now.
@@ -778,6 +781,9 @@ fn a_save_clears_unfinished_files_left_long_ago_and_nothing_else() {
     fs::write(&being_written, "").unwrap();
     let link = format!("{file}.00000000000000cc.unfinished");
     std::os::unix::fs::symlink(&victim, &link).unwrap();
+    // The link and what it points at are as old as the file that goes, so only its being a link keeps it.
+    let touched = std::process::Command::new("touch").args(["-h", "-t", "202001010000", &link]).status().unwrap();
+    assert!(touched.success());
     let not_ours = format!("{file}.notes.unfinished");
     fs::File::create(&not_ours).unwrap().set_modified(hours_ago).unwrap();
 
@@ -787,9 +793,6 @@ fn a_save_clears_unfinished_files_left_long_ago_and_nothing_else() {
     assert!(fs::symlink_metadata(&link).unwrap().file_type().is_symlink(), "a link is left alone");
     assert_eq!(fs::read_to_string(&victim).unwrap(), "keep");
     assert!(fs::metadata(&not_ours).is_ok(), "a name the index does not make is left alone");
-    for leftover in [&being_written, &link, &not_ours, &file] {
-        let _ = fs::remove_file(leftover);
-    }
 }
 
 #[test]

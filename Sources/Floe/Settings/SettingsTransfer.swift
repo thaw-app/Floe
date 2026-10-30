@@ -78,10 +78,10 @@ enum SettingsTransfer {
         theirs["indexesFileNames"] = here.indexesFileNames
         theirs["fetchesExchangeRates"] = here.fetchesExchangeRates
         theirs["syncsWithICloud"] = here.syncsWithICloud
-        if var shell = theirs["shell"] as? [String: Any] {
-            shell["runs"] = here.shell.runs
-            theirs["shell"] = shell
-        }
+        // A file without shell settings would get the defaults, which run commands.
+        var shell = theirs["shell"] as? [String: Any] ?? [:]
+        shell["runs"] = here.shell.runs
+        theirs["shell"] = shell
         theirs["aiOnThisMacOnly"] = here.aiOnThisMacOnly || theirs["aiOnThisMacOnly"] as? Bool == true
         return (try? JSONSerialization.data(withJSONObject: theirs)) ?? file
     }

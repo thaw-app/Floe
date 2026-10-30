@@ -82,6 +82,17 @@ struct SettingsImportTests {
         #expect(here.aliases == ["sample/planets": "p"], "everything else is the file's")
     }
 
+    @Test func aFileWithoutShellSettingsDoesNotSwitchOnRunningCommands() throws {
+        let here = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        here.shell.runs = false
+        var file = try #require(JSONSerialization.jsonObject(with: AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false).exportedJSON()) as? [String: Any])
+        file["shell"] = nil
+
+        try here.importJSON(JSONSerialization.data(withJSONObject: file))
+
+        #expect(!here.shell.runs)
+    }
+
     @Test func aFileMayStillTightenThePromiseToKeepAIHere() throws {
         let file = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
         file.aiOnThisMacOnly = true

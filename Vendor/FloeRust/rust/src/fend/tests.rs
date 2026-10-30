@@ -228,7 +228,7 @@ fn test_saved_variables_of_every_kind_are_read_back_as_they_were() {
             ("yes", "true"),
             ("price", "3.25"),
             ("big", "2^100"),
-            ("square", "x: x^2"),
+            ("saved_square", "x: x^2"),
         ];
         let mut expected = Vec::new();
         for (name, definition) in definitions {
@@ -244,7 +244,7 @@ fn test_saved_variables_of_every_kind_are_read_back_as_they_were() {
             assert_eq!(&value(fresh, name, false).unwrap(), assigned, "{name}");
         }
         assert_eq!(value(fresh, "mass to g", false).unwrap(), "5000 g");
-        assert_eq!(value(fresh, "square 4", false).unwrap(), "16");
+        assert_eq!(value(fresh, "saved_square 4", false).unwrap(), "16");
 
         fend_context_free(fresh);
         fend_context_free(ctx);
