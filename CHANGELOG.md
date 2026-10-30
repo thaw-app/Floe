@@ -21,7 +21,9 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.2.1] - 2026-10-29
+
+**macOS 26 and later · Build 4**
 
 ### Changed
 - **Each AI service keeps its own API key.** When you switch service, the key field is empty until you enter that service's key, and switching back brings the earlier one back. The key you already saved stays with the service you use now.
