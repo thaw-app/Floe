@@ -3,7 +3,7 @@
 
 Prototype macOS launcher that runs unmodified Raycast extensions: one process that stays running and holds the launcher, a Settings process started when Settings opens, and a Bun process per running extension command.
 
-Contribution requirements, review expectations, and security reporting are in the shared [Thaw/Floe policies](https://github.com/thaw-app/.github).
+Contribution requirements, review expectations, and security reporting are in the shared [Thaw/Floe policies](https://github.com/thaw-app/.github). [Architecture](ARCHITECTURE.md) maps the processes and the code, and [Coding standards](CODING_STANDARDS.md) says how code is written here.
 
 Requires macOS 26 or later, Bun, Rust/Cargo, and Xcode 27 for the vendored ThawUI Swift 6.4 manifest. Extensions run under your user account without sandboxing; only install extensions you trust.
 
@@ -78,119 +78,6 @@ and `signed` for a locally signed copy at `.build/resident-signed/Floe.app`. Arb
 it does not exercise Floe's normal startup. For release comparisons use a Release build with the same signing,
 permissions, settings, indexes and background commands as the installed app.
 
-## How features are built
-
-The aim is code where no feature reaches into another. Each part knows only what it was handed.
-
-- **Decisions are plain code.** What to show, what to run and what to do next is worked out by values and functions
-  that touch nothing outside themselves, and return what should happen. `PanelLifetime` returns effects and never acts;
-  `Ranking`, `CommandLookup` and `UpdateLogic` work the same way. These carry the tests.
-- **A feature is handed what it uses.** A feature model takes its stores and an environment, a struct of closures for
-  the system, the disk and the other processes, through `init`. `ShellEnvironment`, `AppLookup`, `ModeHost` and
-  `ActionHost` are environments; `ClipboardHistoryModel` is given its store. A settings page is handed its stores from
-  the process's `SettingsStores`. A feature does not read `.shared`, and a test hands it fakes.
-- **Each state has one owner.** One process writes a store; the others keep a copy and read it again when told. The
-  stores every process saves announce and reload through `SharedStores`, not through hooks set in each process.
-- **Each process is wired in one place.** `main.swift` and `LauncherWindow` for Floe's own process and `SettingsMode`
-  for settings make the concrete stores and connect features, stores and messages. They are the only code that names
-  the shared instances.
-- **`LauncherModel` routes.** It keeps the query, the results and which mode is on screen, and hands work to the
-  feature that owns it. New work goes in a feature of its own, not in the model. A feature that owns rows is a
-  `RowOwner`: it says what Return, its Actions menu and its keys do on them. `LauncherFeatures` holds the features
-  and is the one place that connects them to the model.
-
-## Layout
-
-- `Sources/Floe`: the app: panel, hotkey, app index, and a renderer for the JSON tree the host sends. One folder per
-  area, and no Swift file outside a folder:
-  - `App`: the entry point and app delegate (`main.swift`), the main menu, the `floe://` link router, the debug
-    options, the update rules and the generated credits. Also the launcher's side of Settings: the process handle
-    (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the launcher does with them.
-  - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
-    and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the Actions menus, the catalog
-    of apps and commands with its scans (`Catalog.swift`, which also holds `Paths`), and Markdown.
-  - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
-  - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
-    clipboard history, snippets and their expander, quicklinks, the calendar, the file search and its index of file
-    names (`FileIndexService.swift`; the index itself is Rust, in `Vendor/FloeRust/rust/src/index.rs`, and is saved
-    to `~/Library/Caches/Floe` so a later launch reads it back and asks FSEvents only for what changed since), browser tabs,
-    menu bar items, script commands and Thaw's actions, with the AppleScript runner and the selection and pasteboard
-    helpers.
-  - `AI`: Ask AI and the sources that answer a prompt. An answer can be followed up: `AskAIModel` keeps the turns of
-    one conversation in memory while the answer view is open and drops them when it closes; none of it is saved or logged.
-    A question travels with its earlier turns as an `AIConversation`, and each source is given them its own way
-    (`AISources.live`): an API as user and assistant messages, Apple Intelligence as the transcript of a session made
-    for that one request, and a command line tool, which starts fresh every time, written out in its prompt
-    (`AIConversation.replayedPrompt`). `AIConversation.Limit` caps what is sent again, oldest turns dropped first:
-    8 turns and 12,000 UTF-8 bytes, or 6,000 for Apple Intelligence's 4,096 tokens. An extension's `AI.ask` is a
-    conversation with no earlier turns.
-  - `Extensions`: a running command (`Session.swift` and its extensions), what it asks the app for
-    (`HostRequest.swift`), the manifest, the store, menu bar commands, the background scheduler, OAuth, hot reload,
-    and the views an extension's forms and errors are drawn with.
-  - `Settings`: the settings model (`Settings.swift`), its window, pages and sections, settings search entries,
-    import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process. It lists
-    commands, scripts and apps from a `CatalogStore` (in `Launcher`) of its own, as the launcher does.
-  - `Sync`: settings sync through iCloud, by CloudKit or the key-value store, written to be moved to Thaw as it is.
-    It knows records, not Floe's settings (see "Settings sync").
-  - `Picker`: `Floe --pick`.
-  - `PreferredApps`, `Thaw` and `DroppyCode` are described below. `Tests/FloeTests` has the same folders.
-- `runtime/host.ts`: bundles a command, renders it with a custom React reconciler, speaks NDJSON on stdio.
-- `runtime/api/index.ts`: the `@raycast/api` stand-in.
-- `extensions/`: one folder per extension (`hello` is a sample, `diagnostics` fails on purpose to exercise the error screen).
-
-- `Sources/Floe/Search/SearchProviders`: what the root search is made of. Each provider answers a query with rows to rank,
-  to pin on top, to list under a section or to append (`SearchProvider.swift`); `RootSearch.swift` lists the providers
-  and merges what they answer. `LauncherModel.refresh()` only builds the context they read.
-  - Dictionary answers are read by `BuiltIn/DefinitionSearch.swift` off the main thread. It keeps only the current
-    query's answer, drops late results, and hands the entry to `DefinitionSearchProvider` through `SearchContext`.
-  - A scope (`SearchScope.swift`) is a search of its own inside the root search: `files invoice`, `clipboard meeting`
-    and `menu wifi` show only that scope's rows. It triggers on its keyword, a space and some text; the keyword alone
-    is an ordinary search. A scope may deliver rows later through an `AsyncStream`, each batch replacing the last;
-    `SearchUpdates` drops batches that arrive for a query that has been replaced.
-  - A source (`SearchSource.swift`) is a scope that may also add up to three rows to an ordinary search, in a section
-    of its own below the ranked rows and above the appended ones. Each is off until its switch in Settings › Privacy
-    is on (`AppSettings.searchSources`), and its keyword works only while it is. `SourceSearch` asks the enabled
-    sources after the ranked rows are shown, for queries of three characters or more, and follows each with its own
-    `SearchUpdates`. The files source is `FileSearchScope`; the tabs source is `TabSearchSource`.
-  - `BuiltIn/BrowserTabs.swift` holds the browsers whose tabs can be listed, one `BrowserApp` entry each, with the scripts that
-    list and switch tabs. Add a browser only after reading its scripting definition (`sdef /Applications/<App>.app`).
-    The script runner is passed in, so tests never talk to a browser; do not run these scripts from a test.
-- `Sources/Floe/PreferredApps`: the apps Floe hands things to instead of doing their work. A role (`AppRole.swift`)
-  is a kind of app the user has a preferred one of: what it is handed, the known apps offered by name and what stands
-  in when nothing is chosen. `PreferredApps.swift` decides which app a role resolves to and what it is handed, without
-  opening anything; it reads the Mac's apps through `AppLookup`, which tests replace. Add a known app only with a
-  bundle identifier read from an installed copy's `Info.plist`.
-  - The terminal and the editor are handed files and folders, so they share one path: `NSWorkspace` opens the items
-    with the app. Notes is handed text, which each app takes its own way, so it has its own adapter (`Notes.swift`):
-    a link for Antinote or a custom app, a script for Apple Notes. A new role is a case of `AppRole` plus, when it
-    takes text, an adapter like that one.
-  - The clipboard role is handed nothing: Clipboard History opens the chosen app, or a link, in place of Floe's own
-    history (`ClipboardApp.swift`). Floe's own history is parked by `ClipboardApps.ownHistoryIsParked`: nothing is
-    saved, the pasteboard is not watched, and the command asks for an app until one is chosen. `ClipboardApps.destination` decides where the command goes and never falls back
-    to Floe's history; `records` is the one place that says whether copies are saved (the role is Floe and the
-    switch is on). An app whose history opens from a link goes in `ClipboardApps.links`, with a link confirmed from
-    the installed copy.
-- `Sources/Floe/Thaw`: code ported from Thaw: hotkeys (key codes, Carbon registry, recorder), the HUD, the About page,
-  onboarding and permissions, settings search, the Sparkle updater with its consent sheet, and the App Intents that
-  Shortcuts and Spotlight use (`FloeIntents.swift`).
-- `Sources/Floe/DroppyCode`: code ported from Droppy Code. Each file keeps Droppy Code's copyright and credit line
-  and says what Floe changed; `LICENSES` holds its license and third-party notices.
-  - `LoginEnvironment.swift` reads the login shell's environment, which extensions start with, and `Shell.swift` runs
-    a tool with a timeout.
-  - `AI.ask` is answered by a one-shot run of a command line tool (`TextGeneration.swift`: `claude`, `codex`,
-    `opencode` or `pi`, each with no tools of its own) or by a streamed request to an OpenAI-compatible API
-    (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice and the request an
-    extension makes are in `Extensions/HostRequest.swift`, and which tool answers is in `AI/AITool.swift`.
-  - `ToolTextStream.swift` reads a tool's JSON lines as they are printed. What a line means is in
-    `ClaudeTextStream.swift`, `OpencodeTextStream.swift` and `PiTextStream.swift`, beside each tool's arguments.
-  - `HangWatchdog.swift` samples the app when its main thread stops answering for four seconds and writes the stacks
-    to `~/Library/Logs/Floe`.
-  - `DirectoryWatcher.swift` watches a folder tree with FSEvents. `Extensions/HotReload.swift` uses it to restart an open view
-    command when a file under its extension's `src/` or `assets/`, or its `package.json`, is saved. Only local
-    extensions with a `src/` folder are watched, never the ones Raycast installed.
-- `CREDITS.md` and `Sources/Floe/App/Credits.swift` are written by `scripts/generate-credits.py`; run it after changing a dependency.
-- `Vendor/ThawUI`: design system copied from thaw-app/Thaw (commit in `Vendor/ThawUI/UPSTREAM`).
-
 ## License
 
 AGPL-3.0. ThawUI and the other code from Thaw stay under GPL-3.0, which the AGPL allows combining with. The code from Droppy Code is AGPL-3.0 with the attribution terms in `LICENSES/DroppyCode-LICENSE`. `LICENSES/README.md` says which license covers which folder. Extensions under `extensions/` keep their own licenses.
@@ -222,6 +109,13 @@ samples instead, including `diagnostics`, which fails on purpose to exercise the
 | ⌘, | anywhere | settings |
 | ↵, ⌘⇧C | error screen | try again, copy details |
 
+## Code style
+
+[Coding standards](CODING_STANDARDS.md#formatting-and-lint) has the rules. Before a commit:
+
+    swiftformat .
+    swiftlint lint --strict
+
 ## Tests
 
     swift test                                   # Swift Testing suites in Tests/FloeTests
@@ -235,34 +129,6 @@ in a test (`Ranking`, `Manifest`, `ViewState`, `MarkdownParser`, `Shortcuts`, `P
 permission state and the settings search index); views, the process, the Keychain and Accessibility code are excluded
 from coverage in `sonar-project.properties`, which also states the rule. New decision logic belongs in a
 measured file with a suite beside it.
-
-## Code style
-
-Floe uses [SwiftLint](https://github.com/realm/SwiftLint) and [SwiftFormat](https://github.com/nicklockwood/SwiftFormat)
-with Thaw's rules, in `.swiftlint.yml` and `.swiftformat`. CI runs SwiftLint in strict mode. Before a commit:
-
-    swiftformat .
-    swiftlint lint --strict
-
-Tests and `Vendor/` are not linted. The size and complexity limits apply to new code only; what predates them is
-listed in `.swiftlint.baseline`.
-
-Both targets build in the Swift 6 language mode with the main actor as the default isolation and with approachable
-concurrency, which in this mode is two upcoming features, `InferIsolatedConformances` and
-`NonisolatedNonsendingByDefault`. `Package.swift` names them; `project.yml` sets `SWIFT_VERSION`,
-`SWIFT_STRICT_CONCURRENCY`, `SWIFT_APPROACHABLE_CONCURRENCY` and `SWIFT_DEFAULT_ACTOR_ISOLATION`; keep the two in
-step. A type with no annotation is main actor. Values, parsers and scanners that a worker uses are `nonisolated` (an
-extension of one needs the word again), and shared state is an actor or a `Mutex`.
-
-Unmarked async code runs where it is called: a `nonisolated` async function called from the main actor runs on the
-main thread, and so does a closure of an unmarked async function type. Code that must leave says `@concurrent`: a
-function that starts a process, reads or parses a file, waits on another app or decodes a picture, the function type
-of a seam the main actor calls for such work, and a `Task` in a main actor type that must not start there. The
-compiler does not check this, so a test calls each one it can reach from the main actor and looks at where the work
-ran (`WhatLeavesTheMainActorTests`). A helper that only waits for something else stays unmarked.
-
-`@unchecked Sendable`, `nonisolated(unsafe)` and `MainActor.assumeIsolated` each carry a line saying why they are
-safe. In a test, what `@Test(arguments:)` reads is `nonisolated`.
 
 ## Localization
 
