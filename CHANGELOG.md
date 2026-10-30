@@ -34,7 +34,7 @@ these four.
 ### Fixed
 
 #### Security
-These come from [CodeRabbit](https://www.coderabbit.ai)'s security scan of 0.2.0 ([#50](https://github.com/thaw-app/Floe/pull/50)).
+These come from [CodeRabbit](https://www.coderabbit.ai)'s security scan of 0.2.0 ([#53](https://github.com/thaw-app/Floe/pull/53)).
 - **An extension can't take another's sign-in by using its name.** Only one extension of a name runs, and its sign-in tokens are given only to the folder that saved them.
 - **Your API key goes only to the AI service it was saved for**, never to one you switch to or import.
 - **An AI service can't send your question elsewhere with a redirect.**
