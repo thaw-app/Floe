@@ -4,37 +4,51 @@
         <title>Floe</title>
         <language>en</language>
         <item>
+            <title>0.2.1</title>
+            <pubDate>Fri, 30 Oct 2026 05:12:26 +0000</pubDate>
+            <link>https://github.com/thaw-app/Floe/releases/tag/0.2.1</link>
+            <sparkle:version>4</sparkle:version>
+            <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<p><strong>macOS 26 and later · Build 4</strong></p>
+<h3>Changed</h3>
+<ul>
+<li><strong>Each AI service keeps its own API key.</strong> When you switch service, the key field is empty until you enter that service's key, and switching back brings the earlier one back. The key you already saved stays with the service you use now.</li>
+<li><strong>Updates come as a full download</strong>, with no smaller update built from an earlier version.</li>
+<li><strong>A calculation over 1,024 characters, or a shift by anything but a plain number up to 65,536, says it took too long</strong> instead of holding up the calculator.</li>
+<li><strong>Your file index is built once more</strong> after this update.</li>
+</ul>
+<h3>Fixed</h3>
+<h4>Security</h4>
+<p>These come from <a href="https://www.coderabbit.ai" rel="nofollow">CodeRabbit</a>'s security scan of 0.2.0 (<a href="https://github.com/thaw-app/Floe/pull/53" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/53/hovercard">#53</a>).</p>
+<ul>
+<li><strong>An extension can't take another's sign-in by using its name.</strong> Only one extension of a name runs, and its sign-in tokens are given only to the folder that saved them.</li>
+<li><strong>Your API key goes only to the AI service it was saved for</strong>, never to one you switch to or import.</li>
+<li><strong>An AI service can't send your question elsewhere with a redirect.</strong></li>
+<li><strong>Codex answers with its image reading, web search and other tools turned off</strong>, and never asks to run a command.</li>
+<li><strong>Importing settings keeps what you allowed on this Mac</strong>, such as the sign-ins you lend to extensions, whether iCloud sync is on and whether shell commands run.</li>
+<li><strong>Names completed or opened in Terminal stay text</strong>, inside quotes too and with accented letters.</li>
+<li><strong>Text you type into a quicklink can't add fields to it</strong>, such as more recipients for an email.</li>
+<li><strong>A file whose name has a line break is saved in a checkpoint as one file.</strong></li>
+<li><strong>Put Back and daily notes don't follow a folder that has been swapped for a link</strong>, and Put Back never writes over a file.</li>
+<li><strong>Clipboard history leaves out what you copied while recording was off</strong>, and restoring an entry reads only Floe's own files.</li>
+<li><strong>Undo does only what its receipt says</strong>, so an edited receipt can't delete a reminder.</li>
+<li><strong>The file index doesn't follow links out of the folders it covers</strong>, and saving it can't write over another file.</li>
+<li><strong>Long lines in notes, very tall or wide pictures, long searches and long calculations can't stall Floe.</strong></li>
+<li><strong>Log lines can't be faked</strong> by text an AI service sends back.</li>
+</ul>]]></description>
+            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.1/Floe_0.2.1.zip" length="80042072" type="application/octet-stream" sparkle:edSignature="SA/q4oSyIWIr2gd8PO+bzeGwO9dV9HT9rLNnmSQ0LmIbjHDkAgm6fP5y0/r66TF4SDo/fMD66cTY7QegM5chAQ=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.1/Floe4-3.delta" sparkle:deltaFrom="3" length="1905290" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="aphIs+TqFbA7EeOb2u3f++t+Z73fot8OYSMdZ7XLA4rp7CgEM+bEQeD9f+5tkzIjM1RuXQvH6sVhiZr3+i6cBg=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>0.2.0</title>
             <pubDate>Thu, 29 Oct 2026 01:48:38 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.2.0</link>
             <sparkle:version>3</sparkle:version>
             <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p><strong>macOS 26 and later · Build 3</strong></p>
-<h3>New</h3>
-<ul>
-<li><strong>Floe runs on Intel Macs, extensions included</strong> (<a href="https://github.com/thaw-app/Floe/issues/46" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/46/hovercard">#46</a>).</li>
-<li><strong>Choose the screen the launcher opens on</strong>, in Settings &gt; Appearance &gt; Layout. Until you pick one, and whenever the one you picked is not connected, it opens on the screen with the pointer (<a href="https://github.com/thaw-app/Floe/discussions/41">#41</a>).</li>
-</ul>
-<h3>Changed</h3>
-<ul>
-<li><strong>Ask AI with Codex needs Codex 0.157.1 or later.</strong> Older versions can start their MCP servers even when Floe turns them off.</li>
-</ul>
-<h3>Fixed</h3>
-<ul>
-<li><strong>Extensions that use <code class="notranslate">ws</code>'s server or streams load again.</strong> A named import such as <code class="notranslate">WebSocketServer</code> failed in 0.1.1.</li>
-<li><strong>Shell path completion keeps going inside a folder whose name has a space or brackets</strong>, such as <code class="notranslate">~/Photos\ \(2024\)/</code>.</li>
-<li><strong>Floe stays open when Settings closes as it starts.</strong> It could quit without a word.</li>
-</ul>
-<h4>Security</h4>
-<ul>
-<li><strong>An extension's encrypted database is refused however its schema is named.</strong> A name with a space or an accent got past the check, and the data was written unencrypted.</li>
-</ul>
-<h3>Contributors</h3>
-<ul>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/BYIIHub/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/BYIIHub">@BYIIHub</a> asked for Intel support (<a href="https://github.com/thaw-app/Floe/issues/46" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/46/hovercard">#46</a>).</li>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/Dent13/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/Dent13">@Dent13</a> asked to choose the screen the launcher opens on (<a href="https://github.com/thaw-app/Floe/discussions/41">#41</a>).</li>
-</ul>]]></description>
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe_0.2.0.zip" length="79995147" type="application/octet-stream" sparkle:edSignature="WDJCS66zHJCj0sno7QDGQCXjIMyehdWIcp8AaqUfBUSkuAtogSAtWt28yPHJqbh0yJo15XMwsxuX4JZBa4pUCQ=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe3-2.delta" sparkle:deltaFrom="2" length="23580314" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="HE6W4PixYoQNGvd+valpjLY/vHvxRD62VY7j/2E9DEkqmqAQ3rLJ+FQ89lq/OvyNlWjhLxgwiZgDkan6ZGFyAQ=="/>
@@ -52,15 +66,6 @@
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.1/Floe2-1.delta" sparkle:deltaFrom="1" length="1961698" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="oWiHxBUKU3RYomYuaA/zCh6XKKFbW7Yvb1X/0Ihtby3gAtlY9CzjEyvVlgKqV/v7kBKhl3V41RTZS1oXYtTKBw=="/>
             </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.1.0</title>
-            <pubDate>Thu, 22 Oct 2026 10:46:02 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.1.0</link>
-            <sparkle:version>1</sparkle:version>
-            <sparkle:shortVersionString>0.1.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.0/Floe_0.1.0.zip" length="46700364" type="application/octet-stream" sparkle:edSignature="MddBGRXneacZCtclp+mlBfZg+GZUr+8qBH3Bch7Akoc322djY9PMCso4GChejf+9Y0OGQ2Cb50RmSFiEREOQDA=="/>
         </item>
     </channel>
 </rss>
