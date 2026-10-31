@@ -27,6 +27,9 @@ these four.
 
 Floe's Settings now share their controls and pages with Thaw through [ThawUI](https://github.com/thaw-app/ThawUI), so the two apps look and behave more alike.
 
+### New
+- **File search finds what's in iCloud Drive**, and shows it under that name. With Fast file search on, macOS may ask once for access to iCloud Drive.
+
 ### Changed
 - **A slider sets the search field's corners**, from square to fully round, in place of the three shapes. The shape you had stays as it was, and an older Floe syncing from another Mac keeps working.
 - **More text follows your Mac's text size**, in the calculator, files, clipboard, Ask AI, Markdown and extension views. Some corners in these views and the note editor's toolbar icons change by a point or two to match the rest of the app.

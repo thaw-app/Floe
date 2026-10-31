@@ -20,6 +20,44 @@ nonisolated struct FileResult: Identifiable, Equatable, Sendable {
     var id: String {
         url.path
     }
+
+    /// Whether a search leaves a path out for being in a Library. iCloud Drive's folder is in one, but holds the person's files.
+    static func isInLibrary(_ path: String, home: String) -> Bool {
+        path.contains("/Library/") && (pathInsideICloudDrive(path, home: home) ?? "").isEmpty
+    }
+
+    /// The name of the folder the file is in, as a row shows it.
+    func folderName(home: String = NSHomeDirectory()) -> String {
+        let folder = url.deletingLastPathComponent()
+        return Self.pathInsideICloudDrive(folder.path, home: home) == "" ? Self.iCloudDriveName : folder.lastPathComponent
+    }
+
+    /// A path as a row shows it: iCloud Drive by the name Finder gives it, and the home folder as a tilde.
+    static func displayPath(of path: String, home: String) -> String {
+        if let inside = pathInsideICloudDrive(path, home: home) {
+            return iCloudDriveName + inside
+        }
+        return path.hasPrefix(home) ? "~" + path.dropFirst(home.count) : path
+    }
+
+    private static var iCloudDriveName: String {
+        String(localized: "iCloud Drive", bundle: .floe)
+    }
+
+    /// What follows iCloud Drive's folder in a path, empty for the folder itself; nil for a path outside it.
+    /// The index names paths from the home folder's real path, which a link may hide.
+    private static func pathInsideICloudDrive(_ path: String, home: String) -> String? {
+        for base in [home, DirectoryWatcher.real(home)] {
+            let folder = base + "/Library/Mobile Documents/com~apple~CloudDocs"
+            if path == folder {
+                return ""
+            }
+            if path.hasPrefix(folder + "/") {
+                return String(path.dropFirst(folder.count))
+            }
+        }
+        return nil
+    }
 }
 
 final class FileSearch: ObservableObject {
@@ -160,7 +198,7 @@ final class FileSearch: ObservableObject {
             }
             guard let fileURL = url else { continue }
             let path = fileURL.path
-            if path.contains("/Library/") {
+            if FileResult.isInLibrary(path, home: home) {
                 continue
             }
             if fileURL.pathComponents.contains(where: { $0.hasPrefix(".") }) {
@@ -171,7 +209,7 @@ final class FileSearch: ObservableObject {
                 continue
             }
             let folder = fileURL.deletingLastPathComponent().path
-            let displayPath = folder.hasPrefix(home) ? "~" + folder.dropFirst(home.count) : folder
+            let displayPath = FileResult.displayPath(of: folder, home: home)
             files.append(FileResult(
                 url: fileURL,
                 name: (metadataItem.value(forAttribute: NSMetadataItemFSNameKey) as? String) ?? fileURL.lastPathComponent,

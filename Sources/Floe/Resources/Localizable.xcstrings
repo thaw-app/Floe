@@ -1935,7 +1935,7 @@
     "Floe isn't running yet. Open Floe and try again." : {
 
     },
-    "Floe keeps the names of your files, in memory and in a file on this Mac, so file search answers as you type. Switching this off deletes the file. macOS will ask about Desktop, Documents and Downloads." : {
+    "Floe keeps the names of your files, in memory and in a file on this Mac, so file search answers as you type. Switching this off deletes the file. macOS will ask about Desktop, Documents, Downloads and iCloud Drive." : {
 
     },
     "Floe lists the items apps put in the menu bar." : {
@@ -5202,6 +5202,9 @@
       "comment" : "Words that find the Open Floe setting in the settings search, separated by commas."
     },
     "iCloud" : {
+
+    },
+    "iCloud Drive" : {
 
     },
     "iCloud Keychain copy" : {

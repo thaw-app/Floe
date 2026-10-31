@@ -6,8 +6,8 @@
 //  Licensed under the GNU AGPLv3
 
 import CoreServices
-import FloeRust
 @testable import Floe
+import FloeRust
 import Foundation
 import Synchronization
 import Testing
@@ -543,6 +543,99 @@ struct FileSearchIndexTests {
         service.set(on: true)
         await service.settled()
         return service
+    }
+
+    @Test func iCloudDriveIsSearchedThoughItIsInALibrary() throws {
+        let drive = "/Users/someone/Library/Mobile Documents/com~apple~CloudDocs"
+        let nested = FileIndex.Hit(path: drive + "/Notes/plan.txt", isFolder: false, score: 1, matched: [])
+        #expect(try #require(FileIndexService.result(for: nested, home: "/Users/someone")).displayPath == "iCloud Drive/Notes")
+        let top = FileIndex.Hit(path: drive + "/plan.txt", isFolder: false, score: 1, matched: [])
+        #expect(try #require(FileIndexService.result(for: top, home: "/Users/someone")).displayPath == "iCloud Drive")
+
+        #expect(try #require(FileIndexService.result(for: top, home: "/Users/someone")).folderName(home: "/Users/someone") == "iCloud Drive", "not the folder's name on disk")
+        #expect(try #require(FileIndexService.result(for: nested, home: "/Users/someone")).folderName(home: "/Users/someone") == "Notes")
+        let plain = FileIndex.Hit(path: "/Users/someone/Documents/plan.txt", isFolder: false, score: 1, matched: [])
+        #expect(try #require(FileIndexService.result(for: plain, home: "/Users/someone")).folderName(home: "/Users/someone") == "Documents")
+        let typed = TypedPath.file(for: drive + "/plan.txt", home: "/Users/someone") { _ in .file }
+        #expect(typed?.displayPath == "iCloud Drive")
+
+        let home = "/Users/someone"
+        #expect(!FileResult.isInLibrary(drive + "/plan.txt", home: home))
+        #expect(FileResult.isInLibrary(drive, home: home), "the folder itself is not a result")
+        #expect(FileResult.isInLibrary(drive + "Other/plan.txt", home: home), "only that folder")
+        #expect(FileResult.isInLibrary("/Users/someone/Library/Mobile Documents/com~apple~Pages/plan.txt", home: home))
+        #expect(FileResult.isInLibrary("/Users/someone/Library/Caches/plan.txt", home: home))
+
+        let copy = "/Users/someone/Backups/Library/Mobile Documents/com~apple~CloudDocs"
+        #expect(FileResult.isInLibrary(copy + "/plan.txt", home: home), "a copy elsewhere is not iCloud Drive")
+        #expect(FileResult.displayPath(of: copy, home: home) == "~/Backups/Library/Mobile Documents/com~apple~CloudDocs")
+    }
+
+    @Test func theStatesOfTwoIndexesReadAsOne() {
+        let ready = FileIndexService.State.ready(names: 2, bytes: 10)
+        #expect(ready.joined(with: .ready(names: 3, bytes: 5)) == .ready(names: 5, bytes: 15))
+        #expect(ready.joined(with: .building) == .building)
+        #expect(FileIndexService.State.building.joined(with: ready) == .building)
+        #expect(ready.joined(with: .off) == ready)
+        #expect(FileIndexService.State.off.joined(with: ready) == ready)
+        #expect(FileIndexService.State.off.joined(with: .off) == .off)
+    }
+
+    @Test func anIndexAlongsideIsSwitchedSearchedAndCountedWithTheMainOne() async throws {
+        let home = try IndexFixture(files: ["Documents/invoice.pdf"])
+        let drive = try IndexFixture(files: ["Notes/invoice.txt"])
+        let other = FileIndexService(environment: drive.environment)
+        let service = FileIndexService(environment: home.environment, alongside: other)
+
+        service.set(on: true)
+        #expect(other.isOn)
+        await service.settled()
+        let files = try #require(service.files(matching: "invoice"))
+        #expect(Set(files.map(\.name)) == ["invoice.pdf", "invoice.txt"])
+        guard case let .ready(names, _) = service.state else {
+            Issue.record("both indexes are built")
+            return
+        }
+        guard case let .ready(ownNames, _) = other.state else {
+            Issue.record("the one alongside is built")
+            return
+        }
+        #expect(names > ownNames, "the state counts both")
+
+        service.flush()
+        service.set(on: false)
+        #expect(!other.isOn)
+        #expect(service.state == .off)
+        #expect(home.stopped == 1)
+        #expect(drive.stopped == 1)
+    }
+
+    @Test func aChangeToTheIndexAlongsideReachesTheObserver() async throws {
+        let home = try IndexFixture(files: ["a.txt"])
+        let drive = try IndexFixture(files: ["b.txt"])
+        let service = FileIndexService(environment: home.environment, alongside: FileIndexService(environment: drive.environment))
+        service.set(on: true)
+        await service.settled()
+        var told: [FileIndexService.State] = []
+        service.observe { told.append($0) }
+        await waitFor("the state now") { told.last == service.state }
+
+        try drive.add("c.txt")
+        drive.send([.folder(drive.root.path)])
+        await service.settled()
+        await waitFor("the new name") { told.last == service.state && told.count > 1 }
+        service.set(on: false)
+    }
+
+    @Test func aMissingFolderAlongsideLeavesTheSearchToTheMainOne() async throws {
+        let home = try IndexFixture(files: ["invoice.pdf"])
+        let drive = try IndexFixture(files: [])
+        try FileManager.default.removeItem(at: drive.root)
+        let service = FileIndexService(environment: home.environment, alongside: FileIndexService(environment: drive.environment))
+        service.set(on: true)
+        await service.settled()
+        #expect(try #require(service.files(matching: "invoice")).map(\.name) == ["invoice.pdf"])
+        service.set(on: false)
     }
 
     @Test func onlyATypedQueryIsAskedOfTheIndex() {

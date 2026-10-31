@@ -103,21 +103,17 @@ struct FileSearchRow: View {
     let file: FileResult
     let selected: Bool
 
-    private var parentName: String {
-        file.url.deletingLastPathComponent().lastPathComponent
-    }
-
     var body: some View {
         PaletteRow(title: file.name, subtitle: nil, selected: selected, matched: file.matched) {
             AppIconView(path: file.url.path, size: 24)
         } trailing: {
-            Text(parentName)
+            Text(file.folderName())
                 .font(ThawType.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(file.name), \(parentName)")
+        .accessibilityLabel("\(file.name), \(file.folderName())")
     }
 }
 
