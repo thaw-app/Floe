@@ -10,6 +10,7 @@ import AppKit
 import Combine
 import CryptoKit
 import SwiftUI
+import ThawUI
 
 final class LauncherPanel: NSPanel {
     /// The floating, borderless, see-through window the launcher and the picker both draw their glass in.

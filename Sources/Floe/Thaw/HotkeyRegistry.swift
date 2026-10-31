@@ -13,6 +13,7 @@
 import Carbon.HIToolbox
 import Cocoa
 import Combine
+import ThawUI
 
 /// Global hotkeys through Carbon, which needs no Accessibility permission.
 final class HotkeyRegistry {

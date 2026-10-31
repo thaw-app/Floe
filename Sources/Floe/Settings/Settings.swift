@@ -8,6 +8,7 @@
 import Combine
 import Foundation
 import SwiftUI
+import ThawUI
 
 /// Launcher-wide settings, persisted as one JSON blob in UserDefaults.
 final class AppSettings: ObservableObject {

@@ -8,6 +8,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import ThawUI
 
 /// What the launcher can be asked to show or do from outside its window: the hotkeys, the menu bar icon, App Intents
 /// and links.
