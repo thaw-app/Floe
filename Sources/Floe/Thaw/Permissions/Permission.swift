@@ -68,6 +68,11 @@ class Permission: Identifiable {
     /// The URL of the settings pane to open.
     private let settingsURL: URL?
 
+    /// Whether there is a System Settings pane to send the user to after a declined prompt.
+    var hasSettingsPane: Bool {
+        settingsURL != nil
+    }
+
     /// The function that checks permissions.
     private let check: () -> Bool
 
