@@ -37,7 +37,7 @@ nonisolated struct FileResult: Identifiable, Equatable, Sendable {
         if let inside = pathInsideICloudDrive(path, home: home) {
             return iCloudDriveName + inside
         }
-        return path.hasPrefix(home) ? "~" + path.dropFirst(home.count) : path
+        return path == home || path.hasPrefix(home + "/") ? "~" + path.dropFirst(home.count) : path
     }
 
     private static var iCloudDriveName: String {

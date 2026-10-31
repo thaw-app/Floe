@@ -571,6 +571,13 @@ struct FileSearchIndexTests {
         #expect(FileResult.displayPath(of: copy, home: home) == "~/Backups/Library/Mobile Documents/com~apple~CloudDocs")
     }
 
+    @Test func onlyTheHomeFolderItselfBecomesATilde() {
+        let home = "/Users/someone"
+        #expect(FileResult.displayPath(of: home, home: home) == "~")
+        #expect(FileResult.displayPath(of: home + "/Notes", home: home) == "~/Notes")
+        #expect(FileResult.displayPath(of: "/Users/someone-else/Notes", home: home) == "/Users/someone-else/Notes")
+    }
+
     @Test func theStatesOfTwoIndexesReadAsOne() {
         let ready = FileIndexService.State.ready(names: 2, bytes: 10)
         #expect(ready.joined(with: .ready(names: 3, bytes: 5)) == .ready(names: 5, bytes: 15))
