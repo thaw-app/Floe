@@ -130,6 +130,45 @@ permission state and the settings search index); views, the process, the Keychai
 from coverage in `sonar-project.properties`, which also states the rule. New decision logic belongs in a
 measured file with a suite beside it.
 
+`Fuzzing` holds a libFuzzer harness for `IncomingLink`, the code that reads links from other apps. It needs Linux, so
+`.github/workflows/fuzz.yml` runs it nightly, and a failed run keeps the input that caused it. On a Mac, replay its corpus:
+
+    swift build --package-path Fuzzing -c release -Xswiftc -DFUZZ_REPLAY
+    ./Fuzzing/.build/release/FuzzIncomingLink Fuzzing/Corpus/IncomingLink
+
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `development` and `main`. When code-related paths
+changed, `lint` runs SwiftLint and `build` builds the app, then runs the selftest, the memory budget, the signing script
+tests and the Swift and runtime suites with coverage. A change to other paths skips those steps and still reports both
+checks. `development` requires them to pass before a merge.
+
+## Dependencies
+
+Check what Swift and Apple already provide before adding a dependency. Propose a new one in its issue or pull request,
+say what it replaces, and run `scripts/generate-credits.py` after the change.
+
+| Kind | Declared in | Locked in | Obtained with |
+| --- | --- | --- | --- |
+| Swift packages | `Package.swift`, `project.yml` | `Package.resolved` and the copy in `Floe.xcodeproj` | Swift Package Manager |
+| Extension runtime | `runtime/package.json` | `runtime/bun.lock` | `bun install --frozen-lockfile --ignore-scripts` |
+| File index | `Vendor/FloeRust/rust/Cargo.toml` | `Vendor/FloeRust/rust/Cargo.lock` | Cargo |
+| ThawUI | `Vendor/ThawUI/UPSTREAM` | The commit named there | A copy from Thaw, never edited by hand |
+| GitHub Actions | `.github/workflows` | The commit each `uses:` names | The runner |
+
+`dependency-sca.yml` scans the lockfiles with OSV-Scanner on every pull request and once a week. Dependabot updates
+GitHub Actions weekly and opens security updates; `dependabot.yml` says why it doesn't update Swift and Bun packages yet.
+
+## Security findings
+
+The [Security Policy](https://github.com/thaw-app/.github/blob/main/.github/SECURITY.md#dependency-findings) sets the limit
+for dependency findings: every finding is resolved before merge unless it has a suppression with a reason and an expiry.
+
+SonarCloud's quality gate sets the limit for static analysis of a pull request: new code needs 80% test coverage and no new
+bugs, vulnerabilities, code smells or duplicated code. The required `sonarqube` job fails when the gate does. CodeQL runs
+weekly, and its limit is any error or any security alert of high severity or above.
+
+A finding over a limit is fixed before merge, or before the next release for a CodeQL alert, unless a maintainer marks it
+a false positive or an accepted risk and says why.
+
 ## Localization
 
 Every piece of interface text Floe writes is in one String Catalog, `Sources/Floe/Resources/Localizable.xcstrings`.
@@ -208,7 +247,8 @@ Floe updates itself with [Sparkle](https://sparkle-project.org), the same way Th
   General has no "Automatically check for updates" switch. The rules are in `App/UpdateLogic.swift`.
 - With a key, the first time Settings opens a sheet asks whether to check automatically. Sparkle does
   nothing before that answer except a check the user starts.
-- `.github/workflows/release.yml` builds an existing tag, notarizes it, zips the app, signs an appcast
+- `.github/workflows/release.yml` builds an existing tag and notarizes it in org-ci's
+  `build-macos-app.yml`, which attests the result (SLSA v1.0 Build L3), zips the app, signs an appcast
   item for it with the `SPARKLE_ED25519_PRIVATE_KEY` secret (`prod` environment), attaches the ZIP to the
   GitHub Release beside the DMG, and pushes `appcast.xml` to `gh-pages` after the release is published.
   A tag whose Info.plist has no key skips the Sparkle steps and ships the DMG alone.
@@ -228,12 +268,17 @@ Each release:
 1. Raise `CFBundleShortVersionString` and `CFBundleVersion` in `project.yml` (and `sonar.projectVersion`),
    run `xcodegen generate`, commit. Sparkle orders builds by `CFBundleVersion`, a whole number that must go
    up every time; the workflow stops if it does not.
-2. Tag the commit with the version (`0.2.0`, or `0.2.0-beta.1` for the beta channel) and push the tag.
+2. Tag the commit with the version (`0.2.0`, or `0.2.0-beta.1` for the beta channel) using a signed tag,
+   `git tag -s 0.2.0 -m "Floe 0.2.0"`, and push the tag.
 3. `./scripts/release.sh` picks the tag and dispatches the workflow. Try a dry run first: it builds and
    reports the appcast diff and publishes nothing.
 
 Pushing the appcast needs "Publish release" checked, because the appcast links to the release's ZIP. The
 Sparkle tools version in `release.yml` (`sparkle-version` and its checksum) must match `Package.resolved`.
+
+The workflow has to run on the tag, because the provenance names the commit a run was dispatched from; `release.sh`
+does that. The shared build runs `scripts/prepare-release-build.sh` first, for Floe's Bun and Rust. To check a download,
+see [Verifying releases](VERIFYING_RELEASES.md).
 
 To rehearse an update with a Debug build, serve an appcast locally and point the build at it:
 `defaults write org.thaw.floe FloeDebugFeedURL http://localhost:8000/appcast.xml`. Release builds
@@ -377,7 +422,7 @@ To ship sync, in this order. Each step says where it comes from: (code) read in 
    `com.apple.developer.icloud-services`, `com.apple.developer.aps-environment` and
    `com.apple.developer.ubiquity-kvstore-identifier`. (memory, not run here: there is no profile on this Mac)
 4. Replace the secret in the `prod` environment:
-   `base64 -i Floe_Developer_ID.provisionprofile | gh secret set APPLE_PROVISIONING_PROFILE --env prod`.
+   `base64 -i Floe_Developer_ID.provisionprofile | gh secret set PROVISIONING_PROFILE --env prod`.
    Do this before a release is built from a commit whose `Floe-iCloud.entitlements` names the container. (code,
    for the secret's name and where the workflows read it)
 5. Put the record type in the production schema. CloudKit has two environments for every container. In
@@ -405,11 +450,12 @@ To ship sync, in this order. Each step says where it comes from: (code) read in 
    profile as the defaults. On the target and not on the command line, where they would reach the package
    targets too. org-ci's `configure-signing` installs the profile and outputs its name, `build` takes extra build
    settings, and `export-and-package` names the profile for a bundle identifier. (code)
-7. `release.yml` and `build-dmg.yml` pass the secret to `configure-signing`, pass
-   `FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements` and `FLOE_PROFILE` to the build when a profile was
-   installed, and check the exported app before it is notarized ("Verify iCloud signing"): the profile is inside,
-   and the app carries the key-value store, the container and the Production environment. Without the secret
-   they sign as before, with no iCloud at all. (code)
+7. `release.yml` and `build-dmg.yml` get the secret to `configure-signing`, pass
+   `FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements` and `FLOE_PROFILE` to the build, and check the exported
+   app ("Verify iCloud signing"): the profile is inside, and the app carries the key-value store, the container and
+   the Production environment. `release.yml` reaches org-ci's build through `secrets: inherit`, which matches the
+   secret by name, and names the profile itself, so a release without the secret fails. `build-dmg.yml` passes these
+   only when a profile was installed; without the secret it signs as before, with no iCloud at all. (code)
 8. Before publishing, check the exported app yourself: `codesign -d --entitlements - Floe.app` shows
    `com.apple.developer.ubiquity-kvstore-identifier` with the team id in front,
    `com.apple.developer.icloud-container-identifiers` with `iCloud.org.thaw.floe`,

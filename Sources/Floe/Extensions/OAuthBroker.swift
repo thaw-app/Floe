@@ -201,23 +201,13 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     /// Answers the waiting sign-in whose state the callback carries; anything else is ignored.
     /// Raycast's page names every extension "Extension", so the state alone says whose sign-in it is.
     func complete(url: URL) {
-        guard Self.isCallback(url), let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems, let state = items.first(where: { $0.name == "state" })?.value
-        else { return }
+        guard let state = IncomingLink.oauthState(of: url) else { return }
         let entry = pending.withLock { pending in
             pending.first { $0.value.state == state }.flatMap { pending.removeValue(forKey: $0.key) }
         }
         guard let entry else { return }
         entry.timeout.cancel()
         entry.resume(.success(url.absoluteString))
-    }
-
-    /// `floe://oauth` from Raycast's page, or one of the app return addresses an extension's OAuth app names.
-    static func isCallback(_ url: URL) -> Bool {
-        switch url.scheme?.lowercased() {
-        case "floe", "raycast": url.host?.lowercased() == "oauth"
-        case "com.raycast": url.host == nil && url.path.lowercased() == "/oauth"
-        default: false
-        }
     }
 
     // MARK: Token storage

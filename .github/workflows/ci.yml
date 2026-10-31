@@ -2,12 +2,13 @@ name: CI
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
-# Runs on every PR and push to main so Scorecard sees checks; the macOS work
-# stays gated on path detection below.
+# Runs on every PR and push to development or main so Scorecard sees checks; the
+# macOS work stays gated on path detection below.
 on:
   pull_request:
   push:
     branches:
+      - development
       - main
   workflow_dispatch:
 

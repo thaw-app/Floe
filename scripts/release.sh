@@ -67,7 +67,9 @@ cat <<SUMMARY
 SUMMARY
 ask "Dispatch?" n || { echo "aborted"; exit 1; }
 
-gh workflow run "$WORKFLOW" --repo "$REPO" \
+# Run on the tag: the provenance names the commit the run was dispatched from, and
+# the build refuses any other.
+gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$tag" \
     -f tag="$tag" \
     -f channel=auto \
     -f dry_run="$dry_run" \
