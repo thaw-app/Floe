@@ -8,6 +8,7 @@
 import Algorithms
 import AppKit
 import SwiftUI
+import ThawUI
 
 /// One row of an Actions menu. In a list of them, nil is a separator.
 struct ItemAction {
@@ -96,7 +97,7 @@ enum ActionsMenu {
                 menu.addItem(.separator())
                 continue
             }
-            let item = ClosureMenuItem(title: action.title, handler: action.run)
+            let item = ClosureMenuItem(title: action.title) { action.run() }
             item.image = action.icon ?? NSImage(systemSymbolName: action.symbol, accessibilityDescription: nil)
             if !action.children.isEmpty {
                 item.submenu = Self.menu(action.children)

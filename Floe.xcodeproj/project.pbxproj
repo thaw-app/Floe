@@ -333,7 +333,6 @@
 		C9BAEA1DB299E5B8BD25CDDC /* ShellCommandsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9E988DE65E609D0E3B8F836 /* ShellCommandsSettingsSection.swift */; };
 		CA6F48A770106DB4DD682E37 /* SettingsStores.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA1420E83E4D30EBC897A57 /* SettingsStores.swift */; };
 		CABB2AAE0CB58A33DCC1A8A0 /* LauncherLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AB9468971A521D2FC58DD1 /* LauncherLayout.swift */; };
-		CB8BBF3B5967B5F3B2C2CD1E /* ClosureMenuItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 423C85EF13EF66A3E4D93BB5 /* ClosureMenuItem.swift */; };
 		CB95D1A1C45DFF7DDFC766A8 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5254060A4A42F0A46B71A696 /* Keychain.swift */; };
 		CBBD95A624BFDE78DABFFCB8 /* LauncherWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57AF924655AAF233FC7A5A80 /* LauncherWindow.swift */; };
 		CBC030F783199B84520121FB /* Session+ViewState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51226851C7C1D26C1042050 /* Session+ViewState.swift */; };
@@ -539,7 +538,6 @@
 		3EA1420E83E4D30EBC897A57 /* SettingsStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStores.swift; sourceTree = "<group>"; };
 		3EA18EB6B58207A689ABA635 /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 		3F4985D458BAC986B45EABD6 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
-		423C85EF13EF66A3E4D93BB5 /* ClosureMenuItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClosureMenuItem.swift; sourceTree = "<group>"; };
 		4350774BAFE25F278DF643A7 /* MainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenu.swift; sourceTree = "<group>"; };
 		43B92AFF31F28A7B38B57533 /* Model+Clipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Clipboard.swift"; sourceTree = "<group>"; };
 		4414ABADC645ACDA3F864887 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
@@ -889,7 +887,6 @@
 				6B942B1258CCEA93E33E843A /* Permissions */,
 				79F4235F4E4CD84C8596CAA1 /* SettingsSearch */,
 				29EA81798FB7E5CDC5110068 /* AppInfo.swift */,
-				423C85EF13EF66A3E4D93BB5 /* ClosureMenuItem.swift */,
 				005087DC701DB4768699889F /* DiagnosticLogger.swift */,
 				BA3272ED81F830F1F9F8AFB0 /* FloeAboutPane.swift */,
 				8AE33B90505045A8A2B0BEA4 /* FloeIntents.swift */,
@@ -1702,7 +1699,6 @@
 				CC340248BD0EC94E06B8B032 /* ClipboardPasteboard.swift in Sources */,
 				7ACACBE38F00956CD7375599 /* ClipboardSearchScope.swift in Sources */,
 				494DC747D7CDE4399F9BE43D /* ClipboardWatcher.swift in Sources */,
-				CB8BBF3B5967B5F3B2C2CD1E /* ClosureMenuItem.swift in Sources */,
 				E72EDDBCB4FB0BD7F431883B /* CloudKitSyncStore.swift in Sources */,
 				3CE88794EBC28CE1D07768F3 /* CloudSyncEvents.swift in Sources */,
 				405E1D08FF1A978391E412C2 /* CloudSyncMirror.swift in Sources */,
