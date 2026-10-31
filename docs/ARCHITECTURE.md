@@ -107,9 +107,9 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     to Floe's history; `records` is the one place that says whether copies are saved (the role is Floe and the
     switch is on). An app whose history opens from a link goes in `ClipboardApps.links`, with a link confirmed from
     the installed copy.
-- `Sources/Floe/Thaw`: code ported from Thaw: hotkeys (key codes, Carbon registry, recorder), the HUD, the About page,
-  onboarding and permissions, settings search, the Sparkle updater with its consent sheet, and the App Intents that
-  Shortcuts and Spotlight use (`FloeIntents.swift`).
+- `Sources/Floe/Thaw`: code ported from Thaw that stays Floe's: the Carbon hotkey registry, onboarding's steps and the
+  permission model, settings search's index and ranking, the Sparkle updater, and the App Intents that Shortcuts and
+  Spotlight use (`FloeIntents.swift`). The views they draw through are in `Vendor/ThawUI`.
 - `Sources/Floe/DroppyCode`: code ported from Droppy Code. Each file keeps Droppy Code's copyright and credit line
   and says what Floe changed; `LICENSES` holds its license and third-party notices.
   - `LoginEnvironment.swift` reads the login shell's environment, which extensions start with, and `Shell.swift` runs
@@ -126,7 +126,7 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     command when a file under its extension's `src/` or `assets/`, or its `package.json`, is saved. Only local
     extensions with a `src/` folder are watched, never the ones Raycast installed.
 - `CREDITS.md` and `Sources/Floe/App/Credits.swift` are written by `scripts/generate-credits.py`; run it after changing a dependency.
-- `Vendor/ThawUI`: design system copied from thaw-app/Thaw (commit in `Vendor/ThawUI/UPSTREAM`).
+- `Vendor/ThawUI`: the controls, styles and shared pages Thaw and Floe both use, copied from the ThawUI package until it is published (commit in `Vendor/ThawUI/UPSTREAM`). ThawUI holds no text of its own; `Thaw/ThawUIWords*.swift` gives it Floe's.
 - `Fuzzing`: the fuzzing harness and its corpus, a package of its own. `.github/workflows/fuzz.yml` runs it nightly and on any change to it.
 
 The security reasoning is in the [assurance case](ASSURANCE_CASE.md), and what Floe exposes to or asks of the outside is in [External interfaces](INTERFACES.md).
