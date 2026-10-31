@@ -14,7 +14,7 @@ struct DiagnosticsSettingsSection: View {
     @State private var logFileName: String?
 
     var body: some View {
-        ThawSection(.floe("Diagnostics")) {
+        ThawSection("Diagnostics") {
             Toggle(isOn: $settings.diagnosticLogging) {
                 Text("Detailed logging")
                 Text("Writes launch times, slow searches and failures to ~/Library/Logs/Floe. Never what you type or ask.")

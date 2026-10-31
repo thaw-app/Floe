@@ -5,25 +5,37 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
 @testable import Floe
 import Foundation
 import SwiftUI
 import Testing
 import ThawUI
 
-extension LocalizedStringResource {
-    /// Whether it reads Floe's catalog, not the main bundle a resource with no bundle reads.
-    var namesFloesBundle: Bool {
-        if case let .atURL(url) = bundle {
-            return url == Bundle.floe.bundleURL
+private nonisolated let repositoryRoot = URL(filePath: #filePath)
+    .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+
+/// The keys a sync has written into the String Catalog.
+private nonisolated let catalogKeys: Set<String> = {
+    let url = repositoryRoot.appending(path: "Sources/Floe/Resources/Localizable.xcstrings")
+    guard let data = try? Data(contentsOf: url), let catalog = try? JSONSerialization.jsonObject(with: data) as? [String: Any], let keys = catalog["strings"] as? [String: Any]
+    else { return [] }
+    return Set(keys.keys)
+}()
+
+nonisolated extension LocalizedStringResource {
+    /// Whether Floe's catalog has its text: it names the bundle, or its key is one the compiler found, which the
+    /// main bundle holds in an Xcode build.
+    var readsFloesCatalog: Bool {
+        if case let .atURL(url) = bundle, url == Bundle.floe.bundleURL {
+            return true
         }
-        return false
+        return catalogKeys.contains(key)
     }
 }
 
-/// A bare literal handed to ThawUI compiles and reads the main bundle, which is not where a `swift build` keeps Floe's
-/// catalog, so neither the compiler nor a review sees it. These hold every call to Floe's bundle: the words Floe gives
-/// by value, and over the source, the literals at the call sites.
+/// A literal handed to ThawUI reads the main bundle, which holds Floe's catalog in an Xcode build, so what can go
+/// wrong is a key the catalog doesn't have. These hold the words Floe gives by value, and the literals at the call sites.
 struct ThawUIStringsGuardTests {
     /// Every resource directly inside a value, by reflection, so a field added later is covered.
     private static func resources(in value: Any) -> [(name: String, resource: LocalizedStringResource)] {
@@ -42,17 +54,17 @@ struct ThawUIStringsGuardTests {
         ("AcknowledgementsStrings", AcknowledgementsStrings.floe),
     ]
 
-    @Test func everyWordGivenToThawUINamesFloesBundle() {
+    @Test func everyWordGivenToThawUIReadsFloesCatalog() {
         for (set, value) in Self.wordSets {
             let found = Self.resources(in: value)
             #expect(!found.isEmpty, "\(set) has no resources to check")
             for (name, resource) in found {
-                #expect(resource.namesFloesBundle, "\(set).\(name) reads \(resource.bundle)")
+                #expect(resource.readsFloesCatalog, "\(set).\(name) has the key \(resource.key)")
             }
         }
     }
 
-    @Test func wordsMadeFromAValueNameFloesBundleToo() {
+    @Test func wordsMadeFromAValueReadFloesCatalogToo() {
         let made: [LocalizedStringResource] = [
             WhatsNewStrings.floe.releaseTitle("1.0"),
             WhatsNewStrings.floe.releaseTitle("Unreleased"),
@@ -65,18 +77,12 @@ struct ThawUIStringsGuardTests {
             AboutUpdateStrings.floe.automaticUpdatesName(.check),
             AboutUpdateStrings.floe.automaticUpdatesShortName(.check),
         ]
-        #expect(made.filter { !$0.namesFloesBundle }.isEmpty)
+        #expect(made.filter { !$0.readsFloesCatalog }.isEmpty)
     }
 
-    @Test func tabTitlesNameFloesBundle() {
+    @Test func tabTitlesReadFloesCatalog() {
         let titles = PrivacyTab.allCases.map(\.title)
-        #expect(titles.filter { !$0.namesFloesBundle }.isEmpty)
-    }
-
-    /// The catalog's plural form is only reachable by actually finding the catalog: English keeps the key otherwise.
-    @Test func aResourceFromTheHelperReadsTheCatalog() {
-        #expect(String(localized: LocalizedStringResource.floe("\(1) results")) == "1 result")
-        #expect(String(localized: LocalizedStringResource.floe("\(2) results")) == "2 results")
+        #expect(titles.filter { !$0.readsFloesCatalog }.isEmpty)
     }
 
     @Test func aResourceFromTheInitializerReadsItsOwnEnglish() {
@@ -103,14 +109,11 @@ nonisolated struct ThawUIStringsSourceGuardTests {
     /// Parameters that take a name rather than text.
     private static let nonText = ["systemImage:", "symbol:", "image:"]
 
-    private static let root = URL(filePath: #filePath)
-        .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-
     private static func sources() throws -> [(path: String, text: String)] {
-        let folder = root.appending(path: "Sources/Floe")
+        let folder = repositoryRoot.appending(path: "Sources/Floe")
         let files = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil)?.compactMap { $0 as? URL } ?? []
         return try files.filter { $0.pathExtension == "swift" }.map {
-            try ($0.path().replacingOccurrences(of: root.path(), with: ""), String(contentsOf: $0, encoding: .utf8))
+            try ($0.path().replacingOccurrences(of: repositoryRoot.path(), with: ""), String(contentsOf: $0, encoding: .utf8))
         }
     }
 
@@ -152,7 +155,7 @@ nonisolated struct ThawUIStringsSourceGuardTests {
     }
 
     /// The bare string literals among a call's own arguments, leaving out its closures and anything already wrapped
-    /// in a call of its own, such as `.floe(…)`.
+    /// in a call of its own, such as `.verbatim(…)`.
     static func bareLiterals(inCallOpeningAt open: Int, of text: [UInt8]) -> [String] {
         var found: [String] = []
         var index = open + 1
@@ -223,19 +226,30 @@ nonisolated struct ThawUIStringsSourceGuardTests {
     @Test func theScanFindsABareLiteralAndLeavesTheRest() {
         #expect(Self.bareLiterals(in: #"ThawSection("Bare") { Text("Inside") }"#) == [#""Bare""#])
         #expect(Self.bareLiterals(in: #"ThawEmptyState(systemImage: "doc", title: "No \(thing("x"))")"#) == [#""No \(thing("x"))""#])
-        #expect(Self.bareLiterals(in: #"ThawBadge(.floe("Fine"), tone: .neutral)"#).isEmpty)
+        #expect(Self.bareLiterals(in: #"ThawBadge(.verbatim("Fine"), tone: .neutral)"#).isEmpty)
         #expect(Self.bareLiterals(in: #"ThawBadge(flag ? "One" : "Two")"#).count == 2)
     }
 
-    @Test func noCallToThawUIHandsItABareLiteral() throws {
+    /// The compiler must find what a call gives ThawUI, or a translator never sees it. The catalog is what a sync wrote.
+    @Test func everyLiteralGivenToThawUIIsInTheCatalog() throws {
         let sources = try Self.sources()
-        // A moved folder would otherwise scan nothing and pass.
+        // A moved folder or renamed views would otherwise scan nothing and pass.
         #expect(sources.count > 100)
-        var violations: [String] = []
+        var scanned = 0
+        var missing: [String] = []
         for (path, text) in sources {
-            violations += Self.bareLiterals(in: text).map { "\(path): \($0)" }
+            for literal in Self.bareLiterals(in: text) {
+                scanned += 1
+                // An interpolated key has placeholders only the compiler can spell.
+                guard !literal.contains("\\(") else { continue }
+                let key = String(literal.dropFirst().dropLast()).replacingOccurrences(of: "\\\"", with: "\"")
+                if !catalogKeys.contains(key) {
+                    missing.append("\(path): \(key)")
+                }
+            }
         }
-        #expect(violations.isEmpty, "Name Floe's bundle with .floe(…) or .verbatim(…): \(violations.joined(separator: ", "))")
+        #expect(scanned > 80, "Only \(scanned) literals found")
+        #expect(missing.isEmpty, "Run ./scripts/sync-strings.sh: \(missing.joined(separator: ", "))")
     }
 
     @Test func aResourceWrittenOutNamesTheBundle() throws {
@@ -245,25 +259,5 @@ nonisolated struct ThawUIStringsSourceGuardTests {
                 #expect(line.contains("bundle: .floe") || text.contains("bundle: .floe,"), "\(path): \(line)")
             }
         }
-    }
-
-    /// The compiler must find what the helper wraps, or a translator never sees it. The catalog is what a sync wrote.
-    @Test func everyKeyGivenToTheHelperIsInTheCatalog() throws {
-        let catalogURL = Self.root.appending(path: "Sources/Floe/Resources/Localizable.xcstrings")
-        let catalog = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: catalogURL)) as? [String: Any])
-        let keys = try #require(catalog["strings"] as? [String: Any])
-        var missing: [String] = []
-        for (path, text) in try Self.sources() {
-            for match in text.matches(of: /\.floe\("((?:[^"\\]|\\.)*)"\)/) {
-                let raw = String(match.output.1)
-                // An interpolated key has placeholders only the compiler can spell.
-                guard !raw.contains("\\(") else { continue }
-                let key = raw.replacingOccurrences(of: "\\\"", with: "\"")
-                if keys[key] == nil {
-                    missing.append("\(path): \(key)")
-                }
-            }
-        }
-        #expect(missing.isEmpty, "Run ./scripts/sync-strings.sh: \(missing.joined(separator: ", "))")
     }
 }

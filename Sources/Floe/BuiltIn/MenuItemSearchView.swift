@@ -41,30 +41,30 @@ struct MenuItemSearchView: View {
         if !search.accessGranted {
             ThawEmptyState(
                 systemImage: "hand.raised",
-                title: .floe("Accessibility is off"),
-                caption: .floe("Floe needs Accessibility to read the menus of the app in front."),
-                actionTitle: .floe("Grant Access"),
+                title: "Accessibility is off",
+                caption: "Floe needs Accessibility to read the menus of the app in front.",
+                actionTitle: "Grant Access",
                 action: { search.requestAccess() }
             )
         } else if search.target == nil {
             ThawEmptyState(
                 systemImage: "filemenu.and.selection",
-                title: .floe("No app in front"),
-                caption: .floe("Open the launcher from an app to search its menus.")
+                title: "No app in front",
+                caption: "Open the launcher from an app to search its menus."
             )
         } else if search.isScanning, search.results.isEmpty {
-            ThawEmptyState(systemImage: "filemenu.and.selection", title: .floe("Reading the menus…"), isLoading: true)
+            ThawEmptyState(systemImage: "filemenu.and.selection", title: "Reading the menus…", isLoading: true)
         } else if hasQuery, search.results.isEmpty {
             ThawEmptyState(
                 systemImage: "magnifyingglass",
-                title: .floe("No menu items match"),
-                caption: .floe("Try part of the command's name or the menu it is in.")
+                title: "No menu items match",
+                caption: "Try part of the command's name or the menu it is in."
             )
         } else if search.results.isEmpty {
             ThawEmptyState(
                 systemImage: "filemenu.and.selection",
-                title: .floe("No menu items found"),
-                caption: .floe("This app has no menu commands Floe can choose.")
+                title: "No menu items found",
+                caption: "This app has no menu commands Floe can choose."
             )
         } else {
             rows

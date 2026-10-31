@@ -13,7 +13,7 @@ struct BuiltInCommandsSection: View {
     @ObservedObject var settings: AppSettings
 
     var body: some View {
-        ThawSection(.floe("Built-in Commands")) {
+        ThawSection("Built-in Commands") {
             ForEach(LauncherModel.hotkeyViews, id: \.id) { item in
                 row(for: item)
             }
@@ -22,7 +22,7 @@ struct BuiltInCommandsSection: View {
                     row(for: .system(command))
                 }
             }
-            ThawPicker(.floe("Emoji skin tone"), selection: $settings.emojiSkinTone) {
+            ThawPicker("Emoji skin tone", selection: $settings.emojiSkinTone) {
                 ForEach(EmojiSkinTone.allCases) { tone in
                     Text(verbatim: tone.applied(to: "\u{1F44B}") + " " + tone.label).tag(tone)
                 }

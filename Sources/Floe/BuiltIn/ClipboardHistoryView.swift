@@ -39,22 +39,22 @@ struct ClipboardHistoryView: View {
         if !settings.clipboardHistoryEnabled {
             ThawEmptyState(
                 systemImage: "doc.on.clipboard",
-                title: .floe("Clipboard history is off"),
-                caption: .floe("Choose Floe for Clipboard in Settings → Applications to keep copies here.")
+                title: "Clipboard history is off",
+                caption: "Choose Floe for Clipboard in Settings → Applications to keep copies here."
             )
         } else {
             let entries = clipboard.filteredEntries()
             if history.entries.isEmpty {
                 ThawEmptyState(
                     systemImage: "doc.on.clipboard",
-                    title: .floe("Nothing copied yet"),
-                    caption: .floe("Copies you make show up here.")
+                    title: "Nothing copied yet",
+                    caption: "Copies you make show up here."
                 )
             } else if entries.isEmpty {
                 ThawEmptyState(
                     systemImage: "magnifyingglass",
-                    title: .floe("No copies match"),
-                    caption: .floe("Try part of the copied text, link or app name.")
+                    title: "No copies match",
+                    caption: "Try part of the copied text, link or app name."
                 )
             } else {
                 HStack(spacing: 0) {
@@ -151,7 +151,7 @@ struct ClipboardHistoryView: View {
                 imagePreview = (entry.id, preview)
             }
         } else {
-            ThawEmptyState(systemImage: "doc.on.clipboard", title: .floe("Select a copy to preview it"))
+            ThawEmptyState(systemImage: "doc.on.clipboard", title: "Select a copy to preview it")
         }
     }
 

@@ -40,11 +40,11 @@ private struct FloeSettingsSearchField: ViewModifier {
                 text: $search.searchText,
                 placement: .sidebar,
                 prompt: LocalizedStringResource("Search settings", bundle: .floe, comment: "The placeholder of the search field in the settings sidebar."),
-                findLabel: .floe("Find"),
+                findLabel: "Find",
                 keyboard: SettingsSearchKeyboard(
                     isSearching: search.isSearching,
-                    previousLabel: .floe("Previous Result"),
-                    nextLabel: .floe("Next Result"),
+                    previousLabel: "Previous Result",
+                    nextLabel: "Next Result",
                     move: { search.moveHighlight(by: $0) },
                     submit: {
                         // Return opens the result the arrows are on, the first until they move.
@@ -154,9 +154,9 @@ struct SearchEmptyView: View {
     var body: some View {
         NoMatchesState(
             query: query,
-            title: { .floe("No settings match “\($0)”") },
-            emptyQueryTitle: .floe("No settings found"),
-            caption: .floe("Try a shorter or broader term.")
+            title: { "No settings match “\($0)”" },
+            emptyQueryTitle: "No settings found",
+            caption: "Try a shorter or broader term."
         )
     }
 }

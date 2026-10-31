@@ -23,7 +23,7 @@ struct MenuBarCommandsSettingsSection: View {
     var body: some View {
         let commands = commands
         if !commands.isEmpty {
-            ThawSection(.floe("Menu Bar Commands")) {
+            ThawSection("Menu Bar Commands") {
                 ForEach(commands, id: \.id) { command in
                     let needsSetup = !PreferenceStore.missingRequired(for: command).isEmpty
                     Toggle(isOn: binding(for: command)) {

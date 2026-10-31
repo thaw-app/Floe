@@ -44,18 +44,18 @@ struct FloeAboutPane: View {
     /// a build does not have, as under `swift run`, leaves its entry out.
     static func moreMenu(link: (String) -> URL?) -> [[AboutMenuItem]] {
         let community = [
-            link("discord").map { AboutMenuItem(.floe("Join the Discord"), systemImage: "bubble.left.and.bubble.right", url: $0) },
-            link("raycastExtensions").map { AboutMenuItem(.floe("Raycast Extension Store"), systemImage: "storefront", url: $0) },
+            link("discord").map { AboutMenuItem("Join the Discord", systemImage: "bubble.left.and.bubble.right", url: $0) },
+            link("raycastExtensions").map { AboutMenuItem("Raycast Extension Store", systemImage: "storefront", url: $0) },
         ]
         return [
             [
-                AboutMenuItem(.floe("Extensions Folder"), systemImage: "puzzlepiece.extension") {
+                AboutMenuItem("Extensions Folder", systemImage: "puzzlepiece.extension") {
                     NSWorkspace.shared.activateFileViewerSelecting([Paths.extensions])
                 },
-                AboutMenuItem(.floe("Data Folder"), systemImage: "folder") {
+                AboutMenuItem("Data Folder", systemImage: "folder") {
                     NSWorkspace.shared.activateFileViewerSelecting([Paths.data])
                 },
-                AboutMenuItem(.floe("Raycast Extensions Folder"), systemImage: "folder.badge.gearshape") {
+                AboutMenuItem("Raycast Extensions Folder", systemImage: "folder.badge.gearshape") {
                     NSWorkspace.shared.activateFileViewerSelecting([Paths.raycastExtensions])
                 },
             ],

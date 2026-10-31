@@ -14,7 +14,7 @@ struct PreferredAppsSettingsSection: View {
     var installed = AppLookup.system
 
     var body: some View {
-        ThawSection(.floe("Preferred Apps")) {
+        ThawSection("Preferred Apps") {
             PreferredAppPicker(role: .terminal, choice: $settings.terminalApp, installed: installed)
             PreferredAppPicker(role: .editor, choice: $settings.editorApp, installed: installed)
             PreferredAppPicker(role: .browser, choice: $settings.browserApp, installed: installed)

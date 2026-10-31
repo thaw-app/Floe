@@ -10,16 +10,16 @@ import ThawUI
 
 nonisolated extension HotkeyRecorderStrings {
     static let floe = HotkeyRecorderStrings(
-        typeShortcut: .floe("Type Shortcut"),
-        recordShortcut: .floe("Record Shortcut"),
+        typeShortcut: "Type Shortcut",
+        recordShortcut: "Record Shortcut",
         cancel: LocalizedStringResource("Cancel", bundle: .floe, comment: "A button that stops what is under way, such as recording a keyboard shortcut."),
         // Its own key: the glass style named Clear is another word in most languages.
         clear: LocalizedStringResource("Clear Shortcut", defaultValue: "Clear", bundle: .floe, comment: "Spoken for the button that removes a keyboard shortcut."),
         record: LocalizedStringResource("Record", bundle: .floe, comment: "Spoken for the button that starts recording a keyboard shortcut."),
         spaceKey: LocalizedStringResource("Space", bundle: .floe, comment: "The name of the space bar in a keyboard shortcut."),
-        reservedTitle: .floe("macOS already uses this shortcut"),
-        reservedMessage: .floe("Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts."),
-        chooseAnother: .floe("Choose Another")
+        reservedTitle: "macOS already uses this shortcut",
+        reservedMessage: "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts.",
+        chooseAnother: "Choose Another"
     )
 }
 

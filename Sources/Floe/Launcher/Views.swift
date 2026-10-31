@@ -161,7 +161,7 @@ struct RootView: View {
                 ThawEmptyState(
                     systemImage: "magnifyingglass",
                     title: .verbatim(model.activeScope?.scope.emptyTitle ?? String(localized: "Nothing matches", bundle: .floe)),
-                    caption: model.activeScope == nil ? .floe("Try part of an app's or a command's name, or an alias.") : nil
+                    caption: model.activeScope == nil ? "Try part of an app's or a command's name, or an alias." : nil
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {

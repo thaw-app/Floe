@@ -29,7 +29,7 @@ struct AISettingsSection: View {
     }
 
     var body: some View {
-        ThawSection(.floe("AI")) {
+        ThawSection("AI") {
             ThawPicker(selection: $settings.aiSource) {
                 Text("A command line tool you are signed in to").tag(AISource.tools)
                 Text("An OpenAI-compatible API").tag(AISource.api)
@@ -53,7 +53,7 @@ struct AISettingsSection: View {
                     }
                 }
             case .api:
-                ThawPicker(.floe("Service"), selection: $service) {
+                ThawPicker("Service", selection: $service) {
                     ForEach(AIService.allCases) { service in
                         Text(service.title).tag(service)
                     }

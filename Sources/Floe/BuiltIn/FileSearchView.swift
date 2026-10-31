@@ -35,18 +35,18 @@ struct FileSearchView: View {
     private var content: some View {
         let results = spotlight.results
         if spotlight.isSearching, results.isEmpty {
-            ThawEmptyState(systemImage: "doc", title: .floe("Searching files…"), isLoading: true)
+            ThawEmptyState(systemImage: "doc", title: "Searching files…", isLoading: true)
         } else if results.isEmpty, search.query.isEmpty {
             ThawEmptyState(
                 systemImage: "doc",
-                title: .floe("No recent files"),
-                caption: .floe("Files you open will show up here.")
+                title: "No recent files",
+                caption: "Files you open will show up here."
             )
         } else if results.isEmpty {
             ThawEmptyState(
                 systemImage: "magnifyingglass",
-                title: .floe("No files match"),
-                caption: .floe("Try part of a file's name.")
+                title: "No files match",
+                caption: "Try part of a file's name."
             )
         } else {
             HStack(spacing: 0) {

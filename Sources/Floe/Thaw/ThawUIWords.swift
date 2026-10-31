@@ -9,8 +9,8 @@ import AppKit
 import SwiftUI
 import ThawUI
 
-// ThawUI holds no text of its own. These give it Floe's words, each naming Floe's bundle: a bare literal compiles and
-// reads the main bundle instead. ThawUIStringsGuardTests holds every call to ThawUI to that.
+// ThawUI holds no text of its own, so these give it Floe's words. A plain literal reads the main bundle, which holds
+// the catalog in an Xcode build. ThawUIStringsGuardTests holds every literal given to ThawUI to being in the catalog.
 
 extension ToggleStyle where Self == ThawCheckboxToggleStyle {
     /// The shared checkbox, with Floe's names for its state.
@@ -87,7 +87,7 @@ extension ThawHUD {
 extension SettingsFilterField {
     /// A page's own search, with Floe's name for its clear button.
     init(prompt: LocalizedStringResource, text: Binding<String>) {
-        self.init(prompt: prompt, clearLabel: .floe("Clear"), text: text)
+        self.init(prompt: prompt, clearLabel: "Clear", text: text)
     }
 }
 
@@ -96,8 +96,8 @@ extension NoMatchesState {
     init(query: String) {
         self.init(
             query: query,
-            title: { .floe("No results for “\($0)”") },
-            caption: .floe("Check the spelling or try a shorter term.")
+            title: { "No results for “\($0)”" },
+            caption: "Check the spelling or try a shorter term."
         )
     }
 }

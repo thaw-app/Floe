@@ -60,11 +60,11 @@ nonisolated extension AutomaticUpdates {
 
 nonisolated extension UpdateConsentStrings {
     static let floe = UpdateConsentStrings(
-        title: .floe("Keep \(AppInfo.displayName) up to date?"),
-        message: .floe("\(AppInfo.displayName) can check for updates automatically. You can also check manually from the menu bar or Settings › About."),
-        downloadAutomatically: .floe("Download and install updates automatically"),
-        checkManually: .floe("Check Manually"),
-        checkAutomatically: .floe("Check Automatically"),
+        title: "Keep \(AppInfo.displayName) up to date?",
+        message: "\(AppInfo.displayName) can check for updates automatically. You can also check manually from the menu bar or Settings › About.",
+        downloadAutomatically: "Download and install updates automatically",
+        checkManually: "Check Manually",
+        checkAutomatically: "Check Automatically",
         checkboxOn: LocalizedStringResource("On", bundle: .floe, comment: "What VoiceOver says for a checkbox that is on."),
         checkboxOff: LocalizedStringResource("Off", bundle: .floe, comment: "What VoiceOver says for a checkbox that is off.")
     )
@@ -124,30 +124,30 @@ nonisolated extension ThawAppInfo {
 nonisolated extension ChangelogDocument.Callout.Kind {
     var title: LocalizedStringResource {
         switch self {
-        case .note: .floe("Note")
-        case .tip: .floe("Tip")
-        case .important: .floe("Important")
-        case .warning: .floe("Warning")
-        case .caution: .floe("Caution")
+        case .note: "Note"
+        case .tip: "Tip"
+        case .important: "Important"
+        case .warning: "Warning"
+        case .caution: "Caution"
         }
     }
 }
 
 nonisolated extension WhatsNewStrings {
     static let floe = WhatsNewStrings(
-        title: .floe("What’s New"),
+        title: "What’s New",
         releaseTitle: { version in
-            version == "Unreleased" ? .floe("Not released yet") : .floe("What’s new in \(version)")
+            version == "Unreleased" ? "Not released yet" : "What’s new in \(version)"
         },
         releaseSubtitle: { date, facts in Text("\(date) · \(facts)", bundle: .floe) },
         noRelease: { channel, appName in Text("There is no \(channel) release of \(appName) yet.", bundle: .floe) },
-        loadFailed: { .floe("\($0) couldn’t load the release notes.") },
-        fetchingOff: .floe("Fetching release notes is off."),
-        fetchingOffCached: .floe("Fetching release notes is off, so this is the last copy fetched."),
-        updateReady: .floe("This update is ready to install. Use the update window to install it now or later."),
-        cachedCopy: .floe("The repository could not be reached, so this is the last copy fetched."),
-        fullChangelog: .floe("Full changelog"),
-        older: .floe("Older"),
+        loadFailed: { "\($0) couldn’t load the release notes." },
+        fetchingOff: "Fetching release notes is off.",
+        fetchingOffCached: "Fetching release notes is off, so this is the last copy fetched.",
+        updateReady: "This update is ready to install. Use the update window to install it now or later.",
+        cachedCopy: "The repository could not be reached, so this is the last copy fetched.",
+        fullChangelog: "Full changelog",
+        older: "Older",
         channelName: { .verbatim($0.title) },
         calloutName: { $0.title }
     )
@@ -157,25 +157,25 @@ nonisolated extension WhatsNewStrings {
 
 nonisolated extension AboutStrings {
     static let floe = AboutStrings(
-        tagline: .floe("The open source launcher for macOS"),
-        versionLabel: { version, build, commit in .floe("Version \(version), build \(build), commit \(commit)") },
-        copied: .floe("Copied"),
-        copyHelp: .floe("Copy the version, build and commit for a bug report"),
-        copyLabel: .floe("Copy version information"),
-        whatsNew: .floe("What’s New"),
-        reportBug: .floe("Report a Bug"),
-        more: .floe("More about \(AppInfo.displayName)"),
-        sourceCode: .floe("Source Code"),
-        credits: .floe("Credits"),
-        support: .floe("Support Floe")
+        tagline: "The open source launcher for macOS",
+        versionLabel: { version, build, commit in "Version \(version), build \(build), commit \(commit)" },
+        copied: "Copied",
+        copyHelp: "Copy the version, build and commit for a bug report",
+        copyLabel: "Copy version information",
+        whatsNew: "What’s New",
+        reportBug: "Report a Bug",
+        more: "More about \(AppInfo.displayName)",
+        sourceCode: "Source Code",
+        credits: "Credits",
+        support: "Support Floe"
     )
 }
 
 nonisolated extension AboutUpdateStrings {
     static let floe = AboutUpdateStrings(
-        updateChannel: .floe("Update channel"),
-        automaticUpdates: .floe("Automatic updates"),
-        checkNow: .floe("Check Now"),
+        updateChannel: "Update channel",
+        automaticUpdates: "Automatic updates",
+        checkNow: "Check Now",
         notChecked: LocalizedStringResource("Not checked yet", bundle: .floe, comment: "Shown in place of the time updates were last checked."),
         lastChecked: { LocalizedStringResource("Last checked \($0)", bundle: .floe, comment: "The placeholder is a date and time.") },
         channelName: { .verbatim($0.title) },
@@ -188,19 +188,19 @@ nonisolated extension AboutUpdateStrings {
 
 nonisolated extension AcknowledgementsStrings {
     static let floe = AcknowledgementsStrings(
-        credits: .floe("Credits"),
+        credits: "Credits",
         origins: LocalizedStringResource("Origins", bundle: .floe, comment: "The heading over the projects this app grew out of."),
-        licenses: .floe("Licenses"),
-        older: .floe("Older"),
+        licenses: "Licenses",
+        older: "Older",
         thanks: LocalizedStringResource(
             "Thank you to everyone who contributes code, documentation, and translations to \(AppInfo.displayName).",
             bundle: .floe,
             comment: "The placeholder is the name of this app."
         ),
-        contributors: .floe("Contributors"),
-        translators: .floe("Translators"),
-        contribute: .floe("Contribute"),
-        helpTranslate: .floe("Help translate")
+        contributors: "Contributors",
+        translators: "Translators",
+        contribute: "Contribute",
+        helpTranslate: "Help translate"
     )
 }
 

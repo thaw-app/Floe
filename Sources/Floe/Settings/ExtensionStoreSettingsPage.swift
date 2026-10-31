@@ -88,13 +88,13 @@ struct ExtensionStoreSettingsPage: View {
     @ViewBuilder
     private var content: some View {
         if store.isLoading, store.catalog.isEmpty {
-            ThawEmptyState(systemImage: "bag", title: .floe("Loading extensions…"), isLoading: true)
+            ThawEmptyState(systemImage: "bag", title: "Loading extensions…", isLoading: true)
         } else if let error = store.error, store.catalog.isEmpty {
             ThawEmptyState(
                 systemImage: "exclamationmark.triangle",
-                title: .floe("Could not load the extension store."),
+                title: "Could not load the extension store.",
                 caption: .verbatim(error),
-                actionTitle: .floe("Try Again")
+                actionTitle: "Try Again"
             ) {
                 Task { await store.loadCatalog(force: true) }
             }
@@ -106,7 +106,7 @@ struct ExtensionStoreSettingsPage: View {
             HStack(spacing: 0) {
                 VStack(spacing: 0) {
                     // Named for the store, so it is not taken for the settings search in the sidebar.
-                    SettingsFilterField(prompt: .floe("Search Raycast extensions"), text: $query)
+                    SettingsFilterField(prompt: "Search Raycast extensions", text: $query)
                         .padding(.horizontal, Self.inset)
                         .padding(.vertical, ThawSpacing.row)
                     ScrollViewReader { proxy in

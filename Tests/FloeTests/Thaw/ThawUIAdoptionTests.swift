@@ -82,7 +82,7 @@ struct ThawUIAdoptionTests {
         #expect(full.map(\.count) == [3, 2, 1])
         let unbundled = FloeAboutPane.moreMenu { _ in nil }
         #expect(unbundled.map(\.count) == [3, 0, 0])
-        #expect(full.flatMap(\.self).filter { !$0.title.namesFloesBundle }.isEmpty)
+        #expect(full.flatMap(\.self).filter { !$0.title.readsFloesCatalog }.isEmpty)
     }
 
     /// Text is an extension's as often as Floe's, so it goes through as it is and stays up long enough to read.

@@ -128,7 +128,7 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            ThawSection(.floe("Floe")) {
+            ThawSection("Floe") {
                 HotkeyRecorder(
                     keyCombination: $settings.toggleHotkey,
                     onRecordingChange: { settings.isRecordingHotkey = $0 },

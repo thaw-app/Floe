@@ -10,10 +10,10 @@ import ThawUI
 
 nonisolated extension PermissionStrings {
     static let floe = PermissionStrings(
-        optional: .floe("Optional"),
-        granted: .floe("Granted"),
-        grantAccess: .floe("Grant Access"),
-        openSettings: .floe("Open System Settings")
+        optional: "Optional",
+        granted: "Granted",
+        grantAccess: "Grant Access",
+        openSettings: "Open System Settings"
     )
 }
 
