@@ -1610,6 +1610,9 @@
     "Disk" : {
       "comment" : "The kind of a result, shown beside its title."
     },
+    "Dismiss hint" : {
+      "comment" : "Spoken for the button that closes a first-run hint."
+    },
     "Displays (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -2953,7 +2956,7 @@
       }
     },
     "Off" : {
-      "comment" : "Automatic updates: never check.\nNo beam around the search field."
+      "comment" : "Automatic updates: never check.\nNo beam around the search field.\nWhat VoiceOver says for a checkbox that is off."
     },
     "Offered under your results, in this order, with what you typed. Return opens the first when nothing else matches." : {
 
@@ -2963,6 +2966,9 @@
     },
     "Ollama, on this Mac" : {
       "comment" : "Ollama is the name of an app."
+    },
+    "On" : {
+      "comment" : "What VoiceOver says for a checkbox that is on."
     },
     "On battery" : {
       "comment" : "About the battery: not plugged in."
@@ -4007,6 +4013,9 @@
     "Source Code" : {
 
     },
+    "Space" : {
+      "comment" : "The name of the space bar in a keyboard shortcut."
+    },
     "Speed" : {
       "comment" : "A kind of unit, named in a calculator error."
     },
@@ -4407,6 +4416,16 @@
     "The timer %@ is no longer running" : {
       "comment" : "The placeholder is a timer's label, or how long it ran, such as 10 min."
     },
+    "There is no %@ release of %@ yet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "There is no %1$@ release of %2$@ yet."
+          }
+        }
+      }
+    },
     "This Mac can't run Apple Intelligence." : {
 
     },
@@ -4447,6 +4466,9 @@
 
     },
     "This source is not on this Mac, and Privacy allows only AI that runs on this Mac. Nothing is asked until one of them changes." : {
+
+    },
+    "This update is ready to install. Use the update window to install it now or later." : {
 
     },
     "Time" : {

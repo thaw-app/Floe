@@ -94,7 +94,7 @@ struct AppearanceSettingsPane: View {
         let look = settings.launcherLook(for: colorScheme)
         return Form {
             SettingsPageHeader()
-            ThawSection("Preview") {
+            ThawSection(.floe("Preview")) {
                 LauncherAppearancePreview(
                     glass: look.glass,
                     tint: look.tint,
@@ -109,7 +109,7 @@ struct AppearanceSettingsPane: View {
             }
             // Shown without Thaw too while it is on, so it can always be turned off.
             if thawIsInstalled || settings.followsThawAppearance {
-                ThawSection("Thaw") {
+                ThawSection(.floe("Thaw")) {
                     Toggle("Follow Thaw's menu bar appearance", isOn: $settings.followsThawAppearance)
                     if settings.followsThawAppearance {
                         ForEach(ThawAppearanceNote.lines(status: follower.status, mirror: mirror), id: \.self) { footnote(resolved: $0) }
@@ -127,7 +127,7 @@ struct AppearanceSettingsPane: View {
     }
 
     private var layoutSection: some View {
-        ThawSection("Layout") {
+        ThawSection(.floe("Layout")) {
             LabeledContent {
                 ThawPillPicker(selection: $settings.launcherLayout, values: LauncherLayout.allCases, title: \.title)
                     .accessibilityLabel(Text("Launcher layout"))
@@ -167,14 +167,14 @@ struct AppearanceSettingsPane: View {
     }
 
     @ViewBuilder private var glassSections: some View {
-        ThawSection("Glass") {
+        ThawSection(.floe("Glass")) {
             if follows(.glass) {
                 footnote("The launcher is following Thaw's glass.")
             } else {
                 glassControls
             }
         }
-        ThawSection("Tint") {
+        ThawSection(.floe("Tint")) {
             if follows(.tint) {
                 footnote("The launcher is following Thaw's tint.")
             } else {
@@ -184,14 +184,14 @@ struct AppearanceSettingsPane: View {
     }
 
     @ViewBuilder private var edgeSections: some View {
-        ThawSection("Border") {
+        ThawSection(.floe("Border")) {
             if follows(.border) {
                 footnote("The launcher is following Thaw's border.")
             } else {
                 borderControls
             }
         }
-        ThawSection("Shadow") {
+        ThawSection(.floe("Shadow")) {
             if follows(.shadow) {
                 footnote("The launcher is following Thaw's shadow.")
             } else {
@@ -201,7 +201,7 @@ struct AppearanceSettingsPane: View {
     }
 
     private var glassControls: some View {
-        ThawPicker("Effect", selection: glassChoice) {
+        ThawPicker(.floe("Effect"), selection: glassChoice) {
             Text("Match System").tag(GlassChoice.matchSystem)
             ForEach(LauncherGlassStyle.allCases) { style in
                 Text(style.title).tag(GlassChoice.style(style))
@@ -329,11 +329,11 @@ nonisolated enum AppearanceTab: SettingsTab {
         }
     }
 
-    var title: LocalizedStringKey {
+    var title: LocalizedStringResource {
         switch self {
-        case .layout: "Layout"
-        case .glass: "Glass and Tint"
-        case .edges: "Border and Shadow"
+        case .layout: .floe("Layout")
+        case .glass: .floe("Glass and Tint")
+        case .edges: .floe("Border and Shadow")
         }
     }
 

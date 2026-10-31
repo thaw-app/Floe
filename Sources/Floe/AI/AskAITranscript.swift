@@ -59,15 +59,15 @@ struct AskAITranscript: View, Equatable {
         if case let .failed(message) = state {
             ThawEmptyState(
                 systemImage: "exclamationmark.triangle",
-                title: "No answer",
-                caption: "\(message)",
-                actionTitle: "Ask Again",
+                title: .floe("No answer"),
+                caption: .verbatim(message),
+                actionTitle: .floe("Ask Again"),
                 action: askAgain
             )
         } else {
             ThawEmptyState(
                 systemImage: AskAI.symbol,
-                title: "Waiting for the answer…",
+                title: .floe("Waiting for the answer…"),
                 caption: source.map { "\($0.line)" },
                 isLoading: true
             )

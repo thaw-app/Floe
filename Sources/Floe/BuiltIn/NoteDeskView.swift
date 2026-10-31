@@ -38,27 +38,27 @@ struct NoteDeskView: View {
         if case let .elsewhere(app) = desk.place {
             ThawEmptyState(
                 systemImage: "note.text",
-                title: app.isEmpty ? "Choose a folder for your notes" : "Your notes are kept in \(app)",
-                caption: "To read and write notes here, choose Apple Notes or a folder of notes, such as an Obsidian vault, as the notes app in Settings."
+                title: app.isEmpty ? .floe("Choose a folder for your notes") : .floe("Your notes are kept in \(app)"),
+                caption: .floe("To read and write notes here, choose Apple Notes or a folder of notes, such as an Obsidian vault, as the notes app in Settings.")
             )
         } else if let failure = desk.failure {
             ThawEmptyState(
                 systemImage: "exclamationmark.triangle",
-                title: "\(failure)",
-                actionTitle: desk.needsAutomation ? "Open Settings" : nil,
+                title: .verbatim(failure),
+                actionTitle: desk.needsAutomation ? .floe("Open Settings") : nil,
                 action: desk.needsAutomation ? { desk.askForAutomation() } : nil
             )
         } else if desk.notes.isEmpty {
             NoteEmptyState(store: desk.store)
         } else if desk.filtered.isEmpty {
-            ThawEmptyState(systemImage: "magnifyingglass", title: "No note has that name", caption: "Press ⌘N to make one.")
+            ThawEmptyState(systemImage: "magnifyingglass", title: .floe("No note has that name"), caption: .floe("Press ⌘N to make one."))
         } else {
             HStack(spacing: 0) {
                 list(desk.filtered)
                     .frame(width: 220)
                 Divider()
                 if let notice = desk.notice {
-                    ThawEmptyState(systemImage: "doc.text", title: "\(notice)")
+                    ThawEmptyState(systemImage: "doc.text", title: .verbatim(notice))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     NoteDocument(

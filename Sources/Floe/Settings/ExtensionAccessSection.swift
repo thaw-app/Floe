@@ -17,7 +17,7 @@ struct ExtensionAccessSection: View {
     @State private var access = ExtensionAccess()
 
     var body: some View {
-        ThawSection("What It Has Reached") {
+        ThawSection(.floe("What It Has Reached")) {
             if !records {
                 Text("The record is switched off. Settings › Privacy turns it on.")
                     .foregroundStyle(ThawInk.supporting)

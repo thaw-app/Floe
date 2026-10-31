@@ -51,7 +51,7 @@ struct CommandsSettingsView: View {
         BuiltInCommandsSection(settings: settings)
         ShellCommandsSettingsSection(settings: settings)
         if !settings.hiddenResults.isEmpty {
-            ThawSection("Hidden from Search") {
+            ThawSection(.floe("Hidden from Search")) {
                 ForEach(settings.hiddenResults.sorted { $0.value.localizedCaseInsensitiveCompare($1.value) == .orderedAscending }, id: \.key) { hidden in
                     LabeledContent(hidden.value) {
                         Button("Show Again") { settings.hiddenResults[hidden.key] = nil }
@@ -63,7 +63,7 @@ struct CommandsSettingsView: View {
     }
 
     private var extensionsSection: some View {
-        ThawSection("Extensions") {
+        ThawSection(.floe("Extensions")) {
             Toggle(isOn: $settings.includeRaycastExtensions) {
                 Text("Include extensions installed in Raycast")
                 Text("Reads ~/.config/raycast/extensions. Their Raycast settings don't carry over.")
@@ -85,7 +85,7 @@ struct CommandsSettingsView: View {
     }
 
     private var scriptsSection: some View {
-        ThawSection("Script Commands") {
+        ThawSection(.floe("Script Commands")) {
             LabeledContent("Scripts folder") {
                 Button("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([Paths.scripts]) }
                     .buttonStyle(.settingsGlass)
@@ -128,12 +128,12 @@ nonisolated enum CommandsTab: SettingsTab {
         }
     }
 
-    var title: LocalizedStringKey {
+    var title: LocalizedStringResource {
         switch self {
-        case .builtIn: "Built-in"
-        case .extensions: "Extensions"
-        case .scripts: "Scripts"
-        case .menuBar: "Menu Bar"
+        case .builtIn: .floe("Built-in")
+        case .extensions: .floe("Extensions")
+        case .scripts: .floe("Scripts")
+        case .menuBar: .floe("Menu Bar")
         }
     }
 

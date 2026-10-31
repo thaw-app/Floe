@@ -41,7 +41,7 @@ struct SyncSettingsSection: View {
     }
 
     var body: some View {
-        ThawSection("iCloud") {
+        ThawSection(.floe("iCloud")) {
             Toggle(isOn: $settings.syncsWithICloud) {
                 Text("Sync settings with iCloud")
                 Text("Aliases, hotkeys, favorites, appearance, snippets and quicklinks are the same on your Macs. Passwords stay out.")

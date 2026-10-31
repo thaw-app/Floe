@@ -36,24 +36,24 @@ struct MenuBarSearchView: View {
             // Distinct from "nothing matched": without Accessibility the walk returns an empty list.
             ThawEmptyState(
                 systemImage: "hand.raised",
-                title: "Accessibility is off",
-                caption: "Floe needs Accessibility to list your menu bar items.",
-                actionTitle: "Grant Access",
+                title: .floe("Accessibility is off"),
+                caption: .floe("Floe needs Accessibility to list your menu bar items."),
+                actionTitle: .floe("Grant Access"),
                 action: { search.requestAccess() }
             )
         } else if search.isScanning, search.results.isEmpty {
-            ThawEmptyState(systemImage: "menubar.rectangle", title: "Reading your menu bar…", isLoading: true)
+            ThawEmptyState(systemImage: "menubar.rectangle", title: .floe("Reading your menu bar…"), isLoading: true)
         } else if hasQuery, search.results.isEmpty {
             ThawEmptyState(
                 systemImage: "magnifyingglass",
-                title: "No items match",
-                caption: "Try part of the item's name or the app that owns it."
+                title: .floe("No items match"),
+                caption: .floe("Try part of the item's name or the app that owns it.")
             )
         } else if search.results.isEmpty {
             ThawEmptyState(
                 systemImage: "menubar.rectangle",
-                title: "No menu bar items found",
-                caption: "Floe lists the items apps put in the menu bar."
+                title: .floe("No menu bar items found"),
+                caption: .floe("Floe lists the items apps put in the menu bar.")
             )
         } else {
             rows
