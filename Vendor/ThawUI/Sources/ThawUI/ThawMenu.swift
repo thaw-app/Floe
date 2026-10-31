@@ -40,7 +40,7 @@ public struct ThawMenu<Title: View, Label: View, Content: View>: View {
     ///   - content: A group of menu items.
     ///   - title: A view to display inside the menu.
     public init(
-        _ labelKey: LocalizedStringKey,
+        _ labelKey: LocalizedStringResource,
         @ViewBuilder content: () -> Content,
         @ViewBuilder title: () -> Title
     ) where Label == Text {

@@ -7,40 +7,24 @@
 
 import SwiftUI
 
-/// A few choices in one glass capsule, each as wide as its label, like the toggles
-/// in Xcode's toolbar. It sits in a row beside its label, where ThawTabStrip would
-/// fill the page. With symbols and no titles it is an icon toggle, and the titles
-/// stay on as help and for VoiceOver.
+/// Choices in one glass capsule, each as wide as its label. Without titles, the
+/// titles become help and VoiceOver labels.
 public struct ThawPillPicker<Value: Hashable>: View {
-    public struct Option {
-        let value: Value
-        let title: LocalizedStringKey
-        let systemImage: String?
-        let help: LocalizedStringKey?
-
-        public init(_ value: Value, title: LocalizedStringKey, systemImage: String? = nil, help: LocalizedStringKey? = nil) {
-            self.value = value
-            self.title = title
-            self.systemImage = systemImage
-            self.help = help
-        }
-    }
+    public typealias Option = ThawSegment<Value>
 
     @Binding private var selection: Value
     let options: [Option]
-    let label: LocalizedStringKey?
+    let label: LocalizedStringResource?
     private let showsTitles: Bool
 
-    public init(selection: Binding<Value>, options: [Option], showsTitles: Bool = true) {
-        _selection = selection
-        self.options = options
-        label = nil
-        self.showsTitles = showsTitles
-    }
-
-    /// A labelled row: the label beside the pills in a LabeledContent, and the
+    /// A label, when given, sits beside the pills in a LabeledContent and is the
     /// pills' VoiceOver label.
-    public init(_ label: LocalizedStringKey, selection: Binding<Value>, options: [Option], showsTitles: Bool = true) {
+    public init(
+        _ label: LocalizedStringResource? = nil,
+        selection: Binding<Value>,
+        options: [Option],
+        showsTitles: Bool = true
+    ) {
         _selection = selection
         self.options = options
         self.label = label
@@ -49,10 +33,10 @@ public struct ThawPillPicker<Value: Hashable>: View {
 
     /// A labelled row with one pill per value, in order, each named by title.
     public init(
-        _ label: LocalizedStringKey,
+        _ label: LocalizedStringResource,
         selection: Binding<Value>,
         values: some Sequence<Value>,
-        title: (Value) -> LocalizedStringKey
+        title: (Value) -> LocalizedStringResource
     ) {
         self.init(label, selection: selection, options: values.map { Option($0, title: title($0)) })
     }
@@ -72,7 +56,7 @@ public struct ThawPillPicker<Value: Hashable>: View {
         ThawCapsuleSegments(
             selection: $selection,
             segments: options.map { option in
-                .init(value: option.value, title: option.title, systemImage: option.systemImage, help: option.help ?? option.title)
+                Option(option.value, title: option.title, systemImage: option.systemImage, help: option.help ?? option.title)
             },
             sizing: .fitted(showsTitles: showsTitles)
         )

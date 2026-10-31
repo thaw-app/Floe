@@ -14,10 +14,10 @@ import SwiftUI
 /// background or border: empty states sit on a surface.
 public struct ThawEmptyState: View {
     private let systemImage: String
-    private let title: LocalizedStringKey
-    private let caption: LocalizedStringKey?
+    private let title: LocalizedStringResource
+    private let caption: LocalizedStringResource?
     private let isLoading: Bool
-    private let actionTitle: LocalizedStringKey?
+    private let actionTitle: LocalizedStringResource?
     private let action: (() -> Void)?
 
     /// - Parameters:
@@ -32,10 +32,10 @@ public struct ThawEmptyState: View {
     ///   - action: Runs when the step is chosen.
     public init(
         systemImage: String,
-        title: LocalizedStringKey,
-        caption: LocalizedStringKey? = nil,
+        title: LocalizedStringResource,
+        caption: LocalizedStringResource? = nil,
         isLoading: Bool = false,
-        actionTitle: LocalizedStringKey? = nil,
+        actionTitle: LocalizedStringResource? = nil,
         action: (() -> Void)? = nil
     ) {
         self.systemImage = systemImage
