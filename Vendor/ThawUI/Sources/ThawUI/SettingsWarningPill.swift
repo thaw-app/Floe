@@ -13,18 +13,18 @@ import SwiftUI
 /// tint (defaults to Color.accentColor) so notices pick up the
 /// app/system accent, or an explicit info/warning color.
 public struct SettingsWarningPill: View {
-    private let title: LocalizedStringKey?
-    private let message: LocalizedStringKey
+    private let title: LocalizedStringResource?
+    private let message: LocalizedStringResource
     private let systemImage: String
     private let tint: Color
-    private let actionTitle: LocalizedStringKey?
+    private let actionTitle: LocalizedStringResource?
     private let action: (() -> Void)?
-    private let secondaryActionTitle: LocalizedStringKey?
+    private let secondaryActionTitle: LocalizedStringResource?
     private let secondaryAction: (() -> Void)?
 
     /// Single-message banner (title omitted).
     public init(
-        message: LocalizedStringKey,
+        message: LocalizedStringResource,
         systemImage: String = "exclamationmark.circle.fill",
         tint: Color = .accentColor
     ) {
@@ -43,13 +43,13 @@ public struct SettingsWarningPill: View {
     /// The second action is an alternative route to the same outcome, drawn
     /// as tinted text so there is still one obvious thing to press.
     public init(
-        title: LocalizedStringKey,
-        message: LocalizedStringKey,
+        title: LocalizedStringResource,
+        message: LocalizedStringResource,
         systemImage: String = "exclamationmark.circle.fill",
         tint: Color = .accentColor,
-        actionTitle: LocalizedStringKey? = nil,
+        actionTitle: LocalizedStringResource? = nil,
         action: (() -> Void)? = nil,
-        secondaryActionTitle: LocalizedStringKey? = nil,
+        secondaryActionTitle: LocalizedStringResource? = nil,
         secondaryAction: (() -> Void)? = nil
     ) {
         self.title = title

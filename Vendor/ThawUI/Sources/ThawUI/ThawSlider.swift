@@ -40,7 +40,7 @@ public struct ThawSlider<Value: BinaryFloatingPoint, ValueLabel: View>: View {
     }
 
     public init(
-        _ valueLabelKey: LocalizedStringKey,
+        _ valueLabelKey: LocalizedStringResource,
         value: Binding<Value>,
         in bounds: ClosedRange<Value>,
         step: Value? = nil,

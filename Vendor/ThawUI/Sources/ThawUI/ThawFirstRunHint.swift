@@ -15,7 +15,8 @@ public struct ThawFirstRunHint: View {
     private let image: Image
     private let title: Text?
     private let text: Text
-    private let actionTitle: LocalizedStringKey?
+    let dismissLabel: LocalizedStringResource
+    private let actionTitle: LocalizedStringResource?
     private let action: (() -> Void)?
     private let onDismiss: () -> Void
 
@@ -24,6 +25,7 @@ public struct ThawFirstRunHint: View {
     ///     size as the row's text.
     ///   - text: The one sentence. It wraps rather than truncating, so a
     ///     narrow window still shows the whole instruction.
+    ///   - dismissLabel: The close button's help and VoiceOver name.
     ///   - actionTitle: The one thing the hint suggests doing, when there is
     ///     one. A suggestion, unlike a warning, reads as a hint with a button.
     ///   - action: Runs when the suggestion is taken.
@@ -31,24 +33,27 @@ public struct ThawFirstRunHint: View {
     ///     records the dismissal; the view holds no state of its own.
     public init(
         systemImage: String,
-        _ text: LocalizedStringKey,
-        actionTitle: LocalizedStringKey? = nil,
+        _ text: LocalizedStringResource,
+        dismissLabel: LocalizedStringResource,
+        actionTitle: LocalizedStringResource? = nil,
         action: (() -> Void)? = nil,
         onDismiss: @escaping () -> Void
     ) {
         image = Image(systemName: systemImage)
         title = nil
         self.text = Text(text)
+        self.dismissLabel = dismissLabel
         self.actionTitle = actionTitle
         self.action = action
         self.onDismiss = onDismiss
     }
 
     /// A hint with a bold lead line above its sentence, for callers that already hold Text, such as a TipKit tip.
-    public init(image: Image, title: Text?, text: Text, onDismiss: @escaping () -> Void) {
+    public init(image: Image, title: Text?, text: Text, dismissLabel: LocalizedStringResource, onDismiss: @escaping () -> Void) {
         self.image = image
         self.title = title
         self.text = text
+        self.dismissLabel = dismissLabel
         actionTitle = nil
         action = nil
         self.onDismiss = onDismiss
@@ -87,8 +92,8 @@ public struct ThawFirstRunHint: View {
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Dismiss hint")
-            .help("Dismiss hint")
+            .accessibilityLabel(Text(dismissLabel))
+            .help(Text(dismissLabel))
         }
         .padding(.horizontal, ThawSpacing.inset)
         .padding(.vertical, ThawSpacing.row)

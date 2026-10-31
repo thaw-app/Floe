@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// The small uppercase name over a group of rows, as in Floe's sidebar. Callers set the room around it.
+/// Small uppercase heading over a group of rows; callers set the spacing.
 public struct ThawListHeading: View {
     private let title: Text
 
@@ -15,7 +15,7 @@ public struct ThawListHeading: View {
         self.title = title
     }
 
-    public init(_ title: LocalizedStringKey) {
+    public init(_ title: LocalizedStringResource) {
         self.title = Text(title)
     }
 
