@@ -9,6 +9,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 /// Characterization for ChangelogDocument.parse(_:), the deliberately
 /// small Keep-a-Changelog parser behind the What's New sheet. These tests pin
@@ -539,7 +540,8 @@ struct ChangelogDocumentShownReleasesTests {
             .appendingPathComponent("CHANGELOG.md")
         let document = try ChangelogDocument.parse(String(contentsOf: file, encoding: .utf8))
         let releases = ChangelogDocument.displayReleases(in: document)
-        #expect(releases.first?.version == "0.2.1")
+        #expect(releases.first?.version == "Unreleased")
+        #expect(releases.dropFirst().first?.version == "0.2.1")
         let released = try #require(releases.first { $0.version == "0.2.0" })
         #expect(released.sections.first?.title == "New")
         let newest = try #require(releases.first { $0.version == "0.2.1" })

@@ -8,6 +8,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 /// 32 zero bytes in base64: the right shape for an EdDSA public key, and not a real one.
 private let wellFormedKey = Data(count: 32).base64EncodedString()
@@ -135,7 +136,7 @@ struct UpdateChannelTests {
         #expect(UpdateChannel.stored(in: scratch.defaults) == .stable)
     }
 
-    @Test(arguments: UpdateChannel.allCases)
+    @Test(arguments: UpdateChannel.floeChannels)
     func aChosenChannelComesBack(channel: UpdateChannel) {
         channel.store(in: scratch.defaults)
         #expect(UpdateChannel.stored(in: scratch.defaults) == channel)
@@ -145,7 +146,7 @@ struct UpdateChannelTests {
     @Test func betaAddsItsSparkleChannelAndStableAddsNone() {
         #expect(UpdateChannel.stable.allowedSparkleChannels.isEmpty)
         #expect(UpdateChannel.beta.allowedSparkleChannels == ["beta"])
-        #expect(UpdateChannel.allCases.map(\.title) == ["Stable", "Beta"])
+        #expect(UpdateChannel.floeChannels.map(\.title) == ["Stable", "Beta"])
     }
 }
 
@@ -157,10 +158,8 @@ struct UpdateTextTests {
     }
 
     @Test func lastCheckedSaysWhenOrThatItHasNotHappened() {
-        #expect(UpdateText.lastChecked(nil) == "Not checked yet")
-        let date = Date(timeIntervalSince1970: 0)
-        #expect(UpdateText.lastChecked(date) { _ in "then" } == "Last checked then")
-        #expect(UpdateText.lastChecked(date).hasPrefix("Last checked "))
+        #expect(String(localized: AboutUpdateStrings.floe.notChecked) == "Not checked yet")
+        #expect(String(localized: AboutUpdateStrings.floe.lastChecked("then")) == "Last checked then")
     }
 
     @Test func aCheckCanBeginBeforeTheUpdaterStartsOrWhenSparkleAllowsIt() {

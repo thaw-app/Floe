@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import ThawUI
 
 /// The settings' text after it became translatable: the English reads as it did, and the search finds what it found.
 @MainActor
@@ -144,6 +145,6 @@ struct SettingsStringsTests {
         #expect(AppRole.notes.detail == "Type “note” and then your text in the search to send it there.")
         #expect(NotesApp.allCases.map(\.title) == ["Apple Notes", "Antinote", "Another App", "A Folder of Notes"])
         #expect(LauncherGlassStyle.allCases.map(\.title).sorted() == ["Clear", "Dynamic Glass", "Liquid Glass", "Regular"])
-        #expect(UpdateChannel.allCases.map(\.title) == ["Stable", "Beta"])
+        #expect(UpdateChannel.floeChannels.map(\.title) == ["Stable", "Beta"])
     }
 }

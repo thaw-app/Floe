@@ -88,7 +88,7 @@ struct SettingsView: View {
         case .privacy:
             PrivacySettingsPane(settings: settings, stores: stores)
         case .about:
-            AboutSettingsPane(updatesManager: stores.updates, settings: settings)
+            FloeAboutPane(updatesManager: stores.updates)
         case let .extensionPage(name):
             ExtensionSettingsView(
                 catalog: catalog,
@@ -131,7 +131,7 @@ struct GeneralSettingsView: View {
     var body: some View {
         Form {
             SettingsPageHeader()
-            ThawSection("Floe") {
+            ThawSection(.floe("Floe")) {
                 HotkeyRecorder(
                     keyCombination: $settings.toggleHotkey,
                     onRecordingChange: { settings.isRecordingHotkey = $0 },

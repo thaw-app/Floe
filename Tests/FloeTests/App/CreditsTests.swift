@@ -8,6 +8,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 /// Credits.swift is written by scripts/generate-credits.py; these catch a script change that breaks the list.
 struct CreditsTests {
