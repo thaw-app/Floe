@@ -9,7 +9,7 @@ import Foundation
 import Testing
 
 @Suite("Settings pages are named by the toolbar")
-struct SettingsPageTitleGuardTests {
+nonisolated struct SettingsPageTitleGuardTests {
     @Test("No page draws the header on its own, and the header has no title")
     func noPageTitle() throws {
         let root = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

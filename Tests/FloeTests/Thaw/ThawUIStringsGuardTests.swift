@@ -87,7 +87,11 @@ struct ThawUIStringsGuardTests {
     func verbatimTextComesBackAsWritten(text: String) {
         #expect(String(localized: LocalizedStringResource.verbatim(text)) == text)
     }
+}
 
+/// Reads every source file, so it stays off the main actor: the test target's default isolation would otherwise put
+/// it there, and every main actor test in the run would wait for it.
+nonisolated struct ThawUIStringsSourceGuardTests {
     /// One call to a ThawUI view whose text parameters take a resource, with its arguments in parentheses.
     private static let textCalls = [
         "ThawSection", "ThawBadge", "ThawEmptyState", "SettingsWarningPill", "SettingsPrivacyNotice", "ThawFirstRunHint",
@@ -110,27 +114,37 @@ struct ThawUIStringsGuardTests {
         }
     }
 
+    private static let quote = UInt8(ascii: "\"")
+    private static let backslash = UInt8(ascii: "\\")
+    private static let openParen = UInt8(ascii: "(")
+    private static let closeParen = UInt8(ascii: ")")
+    private static let dot = UInt8(ascii: ".")
+
+    /// Bytes as text. A slice can cut a character in two, which only the check on what comes before a literal ever does.
+    private static func text(_ bytes: ArraySlice<UInt8>) -> String {
+        String(bytes: bytes, encoding: .utf8) ?? String(bytes: bytes, encoding: .isoLatin1) ?? ""
+    }
+
     /// The end of the string literal opening at `start`, past any interpolation in it.
-    private static func endOfLiteral(in text: [Character], from start: Int) -> Int {
+    private static func endOfLiteral(in text: [UInt8], from start: Int) -> Int {
         var index = start + 1
         while index < text.count {
-            switch text[index] {
-            case "\\" where index + 1 < text.count && text[index + 1] == "(":
+            if text[index] == backslash, index + 1 < text.count, text[index + 1] == openParen {
                 var depth = 1
                 index += 2
                 while index < text.count, depth > 0 {
-                    if text[index] == "\"" {
+                    if text[index] == quote {
                         index = endOfLiteral(in: text, from: index)
                         continue
                     }
-                    depth += text[index] == "(" ? 1 : text[index] == ")" ? -1 : 0
+                    depth += text[index] == openParen ? 1 : text[index] == closeParen ? -1 : 0
                     index += 1
                 }
-            case "\\":
+            } else if text[index] == backslash {
                 index += 2
-            case "\"":
+            } else if text[index] == quote {
                 return index + 1
-            default:
+            } else {
                 index += 1
             }
         }
@@ -139,27 +153,29 @@ struct ThawUIStringsGuardTests {
 
     /// The bare string literals among a call's own arguments, leaving out its closures and anything already wrapped
     /// in a call of its own, such as `.floe(…)`.
-    static func bareLiterals(inCallOpeningAt open: Int, of text: [Character]) -> [String] {
+    static func bareLiterals(inCallOpeningAt open: Int, of text: [UInt8]) -> [String] {
         var found: [String] = []
         var index = open + 1
         var parens = 1
         var braces = 0
         while index < text.count, parens > 0 {
-            let character = text[index]
-            if character == "\"" {
+            let byte = text[index]
+            if byte == quote {
                 let end = endOfLiteral(in: text, from: index)
-                let before = String(text[max(0, index - 16) ..< index]).trimmingCharacters(in: .whitespacesAndNewlines)
-                if parens == 1, braces == 0, !nonText.contains(where: before.hasSuffix) {
-                    found.append(String(text[index ..< end]))
+                if parens == 1, braces == 0 {
+                    let before = Self.text(text[max(0, index - 16) ..< index]).trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !nonText.contains(where: before.hasSuffix) {
+                        found.append(Self.text(text[index ..< end]))
+                    }
                 }
                 index = end
                 continue
             }
-            switch character {
-            case "{": braces += 1
-            case "}": braces -= 1
-            case "(" where braces == 0: parens += 1
-            case ")" where braces == 0: parens -= 1
+            switch byte {
+            case UInt8(ascii: "{"): braces += 1
+            case UInt8(ascii: "}"): braces -= 1
+            case openParen where braces == 0: parens += 1
+            case closeParen where braces == 0: parens -= 1
             default: break
             }
             index += 1
@@ -167,18 +183,38 @@ struct ThawUIStringsGuardTests {
         return found
     }
 
+    /// Letters, digits, the underscore and anything past ASCII, so a name ending the same as a call is another name.
+    private static func isNamePart(_ byte: UInt8) -> Bool {
+        byte >= 0x80 || byte == UInt8(ascii: "_") || (byte >= 0x30 && byte <= 0x39) || (byte | 0x20 >= 0x61 && byte | 0x20 <= 0x7A)
+    }
+
+    /// One pass over the bytes, looking a name up only where a call opens. This runs over all of Floe's source, where
+    /// comparing each name at each character took 14 seconds in a coverage build.
     private static func bareLiterals(in source: String) -> [String] {
-        let text = Array(source)
+        let text = Array(source.utf8)
+        let calls = Set(textCalls)
         var found: [String] = []
-        for name in textCalls {
-            let needle = Array(name + "(")
-            guard text.count >= needle.count else { continue }
-            for start in 0 ... (text.count - needle.count) where Array(text[start ..< start + needle.count]) == needle {
-                // ThawPillPickerOption, or a type whose name only ends the same, is another call.
-                if start > 0, text[start - 1].isLetter || text[start - 1].isNumber {
-                    continue
+        var index = 0
+        while index < text.count {
+            guard isNamePart(text[index]) else {
+                index += 1
+                continue
+            }
+            let start = index
+            while index < text.count, isNamePart(text[index]) {
+                index += 1
+            }
+            guard index < text.count, text[index] == openParen else { continue }
+            var name = Self.text(text[start ..< index])
+            if !calls.contains(name), start > 0, text[start - 1] == dot {
+                var owner = start - 1
+                while owner > 0, isNamePart(text[owner - 1]) {
+                    owner -= 1
                 }
-                found += bareLiterals(inCallOpeningAt: start + needle.count - 1, of: text)
+                name = Self.text(text[owner ..< index])
+            }
+            if calls.contains(name) {
+                found += bareLiterals(inCallOpeningAt: index, of: text)
             }
         }
         return found
