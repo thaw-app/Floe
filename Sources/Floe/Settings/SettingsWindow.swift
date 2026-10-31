@@ -38,19 +38,18 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
                 backing: .buffered,
                 defer: false
             )
-            // Kept for the Window menu and VoiceOver; the titlebar shows no title, each page names itself.
+            // Until the view names the page in the toolbar.
             window.title = String(localized: "Floe Settings", bundle: .floe)
-            window.titleVisibility = .hidden
-            window.titlebarAppearsTransparent = true
+            window.toolbarStyle = .unified
             window.isReleasedWhenClosed = false
             window.contentMinSize = Self.minimumSize
             // As Thaw's windows: not a workspace, so the green button zooms, and nothing worth restoring.
             window.collectionBehavior.formUnion([.moveToActiveSpace, .fullScreenNone])
             window.isRestorable = false
             let content = NSHostingView(rootView: SettingsView(catalog: catalog, stores: stores, selection: selection).openingLinksInTheChosenBrowser())
-            // Nothing bridged, so the window has no toolbar and each page names itself. Removing the
-            // toolbar's items in SwiftUI instead shrinks the sidebar to 144 points.
-            content.sceneBridgingOptions = []
+            // The view's title and toolbar reach the window. Removing the toolbar's items in SwiftUI
+            // shrinks the sidebar to 144 points, so its sidebar button stays.
+            content.sceneBridgingOptions = [.title, .toolbars]
             window.contentView = content
             window.center()
             window.delegate = self
