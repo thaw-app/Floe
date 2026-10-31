@@ -20,42 +20,20 @@ struct OnboardingWelcomeView: View {
     var onSkip: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Matched spacers center content; minimum spacing handles Larger Text with no spare height.
-            Spacer(minLength: ThawSpacing.gutter)
-
-            // The name with the icon beside it, as About shows them.
+        OnboardingWelcomeLayout(
+            continueTitle: Text("Continue", bundle: .floe),
+            onContinue: onContinue
+        ) {
             identity
-
+        } copy: {
             copyBlock
-                .padding(.top, ThawSpacing.inset)
-
-            Button(action: onContinue) {
-                Text("Continue")
-                    .font(ThawType.heading)
-                    .frame(minWidth: 140, minHeight: 34)
-            }
-            .buttonStyle(.thawProminent)
-            .keyboardShortcut(.defaultAction)
-            .padding(.top, ThawSpacing.section)
-
-            Spacer(minLength: ThawSpacing.gutter)
+        } exit: {
+            OnboardingQuietButton(
+                title: Text("Skip Setup", bundle: .floe),
+                help: Text("Close this window and start using \(AppInfo.displayName)", bundle: .floe),
+                action: onSkip
+            )
         }
-        .padding(.horizontal, ThawSpacing.section)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        // Offer a quiet exit before permissions so nobody has to sit through the setup.
-        .overlay(alignment: .bottomTrailing) {
-            Button(action: onSkip) {
-                Text("Skip Setup")
-                    .font(ThawType.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.plain)
-            .help("Close this window and start using \(AppInfo.displayName)")
-            .padding(.trailing, ThawSpacing.gutter)
-            .padding(.bottom, ThawSpacing.inset)
-        }
-        .background(VisualEffectBackground())
     }
 
     private var identity: some View {
@@ -63,7 +41,7 @@ struct OnboardingWelcomeView: View {
             Text(verbatim: AppInfo.displayName)
                 .font(.system(size: 48, weight: .semibold))
                 .accessibilityAddTraits(.isHeader)
-                .accessibilityLabel(Text("Welcome to \(AppInfo.displayName)", comment: "The placeholder is the name of this app."))
+                .accessibilityLabel(Text("Welcome to \(AppInfo.displayName)", bundle: .floe, comment: "The placeholder is the name of this app."))
             // VoiceOver skips the decorative icon because the name beside it identifies the app.
             Image(nsImage: AboutSettingsPane.currentApplicationIcon())
                 .resizable()
@@ -73,52 +51,24 @@ struct OnboardingWelcomeView: View {
         }
     }
 
-    /// Keep the reading sequence together so centering spacers move it as one block.
-    private var copyBlock: some View {
-        VStack(spacing: 0) {
-            Text(
-                "\(AppInfo.displayName) is a launcher for your apps and commands. It runs Raycast extensions and searches your menu bar.",
-                comment: "The placeholder is the name of this app."
-            )
-            .font(ThawType.heading)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: 440)
+    /// The reading sequence under the name: what Floe is, then one glanceable row of facts.
+    @ViewBuilder private var copyBlock: some View {
+        Text(
+            "\(AppInfo.displayName) is a launcher for your apps and commands. It runs Raycast extensions and searches your menu bar.",
+            bundle: .floe,
+            comment: "The placeholder is the name of this app."
+        )
+        .font(ThawType.heading)
+        .foregroundStyle(.secondary)
+        .multilineTextAlignment(.center)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: 440)
 
-            factsRow
-                .padding(.top, ThawSpacing.gutter)
+        OnboardingFactRow(maxWidth: 520) {
+            OnboardingFactCapsule(symbol: "lock.open", label: Text("Open source", bundle: .floe), spoken: Text("Free and open source", bundle: .floe))
+            OnboardingFactCapsule(symbol: "person.crop.circle.badge.xmark", label: Text("No sign-up", bundle: .floe), spoken: Text("No sign-up and no account", bundle: .floe))
+            OnboardingFactCapsule(symbol: "hand.raised", label: Text("No analytics or tracking", bundle: .floe), spoken: Text("No analytics, no tracking", bundle: .floe))
         }
-    }
-
-    /// Present pre-permission facts in one glanceable row.
-    private var factsRow: some View {
-        HStack(spacing: ThawSpacing.base) {
-            fact(symbol: "lock.open", label: "Open source", spoken: "Free and open source")
-            fact(symbol: "person.crop.circle.badge.xmark", label: "No sign-up", spoken: "No sign-up and no account")
-            fact(symbol: "hand.raised", label: "No analytics or tracking", spoken: "No analytics, no tracking")
-        }
-        .frame(maxWidth: 520)
-    }
-
-    /// Scale a long label rather than wrapping one capsule taller than its neighbours.
-    private func fact(symbol: String, label: LocalizedStringKey, spoken: LocalizedStringKey) -> some View {
-        HStack(spacing: ThawSpacing.compact) {
-            Image(systemName: symbol)
-                .font(ThawType.symbol)
-                .foregroundStyle(.secondary)
-
-            Text(label)
-                .font(ThawType.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-        }
-        .padding(.horizontal, ThawSpacing.inset)
-        .frame(maxWidth: .infinity)
-        .frame(height: 30)
-        .thawGlass(.control, in: Capsule(style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(spoken))
+        .padding(.top, ThawSpacing.gutter)
     }
 }
