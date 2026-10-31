@@ -44,6 +44,12 @@ struct ShellRowsTests {
             hidePanel: { asked.hidden += 1 }, showHUD: { asked.huds.append($0) }, leave: { asked.left += 1 },
             record: { asked.receipts.append($0) }, setQuery: { asked.queries.append($0) }, scriptsChanged: { asked.scriptsChanged += 1 }
         )
+        return recording(rows)
+    }
+
+    /// The rows with an environment that records what it was asked instead of running anything.
+    private func recording(_ rows: ShellRows) -> ShellRows {
+        let asked = asked
         rows.environment.run = { command, folder in ("printed", "\(command) in \(folder?.path ?? "~")") }
         rows.environment.showOutput = { _, output in asked.outputs.append(output) }
         rows.environment.runInTerminal = { command, _ in asked.handedToTerminal.append(command) }
@@ -117,6 +123,19 @@ struct ShellRowsTests {
         rows.runShellCommand("pwd", terminal: nil, with: .control)
         await settle { !asked.huds.isEmpty }
         #expect(asked.huds == ["printed"])
+    }
+
+    @Test func returnWithAKeyHeldReachesACommandInTheSearch() async {
+        // A command row is one of the search's own rows, opened apart from the others, and the keys held still reach it.
+        let model = LauncherModel(settings: AppSettings(defaults: MemoryDefaults()), snapshot: CatalogSnapshot(apps: [], commands: []))
+        _ = recording(model.features.shell)
+        let top = RootItem.shell(ShellRow(text: "top", origin: .typed), terminal: nil)
+        #expect(top.isScopeResult)
+        model.activate(top, flags: .command)
+        #expect(asked.handedToTerminal == ["top"])
+        model.activate(.shell(ShellRow(text: "ls", origin: .typed), terminal: nil), flags: .option)
+        await settle { !asked.outputs.isEmpty }
+        #expect(asked.outputs == ["ls in ~"], "Option shows the whole output, as the Output hint says")
     }
 
     @Test func shiftRunsTheCommandInFindersFolder() async {
