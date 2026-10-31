@@ -90,4 +90,10 @@ struct ThawUIAdoptionTests {
     @Test func aMessageStaysUpLongerThanAConfirmation() {
         #expect(ThawHUD.messageDuration > ThawHUD.duration)
     }
+
+    /// The default branch is development; main stops at an old release, so notes read from it go stale.
+    @Test func theReleaseNotesComeFromTheDefaultBranch() {
+        #expect(AppInfo.changelogURL.absoluteString == "https://raw.githubusercontent.com/thaw-app/Floe/development/CHANGELOG.md")
+        #expect(AppInfo.changelogPageURL.absoluteString == "https://github.com/thaw-app/Floe/blob/development/CHANGELOG.md")
+    }
 }

@@ -30,8 +30,8 @@ nonisolated enum AppInfo {
     }
 
     /// The changelog as text, for the release notes reader, and as a page, for the browser.
-    static let changelogURL = URL(string: "https://raw.githubusercontent.com/thaw-app/Floe/main/CHANGELOG.md")!
-    static let changelogPageURL = URL(string: "https://github.com/thaw-app/Floe/blob/main/CHANGELOG.md")!
+    static let changelogURL = URL(string: "https://raw.githubusercontent.com/thaw-app/Floe/development/CHANGELOG.md")!
+    static let changelogPageURL = URL(string: "https://github.com/thaw-app/Floe/blob/development/CHANGELOG.md")!
 
     static var issuesURL: URL? {
         repositoryURL?.appendingPathComponent("issues")
