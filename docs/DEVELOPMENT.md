@@ -151,7 +151,6 @@ say what it replaces, and run `scripts/generate-credits.py` after the change.
 | Swift packages | `Package.swift`, `project.yml` | `Package.resolved` and the copy in `Floe.xcodeproj` | Swift Package Manager |
 | Extension runtime | `runtime/package.json` | `runtime/bun.lock` | `bun install --frozen-lockfile --ignore-scripts` |
 | File index | `Vendor/FloeRust/rust/Cargo.toml` | `Vendor/FloeRust/rust/Cargo.lock` | Cargo |
-| ThawUI | `Vendor/ThawUI/UPSTREAM` | The commit named there | A copy from Thaw, never edited by hand |
 | GitHub Actions | `.github/workflows` | The commit each `uses:` names | The runner |
 
 `dependency-sca.yml` scans the lockfiles with OSV-Scanner on every pull request and once a week. Dependabot updates

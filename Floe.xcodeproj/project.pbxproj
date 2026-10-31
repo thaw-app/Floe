@@ -626,7 +626,6 @@
 		728DBFD5129A4F82B5C9DE49 /* LauncherPanelAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherPanelAppearance.swift; sourceTree = "<group>"; };
 		72FAF12B5CA3132E1CA5CDBA /* AppRole.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRole.swift; sourceTree = "<group>"; };
 		779C5B731F068CF670E7537B /* LauncherScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherScreen.swift; sourceTree = "<group>"; };
-		78D37EBDD2D6EF547319287E /* ThawUI */ = {isa = PBXFileReference; lastKnownFileType = folder; name = ThawUI; path = Vendor/ThawUI; sourceTree = SOURCE_ROOT; };
 		78E2DD9407CEA946488F4FC2 /* HotReload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotReload.swift; sourceTree = "<group>"; };
 		79F677180E72D99949B2F7FB /* Homebrew.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Homebrew.swift; sourceTree = "<group>"; };
 		7AE33AA2FB7B98AC273FD8B6 /* AskAIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskAIModel.swift; sourceTree = "<group>"; };
@@ -1388,7 +1387,6 @@
 			isa = PBXGroup;
 			children = (
 				3B06E75582B03937BF646829 /* FloeRust */,
-				78D37EBDD2D6EF547319287E /* ThawUI */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -1570,6 +1568,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				604B9A7DCE5E3815BB580A2A /* XCRemoteSwiftPackageReference "Sparkle" */,
+				297BBEA5F752233899A67303 /* XCRemoteSwiftPackageReference "ThawUI" */,
 				6BFBD1E3602E04FE085AFB58 /* XCRemoteSwiftPackageReference "swift-algorithms" */,
 				CF0B87BBBDD04DCE39106ADB /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 				429B82AE91E275656C5172B1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
@@ -1577,7 +1576,6 @@
 				97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */,
 				6F2C0D39465C2E214623284A /* XCRemoteSwiftPackageReference "swift-subprocess" */,
 				B457548832AD6CA4307959B6 /* XCLocalSwiftPackageReference "Vendor/FloeRust" */,
-				1CAF9DD5710E35A029A639F2 /* XCLocalSwiftPackageReference "Vendor/ThawUI" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CEFEFA48E46BCFEC89CB24AF /* Products */;
@@ -2239,10 +2237,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		1CAF9DD5710E35A029A639F2 /* XCLocalSwiftPackageReference "Vendor/ThawUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Vendor/ThawUI;
-		};
 		B457548832AD6CA4307959B6 /* XCLocalSwiftPackageReference "Vendor/FloeRust" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Vendor/FloeRust;
@@ -2250,6 +2244,14 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		297BBEA5F752233899A67303 /* XCRemoteSwiftPackageReference "ThawUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/thaw-app/ThawUI";
+			requirement = {
+				kind = exactVersion;
+				version = 1.0.0;
+			};
+		};
 		429B82AE91E275656C5172B1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-async-algorithms";
@@ -2311,6 +2313,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		0539F14C5ECF7F15A371B8BA /* ThawUI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 297BBEA5F752233899A67303 /* XCRemoteSwiftPackageReference "ThawUI" */;
 			productName = ThawUI;
 		};
 		1F43772FB45D60218EFCAC8B /* Algorithms */ = {

@@ -15,8 +15,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     dependencies: [
-        .package(path: "Vendor/ThawUI"),
         // Keep in step with project.yml.
+        .package(url: "https://github.com/thaw-app/ThawUI", exact: "1.0.0"),
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", exact: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-markdown", exact: "0.9.0"),

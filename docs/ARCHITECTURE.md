@@ -109,7 +109,7 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     the installed copy.
 - `Sources/Floe/Thaw`: code ported from Thaw that stays Floe's: the Carbon hotkey registry, onboarding's steps and the
   permission model, settings search's index and ranking, the Sparkle updater, and the App Intents that Shortcuts and
-  Spotlight use (`FloeIntents.swift`). The views they draw through are in `Vendor/ThawUI`.
+  Spotlight use (`FloeIntents.swift`). The views they draw through are in the ThawUI package.
 - `Sources/Floe/DroppyCode`: code ported from Droppy Code. Each file keeps Droppy Code's copyright and credit line
   and says what Floe changed; `LICENSES` holds its license and third-party notices.
   - `LoginEnvironment.swift` reads the login shell's environment, which extensions start with, and `Shell.swift` runs
@@ -126,13 +126,13 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     command when a file under its extension's `src/` or `assets/`, or its `package.json`, is saved. Only local
     extensions with a `src/` folder are watched, never the ones Raycast installed.
 - `CREDITS.md` and `Sources/Floe/App/Credits.swift` are written by `scripts/generate-credits.py`; run it after changing a dependency.
-- `Vendor/ThawUI`: the controls, styles and shared pages Thaw and Floe both use, copied from the ThawUI package until it is published (commit in `Vendor/ThawUI/UPSTREAM`). ThawUI holds no text of its own; `Thaw/ThawUIWords*.swift` gives it Floe's.
+- [ThawUI](https://github.com/thaw-app/ThawUI), a dependency: the controls, styles and shared pages Thaw and Floe both use. ThawUI holds no text of its own; `Thaw/ThawUIWords*.swift` gives it Floe's.
 - `Fuzzing`: the fuzzing harness and its corpus, a package of its own. `.github/workflows/fuzz.yml` runs it nightly and on any change to it.
 
 The security reasoning is in the [assurance case](ASSURANCE_CASE.md), and what Floe exposes to or asks of the outside is in [External interfaces](INTERFACES.md).
 
 ## Licenses
 
-Floe is AGPL-3.0. Code from Thaw, including `Vendor/ThawUI`, stays GPL-3.0, and code from Droppy Code keeps its
+Floe is AGPL-3.0. Code from Thaw and the ThawUI package stay GPL-3.0, and code from Droppy Code keeps its
 attribution terms. `LICENSES/README.md` says which license covers which folder, and extensions under `extensions/`
 keep their own.

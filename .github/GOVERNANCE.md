@@ -36,7 +36,7 @@ Forking remains always available under the AGPL-3.0 license; governance here onl
 | Location | Status |
 | --- | --- |
 | [thaw-app/Floe](https://github.com/thaw-app/Floe) | Canonical source, issues, CI |
-| [thaw-app/Thaw](https://github.com/thaw-app/Thaw) | Upstream of `Vendor/ThawUI` and of the hotkey code in `Sources/Floe/Thaw` |
+| [thaw-app/Thaw](https://github.com/thaw-app/Thaw) | Upstream of the code ported to `Sources/Floe/Thaw` |
 | [thaw-app/org-ci](https://github.com/thaw-app/org-ci) | Shared GitHub Actions and the reusable workflow that builds and attests releases |
 | [thaw-app/.github](https://github.com/thaw-app/.github) | The contribution guidelines, Code of Conduct and Security Policy Floe follows |
 
