@@ -46,7 +46,6 @@ struct ApplicationSettingsView: View {
 
     private func form(_ apps: [AppEntry]) -> some View {
         Form {
-            SettingsPageHeader()
             PreferredAppsSettingsSection(settings: settings)
             ThawSection {
                 // In the pane: the sidebar's field searches the settings.

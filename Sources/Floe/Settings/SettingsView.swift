@@ -33,9 +33,6 @@ struct SettingsView: View {
                 .navigationSplitViewColumnWidth(SettingsSidebarPaneList.listWidth)
         } detail: {
             detail
-                // Each page heads itself with this (see SettingsPageHeader). Named here from the
-                // selection, not by each pane: a pane's own title only arrived once the pane was built.
-                .environment(\.settingsPageHeading, SettingsPageHeading(title: title))
                 // Fill the detail column so the Form's scrollbar sits on the
                 // window's trailing edge.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -69,7 +66,6 @@ struct SettingsView: View {
             ApplicationSettingsView(catalog: catalog, settings: settings)
         case .ai:
             Form {
-                SettingsPageHeader()
                 AISettingsSection(settings: settings)
             }
             .formStyle(.grouped)
@@ -101,26 +97,6 @@ struct SettingsView: View {
             .id(name)
         }
     }
-
-    /// The pane's name over its content, the one its sidebar row has.
-    private var title: String {
-        guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
-        return switch selection.page {
-        case .general: SearchPaneLabel.general.title
-        case .commands: SearchPaneLabel.commands.title
-        case .applications: SearchPaneLabel.applications.title
-        case .ai: SearchPaneLabel.ai.title
-        case .sync: SearchPaneLabel.sync.title
-        case .quicklinks: SearchPaneLabel.quicklinks.title
-        case .fallbacks: SearchPaneLabel.fallbacks.title
-        case .snippets: SearchPaneLabel.snippets.title
-        case .extensionStore: SearchPaneLabel.extensionStore.title
-        case .appearance: SearchPaneLabel.appearance.title
-        case .privacy: SearchPaneLabel.privacy.title
-        case .about: SearchPaneLabel.about.title
-        case let .extensionPage(name): catalog.allCommands.first { $0.extensionName == name }?.extensionTitle ?? name
-        }
-    }
 }
 
 struct GeneralSettingsView: View {
@@ -130,7 +106,6 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
             ThawSection(.floe("Floe")) {
                 HotkeyRecorder(
                     keyCombination: $settings.toggleHotkey,

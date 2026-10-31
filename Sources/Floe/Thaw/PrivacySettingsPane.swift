@@ -39,7 +39,6 @@ struct PrivacySettingsPane: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
             SettingsPrivacyNotice(
                 title: .floe("No analytics"),
                 message: .floe("Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network.")

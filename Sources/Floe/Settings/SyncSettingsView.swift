@@ -76,7 +76,6 @@ struct SyncSettingsView: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
             SyncSettingsSection(settings: settings, sync: sync)
             ThawSection(.floe("Your Settings")) {
                 LabeledContent {
