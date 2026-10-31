@@ -45,17 +45,17 @@ enum LinkActions {
         let rows = menu.others.prefix(12).map { browser in
             let icon = NSWorkspace.shared.icon(forFile: browser.url.path)
             icon.size = NSSize(width: 16, height: 16)
-            return ItemAction(title: browser.title, symbol: "app", icon: icon) {
+            return ItemAction(title: browser.title, symbol: "app", icon: icon, id: .openWith(browser.url)) {
                 opener.open(url, browser.url)
                 host.dismiss()
             }
         }
-        return rows.isEmpty ? nil : ItemAction(title: String(localized: "Open With", bundle: .floe), symbol: "arrow.up.forward.app", children: Array(rows))
+        return rows.isEmpty ? nil : ItemAction(title: String(localized: "Open With", bundle: .floe), symbol: "arrow.up.forward.app", children: Array(rows), id: .openWith)
     }
 
     /// Copies the address that would open, scheme and all.
     static func copyAddress(_ url: URL, host: ActionHost, copy: @escaping (String) -> Void = { NSPasteboard.general.copy($0) }) -> ItemAction {
-        ItemAction(title: String(localized: "Copy Address", bundle: .floe), symbol: "doc.on.doc") {
+        ItemAction(title: String(localized: "Copy Address", bundle: .floe), symbol: "doc.on.doc", id: .copyAddress) {
             copy(url.absoluteString)
             host.showHUD(String(localized: "Copied Address", bundle: .floe))
         }

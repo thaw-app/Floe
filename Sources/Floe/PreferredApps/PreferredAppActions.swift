@@ -16,7 +16,7 @@ extension FileActions {
             }
             let icon = NSWorkspace.shared.icon(forFile: entry.app.url.path)
             icon.size = NSSize(width: 16, height: 16)
-            return ItemAction(title: String(localized: "Open in \(entry.app.name)", bundle: .floe, comment: "The placeholder is the name of an app."), symbol: "arrow.up.forward.app", icon: icon) {
+            return ItemAction(title: String(localized: "Open in \(entry.app.name)", bundle: .floe, comment: "The placeholder is the name of an app."), symbol: "arrow.up.forward.app", icon: icon, id: .openIn(entry.role)) {
                 PreferredApps.open(handoff)
                 host.dismiss()
             }

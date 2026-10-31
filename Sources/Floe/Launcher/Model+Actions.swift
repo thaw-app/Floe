@@ -72,20 +72,20 @@ extension LauncherModel {
 
     func rootActions(for item: RootItem) -> [ItemAction?] {
         var actions: [ItemAction?] = [
-            ItemAction(title: primaryActionTitle(for: item), symbol: "return") { [weak self] in self?.activate(item) },
+            ItemAction(title: primaryActionTitle(for: item), symbol: "return", id: .primary) { [weak self] in self?.activate(item) },
         ]
         switch item {
         case let .app(app):
             actions += [nil] + AppActions.actions(for: app, host: actionHost)
         case let .command(command):
-            actions.append(ItemAction(title: String(localized: "Configure Extension…", bundle: .floe), symbol: "gearshape") { [weak self] in
+            actions.append(ItemAction(title: String(localized: "Configure Extension…", bundle: .floe), symbol: "gearshape", id: .configureExtension) { [weak self] in
                 self?.panelHost.hidePanel()
                 self?.panelHost.openSettings(.extensionPage(command.extensionName))
             })
         case let .file(file):
             actions += FileActions.actions(for: file.url, host: actionHost)
         case let .clipboardEntry(entry):
-            actions.append(ItemAction(title: String(localized: "Copy", bundle: .floe, comment: "A verb: put the selection on the clipboard."), symbol: "doc.on.doc") { [weak self] in self?.clipboardHistory.copy(entry) })
+            actions.append(ItemAction(title: String(localized: "Copy", bundle: .floe, comment: "A verb: put the selection on the clipboard."), symbol: "doc.on.doc", id: .copy) { [weak self] in self?.clipboardHistory.copy(entry) })
         case .webAddress, .quicklink, .bookmark:
             actions += linkActions(for: item)
         default:
@@ -95,13 +95,13 @@ extension LauncherModel {
             let favorite = isFavorite(item)
             actions += [
                 nil,
-                ItemAction(title: favorite ? String(localized: "Remove from Favorites", bundle: .floe) : String(localized: "Add to Favorites", bundle: .floe), symbol: favorite ? "star.slash" : "star") { [weak self] in
+                ItemAction(title: favorite ? String(localized: "Remove from Favorites", bundle: .floe) : String(localized: "Add to Favorites", bundle: .floe), symbol: favorite ? "star.slash" : "star", id: .toggleFavorite) { [weak self] in
                     self?.toggleFavorite(item)
                 },
             ]
         }
         if Self.canBeHidden(item) {
-            actions.append(ItemAction(title: String(localized: "Hide from Search", bundle: .floe), symbol: "eye.slash") { [weak self] in
+            actions.append(ItemAction(title: String(localized: "Hide from Search", bundle: .floe), symbol: "eye.slash", id: .hideFromSearch) { [weak self] in
                 self?.hideFromSearch(item)
             })
         }

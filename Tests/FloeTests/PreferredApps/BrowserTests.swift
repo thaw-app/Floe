@@ -298,6 +298,8 @@ struct BrowserTests {
         let actions = model.rootActions(for: row)
         #expect(titles(actions) == ["Open in Safari", "Open With", "Copy Address"], "no favorite toggle: the row is gone next time")
         #expect(actions[1]?.children.map(\.title) == ["Arc", "Zen"])
+        #expect(actions.map { $0?.id } == [.primary, .openWith, .copyAddress])
+        #expect(actions[1]?.children.map(\.id) == [.openWith(Fake.arc), .openWith(Fake.zen)])
 
         settings.browserApp = Fake.zenChoice
         let chosen = model.rootActions(for: row)
