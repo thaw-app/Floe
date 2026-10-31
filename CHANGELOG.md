@@ -23,10 +23,14 @@ these four.
 
 ## [Unreleased]
 
+Floe's Settings now share their controls and pages with Thaw through [ThawUI](https://github.com/thaw-app/ThawUI), so the two apps look and behave more alike.
+
 ### Changed
 - **The toolbar names each Settings page**, in place of the large title at the top, as in Thaw. Each group of search results is headed the way the sidebar heads its groups.
 - **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
 - **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.
+- **The sidebar scrolls to the current page when Settings opens**, and with Differentiate Without Color on, the selected row gets a ring.
+- **Numbered steps in the release notes keep their numbers.**
 
 ### Fixed
 - **A link in the release notes opens only if it is https**, and a page that isn't the changelog, such as a Wi-Fi sign-in page, no longer replaces the saved notes.
