@@ -540,7 +540,7 @@ struct ChangelogDocumentShownReleasesTests {
             .appendingPathComponent("CHANGELOG.md")
         let document = try ChangelogDocument.parse(String(contentsOf: file, encoding: .utf8))
         let releases = ChangelogDocument.displayReleases(in: document)
-        #expect(releases.first?.version == "Unreleased")
+        #expect(releases.first?.version == "0.3.0")
         #expect(releases.dropFirst().first?.version == "0.2.1")
         let released = try #require(releases.first { $0.version == "0.2.0" })
         #expect(released.sections.first?.title == "New")

@@ -21,7 +21,9 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.3.0] - 2026-10-31
+
+**macOS 26 and later · Build 5**
 
 Floe's Settings now share their controls and pages with Thaw through [ThawUI](https://github.com/thaw-app/ThawUI), so the two apps look and behave more alike.
 
@@ -35,6 +37,7 @@ Floe's Settings now share their controls and pages with Thaw through [ThawUI](ht
 - **Numbered steps in the release notes keep their numbers.**
 
 ### Fixed
+- **What's New shows the latest releases.** It was reading an older copy of the changelog that stopped at 0.1.0.
 - **A link in the release notes opens only if it is https**, and a page that isn't the changelog, such as a Wi-Fi sign-in page, no longer replaces the saved notes.
 - **A saved keyboard shortcut with an impossible key is dropped** when settings load, so registering it can't cause a crash.
 
