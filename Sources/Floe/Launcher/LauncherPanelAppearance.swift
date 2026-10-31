@@ -69,7 +69,7 @@ struct LauncherPanelAppearance: ViewModifier {
             // Regular is the panel's own glass, which also knows what to draw
             // when the system has transparency turned down.
             if style == .regular || reduceTransparency {
-                tinted.thawGlass(.panel, in: shape)
+                tinted.thawGlass(.borderlessPanel, in: shape)
             } else {
                 tinted
                     // The fade is black at the top whatever the appearance, so
