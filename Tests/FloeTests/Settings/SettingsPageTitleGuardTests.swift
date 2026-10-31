@@ -31,7 +31,7 @@ nonisolated struct SettingsPageTitleGuardTests {
         let settings = root.appending(path: "Sources/Floe/Settings")
         let view = try String(contentsOf: settings.appending(path: "SettingsView.swift"), encoding: .utf8)
         let window = try String(contentsOf: settings.appending(path: "SettingsWindow.swift"), encoding: .utf8)
-        #expect(view.contains(".navigationTitle(title)"))
+        #expect(view.contains("ThawSettingsShell(title: Text(title))"))
         #expect(window.contains("sceneBridgingOptions = [.title, .toolbars]"))
         #expect(window.contains("toolbarStyle = .unified"))
     }

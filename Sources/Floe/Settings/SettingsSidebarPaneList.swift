@@ -15,7 +15,6 @@ struct SettingsSidebarPaneList: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var selection: SettingsSelection
 
-    static let listWidth: CGFloat = 220
     static let colors = ThawSidebarColors(selection: .flat(fill: .primary.opacity(0.1), edge: .primary.opacity(0.08)))
 
     @Environment(SearchModel.self) private var search

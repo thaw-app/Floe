@@ -27,19 +27,10 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        ThawSettingsShell(title: Text(title)) {
             SettingsSidebarPaneList(catalog: catalog, settings: settings, selection: selection)
-                // A fixed width: the pages' names fit it, and a wider sidebar only narrows the page.
-                .navigationSplitViewColumnWidth(SettingsSidebarPaneList.listWidth)
         } detail: {
             detail
-                // Fill the detail column so the Form's scrollbar sits on the
-                // window's trailing edge.
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                // The toolbar names the page and stays put while the form scrolls under it.
-                .navigationTitle(title)
-                // Content fades under the titlebar instead of stopping at a hard band.
-                .scrollEdgeEffectStyle(.soft, for: .top)
         }
         .settingsSearchField(search, selection: selection)
         .updateConsentSheet(stores.updates)
