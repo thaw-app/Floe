@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import ThawUI
 
 /// The settings window. Only the settings process makes one (see SettingsMode.swift).
 final class SettingsWindowController: NSObject, NSWindowDelegate {
@@ -46,7 +47,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
             // As Thaw's windows: not a workspace, so the green button zooms, and nothing worth restoring.
             window.collectionBehavior.formUnion([.moveToActiveSpace, .fullScreenNone])
             window.isRestorable = false
-            let content = NSHostingView(rootView: SettingsView(catalog: catalog, stores: stores, selection: selection).openingLinksInTheChosenBrowser())
+            let content = NSHostingView(rootView: SettingsView(catalog: catalog, stores: stores, selection: selection).openingLinksInTheChosenBrowser().thawTheme(.floe))
             // The view's title and toolbar reach the window. Removing the toolbar's items in SwiftUI
             // shrinks the sidebar to 144 points, so its sidebar button stays.
             content.sceneBridgingOptions = [.title, .toolbars]

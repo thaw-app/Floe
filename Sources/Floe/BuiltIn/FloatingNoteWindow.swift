@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import ThawUI
 
 /// A panel over every app, on every Space and beside full-screen apps. It takes the keyboard without making
 /// Floe the active app, as the launcher does, so the app in front stays in front.
@@ -78,7 +79,7 @@ final class FloatingNoteWindowController: NSObject, NSWindowDelegate {
         self.model = model
         let panel = panel ?? makePanel()
         self.panel = panel
-        panel.contentView = NSHostingView(rootView: FloatingNoteView(model: model, titleBarHeight: panel.frame.height - panel.contentLayoutRect.height))
+        panel.contentView = NSHostingView(rootView: FloatingNoteView(model: model, titleBarHeight: panel.frame.height - panel.contentLayoutRect.height).thawTheme(.floe))
         panel.makeKeyAndOrderFront(nil)
         watchKeys()
         model.start()

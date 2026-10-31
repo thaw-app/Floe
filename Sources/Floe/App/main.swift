@@ -305,7 +305,7 @@ if options.benchSettings {
     let selection = SettingsSelection()
     let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 820, height: 560), styleMask: [.titled], backing: .buffered, defer: false)
     let search = SearchModel()
-    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search))
+    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search).thawTheme(.floe))
     window.orderFrontRegardless()
     let pages: [(String, SettingsPage)] = [("general", .general), ("applications", .applications), ("ai", .ai), ("sync", .sync), ("privacy", .privacy), ("about", .about), ("extension", .extensionPage("kill-process"))]
     for (name, page) in pages {
@@ -335,7 +335,7 @@ if options.benchSettings {
             settings.aiTool = tool
             settings.aiBaseURL = service.baseURL ?? ""
             let section = Form { AISettingsSection(settings: settings, storedKey: key ?? "") }.formStyle(.grouped).frame(width: 600, height: 320)
-            window.contentView = NSHostingView(rootView: section)
+            window.contentView = NSHostingView(rootView: section.thawTheme(.floe))
             RunLoop.main.run(until: Date().addingTimeInterval(0.05))
             window.contentView?.layoutSubtreeIfNeeded()
             window.displayIfNeeded()
@@ -385,7 +385,7 @@ if let path = options.panelSnapshot {
     // Scratch settings, so drawing the compact layout leaves the saved one alone.
     let settings = AppSettings(defaults: UserDefaults(suiteName: "floe.snapshot") ?? .standard)
     let window = NSWindow(contentRect: NSRect(origin: NSPoint(x: -4000, y: -4000), size: model.panelState.windowSize(in: settings.launcherLayout)), styleMask: [.borderless], backing: .buffered, defer: false)
-    window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: settings))
+    window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: settings).thawTheme(.floe))
     window.orderFrontRegardless()
     let resizing = model.panelWindowSizes(settings: settings).sink { window.resizeKeepingTop(to: $0) }
     func snapshot(_ name: String, wait: TimeInterval = 1) {

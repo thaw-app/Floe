@@ -8,14 +8,12 @@
 import SwiftUI
 import ThawUI
 
-/// The shared settings sidebar, on Floe's soft gray selection rather than the accent colour. No row is selected
+/// The shared settings sidebar. No row is selected
 /// during a search, so a click on any row, the current pane's included, ends it.
 struct SettingsSidebarPaneList: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
     @ObservedObject var selection: SettingsSelection
-
-    static let colors = ThawSidebarColors(selection: .flat(fill: .primary.opacity(0.1), edge: .primary.opacity(0.08)))
 
     @Environment(SearchModel.self) private var search
 
@@ -26,7 +24,6 @@ struct SettingsSidebarPaneList: View {
             rows: rows.map(\.sidebarRow),
             current: selection.page,
             showsSelection: !search.isSearching,
-            colors: Self.colors,
             select: { SettingsSearchNavigation.selectSidebarPane($0, selection: selection, search: search) },
             title: { Text(pages[$0]?.label.title ?? "") },
             isDimmed: { pages[$0]?.isDimmed ?? false },

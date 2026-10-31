@@ -39,6 +39,7 @@
 		133FA68560C070657D54FCBD /* ExtensionStore+Install.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD93F2D2BBAD30A23622CA2 /* ExtensionStore+Install.swift */; };
 		137086CE4D3D573C644AC40D /* ThawAppearanceFollower.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCEC0FF25DE49B587C692404 /* ThawAppearanceFollower.swift */; };
 		138B033028F8A2A4C5AD8592 /* AISources.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBAE97F9F789080825D77939 /* AISources.swift */; };
+		139AB0DCADE10CA6AE8AEB80 /* ThawTheme+Floe.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17BFB8FEB61BB529FA06AFA /* ThawTheme+Floe.swift */; };
 		144281C851B605A3D19F37AA /* MenuItemRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DAFE7C05D01D7AF9854C43 /* MenuItemRows.swift */; };
 		151C30C428615CB5CDE6D403 /* ClaudeTextStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51D72E96AACE0D8FF8122F69 /* ClaudeTextStream.swift */; };
 		152CD8766C604196070E5A26 /* NoteSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4C49ED241FCB0866FBBE16 /* NoteSaver.swift */; };
@@ -814,6 +815,7 @@
 		F083CEE0A4DB35A8DBC44B67 /* SettingsMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMode.swift; sourceTree = "<group>"; };
 		F0DE6204FF40A0272CD6A9F8 /* PlaceRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceRows.swift; sourceTree = "<group>"; };
 		F1383B6A0B9756FA63F7C530 /* ClipboardHistoryWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryWorker.swift; sourceTree = "<group>"; };
+		F17BFB8FEB61BB529FA06AFA /* ThawTheme+Floe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThawTheme+Floe.swift"; sourceTree = "<group>"; };
 		F1DAF12F434B6E09FED35160 /* Model+RowOwners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+RowOwners.swift"; sourceTree = "<group>"; };
 		F245C534BE2C8F28BF639F5B /* ExtensionStoreSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStoreSettingsPage.swift; sourceTree = "<group>"; };
 		F2C9473A53B6666AEE0D77E1 /* Reminders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reminders.swift; sourceTree = "<group>"; };
@@ -894,6 +896,7 @@
 				A4A4E7591F69E972182C8543 /* LauncherGlass.swift */,
 				2D66D8BB85233370CD818294 /* ListStepping.swift */,
 				FB366C323BC449BC6B784D8D /* PrivacySettingsPane.swift */,
+				F17BFB8FEB61BB529FA06AFA /* ThawTheme+Floe.swift */,
 				5E91BEE1C5FB82EA2FBB9ED0 /* ThawUIWords.swift */,
 				52E6015A4298BBA51E179116 /* ThawUIWords+Hotkeys.swift */,
 				5179F05B108ED648507F1B2E /* ThawUIWords+Pages.swift */,
@@ -1996,6 +1999,7 @@
 				2998C9BB3632559AFA952A3F /* ThawIntegration.swift in Sources */,
 				4F3A33A2B78D31083476E3D4 /* ThawPillPicker+Floe.swift in Sources */,
 				E0FC20F661321DBDFBBABA35 /* ThawSupportNotice.swift in Sources */,
+				139AB0DCADE10CA6AE8AEB80 /* ThawTheme+Floe.swift in Sources */,
 				19F3E20EEDF6A2CDE3F2E899 /* ThawUIWords+Hotkeys.swift in Sources */,
 				50F3939B1F33A4FF088A593C /* ThawUIWords+Pages.swift in Sources */,
 				A4F63DF512CFD729C4C1C774 /* ThawUIWords+Permissions.swift in Sources */,

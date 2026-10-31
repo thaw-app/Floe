@@ -105,7 +105,7 @@ final class PickPanelController: NSObject, NSWindowDelegate {
         self.session = session
         panel = LauncherPanel(size: LauncherPanelState().windowSize(in: .extended))
         super.init()
-        panel.contentView = NSHostingView(rootView: PickView(session: session))
+        panel.contentView = NSHostingView(rootView: PickView(session: session).thawTheme(.floe))
         // A focused field selects its text, and typing would then replace the starting query instead of adding to it.
         focusObservation = panel.observe(\.firstResponder) { [weak self] panel, _ in
             // Safe: KVO calls back on the thread that made the change, and a window's first responder changes on the main one.

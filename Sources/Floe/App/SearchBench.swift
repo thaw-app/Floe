@@ -7,6 +7,7 @@
 
 import AppKit
 import SwiftUI
+import ThawUI
 
 private func milliseconds(_ work: () -> Void) -> Int {
     let start = Date()
@@ -85,7 +86,7 @@ func runSearchBench(queries: [String]) -> Never {
     func settle() {
         RunLoop.main.run(until: Date().addingTimeInterval(0.02))
     }
-    print("FIRST RENDER \(milliseconds { window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: benchSettings())); window.orderFrontRegardless(); render() }) ms")
+    print("FIRST RENDER \(milliseconds { window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: benchSettings()).thawTheme(.floe)); window.orderFrontRegardless(); render() }) ms")
     settle()
     for query in queries.isEmpty ? ["safari", "settings", "ask why is the sky blue"] : queries {
         var typed = ""

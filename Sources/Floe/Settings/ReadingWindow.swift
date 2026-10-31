@@ -54,7 +54,7 @@ final class ReadingWindow {
         )
         created.isReleasedWhenClosed = false
         created.title = title
-        created.contentView = NSHostingView(rootView: content().buttonBorderShape(.capsule).openingLinksInTheChosenBrowser())
+        created.contentView = NSHostingView(rootView: content().buttonBorderShape(.capsule).openingLinksInTheChosenBrowser().thawTheme(.floe))
         created.center()
         closeObserver = NotificationCenter.default.addMainObserver(forName: NSWindow.willCloseNotification, object: created) { [weak self] in
             self?.closed()

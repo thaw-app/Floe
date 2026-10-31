@@ -111,7 +111,7 @@ struct SettingsSearchResults: View {
 
 // MARK: - SearchResultsList
 
-/// The shared results list on Floe's groups and entries, with the neutral hover the rest of Floe's rows have.
+/// The shared results list on Floe's groups and entries.
 struct SearchResultsList<Header: View>: View {
     let groups: [SearchGroup]
     /// The result the arrow keys are on.
@@ -124,7 +124,6 @@ struct SearchResultsList<Header: View>: View {
             groups: groups,
             entries: \.entries,
             highlighted: highlighted,
-            hoverTint: .primary,
             onSelect: onSelect,
             groupTitle: { Text($0.label.title) },
             result: { entry in

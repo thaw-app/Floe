@@ -53,8 +53,9 @@ struct ThawUIAdoptionTests {
         #expect(KeyCombination(key: .space, modifiers: .command).displayValue == "⌘ Space")
     }
 
-    @Test func theSidebarKeepsFloesGraySelection() {
-        #expect(SettingsSidebarPaneList.colors.selection == .flat(fill: .primary.opacity(0.1), edge: .primary.opacity(0.08)))
+    @Test func theThemeKeepsFloesGraySelectionAndNeutralHover() {
+        #expect(ThawTheme.floe.selection == .flat(fill: .primary.opacity(0.1), edge: .primary.opacity(0.08)))
+        #expect(ThawTheme.floe.hoverTint == .primary)
     }
 
     @Test func theSidebarRowsCarryTheirPagesToTheSharedSidebar() {
