@@ -25,10 +25,17 @@ these four.
 
 **macOS 26 and later · Build 5**
 
+> [!NOTE]
+> **Contributing is easier now**
+>
+> [AGENTS.md](https://github.com/thaw-app/Floe/blob/development/AGENTS.md) tells AI coding agents, and the people using them, how to contribute to Floe. [CODING_STANDARDS.md](https://github.com/thaw-app/Floe/blob/development/docs/CODING_STANDARDS.md) says how code and text are written here. Read both before you open a pull request, whether you write the change yourself or with an agent.
+>
+> If an AI helps with your change, see the [AI-assisted contributions](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md#ai-assisted-contributions) section of our contribution guidelines first: you stay responsible for the change and must be able to explain it, and the tool's terms have to let you contribute its output.
+
 Floe's Settings now share their controls and pages with Thaw through [ThawUI](https://github.com/thaw-app/ThawUI), so the two apps look and behave more alike.
 
 ### New
-- **File search finds what's in iCloud Drive**, and shows it under that name. With Fast file search on, macOS may ask once for access to iCloud Drive.
+- **File search finds what's in iCloud Drive**, and shows it under that name. With Fast file search on, macOS may ask once for access to iCloud Drive ([#59](https://github.com/thaw-app/Floe/issues/59)).
 
 ### Changed
 - **A slider sets the search field's corners**, from square to fully round, in place of the three shapes. The shape you had stays as it was, and an older Floe syncing from another Mac keeps working.
@@ -43,6 +50,10 @@ Floe's Settings now share their controls and pages with Thaw through [ThawUI](ht
 - **What's New shows the latest releases.** It was reading an older copy of the changelog that stopped at 0.1.0.
 - **A link in the release notes opens only if it is https**, and a page that isn't the changelog, such as a Wi-Fi sign-in page, no longer replaces the saved notes.
 - **A saved keyboard shortcut with an impossible key is dropped** when settings load, so registering it can't cause a crash.
+
+### Contributors
+
+- @matthrz asked to search iCloud Drive ([#59](https://github.com/thaw-app/Floe/issues/59)).
 
 ## [0.2.1] - 2026-10-29
 
