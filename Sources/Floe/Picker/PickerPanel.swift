@@ -174,7 +174,7 @@ struct PickView: View {
         let size = LauncherPanelState().contentSize(in: .extended)
         let look = settings.launcherLook(for: colorScheme)
         // The picker's field is always the rounded one, so its piece is too.
-        let pieces = settings.separatesSearchField ? PanelPieces(look: look, fieldShape: .rounded, heights: LauncherPanelState().pieceHeights(in: .extended)) : nil
+        let pieces = settings.separatesSearchField ? PanelPieces(look: look, corners: .rounded, heights: LauncherPanelState().pieceHeights(in: .extended)) : nil
         GlassEffectContainer {
             PanelSections {
                 SearchBar(placeholder: session.prompt, text: $session.query, focusToken: 0) { EmptyView() }

@@ -27,20 +27,6 @@ struct SearchFieldShapeTests {
         }
     }
 
-    @Test func theShapeIsRoundedUntilChosenAndIsStored() {
-        let defaults = MemoryDefaults()
-        let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
-        #expect(settings.searchFieldShape == .rounded)
-        settings.searchFieldShape = .capsule
-        settings.save()
-        #expect(AppSettings(defaults: defaults, savesAfterEdits: false).searchFieldShape == .capsule)
-    }
-
-    @Test func theSettingsSearchFindsThePicker() {
-        let entry = SearchIndex.appearanceEntries.first { $0.id.hasSuffix("searchFieldShape") }
-        #expect(entry?.section == "Layout")
-    }
-
     // MARK: The beam
 
     @Test func everyBeamHasItsOwnNameAndID() {

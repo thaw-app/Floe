@@ -1051,9 +1051,6 @@
         }
       }
     },
-    "Capsule" : {
-      "comment" : "A shape for the search field."
-    },
     "Case %@" : {
       "comment" : "The battery of the earbuds' charging case. The placeholder is a percentage."
     },
@@ -3527,8 +3524,8 @@
     "Right %@" : {
       "comment" : "The battery of the right earbud. The placeholder is a percentage."
     },
-    "Rounded" : {
-      "comment" : "A shape for the search field."
+    "Round" : {
+      "comment" : "The right end of the slider for the search field's corners."
     },
     "Run" : {
       "comment" : "A verb on a button: run the shortcut or script."
@@ -3735,8 +3732,8 @@
     "Search field beam" : {
 
     },
-    "Search field shape" : {
-
+    "Search field corners" : {
+      "comment" : "The setting for how round the launcher's search field is, from square to fully round."
     },
     "Search files…" : {
 
@@ -4020,7 +4017,7 @@
       "comment" : "A kind of unit, named in a calculator error."
     },
     "Square" : {
-      "comment" : "A shape for the search field."
+      "comment" : "The left end of the slider for the search field's corners."
     },
     "Stable" : {
       "comment" : "The update channel that only offers finished releases."
@@ -5382,7 +5379,7 @@
       "comment" : "Words that find the Drop shadow setting in the settings search, separated by commas."
     },
     "shape, rounded, capsule, pill, square, corners, search bar, input" : {
-      "comment" : "Words that find the Search field shape setting in the settings search, separated by commas."
+      "comment" : "Words that find the Search field corners setting in the settings search, separated by commas."
     },
     "shell, command, terminal, command line, run, prefix, script, bash, zsh" : {
       "comment" : "Words that find the Run shell commands setting in the settings search, separated by commas."

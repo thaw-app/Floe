@@ -82,7 +82,8 @@ final class AppSettings: ObservableObject {
     @Published var thawAppearances: [ThawAppearance.Scheme: ThawAppearance] = [:]
     /// Extended always shows the list; compact is the search bar alone until something is typed.
     @Published var launcherLayout = LauncherLayout.extended
-    @Published var searchFieldShape = SearchFieldShape.rounded
+    /// How round the search field is. Stored with its nearest `SearchFieldShape` too, for an older Floe on another Mac.
+    @Published var searchFieldCorners = SearchFieldCorners.rounded
     /// The streak of light around the search field, and its colours.
     @Published var searchFieldBeam = SearchFieldBeam.colorful
     /// How many times a second the beam is drawn as it turns.
@@ -185,6 +186,7 @@ final class AppSettings: ObservableObject {
         var followsThawAppearance: Bool?
         var launcherLayout: LauncherLayout?
         var searchFieldShape: SearchFieldShape?
+        var searchFieldCorners: SearchFieldCorners?
         var searchFieldBeam: SearchFieldBeam?
         var searchFieldBeamFrameRate: Double?
         var separatesSearchField: Bool?
@@ -350,7 +352,7 @@ final class AppSettings: ObservableObject {
         launcherGlass = stored.launcherGlass ?? launcherGlass
         followsThawAppearance = stored.followsThawAppearance ?? followsThawAppearance
         launcherLayout = stored.launcherLayout ?? launcherLayout
-        searchFieldShape = stored.searchFieldShape ?? .rounded
+        searchFieldCorners = stored.searchFieldCorners ?? stored.searchFieldShape.map(SearchFieldCorners.init) ?? .rounded
         searchFieldBeam = stored.searchFieldBeam ?? .colorful
         searchFieldBeamFrameRate = stored.searchFieldBeamFrameRate ?? 60
         separatesSearchField = stored.separatesSearchField ?? false
@@ -399,7 +401,8 @@ final class AppSettings: ObservableObject {
             launcherGlass: launcherGlass,
             followsThawAppearance: followsThawAppearance,
             launcherLayout: launcherLayout,
-            searchFieldShape: searchFieldShape,
+            searchFieldShape: searchFieldCorners.nearestShape,
+            searchFieldCorners: searchFieldCorners,
             searchFieldBeam: searchFieldBeam,
             searchFieldBeamFrameRate: searchFieldBeamFrameRate,
             separatesSearchField: separatesSearchField,

@@ -401,10 +401,10 @@ if let path = options.panelSnapshot {
     snapshot("compact")
     settings.launcherLayout = .extended
     for shape in [SearchFieldShape.capsule, .square] {
-        settings.searchFieldShape = shape
+        settings.searchFieldCorners = SearchFieldCorners(shape)
         snapshot("field-\(shape.rawValue)")
     }
-    settings.searchFieldShape = .rounded
+    settings.searchFieldCorners = .rounded
     // The answer view with a canned answer: nothing is asked of any source.
     model.askAIRequest = { conversation, _ in conversation.earlier.isEmpty ? AskAI.sampleAnswer : AskAI.sampleFollowUp }
     MarkdownView.isSelectable = false
@@ -419,10 +419,10 @@ if let path = options.panelSnapshot {
     model.closeMenuBarSearch()
     model.query = "co"
     for shape in SearchFieldShape.allCases {
-        settings.searchFieldShape = shape
+        settings.searchFieldCorners = SearchFieldCorners(shape)
         snapshot("separate-\(shape.rawValue)")
     }
-    settings.searchFieldShape = .rounded
+    settings.searchFieldCorners = .rounded
     settings.launcherLayout = .compact
     model.query = ""
     snapshot("separate-compact")

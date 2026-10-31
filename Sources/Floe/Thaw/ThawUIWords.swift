@@ -60,16 +60,6 @@ nonisolated extension SearchFieldBeam {
     }
 }
 
-nonisolated extension SearchFieldShape {
-    var title: String {
-        switch self {
-        case .rounded: String(localized: "Rounded", bundle: .floe, comment: "A shape for the search field.")
-        case .capsule: String(localized: "Capsule", bundle: .floe, comment: "A shape for the search field.")
-        case .square: String(localized: "Square", bundle: .floe, comment: "A shape for the search field.")
-        }
-    }
-}
-
 // MARK: - HUD
 
 extension ThawHUD {

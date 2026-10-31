@@ -26,6 +26,7 @@ these four.
 Floe's Settings now share their controls and pages with Thaw through [ThawUI](https://github.com/thaw-app/ThawUI), so the two apps look and behave more alike.
 
 ### Changed
+- **A slider sets the search field's corners**, from square to fully round, in place of the three shapes. Whichever shape you had stays exactly as it was, and an older Floe syncing from another Mac keeps working.
 - **The toolbar names each Settings page**, in place of the large title at the top, as in Thaw. Each group of search results is headed the way the sidebar heads its groups.
 - **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
 - **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.

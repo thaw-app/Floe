@@ -99,7 +99,8 @@ struct AppearanceSettingsPane: View {
                     tint: look.tint,
                     border: look.border,
                     hasShadow: look.hasShadow,
-                    separateFieldShape: settings.separatesSearchField ? settings.searchFieldShape : nil
+                    corners: settings.searchFieldCorners,
+                    separatesField: settings.separatesSearchField
                 )
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, ThawSpacing.gutter)
@@ -135,9 +136,23 @@ struct AppearanceSettingsPane: View {
                 Text("Extended always shows the list. Compact shows only the search bar until you type.")
             }
             LauncherScreenPicker(selection: $settings.launcherScreen)
-            LabeledContent("Search field shape") {
-                ThawPillPicker(selection: $settings.searchFieldShape, values: SearchFieldShape.allCases, title: \.title)
-                    .accessibilityLabel(Text("Search field shape"))
+            LabeledContent("Search field corners") {
+                HStack(spacing: ThawSpacing.base) {
+                    Text("Square", comment: "The left end of the slider for the search field's corners.")
+                        .font(ThawType.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                    // Steps, so the middle, where the corners match the rest of the panel, can be found again.
+                    ThawSlider(value: $settings.searchFieldCorners.roundness, in: SearchFieldCorners.range, step: 0.05) {
+                        EmptyView()
+                    }
+                    .accessibilityLabel(Text("Search field corners"))
+                    Text("Round", comment: "The right end of the slider for the search field's corners.")
+                        .font(ThawType.caption)
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
+                }
+                .frame(maxWidth: 360)
             }
             ThawPicker(selection: $settings.searchFieldBeam) {
                 ForEach(SearchFieldBeam.allCases) { beam in

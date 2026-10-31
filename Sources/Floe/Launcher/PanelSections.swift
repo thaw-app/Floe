@@ -11,23 +11,23 @@ import ThawUI
 /// What a panel needs to draw itself in pieces. In the environment only while the setting is on.
 struct PanelPieces: Equatable {
     var look: LauncherLook
-    var fieldShape: SearchFieldShape
+    var corners: SearchFieldCorners
     var heights: PanelPieceHeights
 
     func fieldOutline() -> RoundedRectangle {
-        RoundedRectangle(cornerRadius: fieldShape.fieldPieceRadius(height: heights.field), style: fieldShape.pieceCornerStyle)
+        RoundedRectangle(cornerRadius: corners.fieldPieceRadius(height: heights.field), style: corners.pieceCornerStyle)
     }
 
     /// The results piece's edge. A list is clipped to it, so a scroll bar stays inside the corner.
     func resultsOutline() -> RoundedRectangle {
-        RoundedRectangle(cornerRadius: fieldShape.panelPieceRadius, style: .continuous)
+        RoundedRectangle(cornerRadius: corners.panelPieceRadius, style: .continuous)
     }
 
     /// The look for the field's piece. Collapsed there is nothing under it, so its shadow is whole.
     func fieldAppearance(facesResults: Bool) -> LauncherPanelAppearance {
         var appearance = LauncherPanelAppearance(look)
-        appearance.cornerRadius = fieldShape.fieldPieceRadius(height: heights.field)
-        appearance.cornerStyle = fieldShape.pieceCornerStyle
+        appearance.cornerRadius = corners.fieldPieceRadius(height: heights.field)
+        appearance.cornerStyle = corners.pieceCornerStyle
         appearance.shadow = .piece(facing: facesResults ? .bottom : nil)
         appearance.span = heights.fieldSpan
         return appearance
@@ -39,12 +39,12 @@ struct PanelPieces: Equatable {
     /// The corner of a row's highlight in the results piece: the piece's radius less the list's inset, so the
     /// first row's corners share a centre with the piece's. Never less than a control's, which a square piece keeps.
     var rowRadius: CGFloat {
-        max(ThawRadius.control, fieldShape.panelPieceRadius - Self.listInset)
+        max(ThawRadius.control, corners.panelPieceRadius - Self.listInset)
     }
 
     func resultsAppearance() -> LauncherPanelAppearance {
         var appearance = LauncherPanelAppearance(look)
-        appearance.cornerRadius = fieldShape.panelPieceRadius
+        appearance.cornerRadius = corners.panelPieceRadius
         appearance.shadow = .piece(facing: .top)
         appearance.span = heights.resultsSpan
         return appearance
@@ -53,7 +53,7 @@ struct PanelPieces: Equatable {
     /// A view with no search field stays one piece, with the corners the results have.
     func wholeAppearance() -> LauncherPanelAppearance {
         var appearance = LauncherPanelAppearance(look)
-        appearance.cornerRadius = fieldShape.panelPieceRadius
+        appearance.cornerRadius = corners.panelPieceRadius
         return appearance
     }
 }
@@ -90,7 +90,7 @@ struct PanelSections<Header: View, Content: View>: View {
                         GlassEffectContainer {
                             VStack(spacing: 0) { content }
                                 // The scroll bar starts below the corner, and what still reaches it is cut off there.
-                                .contentMargins(.top, pieces.fieldShape.panelPieceRadius, for: .scrollIndicators)
+                                .contentMargins(.top, pieces.corners.panelPieceRadius, for: .scrollIndicators)
                                 .clipShape(pieces.resultsOutline())
                         }
                         .frame(maxWidth: .infinity)

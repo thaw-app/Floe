@@ -55,6 +55,7 @@ enum SettingsSync {
         field("launcherGlass", LauncherGlass.self),
         field("launcherLayout", LauncherLayout.self),
         field("searchFieldShape", SearchFieldShape.self),
+        field("searchFieldCorners", SearchFieldCorners.self),
         field("searchFieldBeam", SearchFieldBeam.self),
         field("searchFieldBeamFrameRate", Double.self),
         field("separatesSearchField", Bool.self),
@@ -199,7 +200,21 @@ enum SettingsSync {
         for (name, order) in orders {
             settings[name] = OrderedSync.arranged(settings[name] as? [String] ?? [], by: order)
         }
+        keepCornersInStep(with: changed.filter { !refused.contains($0.key) }, in: &settings)
         return (settings, refused)
+    }
+
+    /// An older Floe knows only `searchFieldShape`, and a newer one writes it as the roundness's nearest shape.
+    /// So a shape that is not the nearest came from an older Mac, and moves the slider to that shape's place.
+    /// The two records may also arrive one at a time, so a roundness alone brings the shape with it.
+    private static func keepCornersInStep(with changed: [String: String], in settings: inout [String: Any]) {
+        let corners = (settings["searchFieldCorners"] as? Double).map(SearchFieldCorners.init(roundness:))
+        if changed[prefix + "searchFieldShape"] != nil {
+            guard let shape = (settings["searchFieldShape"] as? String).flatMap(SearchFieldShape.init(rawValue:)), corners?.nearestShape != shape else { return }
+            settings["searchFieldCorners"] = SearchFieldCorners(shape).roundness
+        } else if changed[prefix + "searchFieldCorners"] != nil, let corners {
+            settings["searchFieldShape"] = corners.nearestShape.rawValue
+        }
     }
 
     private static func set(_ value: Any?, entry: String, of field: Field, in settings: inout [String: Any]) {

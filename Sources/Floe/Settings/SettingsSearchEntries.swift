@@ -253,13 +253,13 @@ extension SearchIndex {
             ).searchTerms
         ),
         .appearance(
-            "searchFieldShape",
-            String(localized: "Search field shape", bundle: .floe),
+            "searchFieldCorners",
+            String(localized: "Search field corners", bundle: .floe, comment: "The setting for how round the launcher's search field is, from square to fully round."),
             section: String(localized: "Layout", bundle: .floe, comment: "The heading over the settings for how the launcher is arranged."),
             keywords: String(
                 localized: "shape, rounded, capsule, pill, square, corners, search bar, input",
                 bundle: .floe,
-                comment: "Words that find the Search field shape setting in the settings search, separated by commas."
+                comment: "Words that find the Search field corners setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .appearance(
