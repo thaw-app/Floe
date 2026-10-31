@@ -26,17 +26,17 @@ these four.
 Floe's Settings now share their controls and pages with Thaw through [ThawUI](https://github.com/thaw-app/ThawUI), so the two apps look and behave more alike.
 
 ### Changed
-- **A slider sets the search field's corners**, from square to fully round, in place of the three shapes. Whichever shape you had stays exactly as it was, and an older Floe syncing from another Mac keeps working.
+- **A slider sets the search field's corners**, from square to fully round, in place of the three shapes. The shape you had stays as it was, and an older Floe syncing from another Mac keeps working.
 - **More text follows your Mac's text size**, in the calculator, files, clipboard, Ask AI, Markdown and extension views. Some corners in these views and the note editor's toolbar icons change by a point or two to match the rest of the app.
-- **The toolbar names each Settings page**, in place of the large title at the top, as in Thaw. Each group of search results is headed the way the sidebar heads its groups.
-- **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
+- **The toolbar names each Settings page**, in place of the large title at the top, as in Thaw. Each group of search results has a heading like the sidebar's.
+- **About sits in the middle of its page**, and its menu leaves out any link a build doesn't have.
 - **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.
 - **The sidebar scrolls to the current page when Settings opens**, and with Differentiate Without Color on, the selected row gets a ring.
 - **Numbered steps in the release notes keep their numbers.**
 
 ### Fixed
 - **A link in the release notes opens only if it is https**, and a page that isn't the changelog, such as a Wi-Fi sign-in page, no longer replaces the saved notes.
-- **A saved keyboard shortcut with an impossible key is dropped** when settings load, rather than risking a crash when it is registered.
+- **A saved keyboard shortcut with an impossible key is dropped** when settings load, so registering it can't cause a crash.
 
 ## [0.2.1] - 2026-10-29
 

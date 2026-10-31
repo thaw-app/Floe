@@ -204,7 +204,7 @@ nonisolated extension AcknowledgementsStrings {
     )
 }
 
-/// Where the credits page's two links go, as Thaw's do: the repository's contributors, and the translators in CREDITS.md.
+/// Where the credits page's two links go: the repository's contributors, and the translators in CREDITS.md.
 nonisolated enum AcknowledgementLinks {
     static func contributors(repository: URL?) -> URL? {
         repository?.appending(path: "graphs/contributors")
@@ -216,10 +216,8 @@ nonisolated enum AcknowledgementLinks {
 }
 
 extension AcknowledgementsContent {
-    /// Origins and Licenses come from `Credits`, which scripts/generate-credits.py writes. The credits page links to
-    /// the repository's contributors and to the translators, naming nobody in the app.
-    ///
-    /// - Parameter link: Looks up a web link by its FloeLinks name; a test passes its own.
+    /// Origins and Licenses come from Credits, which scripts/generate-credits.py writes. The page links to the contributors
+    /// and translators, naming nobody in the app. The link closure looks up a FloeLinks name; a test passes its own.
     static func floe(link: (String) -> URL? = AppInfo.link) -> AcknowledgementsContent {
         let repository = link("repository")
         return AcknowledgementsContent(

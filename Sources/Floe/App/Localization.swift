@@ -23,8 +23,8 @@ extension Bundle {
 }
 
 nonisolated extension LocalizedStringResource.BundleDescription {
-    /// Where a `LocalizedStringResource` finds Floe's catalog. A resource with no bundle reads the main bundle,
-    /// which holds nothing in a `swift build` binary.
+    /// Where a LocalizedStringResource finds Floe's catalog. A resource with no bundle reads the main bundle,
+    /// which holds nothing in a swift build binary.
     static var floe: Self {
         .atURL(Bundle.floe.bundleURL)
     }

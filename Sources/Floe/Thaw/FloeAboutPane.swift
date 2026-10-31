@@ -9,9 +9,8 @@ import AppKit
 import SwiftUI
 import ThawUI
 
-/// The shared About page with Floe's build, links and menu. What's New and Credits open in `ReadingWindow`, since
-/// Floe's settings are a process of their own without Thaw's window scenes, and the updates card shows only in a
-/// build that can update.
+/// The shared About page. What's New and Credits open in ReadingWindow, since Floe's settings are a process of their
+/// own without Thaw's window scenes. The updates card shows only in a build that can update.
 struct FloeAboutPane: View {
     let updatesManager: UpdatesManager
 
@@ -41,7 +40,7 @@ struct FloeAboutPane: View {
     }
 
     /// The secondary destinations behind the actions button: Floe's folders, the community, then Thaw. A web link
-    /// a build does not have, as under `swift run`, leaves its entry out.
+    /// a build does not have, as under swift run, leaves its entry out.
     static func moreMenu(link: (String) -> URL?) -> [[AboutMenuItem]] {
         let community = [
             link("discord").map { AboutMenuItem("Join the Discord", systemImage: "bubble.left.and.bubble.right", url: $0) },

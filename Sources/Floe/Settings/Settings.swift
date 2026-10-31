@@ -82,7 +82,7 @@ final class AppSettings: ObservableObject {
     @Published var thawAppearances: [ThawAppearance.Scheme: ThawAppearance] = [:]
     /// Extended always shows the list; compact is the search bar alone until something is typed.
     @Published var launcherLayout = LauncherLayout.extended
-    /// How round the search field is. Stored with its nearest `SearchFieldShape` too, for an older Floe on another Mac.
+    /// How round the search field is. Stored with its nearest SearchFieldShape too, for an older Floe on another Mac.
     @Published var searchFieldCorners = SearchFieldCorners.rounded
     /// The streak of light around the search field, and its colours.
     @Published var searchFieldBeam = SearchFieldBeam.colorful

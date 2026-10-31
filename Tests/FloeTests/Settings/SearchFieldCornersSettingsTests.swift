@@ -11,7 +11,7 @@ import SwiftUI
 import Testing
 import ThawUI
 
-/// The slider's setting beside the old `searchFieldShape`, which earlier versions wrote and older Floes still read.
+/// The slider's setting beside the old searchFieldShape, which earlier versions wrote and older Floes still read.
 struct SearchFieldCornersSettingsTests {
     private let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-corners-\(UUID().uuidString)")
     private let cloud = MemorySyncCloud()

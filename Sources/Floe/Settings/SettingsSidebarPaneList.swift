@@ -8,8 +8,7 @@
 import SwiftUI
 import ThawUI
 
-/// The shared settings sidebar. No row is selected
-/// during a search, so a click on any row, the current pane's included, ends it.
+/// The shared sidebar. No row is selected during a search, so a click on any row, even the current pane's, ends it.
 struct SettingsSidebarPaneList: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
@@ -43,7 +42,6 @@ struct SettingsSidebarPaneList: View {
 }
 
 extension SettingsSidebarRow {
-    /// What the shared sidebar draws for this row.
     var sidebarRow: ThawSidebarRow<SettingsPage> {
         switch self {
         case let .heading(title): .heading(title)

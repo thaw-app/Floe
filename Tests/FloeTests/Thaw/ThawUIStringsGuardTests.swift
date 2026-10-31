@@ -95,8 +95,7 @@ struct ThawUIStringsGuardTests {
     }
 }
 
-/// Reads every source file, so it stays off the main actor: the test target's default isolation would otherwise put
-/// it there, and every main actor test in the run would wait for it.
+/// Reads every source file, so it stays off the main actor, where every main actor test in the run would wait for it.
 nonisolated struct ThawUIStringsSourceGuardTests {
     /// One call to a ThawUI view whose text parameters take a resource, with its arguments in parentheses.
     private static let textCalls = [
@@ -128,7 +127,7 @@ nonisolated struct ThawUIStringsSourceGuardTests {
         String(bytes: bytes, encoding: .utf8) ?? String(bytes: bytes, encoding: .isoLatin1) ?? ""
     }
 
-    /// The end of the string literal opening at `start`, past any interpolation in it.
+    /// The end of the string literal opening at start, past any interpolation in it.
     private static func endOfLiteral(in text: [UInt8], from start: Int) -> Int {
         var index = start + 1
         while index < text.count {
@@ -155,7 +154,7 @@ nonisolated struct ThawUIStringsSourceGuardTests {
     }
 
     /// The bare string literals among a call's own arguments, leaving out its closures and anything already wrapped
-    /// in a call of its own, such as `.verbatim(…)`.
+    /// in a call of its own, such as .verbatim(…).
     static func bareLiterals(inCallOpeningAt open: Int, of text: [UInt8]) -> [String] {
         var found: [String] = []
         var index = open + 1

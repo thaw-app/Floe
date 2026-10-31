@@ -204,9 +204,8 @@ enum SettingsSync {
         return (settings, refused)
     }
 
-    /// An older Floe knows only `searchFieldShape`, and a newer one writes it as the roundness's nearest shape.
-    /// So a shape that is not the nearest came from an older Mac, and moves the slider to that shape's place.
-    /// The two records may also arrive one at a time, so a roundness alone brings the shape with it.
+    /// A newer Floe writes searchFieldShape as the roundness's nearest shape, so any other shape came from an older Mac and
+    /// moves the slider to its place. The records can arrive one at a time, so a roundness alone brings the shape with it.
     private static func keepCornersInStep(with changed: [String: String], in settings: inout [String: Any]) {
         let corners = (settings["searchFieldCorners"] as? Double).map(SearchFieldCorners.init(roundness:))
         if changed[prefix + "searchFieldShape"] != nil {

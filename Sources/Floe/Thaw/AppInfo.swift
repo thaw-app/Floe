@@ -20,7 +20,7 @@ nonisolated enum AppInfo {
     static let copyrightString = Bundle.main.object(forInfoDictionaryKey: "NSHumanReadableCopyright") as? String ?? ""
     private static let links = Bundle.main.object(forInfoDictionaryKey: "FloeLinks") as? [String: String] ?? [:]
 
-    /// A web link from Info.plist's FloeLinks; nil when run outside the app bundle (`swift run`).
+    /// A web link from Info.plist's FloeLinks; nil when run outside the app bundle (swift run).
     static func link(_ name: String) -> URL? {
         links[name].flatMap(URL.init(string:))
     }

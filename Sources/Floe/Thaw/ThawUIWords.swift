@@ -40,7 +40,7 @@ extension ThawHintTipViewStyle {
 }
 
 extension ListRowIcon.Source {
-    /// An extension's or an app's icon, as `IconView` reads it.
+    /// An extension's or an app's icon, as IconView reads it.
     static func icon(_ value: Any?, assetsPath: String) -> ListRowIcon.Source {
         .custom(AnyView(IconView(value: value, assetsPath: assetsPath, size: ListStyle.imageSize)))
     }
