@@ -8,6 +8,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 /// The extensions one pretend Mac has, and the preferences it stores for them, in place of a scan and of files.
 final class PretendExtensions {
