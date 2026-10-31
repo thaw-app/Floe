@@ -29,6 +29,10 @@ struct StoredColor: Codable, Hashable {
     var color: Color {
         Color(.sRGB, red: red, green: green, blue: blue, opacity: opacity)
     }
+
+    /// The app icon's gradient, where a chosen tint or glass colour starts. Settings saved without one read these.
+    static let iconBlue = StoredColor(Color(red: 0.07, green: 0.40, blue: 0.90))
+    static let iconNavy = StoredColor(Color(red: 0.02, green: 0.10, blue: 0.40))
 }
 
 /// How the launcher panel is tinted: Thaw's menu-bar tints, applied to the
@@ -57,8 +61,8 @@ enum LauncherTintKind: String, Codable, CaseIterable, Identifiable {
 /// (bright blue into deep navy), so the starting palette is the brand's, not
 /// a generic blue-to-purple.
 struct LauncherGradient: Codable, Hashable {
-    var start = StoredColor(Color(red: 0.07, green: 0.40, blue: 0.90))
-    var end = StoredColor(Color(red: 0.02, green: 0.10, blue: 0.40))
+    var start = StoredColor.iconBlue
+    var end = StoredColor.iconNavy
     var angle = 180.0
 
     var style: AnyShapeStyle {
@@ -77,7 +81,7 @@ struct LauncherGradient: Codable, Hashable {
 /// own gradient palette, so a chosen tint starts on the brand.
 struct LauncherTint: Codable, Hashable {
     var kind = LauncherTintKind.none
-    var solid = StoredColor(Color(red: 0.07, green: 0.40, blue: 0.90))
+    var solid = StoredColor.iconBlue
     var gradient = LauncherGradient()
     var opacity = 0.35
 
