@@ -68,9 +68,11 @@ The same attestations are attached to each release as `*.intoto.jsonl`.
 The provenance names the commit the file was built from. To print it (this also needs [jq](https://jqlang.org)):
 
     gh attestation verify Floe.dmg --repo thaw-app/Floe --format json \
+      --signer-workflow thaw-app/org-ci/.github/workflows/build-macos-app.yml \
       | jq -r '.[].verificationResult.statement.predicate.buildDefinition.resolvedDependencies[]?.digest.gitCommit'
 
-It must be the commit the tag points at, which the next section prints.
+For releases up to 0.2.1, use the `--signer-workflow` value above for those releases. The commit must be the one the tag
+points at, which the next section prints.
 
 ## Check a Git tag
 
