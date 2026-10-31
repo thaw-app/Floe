@@ -28,7 +28,7 @@ extension View {
     }
 }
 
-/// The shared search field on Floe's model: at the top of the sidebar, since the window has no toolbar. Applications
+/// The shared search field on Floe's model: at the top of the sidebar, so the toolbar only names the page. Applications
 /// and the Extension Store filter their own lists with fields of their own.
 private struct FloeSettingsSearchField: ViewModifier {
     @Bindable var search: SearchModel

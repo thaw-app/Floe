@@ -8,7 +8,7 @@
 import Foundation
 import Testing
 
-@Suite("Settings pages have no large title")
+@Suite("Settings pages are named by the toolbar")
 struct SettingsPageTitleGuardTests {
     @Test("No page draws the header on its own, and the header has no title")
     func noPageTitle() throws {
@@ -23,5 +23,16 @@ struct SettingsPageTitleGuardTests {
             }
         }
         #expect(offenders.isEmpty)
+    }
+
+    @Test("The window's toolbar names the page")
+    func toolbarNamesThePage() throws {
+        let root = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let settings = root.appending(path: "Sources/Floe/Settings")
+        let view = try String(contentsOf: settings.appending(path: "SettingsView.swift"), encoding: .utf8)
+        let window = try String(contentsOf: settings.appending(path: "SettingsWindow.swift"), encoding: .utf8)
+        #expect(view.contains(".navigationTitle(title)"))
+        #expect(window.contains("sceneBridgingOptions = [.title, .toolbars]"))
+        #expect(window.contains("toolbarStyle = .unified"))
     }
 }

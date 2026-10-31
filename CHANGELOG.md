@@ -24,7 +24,7 @@ these four.
 ## [Unreleased]
 
 ### Changed
-- **Settings pages no longer have a large title at the top.** The selected row in the sidebar names the page. Each group of search results is headed the way the sidebar heads its groups.
+- **The toolbar names each Settings page**, in place of the large title at the top, as in Thaw. Each group of search results is headed the way the sidebar heads its groups.
 - **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
 - **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.
 

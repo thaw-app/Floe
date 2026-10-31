@@ -36,6 +36,8 @@ struct SettingsView: View {
                 // Fill the detail column so the Form's scrollbar sits on the
                 // window's trailing edge.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                // The toolbar names the page and stays put while the form scrolls under it.
+                .navigationTitle(title)
                 // Content fades under the titlebar instead of stopping at a hard band.
                 .scrollEdgeEffectStyle(.soft, for: .top)
         }
@@ -43,6 +45,26 @@ struct SettingsView: View {
         .updateConsentSheet(stores.updates)
         // Glass buttons are capsules, as in macOS's own glass windows.
         .buttonBorderShape(.capsule)
+    }
+
+    /// The pane's name in the toolbar, the one its sidebar row has.
+    private var title: String {
+        guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
+        return switch selection.page {
+        case .general: SearchPaneLabel.general.title
+        case .commands: SearchPaneLabel.commands.title
+        case .applications: SearchPaneLabel.applications.title
+        case .ai: SearchPaneLabel.ai.title
+        case .sync: SearchPaneLabel.sync.title
+        case .quicklinks: SearchPaneLabel.quicklinks.title
+        case .fallbacks: SearchPaneLabel.fallbacks.title
+        case .snippets: SearchPaneLabel.snippets.title
+        case .extensionStore: SearchPaneLabel.extensionStore.title
+        case .appearance: SearchPaneLabel.appearance.title
+        case .privacy: SearchPaneLabel.privacy.title
+        case .about: SearchPaneLabel.about.title
+        case let .extensionPage(name): catalog.allCommands.first { $0.extensionName == name }?.extensionTitle ?? name
+        }
     }
 
     @ViewBuilder
