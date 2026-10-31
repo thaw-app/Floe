@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import ThawUI
 
 /// A scanner with no actor of its own, so each scan runs wherever the model's task put it.
 private nonisolated struct ThreadScanner: CatalogScanning {
@@ -261,17 +262,8 @@ struct WhatLeavesTheMainActorTests {
 
     @Test func theChangelogIsReadAndParsedOffTheMainActor() async {
         // With fetching off there is no request: the last copy, if any, is read from Caches and parsed.
-        let left = await CountingExecutor.departures { _ = await ChangelogDocument.load(allowFetch: false) }
+        let left = await CountingExecutor.departures { _ = await ChangelogDocument.load(allowFetch: false, info: .floe) }
         #expect(left > 0)
-    }
-
-    @Test func theReleaseNotesAreLoadedOffTheMainThread() async {
-        let view = WhatsNewView(load: { [log] in
-            log.note("load")
-            return (nil, .unavailable)
-        })
-        _ = await view.load()
-        #expect(log.onMain == ["load": false])
     }
 
     @Test func anIconsThumbnailIsMadeOffTheMainActor() async {

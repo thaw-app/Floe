@@ -64,19 +64,3 @@ extension SettingsPageHeader where Accessory == EmptyView {
         accessory = EmptyView()
     }
 }
-
-/// A page that is not a form, under the same header and as far from the window's edges as a form,
-/// all in the scroll view the page is put in.
-struct SettingsPageColumn<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: ThawSpacing.gutter) {
-            SettingsPageHeader()
-            content
-        }
-        .padding(.horizontal, SettingsPageHeading.leadingMargin)
-        .padding(.top, SettingsPageHeading.topMargin)
-        .padding(.bottom, 40)
-    }
-}

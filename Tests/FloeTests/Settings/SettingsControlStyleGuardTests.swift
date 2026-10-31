@@ -23,7 +23,9 @@ struct SettingsControlStyleGuardTests {
     /// Floe's settings pages: their folder, and the pages that live beside the code they set.
     private static let scannedPaths = [
         "Sources/Floe/Settings",
-        "Sources/Floe/Thaw/AboutSettingsPane.swift",
+        "Sources/Floe/Thaw/FloeAboutPane.swift",
+        // The About page Floe shows. It comes from the package; drop this line when ThawUI is no longer vendored.
+        "Vendor/ThawUI/Sources/ThawUI/AboutSettingsPane.swift",
         "Sources/Floe/Thaw/PrivacySettingsPane.swift",
         "Sources/Floe/PreferredApps",
     ]

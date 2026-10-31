@@ -8,6 +8,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 struct SettingsProcessTests {
     @Test func openingSettingsStartsAProcessWhenNoneRuns() {
