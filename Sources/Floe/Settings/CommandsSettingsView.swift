@@ -34,7 +34,6 @@ struct CommandsSettingsView: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
             SettingsTabs(selection: $tab)
             switch tab {
             case .builtIn: builtInSections

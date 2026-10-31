@@ -15,7 +15,6 @@ struct SnippetsSettingsPage: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
             ThawSection(
                 header: { Text("Expansion") },
                 content: { Toggle("Expand keywords as you type", isOn: $store.expansionEnabled) },

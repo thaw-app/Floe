@@ -19,7 +19,6 @@ struct FallbacksSettingsPage: View {
         let chosen = Fallback.chosen(settings.fallbacks, among: choices, quicklinks: quicklinks.links)
         let available = choices.filter { choice in !chosen.contains { $0.id == choice.id } }
         Form {
-            SettingsPageHeader()
             ThawSection(
                 header: { Text("Fallbacks") },
                 content: {

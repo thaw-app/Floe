@@ -25,10 +25,6 @@ struct ExtensionStoreSettingsPage: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Over the list and the details rather than in either, which scroll on their own.
-            SettingsPageHeader()
-                .padding(.horizontal, SettingsPageHeading.leadingMargin)
-                .padding(.top, SettingsPageHeading.topMargin)
             content
             Divider()
             Text("Extensions come from Raycast's open source repository. Some need Raycast features Floe doesn't have yet.")

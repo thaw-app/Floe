@@ -24,7 +24,7 @@ these four.
 ## [Unreleased]
 
 ### Changed
-- **Search results in Settings no longer have a page title over them**, and About no longer has one either. Each group of results is headed the way the sidebar heads its groups.
+- **Settings pages no longer have a large title at the top.** The selected row in the sidebar names the page. Each group of search results is headed the way the sidebar heads its groups.
 - **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
 - **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.
 
