@@ -44,22 +44,33 @@ struct SearchFieldBeamLayersTests {
     private func key(isStill: Bool) -> BeamLayerView.Key {
         let size = CGSize(width: 680, height: 44)
         return BeamLayerView.Key(
-            size: size, scale: 2,
+            size: size,
+            scale: 2,
             outline: RoundedRectangle(cornerRadius: 12).path(in: CGRect(origin: .zero, size: size)),
-            beam: .colorful, isEdge: true, isDark: true, isStill: isStill, frameRate: 60
+            beam: .colorful,
+            isEdge: true,
+            isDark: true,
+            isStill: isStill,
+            frameRate: 60
         )
     }
 
     private func fixture() throws -> BeamLayer {
         let context = try #require(CGContext(
-            data: nil, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
-            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+            data: nil,
+            width: 1,
+            height: 1,
+            bitsPerComponent: 8,
+            bytesPerRow: 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
         ))
         let image = try #require(context.makeImage())
         return BeamLayer(
             colour: [image, image],
             glint: BeamLayer.Glint(stops: BeamLight.glint, light: NSColor.white.cgColor, mask: image),
-            window: BeamLight.hairlineWindow, opacity: 1
+            window: BeamLight.hairlineWindow,
+            opacity: 1
         )
     }
 
