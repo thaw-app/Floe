@@ -275,7 +275,7 @@ Each release:
    `git tag -s 0.2.0 -m "Floe 0.2.0"`, and push the tag.
 3. `./scripts/release.sh` picks the tag and dispatches the workflow. Try a dry run first: it builds and
    reports the appcast diff and publishes nothing. A dry run skips the attest job, so only a real release tests it.
-   A real release asks for `prod` approval twice, for the build and for the attest job, and then again for publishing.
+   A real release asks for `prod` approval three times: for the build, the attest job and publishing.
 
 Pushing the appcast needs "Publish release" checked, because the appcast links to the release's ZIP. The
 Sparkle tools version in `release.yml` (`sparkle-version` and its checksum) must match `Package.resolved`.
