@@ -7,6 +7,7 @@
 
 import Algorithms
 import Foundation
+import ThawUI
 
 /// Which of Floe's stored settings sync between Macs, and how each becomes records. A setting in neither
 /// list here is not synced, and `SettingsSyncTests` fails until it is put in one.

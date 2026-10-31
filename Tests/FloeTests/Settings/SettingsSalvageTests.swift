@@ -8,6 +8,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 struct SettingsSalvageTests {
     private struct Sample: Decodable, Equatable {
@@ -21,6 +22,26 @@ struct SettingsSalvageTests {
 
     private func data(_ json: String) -> Data {
         Data(json.utf8)
+    }
+
+    private struct Hotkeys: Decodable {
+        var name: String?
+        var toggle: KeyCombination?
+        var commands: [String: KeyCombination]?
+    }
+
+    /// A code outside what a key event can carry would trap in Carbon, so it no longer decodes. It costs its own key.
+    @Test func aSavedKeyCodeOutOfRangeCostsItsKeyAndNothingElse() throws {
+        let toggle = try #require(SettingsSalvage.decode(Hotkeys.self, from: data(#"{"name":"a","toggle":[70000,3],"commands":{"b":[49,3]}}"#)))
+        #expect(toggle.dropped == ["toggle"])
+        #expect(toggle.value.toggle == nil)
+        #expect(toggle.value.commands?["b"] == KeyCombination(key: .space, modifiers: [.control, .option]))
+        #expect(toggle.value.name == "a")
+
+        let command = try #require(SettingsSalvage.decode(Hotkeys.self, from: data(#"{"name":"a","toggle":[49,3],"commands":{"b":[49,3],"c":[-1,3]}}"#)))
+        #expect(command.dropped == ["commands"], "one bad entry costs the whole table, as any bad value in a table does")
+        #expect(command.value.commands == nil)
+        #expect(command.value.toggle != nil)
     }
 
     @Test func aStoreThatReadsCleanlyDropsNothing() throws {

@@ -9,6 +9,7 @@ import AppKit
 import Carbon.HIToolbox
 @testable import Floe
 import Testing
+import ThawUI
 
 struct ModifiersTests {
     private static nonisolated let single: [(Modifiers, NSEvent.ModifierFlags, CGEventFlags, Int, String)] = [
