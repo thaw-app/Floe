@@ -40,17 +40,10 @@ struct PrivacySettingsPane: View {
     var body: some View {
         Form {
             SettingsPageHeader()
-            // Footer-only section: the one placement where a pill renders without the form's card around it.
-            ThawSection {
-                EmptyView()
-            } footer: {
-                SettingsWarningPill(
-                    title: "No analytics",
-                    message: "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network.",
-                    systemImage: "hand.raised.fill",
-                    tint: .green
-                )
-            }
+            SettingsPrivacyNotice(
+                title: .floe("No analytics"),
+                message: .floe("Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network.")
+            )
             SettingsTabs(selection: $tab)
             switch tab {
             case .access: accessSections
@@ -65,7 +58,7 @@ struct PrivacySettingsPane: View {
 
     /// What Floe may read or run on this Mac: the permissions, the search sources, commands, reminders, contacts and extensions.
     @ViewBuilder private var accessSections: some View {
-        ThawSection("Permissions") {
+        ThawSection(.floe("Permissions")) {
             ForEach(permissions.allPermissions) { permission in
                 LabeledContent {
                     PermissionStatusControl(permission: permission)
@@ -75,7 +68,7 @@ struct PrivacySettingsPane: View {
                 }
             }
         }
-        ThawSection("Search Sources") {
+        ThawSection(.floe("Search Sources")) {
             ForEach(SearchSourceInfo.switches) { source in
                 Toggle(isOn: isOn(source)) {
                     Text(source.title)
@@ -91,13 +84,13 @@ struct PrivacySettingsPane: View {
             }
             row("SSH Hosts", String(localized: "Floe reads the host names in your SSH configuration to find them in the search, and connects by handing the name to your terminal.", bundle: .floe))
         }
-        ThawSection("Shell Commands") {
+        ThawSection(.floe("Shell Commands")) {
             row("Commands", String(localized: "A search that starts with the prefix runs as a command in your shell, with everything your account may do. Nothing asks first.", bundle: .floe))
             row("Shell history", String(localized: "While a command is typed, the end of your shell’s history file is read to suggest earlier commands. Nothing from it is copied or kept.", bundle: .floe))
             row("Processes", String(localized: "“kill” and a name, or “port” and a number, lists your running processes. The list is read when you ask and is not kept.", bundle: .floe))
             row("Finder", String(localized: "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse.", bundle: .floe))
         }
-        ThawSection("Extensions") {
+        ThawSection(.floe("Extensions")) {
             Toggle(isOn: Binding(
                 get: { settings.recordsExtensionAccess },
                 set: { settings.setRecordsExtensionAccess($0) }
@@ -107,18 +100,18 @@ struct PrivacySettingsPane: View {
             }
             row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension.", bundle: .floe))
         }
-        ThawSection("Reminders and Events") {
+        ThawSection(.floe("Reminders and Events")) {
             row("Reminders", String(localized: "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders.", bundle: .floe))
             row("Calendar events", String(localized: "“event” and a sentence adds an event to your default calendar. macOS asks first, and the event’s receipt deletes it again.", bundle: .floe))
         }
-        ThawSection("Contacts") {
+        ThawSection(.floe("Contacts")) {
             row("People", String(localized: "“contact” and a name finds people in your Contacts. macOS asks first, and only once you type that word and a name. Nothing is saved.", bundle: .floe))
         }
     }
 
     /// What Floe keeps on this Mac about what it did: searches, receipts and the log.
     @ViewBuilder private var keptSections: some View {
-        ThawSection("Search History") {
+        ThawSection(.floe("Search History")) {
             Toggle(isOn: Binding(
                 get: { settings.remembersSearches },
                 set: { remembers in
@@ -140,7 +133,7 @@ struct PrivacySettingsPane: View {
                 .disabled(!settings.remembersSearches || forgotSearches)
             }
         }
-        ThawSection("Receipts") {
+        ThawSection(.floe("Receipts")) {
             Toggle(isOn: Binding(
                 get: { settings.keepsReceipts },
                 set: { keeps in
@@ -168,7 +161,7 @@ struct PrivacySettingsPane: View {
 
     /// Every request Floe makes, and the switches that stop some of them.
     private var networkSection: some View {
-        ThawSection("Network Access") {
+        ThawSection(.floe("Network Access")) {
             if let host = PrivacyNetwork.updateHost {
                 row("Updates", String(localized: "Checking asks \(host) whether a newer version exists. Floe asked before it started. The switch is in General.", bundle: .floe, comment: "The placeholder is the address of a server."))
             }
@@ -227,11 +220,11 @@ nonisolated enum PrivacyTab: SettingsTab {
         }
     }
 
-    var title: LocalizedStringKey {
+    var title: LocalizedStringResource {
         switch self {
-        case .access: "Access"
-        case .network: "Network"
-        case .kept: "Kept on This Mac"
+        case .access: .floe("Access")
+        case .network: .floe("Network")
+        case .kept: .floe("Kept on This Mac")
         }
     }
 
