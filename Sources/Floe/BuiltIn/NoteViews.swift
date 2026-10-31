@@ -59,7 +59,7 @@ struct MarkdownFormatBar: View {
                 Button(String(localized: "Body Text", bundle: .floe)) { commands.run(.block(.body)) }
             } label: {
                 Text(verbatim: "H")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(ThawType.symbol.weight(.semibold))
                     .frame(width: 28, height: 26)
             }
             .menuStyle(.borderlessButton)
@@ -84,7 +84,7 @@ struct MarkdownFormatBar: View {
             commands.run(command)
         } label: {
             Image(systemName: symbol)
-                .font(.system(size: 14))
+                .font(ThawType.symbol)
                 .frame(width: 28, height: 26)
                 .contentShape(Rectangle())
         }

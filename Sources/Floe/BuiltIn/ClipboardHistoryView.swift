@@ -122,12 +122,12 @@ struct ClipboardHistoryView: View {
                     } else if let text = entry.text {
                         Text(text)
                             .textSelection(.enabled)
-                            .font(.system(size: 12))
+                            .font(ThawType.detail)
                     }
                     if entry.kind == .file {
                         ForEach(entry.filePaths ?? [], id: \.self) { path in
                             Text(URL(fileURLWithPath: path).lastPathComponent)
-                                .font(.system(size: 12))
+                                .font(ThawType.detail)
                                 .lineLimit(1)
                         }
                     }

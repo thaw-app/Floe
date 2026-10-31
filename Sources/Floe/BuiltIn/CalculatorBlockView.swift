@@ -67,7 +67,7 @@ struct CalculatorBlockView: View {
                             .minimumScaleFactor(0.6)
 
                         Text(badgeTitle)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(ThawType.sublabel.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 3)
@@ -104,7 +104,7 @@ struct CalculatorBlockView: View {
                             .opacity(result.isEmpty ? 0 : 1)
 
                         Text(resultBadge)
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(ThawType.sublabel.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 3)

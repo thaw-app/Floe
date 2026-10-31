@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import SwiftUI
+import ThawUI
 
 /// Draws Markdown that was parsed already. Nothing is parsed here: `content` is made when the text changes.
 struct MarkdownView: View {
@@ -86,10 +87,10 @@ private struct MarkdownBlocks: View {
                         }
                 case let .code(text):
                     Text(text)
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(ThawType.detail.monospaced())
                         .padding(10)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: 8))
+                        .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: ThawRadius.row))
                 case let .image(url):
                     if loadsImages {
                         MarkdownImage(url: url)

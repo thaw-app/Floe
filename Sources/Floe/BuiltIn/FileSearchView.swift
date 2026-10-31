@@ -164,7 +164,7 @@ struct FilePreview: View {
                 Text("⌘Y Quick Look").foregroundStyle(.secondary)
                 Text("⌘⇧C Copy Path").foregroundStyle(.secondary)
             }
-            .font(.system(size: 11))
+            .font(ThawType.sublabel)
         }
         .padding(ThawSpacing.gutter)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -177,8 +177,8 @@ struct FileMetaRow<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(label).font(.system(size: 11)).foregroundStyle(.secondary)
-            content.font(.system(size: 12))
+            Text(label).font(ThawType.sublabel).foregroundStyle(.secondary)
+            content.font(ThawType.detail)
         }
     }
 }
@@ -198,7 +198,7 @@ struct FileThumbnail: View {
                     Image(nsImage: thumbnail)
                         .resizable()
                         .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: ThawRadius.row, style: .continuous))
                         .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
                 } else {
                     AppIconView(path: url.path, size: 96)

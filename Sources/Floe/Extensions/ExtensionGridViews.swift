@@ -82,7 +82,7 @@ struct GridTile: View, Equatable {
             && lhs.fills == rhs.fills && lhs.inset == rhs.inset && lhs.assetsPath == rhs.assetsPath
     }
 
-    private static let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
+    private static let shape = RoundedRectangle(cornerRadius: ThawRadius.control, style: .continuous)
 
     var body: some View {
         // { value, tooltip } wraps the content with a tooltip; anything else is the content itself.

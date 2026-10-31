@@ -27,6 +27,7 @@ Floe's Settings now share their controls and pages with Thaw through [ThawUI](ht
 
 ### Changed
 - **A slider sets the search field's corners**, from square to fully round, in place of the three shapes. Whichever shape you had stays exactly as it was, and an older Floe syncing from another Mac keeps working.
+- **More text follows your Mac's text size**, in the calculator, files, clipboard, Ask AI, Markdown and extension views. Some corners in these views and the note editor's toolbar icons change by a point or two to match the rest of the app.
 - **The toolbar names each Settings page**, in place of the large title at the top, as in Thaw. Each group of search results is headed the way the sidebar heads its groups.
 - **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
 - **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.

@@ -95,7 +95,7 @@ struct FloatingNoteView: View {
 
     private func roundButton(_ symbol: String) -> some View {
         Image(systemName: symbol)
-            .font(.system(size: 13))
+            .font(ThawType.symbol)
             .foregroundStyle(.secondary)
             .frame(width: 28, height: 28)
             .thawGlass(.control, in: Circle())

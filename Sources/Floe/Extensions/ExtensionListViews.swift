@@ -157,13 +157,13 @@ struct AccessoryView: View {
                     .foregroundStyle(color)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(color.opacity(0.15), in: .rect(cornerRadius: 5))
+                    .background(color.opacity(0.15), in: .rect(cornerRadius: ThawRadius.small))
             }
             if let date = PropFormat.date(accessory["date"]) {
                 Text(date, format: .relative(presentation: .numeric, unitsStyle: .narrow)).foregroundStyle(.secondary)
             }
         }
-        .font(.system(size: 12))
+        .font(ThawType.detail)
         .lineLimit(1)
     }
 }
@@ -212,7 +212,7 @@ struct MetadataRow: View {
             Divider()
         } else {
             VStack(alignment: .leading, spacing: 3) {
-                Text(node.string("title") ?? "").font(.system(size: 11)).foregroundStyle(.secondary)
+                Text(node.string("title") ?? "").font(ThawType.sublabel).foregroundStyle(.secondary)
                 switch node.type {
                 case "Metadata.Link":
                     if let target = node.string("target"), let url = URL(string: target) {
@@ -226,7 +226,7 @@ struct MetadataRow: View {
                                 .foregroundStyle(color)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(color.opacity(0.15), in: .rect(cornerRadius: 5))
+                                .background(color.opacity(0.15), in: .rect(cornerRadius: ThawRadius.small))
                         }
                     }
                 default:
@@ -238,7 +238,7 @@ struct MetadataRow: View {
                     }
                 }
             }
-            .font(.system(size: 12))
+            .font(ThawType.detail)
         }
     }
 }
