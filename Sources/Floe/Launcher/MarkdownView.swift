@@ -59,14 +59,14 @@ private struct MarkdownBlocks: View {
     }
 
     private func listRow(_ marker: String, _ string: AttributedString) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
+        HStack(alignment: .firstTextBaseline, spacing: ThawSpacing.base) {
             Text(marker).foregroundStyle(.secondary).monospacedDigit()
             paragraph(string)
         }
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: ThawSpacing.row) {
             ForEach(Array(pieces.enumerated()), id: \.offset) { _, piece in
                 switch piece {
                 case let .heading(level, text):
@@ -81,14 +81,14 @@ private struct MarkdownBlocks: View {
                     // Type-erased: a view cannot hold itself in its own body's type.
                     AnyView(MarkdownBlocks(pieces: quoted, lineSpacing: lineSpacing, loadsImages: loadsImages))
                         .foregroundStyle(.secondary)
-                        .padding(.leading, 12)
+                        .padding(.leading, ThawSpacing.inset)
                         .overlay(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 1.5).fill(.tertiary).frame(width: 3)
                         }
                 case let .code(text):
                     Text(text)
                         .font(ThawType.detail.monospaced())
-                        .padding(10)
+                        .padding(ThawSpacing.row)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(Color.primary.opacity(0.07), in: .rect(cornerRadius: ThawRadius.row))
                 case let .image(url):

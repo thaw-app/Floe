@@ -173,7 +173,7 @@ struct AppPickerField<Title: View>: View {
                     }
                 }
             } label: {
-                HStack(spacing: 6) {
+                HStack(spacing: ThawSpacing.compact) {
                     if let chosen {
                         AppIconView(path: chosen.path, size: 16)
                         Text(chosen.name)

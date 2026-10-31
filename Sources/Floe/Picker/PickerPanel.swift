@@ -240,7 +240,7 @@ private struct PickRow: View {
     let selected: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThawSpacing.inset) {
             Text(verbatim: title)
                 .lineLimit(1)
                 // Paths differ at their ends, so the middle is what gives way.
@@ -255,7 +255,7 @@ private struct PickRow: View {
         }
         .font(ThawType.body)
         .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
-        .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
+        .padding(EdgeInsets(top: ThawSpacing.compact, leading: ThawSpacing.base, bottom: ThawSpacing.compact, trailing: ThawSpacing.base))
         .modifier(SearchRowBackground(selected: selected))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? .isSelected : [])

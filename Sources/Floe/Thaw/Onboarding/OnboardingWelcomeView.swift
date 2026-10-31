@@ -37,7 +37,7 @@ struct OnboardingWelcomeView: View {
     }
 
     private var identity: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThawSpacing.inset) {
             Text(verbatim: AppInfo.displayName)
                 .font(.system(size: 48, weight: .semibold))
                 .accessibilityAddTraits(.isHeader)

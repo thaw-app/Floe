@@ -44,7 +44,7 @@ struct CalculatorBlockView: View {
     var body: some View {
         Group {
             if let error, !error.isEmpty {
-                HStack(spacing: 8) {
+                HStack(spacing: ThawSpacing.base) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(.secondary)
@@ -55,11 +55,11 @@ struct CalculatorBlockView: View {
                         .lineLimit(2)
                 }
                 .frame(maxWidth: .infinity, minHeight: 106)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, ThawSpacing.gutter)
             } else {
                 HStack(spacing: 0) {
                     // Left: Expression
-                    VStack(spacing: 8) {
+                    VStack(spacing: ThawSpacing.base) {
                         Text(CalculatorFormatter.format(expression))
                             .font(.system(size: 26, weight: .bold))
                             .multilineTextAlignment(.center)
@@ -69,13 +69,13 @@ struct CalculatorBlockView: View {
                         Text(badgeTitle)
                             .font(ThawType.sublabel.weight(.semibold))
                             .foregroundStyle(.secondary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 3)
+                            .padding(.horizontal, ThawSpacing.row)
+                            .padding(.vertical, ThawSpacing.capsuleInset)
                             .background(Capsule().fill(Color.primary.opacity(0.12)))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
-                    .padding(.horizontal, 16)
+                    .padding(.vertical, ThawSpacing.section)
+                    .padding(.horizontal, ThawSpacing.gutter)
 
                     // Middle: Vertical line with arrow
                     ZStack {
@@ -86,7 +86,7 @@ struct CalculatorBlockView: View {
                         Image(systemName: "arrow.right")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.secondary)
-                            .padding(6)
+                            .padding(ThawSpacing.compact)
                             .background(
                                 Circle()
                                     .fill(Color(nsColor: .controlBackgroundColor))
@@ -95,7 +95,7 @@ struct CalculatorBlockView: View {
                     .frame(width: 30)
 
                     // Right: Result (matches exact view structure as non-empty state to prevent any height jumps)
-                    VStack(spacing: 8) {
+                    VStack(spacing: ThawSpacing.base) {
                         Text(result.isEmpty ? CalculatorFormatter.format("—") : (attributedResult ?? CalculatorFormatter.format(result)))
                             .font(.system(size: 26, weight: .bold))
                             .multilineTextAlignment(.center)
@@ -106,14 +106,14 @@ struct CalculatorBlockView: View {
                         Text(resultBadge)
                             .font(ThawType.sublabel.weight(.semibold))
                             .foregroundStyle(.secondary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 3)
+                            .padding(.horizontal, ThawSpacing.row)
+                            .padding(.vertical, ThawSpacing.capsuleInset)
                             .background(Capsule().fill(Color.primary.opacity(0.12)))
                             .opacity(result.isEmpty ? 0 : 1)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
-                    .padding(.horizontal, 16)
+                    .padding(.vertical, ThawSpacing.section)
+                    .padding(.horizontal, ThawSpacing.gutter)
                 }
             }
         }

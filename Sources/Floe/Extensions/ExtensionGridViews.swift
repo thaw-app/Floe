@@ -26,11 +26,11 @@ struct GridRows: View, Equatable {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 14) {
                     ForEach(Array(layout.sections.enumerated()), id: \.offset) { _, section in
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: ThawSpacing.base) {
                             if section.title != nil || section.subtitle != nil {
                                 ListSectionHeading(title: section.title ?? "", isFirst: true, detail: section.subtitle)
                             }
-                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10, alignment: .top), count: section.columns), alignment: .leading, spacing: 12) {
+                            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: ThawSpacing.row, alignment: .top), count: section.columns), alignment: .leading, spacing: ThawSpacing.inset) {
                                 ForEach(section.items.map { (index: $0, row: rows[$0]) }, id: \.row.id) { index, row in
                                     tile(row, at: index, in: section)
                                 }
@@ -38,7 +38,7 @@ struct GridRows: View, Equatable {
                         }
                     }
                 }
-                .padding(12)
+                .padding(ThawSpacing.inset)
             }
             .scrollEdgeEffectStyle(.soft, for: .top)
             .onChange(of: selectedID) {
@@ -89,7 +89,7 @@ struct GridTile: View, Equatable {
         let content = node.props["content"] as? [String: Any]
         let tooltip = content?["tooltip"] as? String
         let value = tooltip == nil ? node.props["content"] : content?["value"]
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: ThawSpacing.tight) {
             Color.clear
                 .aspectRatio(aspectRatio, contentMode: .fit)
                 .overlay {
@@ -103,7 +103,7 @@ struct GridTile: View, Equatable {
                 .thawSelectionCue(isSelected: selected, in: Self.shape)
                 .help(tooltip ?? "")
             if let title = node.string("title") {
-                HStack(spacing: 4) {
+                HStack(spacing: ThawSpacing.tight) {
                     Text(title).font(ThawType.caption.weight(.medium)).lineLimit(1)
                     if let accessory = node.props["accessory"] as? [String: Any], let icon = accessory["icon"] {
                         Spacer(minLength: 0)

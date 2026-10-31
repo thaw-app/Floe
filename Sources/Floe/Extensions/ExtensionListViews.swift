@@ -86,7 +86,7 @@ struct ListRows: View, Equatable {
                         }
                     }
                 }
-                .padding(8)
+                .padding(ThawSpacing.base)
             }
             .scrollEdgeEffectStyle(.soft, for: .top)
             .onChange(of: selectedID) {
@@ -144,7 +144,7 @@ struct AccessoryView: View {
     let assetsPath: String
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: ThawSpacing.tight) {
             if let icon = accessory["icon"] {
                 IconView(value: icon, assetsPath: assetsPath, size: 13)
             }
@@ -155,8 +155,8 @@ struct AccessoryView: View {
                 let color = Palette.color(PropFormat.color(accessory["tag"])) ?? .secondary
                 Text(tag)
                     .foregroundStyle(color)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
+                    .padding(.horizontal, ThawSpacing.compact)
+                    .padding(.vertical, ThawSpacing.hairline)
                     .background(color.opacity(0.15), in: .rect(cornerRadius: ThawRadius.small))
             }
             if let date = PropFormat.date(accessory["date"]) {
@@ -190,7 +190,7 @@ struct DetailBody: View, Equatable {
             if let metadata = node.slot("metadata") {
                 Divider()
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: ThawSpacing.row) {
                         ForEach(metadata.content) { MetadataRow(node: $0, assetsPath: assetsPath) }
                     }
                     .padding(14)
@@ -211,7 +211,7 @@ struct MetadataRow: View {
         if node.type == "Metadata.Separator" {
             Divider()
         } else {
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: ThawSpacing.capsuleInset) {
                 Text(node.string("title") ?? "").font(ThawType.sublabel).foregroundStyle(.secondary)
                 switch node.type {
                 case "Metadata.Link":
@@ -219,13 +219,13 @@ struct MetadataRow: View {
                         Link(node.string("text") ?? target, destination: url)
                     }
                 case "Metadata.TagList":
-                    HStack(spacing: 4) {
+                    HStack(spacing: ThawSpacing.tight) {
                         ForEach(node.content) { tag in
                             let color = Palette.color(tag.props["color"]) ?? .secondary
                             Text(tag.string("text") ?? "")
                                 .foregroundStyle(color)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
+                                .padding(.horizontal, ThawSpacing.compact)
+                                .padding(.vertical, ThawSpacing.hairline)
                                 .background(color.opacity(0.15), in: .rect(cornerRadius: ThawRadius.small))
                         }
                     }

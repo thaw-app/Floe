@@ -105,15 +105,15 @@ struct ThawPermissionsView: View {
             privacyFact("Permission checks stay on your Mac")
             privacyFact("Turn any off later in System Settings")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, ThawSpacing.gutter)
+        .padding(.vertical, ThawSpacing.row)
         .frame(maxWidth: .infinity)
         .onboardingCard()
         .padding(.horizontal, ThawSpacing.section)
     }
 
     private func privacyFact(_ text: LocalizedStringKey) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: ThawSpacing.base) {
             Image(systemName: "checkmark")
                 .font(ThawType.micro.weight(.bold))
                 .foregroundStyle(.secondary)
@@ -132,7 +132,7 @@ private struct PermissionCard: View {
     let permission: Permission
 
     var body: some View {
-        OnboardingPermissionCard(surface: .flat, spacing: 8, isGranted: permission.hasPermission) {
+        OnboardingPermissionCard(surface: .flat, spacing: ThawSpacing.base, isGranted: permission.hasPermission) {
             HStack(spacing: ThawSpacing.compact) {
                 OnboardingIconTile(symbol: permission.iconName, tint: permission.iconColor)
                 Text(permission.title)
