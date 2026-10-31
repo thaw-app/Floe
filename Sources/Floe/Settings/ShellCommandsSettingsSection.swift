@@ -13,7 +13,7 @@ struct ShellCommandsSettingsSection: View {
     @ObservedObject var settings: AppSettings
 
     var body: some View {
-        ThawSection("Shell Commands") {
+        ThawSection(.floe("Shell Commands")) {
             Toggle(isOn: $settings.shell.runs) {
                 Text("Run shell commands from the search")
                 Text("Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal.")

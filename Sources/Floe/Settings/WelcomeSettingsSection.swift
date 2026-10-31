@@ -13,7 +13,7 @@ struct WelcomeSettingsSection: View {
     let showWelcome: () -> Void
 
     var body: some View {
-        ThawSection("Welcome") {
+        ThawSection(.floe("Welcome")) {
             LabeledContent {
                 Button("Show Welcome") { showWelcome() }
                     .buttonStyle(.settingsGlass)

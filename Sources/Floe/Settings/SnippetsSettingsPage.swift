@@ -23,7 +23,7 @@ struct SnippetsSettingsPage: View {
                     Text("Type a snippet's keyword in any app and Floe replaces it with the snippet. Needs Accessibility. Password fields are skipped.")
                 }
             )
-            ThawSection("Snippets") {
+            ThawSection(.floe("Snippets")) {
                 if store.snippets.isEmpty {
                     Text("No snippets yet.").foregroundStyle(ThawInk.supporting)
                 }
@@ -85,7 +85,7 @@ private struct SnippetEditor: View {
                 } footer: {
                     Text("Placeholders: {clipboard} {date} {time} {datetime} {uuid} {day}")
                 }
-                ThawSection("Text") {
+                ThawSection(.floe("Text")) {
                     TextEditor(text: $snippet.text)
                         .font(.body.monospaced())
                         .frame(minHeight: 140)

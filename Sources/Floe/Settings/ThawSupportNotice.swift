@@ -15,7 +15,7 @@ struct ThawSupportNotice: View {
     var body: some View {
         LabeledContent {
             if applicationURL != nil {
-                ThawBadge("Connected", tone: .tinted(.green))
+                ThawBadge(.floe("Connected"), tone: .tinted(.green))
             } else if let link = AppInfo.link("thaw") {
                 Link("Get Thaw", destination: link)
             }

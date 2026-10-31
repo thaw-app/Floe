@@ -27,7 +27,7 @@ struct ExtensionSettingsView: View {
                 SettingsPageHeader { controls(for: first) }
                 ExtensionHeader(command: first)
                 if !first.extensionPreferences.isEmpty {
-                    ThawSection("Preferences") {
+                    ThawSection(.floe("Preferences")) {
                         PreferencesEditor(fields: first.extensionPreferences, extensionName: first.extensionName, command: nil)
                     }
                 }
@@ -43,7 +43,7 @@ struct ExtensionSettingsView: View {
                         }
                     }
                 }
-                ThawSection("Commands") {
+                ThawSection(.floe("Commands")) {
                     ForEach(commands) { command in
                         CommandSettingsRow(settings: settings, command: command)
                             // Where a search result for this command scrolls to.
@@ -191,7 +191,7 @@ struct CommandSettingsRow: View {
                 .foregroundStyle(isOff ? Color.secondary : Color.primary)
                 .lineLimit(1)
             if command.mode == "no-view" {
-                ThawBadge("No View")
+                ThawBadge(.floe("No View"))
             }
             Spacer()
             TextField(

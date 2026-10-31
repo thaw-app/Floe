@@ -180,7 +180,7 @@ struct PickView: View {
                 SearchBar(placeholder: session.prompt, text: $session.query, focusToken: 0) { EmptyView() }
             } content: {
                 if session.results.isEmpty {
-                    ThawEmptyState(systemImage: "magnifyingglass", title: "Nothing matches", caption: "Try fewer letters.")
+                    ThawEmptyState(systemImage: "magnifyingglass", title: .floe("Nothing matches"), caption: .floe("Try fewer letters."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     list

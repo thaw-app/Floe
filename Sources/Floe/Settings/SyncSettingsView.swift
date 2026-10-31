@@ -78,7 +78,7 @@ struct SyncSettingsView: View {
         Form {
             SettingsPageHeader()
             SyncSettingsSection(settings: settings, sync: sync)
-            ThawSection("Your Settings") {
+            ThawSection(.floe("Your Settings")) {
                 LabeledContent {
                     ThawActionGroup {
                         Button("Export…") { exportSettings() }

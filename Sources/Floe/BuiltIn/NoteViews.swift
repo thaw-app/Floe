@@ -76,7 +76,7 @@ struct MarkdownFormatBar: View {
         }
         .padding(.horizontal, ThawSpacing.base)
         .padding(.vertical, ThawSpacing.tight)
-        .thawGlass(.panel, in: Capsule())
+        .thawGlass(.borderlessPanel, in: Capsule())
     }
 
     private func button(_ symbol: String, _ title: String, _ command: NoteTextView.Command) -> some View {

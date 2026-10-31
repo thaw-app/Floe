@@ -272,7 +272,7 @@ struct ActionMenu: View {
         .font(ThawType.body)
         .padding(ThawSpacing.compact)
         .frame(width: Self.width)
-        .thawGlass(.panel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
+        .thawGlass(.borderlessPanel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
         .padding(ThawSpacing.row)
     }
 
