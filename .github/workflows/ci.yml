@@ -53,7 +53,7 @@ jobs:
             ghcr.io/realm/swiftlint:0.65.1@sha256:f47e083201e47a136cda5ae847595bfe00226c444ca226fa74fa5dc648a9b057 \
             swiftlint --strict
 
-  # Vendor/ThawUI declares swift-tools-version 6.4, so the build needs Xcode 27;
+  # ThawUI declares swift-tools-version 6.4, so the build needs Xcode 27;
   # there is no Xcode 26 job as in Thaw.
   build:
     if: github.repository == 'thaw-app/Floe'

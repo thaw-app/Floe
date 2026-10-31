@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   # Swift is left out. CodeQL traces Swift builds under Rosetta, which Thaw
-  # works around by building with Xcode 26 on macOS 26, and Vendor/ThawUI
+  # works around by building with Xcode 26 on macOS 26, and ThawUI
   # needs the Swift 6.4 tools that ship with Xcode 27. SonarQube Cloud
   # covers the Swift sources in the meantime.
   analyze:

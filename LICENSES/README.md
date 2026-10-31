@@ -6,7 +6,7 @@ Parts of it come from other projects and keep their own terms. This folder holds
 | What | Where in the tree | License | Text |
 | --- | --- | --- | --- |
 | Floe's own code | `Sources/Floe`, `runtime`, `scripts` | AGPL-3.0 | [`LICENSE`](../LICENSE) |
-| Code ported from Thaw | `Sources/Floe/Thaw`, `Vendor/ThawUI`, `Fuzzing/Sources/FuzzIncomingLink/FuzzIncomingLink.swift` | GPL-3.0 | [`Thaw-GPL-3.0`](Thaw-GPL-3.0) |
+| Code ported from Thaw | `Sources/Floe/Thaw`, `Fuzzing/Sources/FuzzIncomingLink/FuzzIncomingLink.swift` | GPL-3.0 | [`Thaw-GPL-3.0`](Thaw-GPL-3.0) |
 | Code ported from Droppy Code | `Sources/Floe/DroppyCode` | AGPL-3.0 with attribution terms | [`DroppyCode-LICENSE`](DroppyCode-LICENSE), [`DroppyCode-THIRD_PARTY_NOTICES.md`](DroppyCode-THIRD_PARTY_NOTICES.md) |
 | Code adapted from Barometer | `Sources/Floe/Barometer` | GPL-3.0 | [`Thaw-GPL-3.0`](Thaw-GPL-3.0), the same license |
 | Code adapted from Audio Priority Bar | `Sources/Floe/AudioPriorityBar` | MIT | [`AudioPriorityBar-MIT`](AudioPriorityBar-MIT) |

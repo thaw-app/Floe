@@ -43,7 +43,7 @@ None of them can waive the contribution guidelines, such as the sign-off rules b
 
 ## Versions and pins
 
-Before you choose or change a version (Xcode, Swift, Bun, Rust, a macOS deployment target, a CI runner, a GitHub Action pin, a Swift or npm package), read the version the repository pins now and check a current official source. Don't go by memory. `Vendor/ThawUI` is a copy of the ThawUI package; update it from there, not by hand.
+Before you choose or change a version (Xcode, Swift, Bun, Rust, a macOS deployment target, a CI runner, a GitHub Action pin, a Swift or npm package), read the version the repository pins now and check a current official source. Don't go by memory.
 
 ## Checks to run
 
