@@ -67,7 +67,7 @@ struct LauncherGlass: Codable, Hashable {
     /// Whether the style follows Liquid Glass in System Settings instead of `style`.
     var followsSystem = false
     var isColored = false
-    var color = StoredColor(Color(red: 0.07, green: 0.40, blue: 0.90))
+    var color = StoredColor.iconBlue
     var opacity = 0.35
 
     /// NSGlassTintAmount is 0 for Clear, 1 for Tinted, and intermediate during animation.

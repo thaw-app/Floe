@@ -8,6 +8,7 @@
 import AppKit
 import ApplicationServices
 import Combine
+import ThawUI
 
 final class LauncherModel: ObservableObject {
     @Published var query = "" {

@@ -158,4 +158,13 @@ struct LauncherAppearanceTests {
         #expect(end.blue > 200)
         #expect(end.red < 60)
     }
+
+    @Test func theDefaultColoursStayTheAppIconsBlueAndNavy() {
+        let blue = StoredColor(Color(red: 0.07, green: 0.40, blue: 0.90))
+        let navy = StoredColor(Color(red: 0.02, green: 0.10, blue: 0.40))
+        #expect(LauncherGradient().start == blue)
+        #expect(LauncherGradient().end == navy)
+        #expect(LauncherTint().solid == blue)
+        #expect(LauncherGlass().color == blue)
+    }
 }

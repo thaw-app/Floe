@@ -330,7 +330,7 @@
   "dependency_monitoring_status": "Met",
   "dependency_monitoring_justification": "dependency-sca scans the lockfiles with OSV-Scanner on every pull request and weekly, and Dependabot updates GitHub Actions and opens security updates. https://github.com/thaw-app/Floe/blob/development/.github/workflows/dependency-sca.yml https://github.com/thaw-app/Floe/blob/development/.github/dependabot.yml",
   "updateable_reused_components_status": "Met",
-  "updateable_reused_components_justification": "Lockfiles identify each package and its version, and Vendor/ThawUI/UPSTREAM names the commit ThawUI was copied from. https://github.com/thaw-app/Floe/blob/development/docs/DEVELOPMENT.md#dependencies",
+  "updateable_reused_components_justification": "Lockfiles identify each package and its version. https://github.com/thaw-app/Floe/blob/development/docs/DEVELOPMENT.md#dependencies",
   "interfaces_current_status": "Met",
   "interfaces_current_justification": "Two clean Release builds with Xcode 27 reported no deprecation warnings, and CI treats SwiftLint warnings as failures. https://github.com/thaw-app/Floe/blob/development/.github/workflows/ci.yml",
   "automated_integration_testing_status": "Met",

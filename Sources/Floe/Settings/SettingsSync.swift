@@ -7,6 +7,7 @@
 
 import Algorithms
 import Foundation
+import ThawUI
 
 /// Which of Floe's stored settings sync between Macs, and how each becomes records. A setting in neither
 /// list here is not synced, and `SettingsSyncTests` fails until it is put in one.
@@ -54,6 +55,7 @@ enum SettingsSync {
         field("launcherGlass", LauncherGlass.self),
         field("launcherLayout", LauncherLayout.self),
         field("searchFieldShape", SearchFieldShape.self),
+        field("searchFieldCorners", SearchFieldCorners.self),
         field("searchFieldBeam", SearchFieldBeam.self),
         field("searchFieldBeamFrameRate", Double.self),
         field("separatesSearchField", Bool.self),
@@ -198,7 +200,20 @@ enum SettingsSync {
         for (name, order) in orders {
             settings[name] = OrderedSync.arranged(settings[name] as? [String] ?? [], by: order)
         }
+        keepCornersInStep(with: changed.filter { !refused.contains($0.key) }, in: &settings)
         return (settings, refused)
+    }
+
+    /// A newer Floe writes searchFieldShape as the roundness's nearest shape, so any other shape came from an older Mac and
+    /// moves the slider to its place. The records can arrive one at a time, so a roundness alone brings the shape with it.
+    private static func keepCornersInStep(with changed: [String: String], in settings: inout [String: Any]) {
+        let corners = (settings["searchFieldCorners"] as? Double).map(SearchFieldCorners.init(roundness:))
+        if changed[prefix + "searchFieldShape"] != nil {
+            guard let shape = (settings["searchFieldShape"] as? String).flatMap(SearchFieldShape.init(rawValue:)), corners?.nearestShape != shape else { return }
+            settings["searchFieldCorners"] = SearchFieldCorners(shape).roundness
+        } else if changed[prefix + "searchFieldCorners"] != nil, let corners {
+            settings["searchFieldShape"] = corners.nearestShape.rawValue
+        }
     }
 
     private static func set(_ value: Any?, entry: String, of field: Field, in settings: inout [String: Any]) {

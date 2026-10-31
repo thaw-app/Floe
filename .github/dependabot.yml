@@ -1,6 +1,6 @@
 # GitHub Actions dependency updates (OpenSSF dependency_monitoring).
 #
-# Swift and Bun are not listed yet: Dependabot's Swift (6.3) cannot read Vendor/ThawUI's
+# Swift and Bun are not listed yet: Dependabot's Swift (6.3) cannot read ThawUI's
 # tools-version 6.4 manifest, and its Bun cannot read bun.lock's lockfileVersion 2.
 # dependency-sca.yml scans both lockfiles with OSV in the meantime.
 version: 2

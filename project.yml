@@ -8,8 +8,10 @@ options:
   groupSortPosition: top
 
 packages:
+  # Keep in step with Package.swift.
   ThawUI:
-    path: Vendor/ThawUI
+    url: https://github.com/thaw-app/ThawUI
+    exactVersion: 1.1.0
   # Keep in step with Package.swift and with sparkle-version in .github/workflows/release.yml.
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
@@ -153,8 +155,8 @@ targets:
           rayon: https://github.com/rayon-rs/rayon
         # Filled in from git by the Embed Runtime step.
         GitCommitSHA: unknown
-        CFBundleShortVersionString: "0.2.1"
-        CFBundleVersion: "4"
+        CFBundleShortVersionString: "0.3.0"
+        CFBundleVersion: "5"
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         LSUIElement: true
         # Thaw answers Floe's appearance request by opening floe://thaw-appearance. IncomingURLRouter takes every floe:// link.

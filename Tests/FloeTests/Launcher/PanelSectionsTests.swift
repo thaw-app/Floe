@@ -96,7 +96,7 @@ struct PanelSectionsTests {
     @Test(arguments: SearchFieldShape.allCases)
     func aListIsClippedToTheCornersTheResultsPieceIsDrawnWith(shape: SearchFieldShape) {
         let look = LauncherLook(glass: LauncherGlass(style: .dynamic), tint: LauncherTint(), border: LauncherBorder(), hasShadow: true)
-        let pieces = PanelPieces(look: look, fieldShape: shape, heights: LauncherPanelState().pieceHeights(in: .extended))
+        let pieces = PanelPieces(look: look, corners: SearchFieldCorners(shape), heights: LauncherPanelState().pieceHeights(in: .extended))
         let drawn = pieces.resultsAppearance()
         let outline = pieces.resultsOutline()
         #expect(outline.cornerSize == CGSize(width: drawn.cornerRadius, height: drawn.cornerRadius), "a scroll bar stays inside the piece")
@@ -107,7 +107,7 @@ struct PanelSectionsTests {
         let look = LauncherLook(glass: LauncherGlass(style: .dynamic), tint: LauncherTint(), border: LauncherBorder(), hasShadow: true)
         let heights = LauncherPanelState().pieceHeights(in: .extended)
         func rowRadius(_ shape: SearchFieldShape) -> CGFloat {
-            PanelPieces(look: look, fieldShape: shape, heights: heights).rowRadius
+            PanelPieces(look: look, corners: SearchFieldCorners(shape), heights: heights).rowRadius
         }
         #expect(PanelPieces.listInset == 8, "what the lists keep clear of the piece's edges")
         #expect(rowRadius(.rounded) == 16, "the piece's 24 less the 8 the list is inset by: one centre for both curves")
@@ -120,7 +120,7 @@ struct PanelSectionsTests {
     func thePiecesTakeTheLookTheirCornersAndTheSideTheyFace(shape: SearchFieldShape) {
         let look = LauncherLook(glass: LauncherGlass(style: .dynamic), tint: LauncherTint(), border: LauncherBorder(), hasShadow: true)
         let heights = LauncherPanelState().pieceHeights(in: .extended)
-        let pieces = PanelPieces(look: look, fieldShape: shape, heights: heights)
+        let pieces = PanelPieces(look: look, corners: SearchFieldCorners(shape), heights: heights)
 
         let field = pieces.fieldAppearance(facesResults: true)
         #expect(field.glass == look.glass)
@@ -165,7 +165,7 @@ struct PanelSectionsTests {
         let defaults = MemoryDefaults()
         let earlier = AppSettings(defaults: defaults, savesAfterEdits: false)
         earlier.launcherLayout = .compact
-        earlier.searchFieldShape = .capsule
+        earlier.searchFieldCorners = .capsule
         earlier.save()
         // What an earlier version wrote: the same settings without the switch's key.
         let data = try #require(defaults.data(forKey: "settings"))
@@ -176,7 +176,7 @@ struct PanelSectionsTests {
         let loaded = AppSettings(defaults: defaults, savesAfterEdits: false)
         #expect(loaded.separatesSearchField == false)
         #expect(loaded.launcherLayout == .compact)
-        #expect(loaded.searchFieldShape == .capsule)
+        #expect(loaded.searchFieldCorners == .capsule)
     }
 
     @Test func theSettingsSearchFindsTheSwitch() {

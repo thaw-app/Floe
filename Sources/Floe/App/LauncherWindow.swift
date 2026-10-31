@@ -8,6 +8,7 @@
 import AppKit
 import Combine
 import SwiftUI
+import ThawUI
 
 /// What the launcher can be asked to show or do from outside its window: the hotkeys, the menu bar icon, App Intents
 /// and links.
@@ -152,7 +153,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         if panel == nil {
             let created = LauncherPanel(size: model.panelState.windowSize(in: settings.launcherLayout))
             created.delegate = self
-            created.contentView = NSHostingView(rootView: LauncherView(model: model).openingLinksInTheChosenBrowser())
+            created.contentView = NSHostingView(rootView: LauncherView(model: model).openingLinksInTheChosenBrowser().thawTheme(.floe))
             panel = created
         }
         guard let panel, !panel.isVisible || !panel.isKeyWindow else { return }

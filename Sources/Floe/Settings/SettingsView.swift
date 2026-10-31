@@ -27,25 +27,35 @@ struct SettingsView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        ThawSettingsShell(title: Text(title)) {
             SettingsSidebarPaneList(catalog: catalog, settings: settings, selection: selection)
-                // A fixed width: the pages' names fit it, and a wider sidebar only narrows the page.
-                .navigationSplitViewColumnWidth(SettingsSidebarPaneList.listWidth)
         } detail: {
             detail
-                // Each page heads itself with this (see SettingsPageHeader). Named here from the
-                // selection, not by each pane: a pane's own title only arrived once the pane was built.
-                .environment(\.settingsPageHeading, SettingsPageHeading(title: title))
-                // Fill the detail column so the Form's scrollbar sits on the
-                // window's trailing edge.
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                // Content fades under the titlebar instead of stopping at a hard band.
-                .scrollEdgeEffectStyle(.soft, for: .top)
         }
         .settingsSearchField(search, selection: selection)
         .updateConsentSheet(stores.updates)
         // Glass buttons are capsules, as in macOS's own glass windows.
         .buttonBorderShape(.capsule)
+    }
+
+    /// The pane's name in the toolbar, the one its sidebar row has.
+    private var title: String {
+        guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
+        return switch selection.page {
+        case .general: SearchPaneLabel.general.title
+        case .commands: SearchPaneLabel.commands.title
+        case .applications: SearchPaneLabel.applications.title
+        case .ai: SearchPaneLabel.ai.title
+        case .sync: SearchPaneLabel.sync.title
+        case .quicklinks: SearchPaneLabel.quicklinks.title
+        case .fallbacks: SearchPaneLabel.fallbacks.title
+        case .snippets: SearchPaneLabel.snippets.title
+        case .extensionStore: SearchPaneLabel.extensionStore.title
+        case .appearance: SearchPaneLabel.appearance.title
+        case .privacy: SearchPaneLabel.privacy.title
+        case .about: SearchPaneLabel.about.title
+        case let .extensionPage(name): catalog.allCommands.first { $0.extensionName == name }?.extensionTitle ?? name
+        }
     }
 
     @ViewBuilder
@@ -69,7 +79,6 @@ struct SettingsView: View {
             ApplicationSettingsView(catalog: catalog, settings: settings)
         case .ai:
             Form {
-                SettingsPageHeader()
                 AISettingsSection(settings: settings)
             }
             .formStyle(.grouped)
@@ -88,7 +97,7 @@ struct SettingsView: View {
         case .privacy:
             PrivacySettingsPane(settings: settings, stores: stores)
         case .about:
-            AboutSettingsPane(updatesManager: stores.updates, settings: settings)
+            FloeAboutPane(updatesManager: stores.updates)
         case let .extensionPage(name):
             ExtensionSettingsView(
                 catalog: catalog,
@@ -101,26 +110,6 @@ struct SettingsView: View {
             .id(name)
         }
     }
-
-    /// The pane's name over its content, the one its sidebar row has.
-    private var title: String {
-        guard !search.isSearching else { return String(localized: "Search", bundle: .floe) }
-        return switch selection.page {
-        case .general: SearchPaneLabel.general.title
-        case .commands: SearchPaneLabel.commands.title
-        case .applications: SearchPaneLabel.applications.title
-        case .ai: SearchPaneLabel.ai.title
-        case .sync: SearchPaneLabel.sync.title
-        case .quicklinks: SearchPaneLabel.quicklinks.title
-        case .fallbacks: SearchPaneLabel.fallbacks.title
-        case .snippets: SearchPaneLabel.snippets.title
-        case .extensionStore: SearchPaneLabel.extensionStore.title
-        case .appearance: SearchPaneLabel.appearance.title
-        case .privacy: SearchPaneLabel.privacy.title
-        case .about: SearchPaneLabel.about.title
-        case let .extensionPage(name): catalog.allCommands.first { $0.extensionName == name }?.extensionTitle ?? name
-        }
-    }
 }
 
 struct GeneralSettingsView: View {
@@ -130,7 +119,6 @@ struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
             ThawSection("Floe") {
                 HotkeyRecorder(
                     keyCombination: $settings.toggleHotkey,

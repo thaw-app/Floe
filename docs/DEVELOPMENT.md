@@ -125,7 +125,7 @@ samples instead, including `diagnostics`, which fails on purpose to exercise the
 
 The Swift tests import the app's module directly and never launch it. Logic lives in files that can run
 in a test (`Ranking`, `Manifest`, `ViewState`, `MarkdownParser`, `Shortcuts`, `PropFormat`, `Preferences`,
-`MenuBarLogic`, `Settings`, `Session`, `CommandLookup`, `ThawHUDPlacement`, `UpdateLogic`, the onboarding sequencer,
+`MenuBarLogic`, `Settings`, `Session`, `CommandLookup`, `UpdateLogic`, the onboarding sequencer,
 permission state and the settings search index); views, the process, the Keychain and Accessibility code are excluded
 from coverage in `sonar-project.properties`, which also states the rule. New decision logic belongs in a
 measured file with a suite beside it.
@@ -151,7 +151,6 @@ say what it replaces, and run `scripts/generate-credits.py` after the change.
 | Swift packages | `Package.swift`, `project.yml` | `Package.resolved` and the copy in `Floe.xcodeproj` | Swift Package Manager |
 | Extension runtime | `runtime/package.json` | `runtime/bun.lock` | `bun install --frozen-lockfile --ignore-scripts` |
 | File index | `Vendor/FloeRust/rust/Cargo.toml` | `Vendor/FloeRust/rust/Cargo.lock` | Cargo |
-| ThawUI | `Vendor/ThawUI/UPSTREAM` | The commit named there | A copy from Thaw, never edited by hand |
 | GitHub Actions | `.github/workflows` | The commit each `uses:` names | The runner |
 
 `dependency-sca.yml` scans the lockfiles with OSV-Scanner on every pull request and once a week. Dependabot updates
@@ -200,6 +199,10 @@ How to write one:
   and in the catalog the key `%lld items` varies by plural with `one` and `other` (see that entry; Xcode's catalog
   editor offers "Vary by Plural"). `LocalizationCatalogTests` lists the plural keys, so a new one is added there too.
   An integer in a localized string is written with the locale's grouping: 1,000 items.
+- Text handed to ThawUI is a `LocalizedStringResource`, and a plain literal is right: `ThawBadge("New")`. Like the
+  SwiftUI literals in the first point, it reads the main bundle, so only an Xcode build shows it translated. Write `LocalizedStringResource("New", bundle: .floe, comment: "…")` where a
+  translator needs a comment, and `.verbatim(text)` for text that is not Floe's or is already localized. Floe's own
+  `Text` and `String(localized:)`, and a closure that returns `Text` to ThawUI, still name the bundle.
 - `comment:` is one plain sentence for the translator wherever the English is ambiguous out of context: a single word
   ("Open", "Run", "Copy"), anything with a placeholder, and a sentence that quotes a word the user types.
   A SwiftUI literal has no `comment:` to give, so its comment is written on the entry in the catalog; a sync keeps it.
@@ -216,7 +219,7 @@ user's own data (app, file, quicklink, snippet and shortcut names, SSH aliases, 
 of the command line checks, ids, stored settings keys, URLs, key names, the generated credits, release notes, and
 prompts sent to an AI tool. Scope keywords (`files`, `clipboard`, `menu`, `tabs`, `ssh`, `shortcuts`, `ask`, `note`)
 are commands and stay English; a sentence that mentions one says so in its comment. Text that is not Floe's must
-never become a key: no `LocalizedStringKey(someString)`. Where a view only takes a key (ThawUI's `ThawEmptyState`),
+never become a key: no `LocalizedStringKey(someString)`. Where a view only takes a key,
 pass `.verbatim(text)`, which makes the text an argument of the key.
 
 Search matches a title in the language it is shown in, since the row is built with the localized title, and keywords

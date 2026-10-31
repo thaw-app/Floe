@@ -22,6 +22,22 @@ extension Bundle {
     }()
 }
 
+nonisolated extension LocalizedStringResource.BundleDescription {
+    /// Where a LocalizedStringResource finds Floe's catalog. A resource with no bundle reads the main bundle,
+    /// which holds nothing in a swift build binary.
+    static var floe: Self {
+        .atURL(Bundle.floe.bundleURL)
+    }
+}
+
+nonisolated extension LocalizedStringResource {
+    /// Text that is not Floe's or is already localized, for a ThawUI view that only takes a resource. The text is an
+    /// argument of the key, so it is never looked up or read as a format.
+    static func verbatim(_ text: String) -> LocalizedStringResource {
+        LocalizedStringResource("\(text)", bundle: .floe)
+    }
+}
+
 extension LocalizedStringKey {
     /// Text that is not Floe's (an extension's, the user's, or already localized) for a view that only takes a key.
     /// The text is an argument of the key, so it is never looked up, parsed as Markdown or read as a format.

@@ -22,8 +22,6 @@ enum ThawOnboardingWindowMetrics {
 
 /// Ask for access after explaining its benefits; earlier screens need no grants and cannot fail for missing permissions.
 struct ThawOnboardingView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     @State private var step: OnboardingStep
 
     private let settings: AppSettings
@@ -75,18 +73,20 @@ struct ThawOnboardingView: View {
         }
         .overlay(alignment: .top) {
             if !startsAtAccess, let progress = step.progress {
-                OnboardingStepIndicator(step: progress.step, total: progress.total)
-                    .padding(.top, ThawSpacing.inset)
-                    .transition(.opacity)
+                OnboardingStepIndicator(
+                    step: progress.step,
+                    total: progress.total,
+                    label: LocalizedStringResource(
+                        "Step \(progress.step) of \(progress.total)",
+                        bundle: .floe,
+                        comment: "Spoken for the dots that show how far the welcome window has got. Both placeholders are numbers."
+                    )
+                )
+                .padding(.top, ThawSpacing.inset)
+                .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .thawAnimation(ThawMotion.settle, value: step)
-        .transaction { transaction in
-            if reduceMotion {
-                transaction.animation = nil
-                transaction.disablesAnimations = true
-            }
-        }
+        .onboardingStepAnimation(value: step)
     }
 }

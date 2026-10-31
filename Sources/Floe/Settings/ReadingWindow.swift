@@ -7,12 +7,18 @@
 
 import AppKit
 import SwiftUI
+import ThawUI
 
 /// A window one of the reading pages opens in. It is built when asked for and let go when closed.
 @MainActor
 final class ReadingWindow {
-    static let releaseNotes = ReadingWindow(title: String(localized: "What’s New", bundle: .floe)) { AnyView(WhatsNewView()) }
-    static let acknowledgements = ReadingWindow(title: String(localized: "Acknowledgements", bundle: .floe)) { AnyView(AcknowledgementsView()) }
+    static let releaseNotes = ReadingWindow(title: String(localized: "What’s New", bundle: .floe)) {
+        AnyView(WhatsNewView(info: .floe, strings: .floe))
+    }
+
+    static let acknowledgements = ReadingWindow(title: String(localized: "Acknowledgements", bundle: .floe)) {
+        AnyView(AcknowledgementsView(appName: AppInfo.displayName, strings: .floe, content: .floe()))
+    }
 
     /// Called after one of them has closed. The settings process sets it: it stays alive while one is open.
     static var onClose: (() -> Void)?
@@ -48,7 +54,7 @@ final class ReadingWindow {
         )
         created.isReleasedWhenClosed = false
         created.title = title
-        created.contentView = NSHostingView(rootView: content().buttonBorderShape(.capsule).openingLinksInTheChosenBrowser())
+        created.contentView = NSHostingView(rootView: content().buttonBorderShape(.capsule).openingLinksInTheChosenBrowser().thawTheme(.floe))
         created.center()
         closeObserver = NotificationCenter.default.addMainObserver(forName: NSWindow.willCloseNotification, object: created) { [weak self] in
             self?.closed()

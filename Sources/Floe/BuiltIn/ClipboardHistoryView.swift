@@ -111,7 +111,7 @@ struct ClipboardHistoryView: View {
     private var preview: some View {
         if let entry = clipboard.selectedEntry {
             ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: ThawSpacing.row) {
                     if entry.kind == .image {
                         if let image = imagePreview(for: entry)?.image {
                             Image(decorative: image, scale: displayScale)
@@ -122,12 +122,12 @@ struct ClipboardHistoryView: View {
                     } else if let text = entry.text {
                         Text(text)
                             .textSelection(.enabled)
-                            .font(.system(size: 12))
+                            .font(ThawType.detail)
                     }
                     if entry.kind == .file {
                         ForEach(entry.filePaths ?? [], id: \.self) { path in
                             Text(URL(fileURLWithPath: path).lastPathComponent)
-                                .font(.system(size: 12))
+                                .font(ThawType.detail)
                                 .lineLimit(1)
                         }
                     }
@@ -160,7 +160,7 @@ struct ClipboardHistoryView: View {
     }
 
     private func metadata(title: LocalizedStringKey, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: ThawSpacing.capsuleInset) {
             Text(title).font(ThawType.caption).foregroundStyle(.secondary)
             Text(value).font(ThawType.detail).textSelection(.enabled)
         }

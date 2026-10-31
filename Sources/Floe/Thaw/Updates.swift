@@ -19,6 +19,7 @@ import AppKit
 import Combine
 import Observation
 import Sparkle
+import ThawUI
 
 @MainActor
 @Observable
@@ -98,7 +99,7 @@ final class UpdatesManager: NSObject {
             // like the Sparkle-backed properties below.
             access(keyPath: \.updateChannel)
             if sendToLauncher != nil {
-                return UpdateChannel(rawValue: reported.channel) ?? .stable
+                return UpdateChannel(floeRawValue: reported.channel) ?? .stable
             }
             return UpdateChannel.stored(in: defaults)
         }

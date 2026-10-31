@@ -109,31 +109,6 @@ struct OnboardingTourTile: View {
     }
 }
 
-/// The surface the welcome's cards share: a flat fill and a hairline, since the window's vibrancy is the glass.
-extension View {
-    func onboardingCard() -> some View {
-        let shape = RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous)
-        return background(shape.fill(Color(nsColor: .controlBackgroundColor).opacity(0.55)))
-            .overlay(shape.strokeBorder(.separator, lineWidth: 0.5))
-            .clipShape(shape)
-    }
-}
-
-/// A symbol in a small colored square, as a settings pane is named in a sidebar.
-struct OnboardingIconTile: View {
-    let symbol: String
-    var tint: Color = .accentColor
-
-    var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(.white)
-            .frame(width: 22, height: 22)
-            .background(tint.gradient, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .accessibilityHidden(true)
-    }
-}
-
 /// A demo drawn from a phase in 0..<1, so it owns no state: the query types itself out, the rows arrive once it
 /// is whole, and the frame at phase 1 is the finished one.
 private struct TourDemoContent: View {

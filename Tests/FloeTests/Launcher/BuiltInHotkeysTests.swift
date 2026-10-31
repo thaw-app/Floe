@@ -1,6 +1,7 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 @MainActor
 @Suite("Hotkeys for built-in commands")

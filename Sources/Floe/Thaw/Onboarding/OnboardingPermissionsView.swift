@@ -22,8 +22,6 @@ struct ThawPermissionsView: View {
     private let finishTitle: String
     private let onContinue: () -> Void
 
-    @State private var appeared = false
-
     /// - Parameters:
     ///   - permissions: What is asked for, and what has been granted.
     ///   - finishTitle: The button's title once every permission is granted.
@@ -62,17 +60,13 @@ struct ThawPermissionsView: View {
                     .foregroundStyle(.secondary)
                     .opacity(permissions.hasEveryPermission ? 0 : 1)
                 Spacer()
-                Button {
+                OnboardingPrimaryButton {
                     // Preflight only: continuing must never raise a prompt.
                     permissions.refreshPermissionsState()
                     onContinue()
                 } label: {
                     Text(verbatim: continueTitle)
-                        .font(ThawType.heading)
-                        .frame(minWidth: 140, minHeight: 34)
                 }
-                .buttonStyle(.thawProminent)
-                .keyboardShortcut(.defaultAction)
             }
             .padding(.horizontal, ThawSpacing.section)
             .padding(.bottom, 14)
@@ -82,10 +76,6 @@ struct ThawPermissionsView: View {
         .onAppear {
             // Preflight only: appearing must never raise a prompt.
             permissions.refreshPermissionsState()
-            // A local curve because ThawMotion has no bouncy one.
-            withThawAnimation(.spring(duration: 0.6, bounce: 0.3)) {
-                appeared = true
-            }
         }
     }
 
@@ -95,27 +85,17 @@ struct ThawPermissionsView: View {
     private func cardRow(_ row: [Permission]) -> some View {
         HStack(alignment: .top, spacing: ThawSpacing.gutter) {
             ForEach(row) { permission in
-                OnboardingPermissionCard(permission: permission)
+                PermissionCard(permission: permission)
             }
         }
         .fixedSize(horizontal: false, vertical: true)
     }
 
     private var header: some View {
-        VStack(spacing: 7) {
-            Text("Allow access")
-                .font(ThawType.display)
-                .multilineTextAlignment(.center)
-
-            Text("Each card says what its permission switches on. The launcher and your extensions work without any of them.")
-                .font(ThawType.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 460)
-        }
-        .scaleEffect(appeared ? 1 : 0.96)
-        .opacity(appeared ? 1 : 0)
+        OnboardingHeader(
+            title: Text("Allow access", bundle: .floe),
+            message: Text("Each card says what its permission switches on. The launcher and your extensions work without any of them.", bundle: .floe)
+        )
     }
 
     private var privacyPanel: some View {
@@ -125,15 +105,15 @@ struct ThawPermissionsView: View {
             privacyFact("Permission checks stay on your Mac")
             privacyFact("Turn any off later in System Settings")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
+        .padding(.horizontal, ThawSpacing.gutter)
+        .padding(.vertical, ThawSpacing.row)
         .frame(maxWidth: .infinity)
         .onboardingCard()
         .padding(.horizontal, ThawSpacing.section)
     }
 
     private func privacyFact(_ text: LocalizedStringKey) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: ThawSpacing.base) {
             Image(systemName: "checkmark")
                 .font(ThawType.micro.weight(.bold))
                 .foregroundStyle(.secondary)
@@ -148,11 +128,11 @@ struct ThawPermissionsView: View {
 }
 
 /// One permission as a card: its name, one line on what it switches on, and the button that asks for it.
-private struct OnboardingPermissionCard: View {
+private struct PermissionCard: View {
     let permission: Permission
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        OnboardingPermissionCard(surface: .flat, spacing: ThawSpacing.base, isGranted: permission.hasPermission) {
             HStack(spacing: ThawSpacing.compact) {
                 OnboardingIconTile(symbol: permission.iconName, tint: permission.iconColor)
                 Text(permission.title)
@@ -161,16 +141,13 @@ private struct OnboardingPermissionCard: View {
                     // The window is narrow enough that a long name shrinks a little rather than being cut.
                     .minimumScaleFactor(0.8)
             }
+        } details: {
             Text((try? AttributedString(markdown: permission.summary)) ?? AttributedString(permission.summary))
                 .font(ThawType.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
+        } control: {
             PermissionStatusControl(permission: permission, layout: .filled)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .onboardingCard()
-        .thawAnimation(ThawMotion.settle, value: permission.hasPermission)
     }
 }

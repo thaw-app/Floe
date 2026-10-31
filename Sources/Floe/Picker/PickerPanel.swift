@@ -105,7 +105,7 @@ final class PickPanelController: NSObject, NSWindowDelegate {
         self.session = session
         panel = LauncherPanel(size: LauncherPanelState().windowSize(in: .extended))
         super.init()
-        panel.contentView = NSHostingView(rootView: PickView(session: session))
+        panel.contentView = NSHostingView(rootView: PickView(session: session).thawTheme(.floe))
         // A focused field selects its text, and typing would then replace the starting query instead of adding to it.
         focusObservation = panel.observe(\.firstResponder) { [weak self] panel, _ in
             // Safe: KVO calls back on the thread that made the change, and a window's first responder changes on the main one.
@@ -174,7 +174,7 @@ struct PickView: View {
         let size = LauncherPanelState().contentSize(in: .extended)
         let look = settings.launcherLook(for: colorScheme)
         // The picker's field is always the rounded one, so its piece is too.
-        let pieces = settings.separatesSearchField ? PanelPieces(look: look, fieldShape: .rounded, heights: LauncherPanelState().pieceHeights(in: .extended)) : nil
+        let pieces = settings.separatesSearchField ? PanelPieces(look: look, corners: .rounded, heights: LauncherPanelState().pieceHeights(in: .extended)) : nil
         GlassEffectContainer {
             PanelSections {
                 SearchBar(placeholder: session.prompt, text: $session.query, focusToken: 0) { EmptyView() }
@@ -240,7 +240,7 @@ private struct PickRow: View {
     let selected: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: ThawSpacing.inset) {
             Text(verbatim: title)
                 .lineLimit(1)
                 // Paths differ at their ends, so the middle is what gives way.
@@ -255,7 +255,7 @@ private struct PickRow: View {
         }
         .font(ThawType.body)
         .frame(maxWidth: .infinity, minHeight: 24, alignment: .leading)
-        .padding(EdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8))
+        .padding(EdgeInsets(top: ThawSpacing.compact, leading: ThawSpacing.base, bottom: ThawSpacing.compact, trailing: ThawSpacing.base))
         .modifier(SearchRowBackground(selected: selected))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? .isSelected : [])

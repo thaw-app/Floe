@@ -15,24 +15,25 @@ struct LauncherAppearancePreview: View {
     let tint: LauncherTint
     let border: LauncherBorder?
     let hasShadow: Bool
-    /// The field's shape while the field is its own piece; nil draws the one panel.
-    var separateFieldShape: SearchFieldShape?
+    var corners = SearchFieldCorners.rounded
+    /// The field as its own piece, or the one panel.
+    var separatesField = false
 
     /// The miniature's pieces, at half the launcher's field and gap, over the two rows.
     private static let heights = PanelPieceHeights(field: 34, gap: ThawSpacing.tight, results: 60)
 
     var body: some View {
-        if let separateFieldShape {
+        if separatesField {
             VStack(spacing: Self.heights.gap) {
                 field
                     .padding(.horizontal, 12)
                     .frame(height: Self.heights.field)
                     // At this scale a control's corner stands for the panel's.
-                    .modifier(piece(radius: separateFieldShape.cornerRadius(height: Self.heights.field), style: separateFieldShape.pieceCornerStyle, facing: .bottom, span: Self.heights.fieldSpan))
+                    .modifier(piece(radius: corners.cornerRadius(height: Self.heights.field), style: corners.pieceCornerStyle, facing: .bottom, span: Self.heights.fieldSpan))
                 rows
                     .padding(12)
                     .frame(height: Self.heights.results)
-                    .modifier(piece(radius: separateFieldShape.panelPieceRadius, style: .continuous, facing: .top, span: Self.heights.resultsSpan))
+                    .modifier(piece(radius: corners.panelPieceRadius, style: .continuous, facing: .top, span: Self.heights.resultsSpan))
             }
             .padding(6)
         } else {
@@ -40,7 +41,7 @@ struct LauncherAppearancePreview: View {
                 field
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(.quinary, in: Capsule(style: .continuous))
+                    .background(.quinary, in: corners.outline)
                 rows
             }
             .padding(12)

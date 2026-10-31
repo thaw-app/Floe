@@ -20,7 +20,7 @@ struct PanelHeader: View {
         VStack(spacing: 0) {
             HStack(spacing: ThawSpacing.row) {
                 IconView(value: icon ?? "icon:Terminal", assetsPath: assetsPath, size: 20)
-                Text(title).font(.system(size: 17, weight: .semibold)).lineLimit(1)
+                Text(title).font(ThawType.display).lineLimit(1)
                 Spacer()
             }
             .padding(.horizontal, 18)
@@ -243,7 +243,7 @@ struct FormTextArea: View {
                 .font(ThawType.body)
                 .frame(minHeight: 80, maxHeight: 140)
                 .scrollContentBackground(.hidden)
-                .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: 6))
+                .background(Color.primary.opacity(0.05), in: .rect(cornerRadius: ThawRadius.row))
                 .accessibilityLabel(title)
         }
     }

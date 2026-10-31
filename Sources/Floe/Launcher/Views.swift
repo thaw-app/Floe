@@ -57,11 +57,11 @@ struct LauncherView: View {
                 ) { model.answer(question, yes: $0) }
             }
         }
-        .environment(\.searchFieldShape, settings.searchFieldShape)
+        .environment(\.searchFieldCorners, settings.searchFieldCorners)
         .environment(\.searchFieldBeam, settings.searchFieldBeam)
         .environment(\.searchFieldBeamFrameRate, settings.searchFieldBeamFrameRate)
         .environment(\.pointerRest, model.pointerRest)
-        .modifier(PanelLook(look: look, pieces: settings.separatesSearchField ? PanelPieces(look: look, fieldShape: settings.searchFieldShape, heights: heights) : nil))
+        .modifier(PanelLook(look: look, pieces: settings.separatesSearchField ? PanelPieces(look: look, corners: settings.searchFieldCorners, heights: heights) : nil))
         .modifier(RefusalShake(refusal: model.refusal))
         .padding(Self.margin)
         // The window is resized a moment before or after the content: the search bar stays at the top meanwhile.

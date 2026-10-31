@@ -36,7 +36,7 @@ struct FloatingNoteView: View {
 
     /// In the window's title bar, beside its close button and centred on it.
     private var titleBar: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: ThawSpacing.row) {
             if model.listsNotes {
                 notesMenu
             }
@@ -64,7 +64,7 @@ struct FloatingNoteView: View {
         }
         // The close button ends 26 points in.
         .padding(.leading, 36)
-        .padding(.trailing, 10)
+        .padding(.trailing, ThawSpacing.row)
     }
 
     /// The other notes, newest first, with the one on screen ticked. ⌘[ and ⌘] step through them too.
@@ -95,7 +95,7 @@ struct FloatingNoteView: View {
 
     private func roundButton(_ symbol: String) -> some View {
         Image(systemName: symbol)
-            .font(.system(size: 13))
+            .font(ThawType.symbol)
             .foregroundStyle(.secondary)
             .frame(width: 28, height: 28)
             .thawGlass(.control, in: Circle())

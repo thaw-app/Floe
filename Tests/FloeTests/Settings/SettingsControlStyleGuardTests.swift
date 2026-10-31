@@ -18,12 +18,14 @@ import Testing
 /// A button with no style is drawn by macOS, bordered in one row and a flat
 /// pill in the next, and a picker outside a Form turns into a bordered popup.
 /// Neither shows up in review, so the rule is asserted over the source.
+///
+/// It reads every source file, so it stays off the main actor, where every main actor test in the run would wait for it.
 @Suite("Settings control style guard")
-struct SettingsControlStyleGuardTests {
+nonisolated struct SettingsControlStyleGuardTests {
     /// Floe's settings pages: their folder, and the pages that live beside the code they set.
     private static let scannedPaths = [
         "Sources/Floe/Settings",
-        "Sources/Floe/Thaw/AboutSettingsPane.swift",
+        "Sources/Floe/Thaw/FloeAboutPane.swift",
         "Sources/Floe/Thaw/PrivacySettingsPane.swift",
         "Sources/Floe/PreferredApps",
     ]
@@ -161,7 +163,7 @@ struct SettingsControlStyleGuardTests {
 /// A line scanner that knows which call or closure each control sits in and
 /// which modifiers follow it, enough to answer "is this button styled" without
 /// a Swift parser. Strings and comments are blanked before brackets are counted.
-struct SwiftScopeScanner {
+nonisolated struct SwiftScopeScanner {
     struct Control {
         let line: Int
         /// Enclosing calls and closures, innermost last.

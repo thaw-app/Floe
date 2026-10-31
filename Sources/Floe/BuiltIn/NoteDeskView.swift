@@ -44,7 +44,7 @@ struct NoteDeskView: View {
         } else if let failure = desk.failure {
             ThawEmptyState(
                 systemImage: "exclamationmark.triangle",
-                title: "\(failure)",
+                title: .verbatim(failure),
                 actionTitle: desk.needsAutomation ? "Open Settings" : nil,
                 action: desk.needsAutomation ? { desk.askForAutomation() } : nil
             )
@@ -58,7 +58,7 @@ struct NoteDeskView: View {
                     .frame(width: 220)
                 Divider()
                 if let notice = desk.notice {
-                    ThawEmptyState(systemImage: "doc.text", title: "\(notice)")
+                    ThawEmptyState(systemImage: "doc.text", title: .verbatim(notice))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     NoteDocument(

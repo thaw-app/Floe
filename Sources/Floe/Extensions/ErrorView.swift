@@ -50,7 +50,7 @@ struct ErrorView: View {
                     Text(failure.message).textSelection(.enabled)
                     if !failure.details.isEmpty {
                         Text(failure.details.trimmingCharacters(in: .whitespacesAndNewlines))
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(ThawType.sublabel.monospaced())
                             .foregroundStyle(.secondary)
                             .textSelection(.enabled)
                             .padding(ThawSpacing.row)

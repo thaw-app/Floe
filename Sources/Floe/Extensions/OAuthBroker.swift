@@ -12,6 +12,7 @@
 import AppKit
 import Foundation
 import Synchronization
+import ThawUI
 
 /// Why an `oauth.*` request failed, answered to the host as the request's error.
 nonisolated enum OAuthError: LocalizedError {

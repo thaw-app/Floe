@@ -17,6 +17,7 @@
 import ApplicationServices
 import Carbon
 import Cocoa
+import ThawUI
 
 /// The key equivalent of a menu item, as Accessibility reports it.
 nonisolated struct MenuShortcut: Sendable, Equatable {

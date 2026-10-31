@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import ThawUI
 
 /// What the settings process asks of the launcher's updater, as the text of a `LinkMessage`.
 /// Sparkle runs in the launcher only, so every update control in Settings ends up here.
@@ -45,7 +46,7 @@ enum UpdateRequest: Equatable {
         case ("downloads", "0"), ("downloads", "1"): self = .setDownloads(value == "1")
         case ("consent", "0"), ("consent", "1"), ("consent", "2"): self = .consent(AutomaticUpdates(checks: value != "0", downloads: value == "2"))
         case ("channel", _):
-            guard let channel = UpdateChannel(rawValue: value) else { return nil }
+            guard let channel = UpdateChannel(floeRawValue: value) else { return nil }
             self = .setChannel(channel)
         default: return nil
         }

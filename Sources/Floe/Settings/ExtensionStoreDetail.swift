@@ -88,7 +88,7 @@ private struct StoreDetailHeader: View {
         VStack(alignment: .leading, spacing: ThawSpacing.base) {
             HStack(alignment: .top, spacing: 14) {
                 StoreIcon(store: store, url: details?.iconURL, size: 64)
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: ThawSpacing.capsuleInset) {
                     Text(details?.title ?? name)
                         .font(.title2.bold())
                         .lineLimit(2)
@@ -188,7 +188,7 @@ private struct StoreCommandCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: ThawSpacing.row) {
             StoreIcon(store: store, url: command.iconURL ?? extensionIcon, size: 24)
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: ThawSpacing.capsuleInset) {
                 HStack(alignment: .firstTextBaseline, spacing: ThawSpacing.base) {
                     Text(command.title)
                         .fontWeight(.medium)
@@ -237,7 +237,7 @@ struct StoreTag: View {
     var tint: Color = .secondary
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: ThawSpacing.capsuleInset) {
             if let symbol {
                 Image(systemName: symbol)
             }

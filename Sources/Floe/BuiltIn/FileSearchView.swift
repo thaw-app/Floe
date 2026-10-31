@@ -130,12 +130,12 @@ struct FilePreview: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: ThawSpacing.inset) {
             FileThumbnail(url: file.url, maxHeight: 180)
             Text(file.name)
                 .font(.system(size: 15, weight: .semibold))
                 .lineLimit(2)
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: ThawSpacing.compact) {
                 if let kind = values.localizedTypeDescription {
                     FileMetaRow(label: "Kind") { Text(kind).lineLimit(1) }
                 }
@@ -159,12 +159,12 @@ struct FilePreview: View {
                 }
             }
             Spacer(minLength: 0)
-            HStack(spacing: 8) {
+            HStack(spacing: ThawSpacing.base) {
                 Text("↵ Open").foregroundStyle(.secondary)
                 Text("⌘Y Quick Look").foregroundStyle(.secondary)
                 Text("⌘⇧C Copy Path").foregroundStyle(.secondary)
             }
-            .font(.system(size: 11))
+            .font(ThawType.sublabel)
         }
         .padding(ThawSpacing.gutter)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -176,9 +176,9 @@ struct FileMetaRow<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(label).font(.system(size: 11)).foregroundStyle(.secondary)
-            content.font(.system(size: 12))
+        VStack(alignment: .leading, spacing: ThawSpacing.capsuleInset) {
+            Text(label).font(ThawType.sublabel).foregroundStyle(.secondary)
+            content.font(ThawType.detail)
         }
     }
 }
@@ -198,7 +198,7 @@ struct FileThumbnail: View {
                     Image(nsImage: thumbnail)
                         .resizable()
                         .scaledToFit()
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: ThawRadius.row, style: .continuous))
                         .shadow(color: .black.opacity(0.25), radius: 6, y: 2)
                 } else {
                     AppIconView(path: url.path, size: 96)

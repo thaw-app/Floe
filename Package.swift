@@ -1,8 +1,8 @@
 // swift-tools-version: 6.4
 import PackageDescription
 
-// The Swift 6 language mode with the main actor as the default isolation, and the two features that
-// SWIFT_APPROACHABLE_CONCURRENCY adds to it in project.yml. Keep the two files in step.
+/// The Swift 6 language mode with the main actor as the default isolation, and the two features that
+/// SWIFT_APPROACHABLE_CONCURRENCY adds to it in project.yml. Keep the two files in step.
 let concurrency: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
     .defaultIsolation(MainActor.self),
@@ -15,8 +15,8 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [.macOS(.v26)],
     dependencies: [
-        .package(path: "Vendor/ThawUI"),
         // Keep in step with project.yml.
+        .package(url: "https://github.com/thaw-app/ThawUI", exact: "1.1.0"),
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", exact: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-markdown", exact: "0.9.0"),
@@ -49,11 +49,12 @@ let package = Package(
             name: "FloeTests",
             dependencies: [
                 "Floe",
+                "ThawUI",
                 .product(name: "FloeRust", package: "FloeRust"),
             ],
             swiftSettings: concurrency,
             linkerSettings: [
-                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@loader_path/../../.."])
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@loader_path/../../.."]),
             ]
         ),
     ]

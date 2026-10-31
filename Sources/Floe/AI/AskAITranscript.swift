@@ -60,7 +60,7 @@ struct AskAITranscript: View, Equatable {
             ThawEmptyState(
                 systemImage: "exclamationmark.triangle",
                 title: "No answer",
-                caption: "\(message)",
+                caption: .verbatim(message),
                 actionTitle: "Ask Again",
                 action: askAgain
             )
@@ -146,8 +146,8 @@ struct AskAIQuestion: View {
 
     var body: some View {
         HStack(spacing: ThawSpacing.row) {
-            Image(systemName: AskAI.symbol).font(.system(size: 17)).foregroundStyle(.secondary).accessibilityHidden(true)
-            Text(text).font(.system(size: 17, weight: .semibold)).lineLimit(2)
+            Image(systemName: AskAI.symbol).font(ThawType.display.weight(.regular)).foregroundStyle(.secondary).accessibilityHidden(true)
+            Text(text).font(ThawType.display).lineLimit(2)
             Spacer()
         }
         .padding(.horizontal, 18)

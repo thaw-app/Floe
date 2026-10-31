@@ -10,6 +10,7 @@ import AppKit
 import Combine
 import CryptoKit
 import SwiftUI
+import ThawUI
 
 final class LauncherPanel: NSPanel {
     /// The floating, borderless, see-through window the launcher and the picker both draw their glass in.
@@ -304,7 +305,7 @@ if options.benchSettings {
     let selection = SettingsSelection()
     let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 820, height: 560), styleMask: [.titled], backing: .buffered, defer: false)
     let search = SearchModel()
-    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search))
+    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search).thawTheme(.floe))
     window.orderFrontRegardless()
     let pages: [(String, SettingsPage)] = [("general", .general), ("applications", .applications), ("ai", .ai), ("sync", .sync), ("privacy", .privacy), ("about", .about), ("extension", .extensionPage("kill-process"))]
     for (name, page) in pages {
@@ -334,7 +335,7 @@ if options.benchSettings {
             settings.aiTool = tool
             settings.aiBaseURL = service.baseURL ?? ""
             let section = Form { AISettingsSection(settings: settings, storedKey: key ?? "") }.formStyle(.grouped).frame(width: 600, height: 320)
-            window.contentView = NSHostingView(rootView: section)
+            window.contentView = NSHostingView(rootView: section.thawTheme(.floe))
             RunLoop.main.run(until: Date().addingTimeInterval(0.05))
             window.contentView?.layoutSubtreeIfNeeded()
             window.displayIfNeeded()
@@ -384,7 +385,7 @@ if let path = options.panelSnapshot {
     // Scratch settings, so drawing the compact layout leaves the saved one alone.
     let settings = AppSettings(defaults: UserDefaults(suiteName: "floe.snapshot") ?? .standard)
     let window = NSWindow(contentRect: NSRect(origin: NSPoint(x: -4000, y: -4000), size: model.panelState.windowSize(in: settings.launcherLayout)), styleMask: [.borderless], backing: .buffered, defer: false)
-    window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: settings))
+    window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: settings).thawTheme(.floe))
     window.orderFrontRegardless()
     let resizing = model.panelWindowSizes(settings: settings).sink { window.resizeKeepingTop(to: $0) }
     func snapshot(_ name: String, wait: TimeInterval = 1) {
@@ -400,10 +401,10 @@ if let path = options.panelSnapshot {
     snapshot("compact")
     settings.launcherLayout = .extended
     for shape in [SearchFieldShape.capsule, .square] {
-        settings.searchFieldShape = shape
+        settings.searchFieldCorners = SearchFieldCorners(shape)
         snapshot("field-\(shape.rawValue)")
     }
-    settings.searchFieldShape = .rounded
+    settings.searchFieldCorners = .rounded
     // The answer view with a canned answer: nothing is asked of any source.
     model.askAIRequest = { conversation, _ in conversation.earlier.isEmpty ? AskAI.sampleAnswer : AskAI.sampleFollowUp }
     MarkdownView.isSelectable = false
@@ -418,10 +419,10 @@ if let path = options.panelSnapshot {
     model.closeMenuBarSearch()
     model.query = "co"
     for shape in SearchFieldShape.allCases {
-        settings.searchFieldShape = shape
+        settings.searchFieldCorners = SearchFieldCorners(shape)
         snapshot("separate-\(shape.rawValue)")
     }
-    settings.searchFieldShape = .rounded
+    settings.searchFieldCorners = .rounded
     settings.launcherLayout = .compact
     model.query = ""
     snapshot("separate-compact")

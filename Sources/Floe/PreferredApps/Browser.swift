@@ -8,6 +8,7 @@
 import Algorithms
 import AppKit
 import SwiftUI
+import ThawUI
 import UniformTypeIdentifiers
 
 /// Opens a link: in one app when it is named, through the system when it is not.

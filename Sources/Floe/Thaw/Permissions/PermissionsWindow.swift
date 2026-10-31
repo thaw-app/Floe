@@ -12,6 +12,7 @@
 
 import AppKit
 import SwiftUI
+import ThawUI
 
 /// The window that hosts onboarding.
 @MainActor
@@ -80,6 +81,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         .ignoresSafeArea()
         // Glass buttons are capsules here too, as in Settings.
         .buttonBorderShape(.capsule)
+        .thawTheme(.floe)
         window.contentView = NSHostingView(rootView: view)
         window.setContentSize(size)
         window.center()

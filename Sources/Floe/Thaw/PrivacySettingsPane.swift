@@ -39,18 +39,10 @@ struct PrivacySettingsPane: View {
 
     var body: some View {
         Form {
-            SettingsPageHeader()
-            // Footer-only section: the one placement where a pill renders without the form's card around it.
-            ThawSection {
-                EmptyView()
-            } footer: {
-                SettingsWarningPill(
-                    title: "No analytics",
-                    message: "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network.",
-                    systemImage: "hand.raised.fill",
-                    tint: .green
-                )
-            }
+            SettingsPrivacyNotice(
+                title: "No analytics",
+                message: "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network."
+            )
             SettingsTabs(selection: $tab)
             switch tab {
             case .access: accessSections
@@ -227,7 +219,7 @@ nonisolated enum PrivacyTab: SettingsTab {
         }
     }
 
-    var title: LocalizedStringKey {
+    var title: LocalizedStringResource {
         switch self {
         case .access: "Access"
         case .network: "Network"
