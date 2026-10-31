@@ -15,7 +15,7 @@ final class ThawAppearanceFollower: ObservableObject {
     static let shared = ThawAppearanceFollower()
 
     /// The host of the `floe://` link Thaw opens with its answer.
-    static let callbackHost = "thaw-appearance"
+    static let callbackHost = IncomingLink.thawAppearanceHost
     /// Thaw posts this, with nothing attached, whenever its look changes.
     static let changeNotification = Notification.Name("com.stonerl.Thaw.appearanceDidChange")
     /// How long Thaw has to answer. It answers at once when it answers at all.

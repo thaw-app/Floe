@@ -12,7 +12,7 @@ import AppKit
 @MainActor
 final class RedirectSchemeClaim {
     static let shared = RedirectSchemeClaim()
-    nonisolated static let schemes: Set<String> = ["raycast", "com.raycast"]
+    nonisolated static let schemes = IncomingLink.redirectSchemes
     /// The handlers to give the schemes back to, kept on disk so a crash mid-sign-in still returns them.
     private static let defaultsKey = "RedirectSchemeClaim.previousHandlers"
 

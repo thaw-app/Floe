@@ -53,6 +53,7 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: "1.4.3"
+          no-cache: true
 
       # The Bun that ships: Apple silicon and Intel in one file, pinned in the action's script. The Embed
       # Runtime build phase takes BUN_PATH before the Bun installed above.
@@ -80,7 +81,7 @@ jobs:
         id: signing
         uses: thaw-app/org-ci/actions/configure-signing@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
         with:
-          provisioning-profile: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+          provisioning-profile: ${{ secrets.PROVISIONING_PROFILE }}
           apple-application-cert: ${{ secrets.APPLE_APPLICATION_CERT }}
           apple-application-cert-password: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
           apple-id: ${{ secrets.APPLE_ID }}

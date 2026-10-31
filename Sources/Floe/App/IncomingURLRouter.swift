@@ -55,23 +55,14 @@ final class IncomingURLRouter: NSObject {
     /// Thaw's appearance answer and, unless sign-in is parked, the browser's return. Any other link does nothing,
     /// but a Raycast link that is not a sign-in's return goes on to Raycast.
     func route(_ url: URL) {
-        if let scheme = url.scheme?.lowercased(), RedirectSchemeClaim.schemes.contains(scheme) {
-            if OAuthBroker.isCallback(url) {
-                if !oauthIsParked {
-                    oauth(url)
-                }
-            } else {
-                Self.openInRaycast(url)
-            }
-            return
-        }
-        guard url.scheme?.lowercased() == "floe" else { return }
-        switch url.host?.lowercased() {
-        case ThawAppearanceFollower.callbackHost:
-            appearance(url)
-        case "oauth" where !oauthIsParked:
+        switch IncomingLink(url: url, oauthIsParked: oauthIsParked) {
+        case .oauth:
             oauth(url)
-        default:
+        case .thawAppearance:
+            appearance(url)
+        case .raycast:
+            Self.openInRaycast(url)
+        case .ignored:
             break
         }
     }

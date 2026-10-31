@@ -28,6 +28,8 @@ jobs:
         with:
           comment-marker: "<!-- floe-pr-conventions -->"
           title-example-scope: runtime
+          require-closes: "true"
+          require-signoff: "true"
           area-rules: |
             [
               {"label": "runtime", "prefixes": ["runtime/"]},

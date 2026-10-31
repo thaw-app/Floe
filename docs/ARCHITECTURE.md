@@ -39,7 +39,8 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
 
 - `Sources/Floe`: the app: panel, hotkey, app index, and a renderer for the JSON tree the host sends. One folder per
   area, and no Swift file outside a folder:
-  - `App`: the entry point and app delegate (`main.swift`), the main menu, the `floe://` link router, the debug
+  - `App`: the entry point and app delegate (`main.swift`), the main menu, the `floe://` link router and what decides
+    what a link is (`IncomingLink.swift`, which `Fuzzing` compiles on its own), the debug
     options, the update rules and the generated credits. Also the launcher's side of Settings: the process handle
     (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the launcher does with them.
   - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
@@ -126,6 +127,9 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     extensions with a `src/` folder are watched, never the ones Raycast installed.
 - `CREDITS.md` and `Sources/Floe/App/Credits.swift` are written by `scripts/generate-credits.py`; run it after changing a dependency.
 - `Vendor/ThawUI`: design system copied from thaw-app/Thaw (commit in `Vendor/ThawUI/UPSTREAM`).
+- `Fuzzing`: the fuzzing harness and its corpus, a package of its own. `.github/workflows/fuzz.yml` runs it nightly and on any change to it.
+
+The security reasoning is in the [assurance case](ASSURANCE_CASE.md), and what Floe exposes to or asks of the outside is in [External interfaces](INTERFACES.md).
 
 ## Licenses
 

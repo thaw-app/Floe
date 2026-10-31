@@ -1,6 +1,6 @@
 # What Floe does not do yet
 
-The gaps as they stand. The [roadmap](../README.md#roadmap) says which come next, and the [changelog](../CHANGELOG.md) lists each release's known issues.
+The gaps as they stand. The [roadmap](https://www.getthaw.app/floe/roadmap) says which come next, and the [changelog](../CHANGELOG.md) lists each release's known issues.
 
 ## Extensions
 

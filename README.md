@@ -21,7 +21,8 @@
 <p align="center">
   <a href="https://discord.gg/KDfWjWDnR4"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/DISCORD-JOIN.svg?variant=ghost&amp;font=geist-mono&amp;logo=discord&amp;mode=dark" /><img alt="Discord" src="https://shieldcn.dev/badge/DISCORD-JOIN.svg?variant=ghost&amp;font=geist-mono&amp;logo=discord&amp;mode=light" /></picture></a>
   <a href="https://scorecard.dev/viewer/?uri=github.com/thaw-app/Floe"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/github/scorecard/thaw-app/Floe.svg?variant=ghost&amp;font=geist-mono&amp;label=SCORECARD&amp;mode=dark" /><img alt="OpenSSF Scorecard" src="https://shieldcn.dev/github/scorecard/thaw-app/Floe.svg?variant=ghost&amp;font=geist-mono&amp;label=SCORECARD&amp;mode=light" /></picture></a>
-  <a href="https://github.com/thaw-app/Floe/attestations"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/SLSA-BUILD_L2.svg?variant=ghost&amp;font=geist-mono&amp;logo=ri:GoPackage&amp;mode=dark" /><img alt="SLSA Build Level 2" src="https://shieldcn.dev/badge/SLSA-BUILD_L2.svg?variant=ghost&amp;font=geist-mono&amp;logo=ri:GoPackage&amp;mode=light" /></picture></a>
+  <a href="https://github.com/thaw-app/Floe/attestations"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/SLSA-BUILD_L3.svg?variant=ghost&amp;font=geist-mono&amp;logo=ri:GoPackage&amp;mode=dark" /><img alt="SLSA Build Level 3" src="https://shieldcn.dev/badge/SLSA-BUILD_L3.svg?variant=ghost&amp;font=geist-mono&amp;logo=ri:GoPackage&amp;mode=light" /></picture></a>
+  <a href="https://www.bestpractices.dev/projects/15396"><picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/OPENSSF-PASSING.svg?variant=ghost&amp;font=geist-mono&amp;logo=lu:ShieldCheck&amp;mode=dark" /><img alt="OpenSSF Best Practices Passing" src="https://shieldcn.dev/badge/OPENSSF-PASSING.svg?variant=ghost&amp;font=geist-mono&amp;logo=lu:ShieldCheck&amp;mode=light" /></picture></a>
 </p>
 
 <img alt="Floe's launcher with suggestions and commands under the search field" src="https://raw.githubusercontent.com/thaw-app/brand-assets/main/marketing/screenshots/floe-01.jpg">
@@ -38,7 +39,7 @@ Beyond the search, Floe gives any command an alias, a hotkey or a place among yo
   <picture><source media="(prefers-color-scheme: dark)" srcset="https://shieldcn.dev/badge/MACOS-26.svg?variant=ghost&amp;font=geist-mono&amp;mode=dark" /><img alt="macOS 26 or later" src="https://shieldcn.dev/badge/MACOS-26.svg?variant=ghost&amp;font=geist-mono&amp;mode=light" /></picture>
 </p>
 
-Download the disk image from the [releases](https://github.com/thaw-app/Floe/releases) and drag Floe to Applications.
+Download the disk image from the [releases](https://github.com/thaw-app/Floe/releases) and drag Floe to Applications. To check a download yourself, see [Verifying releases](docs/VERIFYING_RELEASES.md).
 
 ## Contributing
 

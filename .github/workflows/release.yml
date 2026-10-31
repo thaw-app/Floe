@@ -1,10 +1,8 @@
 name: Release
 
-# Manual only; pushing a tag never releases. Drafts until attach-provenance
-# adds the attestations. The release carries the DMG and the Sparkle ZIP; the
-# Sparkle feed is appcast.xml on this repository's gh-pages branch, pushed once
-# the release is public. A tag whose Info.plist has no SUPublicEDKey skips the
-# Sparkle steps and ships the DMG alone.
+# Manual only; pushing a tag never releases. Run it on the tag (scripts/release.sh passes --ref).
+# org-ci's build-macos-app.yml builds and attests the commit (SLSA v1.0 Build L3); this file publishes it.
+# A tag whose Info.plist has no SUPublicEDKey ships the DMG alone, with no Sparkle ZIP or appcast item.
 
 on:
   workflow_dispatch:
@@ -64,37 +62,23 @@ permissions:
   contents: read
 
 jobs:
-  release:
+  # No secrets here, so a tag that cannot ship stops before anyone is asked to approve a build.
+  meta:
     if: github.repository == 'thaw-app/Floe'
-    # GitHub-hosted Xcode 27 preview image (arm64); xcode-27-xlarge for more cores.
+    # PlistBuddy needs macOS.
     runs-on: xcode-27
-    # The Apple secrets exist only in the `prod` environment, which needs a
-    # reviewer's approval; they aren't read before that. The other jobs stay
-    # outside it.
-    environment: prod
     permissions:
-      contents: write
-      id-token: write
+      contents: read
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
       channel: ${{ steps.meta.outputs.channel }}
       updates: ${{ steps.meta.outputs.updates }}
-      dmg-name: ${{ steps.sbom-meta.outputs.dmg-name }}
-      dmg-digest: ${{ steps.sbom-meta.outputs.dmg-digest }}
-      sbom-name: ${{ steps.sbom-meta.outputs.name }}
-      sbom-digest: ${{ steps.sbom-meta.outputs.sbom-digest }}
-    env:
-      APP_NAME: "Floe.app"
-      DMG_NAME: "Floe.dmg"
+      version: ${{ steps.meta.outputs.version }}
+      build: ${{ steps.meta.outputs.build }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+      public-key: ${{ steps.meta.outputs.public-key }}
+      feed-url: ${{ steps.meta.outputs.feed-url }}
     steps:
-      # A local composite action has to exist on disk before it can run, so
-      # this sparse checkout brings in .github/actions and nothing else.
-      - name: Checkout build actions
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          sparse-checkout: .github/actions
-          persist-credentials: false
-
       # Only a new release is made a draft: one already published keeps its state, and new assets would show at once.
       - name: Refuse a published release
         if: ${{ !inputs.dry_run }}
@@ -114,12 +98,10 @@ jobs:
           fi
 
       - name: Checkout source
-        id: source
-        uses: thaw-app/org-ci/actions/checkout-source@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          project-name: Floe.xcodeproj
-          target-name: Floe
           ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
 
       - name: Resolve tag and channel
         id: meta
@@ -128,6 +110,12 @@ jobs:
           CHANNEL_INPUT: ${{ inputs.channel }}
         run: |
           set -euo pipefail
+
+          # A branch's copy of this file could drop the checks below, and its signature names that branch.
+          if [[ "$GITHUB_REF" != "refs/tags/$TAG_NAME" ]]; then
+            echo "::error::Run this workflow on the tag $TAG_NAME, not on $GITHUB_REF."
+            exit 1
+          fi
 
           if [[ ! "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._]+)?$ ]]; then
             echo "Invalid tag name format. Must be in the form 1.2.3 or 1.2.3-rc.1"
@@ -186,87 +174,22 @@ jobs:
 
           echo "tag=$TAG_NAME version=$version build=$build prerelease=$prerelease channel=$channel updates=$updates"
 
-      - name: Resolve release notes
-        id: notes
-        uses: thaw-app/org-ci/actions/release-notes@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
-        with:
-          tag: ${{ steps.meta.outputs.tag }}
-          release-notes: ${{ inputs.release_notes }}
-          changelog-paths: CHANGELOG.md
-
-      # Installs to ~/.bun/bin/bun, the Bun the build's own steps run on.
-      - name: Install Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version: "1.4.3"
-
-      # The Bun that ships: Apple silicon and Intel in one file, pinned in the action's script. The Embed
-      # Runtime build phase takes BUN_PATH before the Bun installed above.
-      - name: Make Bun universal
-        uses: ./.github/actions/universal-bun
-
-      # The Embed Runtime build phase fails without runtime/node_modules.
-      - name: Install runtime dependencies
-        working-directory: runtime
-        run: bun install --frozen-lockfile --ignore-scripts
-
-      # The calculator's engine and the file index, compiled from Vendor/FloeRust/rust for every build that ships:
-      # nothing is cached or downloaded. The FloeRust package does not resolve without it.
-      - name: Build FloeRust
-        run: ./scripts/build-rust.sh
-
-      - name: Select latest installed Xcode (including betas)
-        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
-        with:
-          xcode-version: latest
-
-      # Before the long build: the secret must be the private half of the key in
-      # Info.plist, and the build number must be above everything published,
-      # because Sparkle compares CFBundleVersion and ignores the tag.
-      - name: Check update signing setup
+      # Before the long build: the build number must be above everything
+      # published, because Sparkle compares CFBundleVersion and ignores the tag.
+      - name: Check the build number
         if: steps.meta.outputs.updates == 'true'
         env:
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_ED25519_PRIVATE_KEY }}
-          PUBLIC_KEY: ${{ steps.meta.outputs.public-key }}
           FEED_URL: ${{ steps.meta.outputs.feed-url }}
           VERSION: ${{ steps.meta.outputs.version }}
           BUILD: ${{ steps.meta.outputs.build }}
         run: |
           set -euo pipefail
 
-          if [[ -z "${SPARKLE_PRIVATE_KEY// }" ]]; then
-            echo "::error::This tag's Info.plist has an SUPublicEDKey, but the prod environment has no SPARKLE_ED25519_PRIVATE_KEY. Set it with scripts/set-secrets.sh."
-            exit 1
-          fi
           if [[ "$FEED_URL" != https://* ]]; then
             echo "::error::SUFeedURL in Info.plist is not an https URL: $FEED_URL"
             exit 1
           fi
 
-          # generate_keys -x exports the 32-byte seed in base64. The public key
-          # is derived from it and never printed unless it matches Info.plist.
-          derived="$(xcrun swift - <<'SWIFT'
-          import CryptoKit
-          import Foundation
-
-          let secret = (ProcessInfo.processInfo.environment["SPARKLE_PRIVATE_KEY"] ?? "")
-              .trimmingCharacters(in: .whitespacesAndNewlines)
-          if let seed = Data(base64Encoded: secret), seed.count == 32,
-             let key = try? Curve25519.Signing.PrivateKey(rawRepresentation: seed) {
-              print(key.publicKey.rawRepresentation.base64EncodedString())
-          } else {
-              print("unknown-format")
-          }
-          SWIFT
-          )"
-          if [[ "$derived" == "unknown-format" ]]; then
-            echo "::warning::SPARKLE_ED25519_PRIVATE_KEY is not a 32-byte base64 seed, so it was not compared with SUPublicEDKey."
-          elif [[ "$derived" != "$PUBLIC_KEY" ]]; then
-            echo "::error::SPARKLE_ED25519_PRIVATE_KEY is not the private half of SUPublicEDKey in this tag's Info.plist. Installed copies would reject the update."
-            exit 1
-          else
-            echo "The signing key matches SUPublicEDKey."
-          fi
 
           python3 - <<'PY'
           import os
@@ -311,55 +234,178 @@ jobs:
           print(f"Build {build} is above the newest published build {newest} ({newest_version}).")
           PY
 
-      # The profile is what lets the release carry iCloud. Without the secret
-      # the build is signed as before and sync says it is unavailable.
-      - name: Configure signing
-        id: signing
-        uses: thaw-app/org-ci/actions/configure-signing@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
-        with:
-          provisioning-profile: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
-          apple-application-cert: ${{ secrets.APPLE_APPLICATION_CERT }}
-          apple-application-cert-password: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
-          apple-id: ${{ secrets.APPLE_ID }}
-          apple-id-password: ${{ secrets.APPLE_ID_PASSWORD }}
-          apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
+  # The provenance names org-ci's workflow as the builder, which is SLSA v1.0 Build L3.
+  # No attestation on a dry run: it would be a permanent Sigstore / GitHub record.
+  build:
+    needs: meta
+    if: github.repository == 'thaw-app/Floe'
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: thaw-app/org-ci/.github/workflows/build-macos-app.yml@369e3b50e278dc7799513209c6ddc8ec758d884b
+    with:
+      ref: refs/tags/${{ needs.meta.outputs.tag }}
+      version: ${{ needs.meta.outputs.tag }}
+      project-name: Floe.xcodeproj
+      target-name: Floe
+      scheme-name: Floe
+      app-name: Floe.app
+      dmg-name: Floe.dmg
+      asset-prefix: Floe
+      environment: prod
+      # GitHub-hosted Xcode 27 preview image (arm64); xcode-27-xlarge for more cores.
+      runner: xcode-27
+      prepare-script: scripts/prepare-release-build.sh
+      # FLOE_PROFILE is the profile's own name. Without the PROVISIONING_PROFILE secret the build fails.
+      build-settings: |
+        FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements
+        FLOE_PROFILE=Floe Developer ID
+      bundle-identifier: org.thaw.floe
+      attest: ${{ !inputs.dry_run }}
+    secrets: inherit
 
-      # Overrides project.yml's ad hoc signing on the command line: Developer ID
-      # identity, team, manual style and the hardened runtime.
-      - name: Build
-        uses: thaw-app/org-ci/actions/build@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
+  # Not org-ci's release-macos-app.yml: it signs older ZIPs again for delta updates, and Floe signs only this build.
+  release:
+    needs: [meta, build]
+    if: github.repository == 'thaw-app/Floe'
+    # GitHub-hosted Xcode 27 preview image (arm64); xcode-27-xlarge for more cores.
+    runs-on: xcode-27
+    # The update key exists only in `prod`, which needs a reviewer's approval.
+    environment: prod
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      APP_NAME: "Floe.app"
+      DMG_NAME: ${{ needs.build.outputs.dmg-name }}
+      SBOM_NAME: ${{ needs.build.outputs.sbom-name }}
+      SBOM_PATH: build/${{ needs.build.outputs.sbom-name }}
+    steps:
+      # A local composite action has to exist on disk before it can run, so
+      # this sparse checkout brings in .github/actions and nothing else.
+      - name: Checkout build actions
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
-          project-name: ${{ steps.source.outputs.project-name }}
-          scheme-name: Floe
-          deployment-target: ${{ steps.source.outputs.deployment-target }}
-          # project.yml maps these two to the Floe target's entitlements and profile.
-          build-settings: |
-            ${{ steps.signing.outputs.provisioning-profile-name != '' && 'FLOE_ENTITLEMENTS=Resources/Floe-iCloud.entitlements' || '' }}
-            ${{ steps.signing.outputs.provisioning-profile-name != '' && format('FLOE_PROFILE={0}', steps.signing.outputs.provisioning-profile-name) || '' }}
+          sparse-checkout: .github/actions
+          persist-credentials: false
 
-      # Before anything is sent to Apple: the archived app must contain Bun as
-      # its developers signed it (team 7FRXF46ZSN).
-      - name: Verify embedded Bun (archive)
-        uses: ./.github/actions/verify-embedded-bun
+      - name: Checkout source
+        id: source
+        uses: thaw-app/org-ci/actions/checkout-source@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
         with:
-          app-path: build/Archive.xcarchive/Products/Applications/${{ env.APP_NAME }}
-          team-id: 7FRXF46ZSN
+          project-name: Floe.xcodeproj
+          target-name: Floe
+          ref: refs/tags/${{ inputs.tag }}
 
-      # Exports with a secure timestamp, notarizes and staples the app, then
-      # packages and signs the DMG.
-      - name: Export Archive
-        uses: thaw-app/org-ci/actions/export-and-package@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
+      - name: Resolve release notes
+        id: notes
+        uses: thaw-app/org-ci/actions/release-notes@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
         with:
-          apple-team-id: ${{ secrets.APPLE_TEAM_ID }}
-          app-name: ${{ env.APP_NAME }}
-          dmg-name: ${{ env.DMG_NAME }}
-          provisioning-profile-name: ${{ steps.signing.outputs.provisioning-profile-name }}
-          bundle-identifier: org.thaw.floe
+          tag: ${{ needs.meta.outputs.tag }}
+          release-notes: ${{ inputs.release_notes }}
+          changelog-paths: CHANGELOG.md
+
+      - name: Download the build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: build
+
+      - name: Download the provenance
+        if: ${{ !inputs.dry_run }}
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.build.outputs.provenance-artifact-name }}
+          path: build
+
+      # ditto made the app ZIP, so ditto restores its signature and ticket. The
+      # digests are the attested ones; any other file would not match the provenance.
+      - name: Unpack and check the build
+        env:
+          APP_ZIP: ${{ needs.build.outputs.app-zip-name }}
+          BUILT_COMMIT: ${{ needs.build.outputs.commit }}
+          DMG_DIGEST: ${{ needs.build.outputs.dmg-digest }}
+          SBOM_DIGEST: ${{ needs.build.outputs.sbom-digest }}
+          DMG_BUNDLE: ${{ needs.build.outputs.dmg-bundle-name }}
+          SBOM_BUNDLE: ${{ needs.build.outputs.sbom-bundle-name }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          GH_TOKEN: ${{ github.token }}
+          SIGNER_WORKFLOW: thaw-app/org-ci/.github/workflows/build-macos-app.yml
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$BUILT_COMMIT"
+          ls -la build
+          rm -rf build/Export
+          mkdir -p build/Export
+          ditto -x -k "build/${APP_ZIP}" build/Export
+          test -d "build/Export/${APP_NAME}"
+          codesign -vvv --deep --strict "build/Export/${APP_NAME}"
+          xcrun stapler validate "build/Export/${APP_NAME}"
+
+          (cd build && shasum -a 256 -c "${DMG_NAME}.sha256" && shasum -a 256 -c "${SBOM_NAME}.sha256")
+          test "sha256:$(shasum -a 256 "build/${DMG_NAME}" | awk '{print $1}')" = "$DMG_DIGEST"
+          test "sha256:$(shasum -a 256 "$SBOM_PATH" | awk '{print $1}')" = "$SBOM_DIGEST"
+          if [[ "$DRY_RUN" != "true" ]]; then
+            # The bundles go on the release, so check they're for these files and this builder.
+            gh attestation verify "build/${DMG_NAME}" --bundle "build/${DMG_BUNDLE}" \
+              --repo "$GITHUB_REPOSITORY" --signer-workflow "$SIGNER_WORKFLOW"
+            gh attestation verify "$SBOM_PATH" --bundle "build/${SBOM_BUNDLE}" \
+              --repo "$GITHUB_REPOSITORY" --signer-workflow "$SIGNER_WORKFLOW"
+          fi
+
+      # The secret must be the private half of the key in Info.plist.
+      - name: Check update signing setup
+        if: needs.meta.outputs.updates == 'true'
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_ED25519_PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ needs.meta.outputs.public-key }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${SPARKLE_PRIVATE_KEY// }" ]]; then
+            echo "::error::This tag's Info.plist has an SUPublicEDKey, but the prod environment has no SPARKLE_ED25519_PRIVATE_KEY. Set it with scripts/set-secrets.sh."
+            exit 1
+          fi
+
+          # generate_keys -x exports the 32-byte seed in base64. The public key
+          # is derived from it and never printed unless it matches Info.plist.
+          derived="$(xcrun swift - <<'SWIFT'
+          import CryptoKit
+          import Foundation
+
+          let secret = (ProcessInfo.processInfo.environment["SPARKLE_PRIVATE_KEY"] ?? "")
+              .trimmingCharacters(in: .whitespacesAndNewlines)
+          if let seed = Data(base64Encoded: secret), seed.count == 32,
+             let key = try? Curve25519.Signing.PrivateKey(rawRepresentation: seed) {
+              print(key.publicKey.rawRepresentation.base64EncodedString())
+          } else {
+              print("unknown-format")
+          }
+          SWIFT
+          )"
+          if [[ "$derived" == "unknown-format" ]]; then
+            echo "::warning::SPARKLE_ED25519_PRIVATE_KEY is not a 32-byte base64 seed, so it was not compared with SUPublicEDKey."
+          elif [[ "$derived" != "$PUBLIC_KEY" ]]; then
+            echo "::error::SPARKLE_ED25519_PRIVATE_KEY is not the private half of SUPublicEDKey in this tag's Info.plist. Installed copies would reject the update."
+            exit 1
+          else
+            echo "The signing key matches SUPublicEDKey."
+          fi
+
+      # The selftest below takes its runtime from the checkout, which needs its packages.
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.3"
+          no-cache: true
+
+      - name: Install runtime dependencies
+        working-directory: runtime
+        run: bun install --frozen-lockfile --ignore-scripts
 
       # A release that claims iCloud without the profile inside does not launch.
       - name: Verify iCloud signing
-        if: steps.signing.outputs.provisioning-profile-name != ''
         run: |
           set -euo pipefail
           app="build/Export/$APP_NAME"
@@ -370,12 +416,6 @@ jobs:
           codesign -d --entitlements - "$app" 2>/dev/null | grep -A2 "com.apple.developer.icloud-container-environment" | grep -q "Production"
           codesign -d --entitlements - "$app" 2>/dev/null | grep -q "com.apple.security.automation.apple-events"
 
-      - name: Notarize
-        uses: thaw-app/org-ci/actions/notarize-and-validate@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
-        with:
-          dmg-name: ${{ env.DMG_NAME }}
-          app-name: ${{ env.APP_NAME }}
-
       # The export may have re-signed Bun. Check the app that went into the DMG
       # and run it once with its own Bun before anything is published.
       - name: Verify embedded Bun (exported app)
@@ -384,80 +424,15 @@ jobs:
           app-path: build/Export/${{ env.APP_NAME }}
           selftest: "true"
 
-      - name: Generate CycloneDX SBOM
-        id: sbom-meta
-        env:
-          TAG: ${{ steps.meta.outputs.tag }}
-          DMG_NAME: ${{ env.DMG_NAME }}
-          # Syft pinned by version and archive digest; bump both from the release's
-          # syft_<version>_checksums.txt.
-          SYFT_VERSION: 1.42.3
-          SYFT_SHA256_DARWIN_ARM64: d71ee7db2be0fe2e96f679fd9d69ef04274cc86c8604707797080a21070b3f32
-          SYFT_SHA256_DARWIN_AMD64: c00d01b7c43504708c8922d643d1cbaefa62ca8876baa4d2c2cf4c3be43707a9
-        run: |
-          set -euo pipefail
-
-          case "$(uname -m)" in
-            arm64) syft_arch=arm64; syft_sha="$SYFT_SHA256_DARWIN_ARM64" ;;
-            x86_64) syft_arch=amd64; syft_sha="$SYFT_SHA256_DARWIN_AMD64" ;;
-            *) echo "Unsupported runner architecture: $(uname -m)"; exit 1 ;;
-          esac
-
-          bin="$RUNNER_TEMP/syft-bin"
-          archive="$RUNNER_TEMP/syft.tar.gz"
-          mkdir -p "$bin"
-          curl -sSfL --proto '=https' --tlsv1.2 --retry 3 \
-            "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_darwin_${syft_arch}.tar.gz" \
-            -o "$archive"
-          echo "${syft_sha}  ${archive}" | shasum -a 256 -c -
-          tar -xzf "$archive" -C "$bin" syft
-          export PATH="$bin:$PATH"
-          syft version
-
-          # Scan the source tree: SwiftPM deps are statically linked, so only
-          # Package.resolved lists them, and runtime/ holds the JavaScript that
-          # ships. Build output, packaging tools and CI files are excluded.
-          sbom_name="Floe_${TAG}.cdx.json"
-          sbom_path="build/${sbom_name}"
-          syft scan dir:. \
-            --exclude './build/**' \
-            --exclude './create-dmg/**' \
-            --exclude './brand-assets/**' \
-            --exclude './.git/**' \
-            --exclude './.github/**' \
-            --source-name Floe \
-            --source-version "$TAG" \
-            -o "cyclonedx-json=${sbom_path}"
-          test -f "$sbom_path"
-          ls -la "$sbom_path"
-
-          # Basename-only checksums so `shasum -c` works after downloading the release assets.
-          (
-            cd build
-            shasum -a 256 "$sbom_name" | tee "${sbom_name}.sha256"
-            shasum -a 256 "$DMG_NAME" | tee "${DMG_NAME}.sha256"
-          )
-
-          sbom_hex="$(awk '{print $1}' "build/${sbom_name}.sha256")"
-          dmg_hex="$(awk '{print $1}' "build/${DMG_NAME}.sha256")"
-
-          {
-            echo "path=${sbom_path}"
-            echo "name=${sbom_name}"
-            echo "dmg-name=${DMG_NAME}"
-            echo "sbom-digest=sha256:${sbom_hex}"
-            echo "dmg-digest=sha256:${dmg_hex}"
-          } >> "$GITHUB_OUTPUT"
-
       # Zips the stapled app from build/Export and writes a signed appcast that
       # adds this build to the one on gh-pages. Nothing is pushed here.
       - name: Sparkle ZIP and appcast
         id: sparkle
-        if: steps.meta.outputs.updates == 'true'
+        if: needs.meta.outputs.updates == 'true'
         uses: thaw-app/org-ci/actions/sparkle-release@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
         with:
-          tag: ${{ steps.meta.outputs.tag }}
-          channel: ${{ steps.meta.outputs.channel }}
+          tag: ${{ needs.meta.outputs.tag }}
+          channel: ${{ needs.meta.outputs.channel }}
           app-name: ${{ env.APP_NAME }}
           asset-prefix: Floe
           appcast-title: Floe
@@ -469,12 +444,12 @@ jobs:
           # Matches the Sparkle version in Package.resolved.
           sparkle-version: "2.10.0"
           sparkle-sha256: c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c
-          release-html-url: https://github.com/${{ github.repository }}/releases/tag/${{ steps.meta.outputs.tag }}
+          release-html-url: https://github.com/${{ github.repository }}/releases/tag/${{ needs.meta.outputs.tag }}
           release-notes: ${{ steps.notes.outputs.body }}
 
       - name: Collect update assets
         id: update-assets
-        if: steps.meta.outputs.updates == 'true'
+        if: needs.meta.outputs.updates == 'true'
         env:
           ZIP_PATH: ${{ steps.sparkle.outputs.zip-path }}
         run: |
@@ -507,7 +482,7 @@ jobs:
         env:
           COSIGN_YES: "true"
           DMG_PATH: build/${{ env.DMG_NAME }}
-          SBOM_PATH: ${{ steps.sbom-meta.outputs.path }}
+          SBOM_PATH: ${{ env.SBOM_PATH }}
         run: |
           set -euo pipefail
           cosign version
@@ -521,14 +496,14 @@ jobs:
         with:
           # softprops v3 uses the token input (env GITHUB_TOKEN is ignored).
           token: ${{ github.token }}
-          tag_name: ${{ steps.meta.outputs.tag }}
+          tag_name: ${{ needs.meta.outputs.tag }}
           files: |
             build/${{ env.DMG_NAME }}
             build/${{ env.DMG_NAME }}.sigstore.json
             build/${{ env.DMG_NAME }}.sha256
-            ${{ steps.sbom-meta.outputs.path }}
-            ${{ steps.sbom-meta.outputs.path }}.sigstore.json
-            ${{ steps.sbom-meta.outputs.path }}.sha256
+            ${{ env.SBOM_PATH }}
+            ${{ env.SBOM_PATH }}.sigstore.json
+            ${{ env.SBOM_PATH }}.sha256
             ${{ steps.update-assets.outputs.files }}
           body: ${{ steps.notes.outputs.body }}
           # Only when neither the input nor CHANGELOG.md gave any notes.
@@ -536,15 +511,15 @@ jobs:
           # Always a draft; attach-provenance publishes it once the attestations are
           # attached, so an unattested release can't ship.
           draft: true
-          prerelease: ${{ steps.meta.outputs.prerelease == 'true' }}
+          prerelease: ${{ needs.meta.outputs.prerelease == 'true' }}
 
       # The appcast names the ZIP on the release, which is still a draft here.
       # attach-provenance pushes it after it publishes the release.
       - name: Hand the appcast to attach-provenance
-        if: ${{ steps.meta.outputs.updates == 'true' && !inputs.dry_run }}
+        if: ${{ needs.meta.outputs.updates == 'true' && !inputs.dry_run }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: appcast-${{ steps.meta.outputs.tag }}
+          name: appcast-${{ needs.meta.outputs.tag }}
           path: ${{ steps.sparkle.outputs.appcast-path }}
           if-no-files-found: error
           retention-days: 7
@@ -552,20 +527,20 @@ jobs:
       - name: Dry run report
         if: ${{ inputs.dry_run }}
         env:
-          CHANNEL: ${{ steps.meta.outputs.channel }}
-          UPDATES: ${{ steps.meta.outputs.updates }}
-          FEED_URL: ${{ steps.meta.outputs.feed-url }}
+          CHANNEL: ${{ needs.meta.outputs.channel }}
+          UPDATES: ${{ needs.meta.outputs.updates }}
+          FEED_URL: ${{ needs.meta.outputs.feed-url }}
           APPCAST_PATH: ${{ steps.sparkle.outputs.appcast-path }}
           UPDATE_FILES: ${{ steps.update-assets.outputs.files }}
           WOULD_PUBLISH_APPCAST: ${{ inputs.publish_appcast && inputs.publish_release }}
-          TAG: ${{ steps.meta.outputs.tag }}
-          VERSION: ${{ steps.meta.outputs.version }}
-          BUILD: ${{ steps.meta.outputs.build }}
-          PRERELEASE: ${{ steps.meta.outputs.prerelease }}
+          TAG: ${{ needs.meta.outputs.tag }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          BUILD: ${{ needs.meta.outputs.build }}
+          PRERELEASE: ${{ needs.meta.outputs.prerelease }}
           NOTES_SOURCE: ${{ steps.notes.outputs.source }}
           DMG_NAME: ${{ env.DMG_NAME }}
-          SBOM_NAME: ${{ steps.sbom-meta.outputs.name }}
-          SBOM_PATH: ${{ steps.sbom-meta.outputs.path }}
+          SBOM_NAME: ${{ env.SBOM_NAME }}
+          SBOM_PATH: ${{ env.SBOM_PATH }}
           WOULD_DRAFT: ${{ !inputs.publish_release }}
         run: |
           set -euo pipefail
@@ -669,80 +644,38 @@ jobs:
         if: ${{ inputs.dry_run }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: dry-run-${{ steps.meta.outputs.tag }}
+          name: dry-run-${{ needs.meta.outputs.tag }}
           if-no-files-found: warn
           retention-days: 7
           path: |
             build/${{ env.DMG_NAME }}
             build/${{ env.DMG_NAME }}.sha256
-            ${{ steps.sbom-meta.outputs.path }}
-            ${{ steps.sbom-meta.outputs.path }}.sha256
+            ${{ env.SBOM_PATH }}
+            ${{ env.SBOM_PATH }}.sha256
             ${{ steps.sparkle.outputs.appcast-path }}
 
-      - name: Cleanup keychain
-        if: always()
-        env:
-          PROFILE_UUID: ${{ steps.signing.outputs.provisioning-profile-uuid }}
-        run: |
-          security delete-keychain "$RUNNER_TEMP/buildagent.keychain" || true
-          if [[ -n "$PROFILE_UUID" ]]; then
-            rm -f "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles/$PROFILE_UUID.provisionprofile" \
-              "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.provisionprofile"
-          fi
-
-  # Provenance signing runs in a reusable workflow with its own signing identity.
-  # Skipped on dry run: attestations are permanent Sigstore / GitHub records.
-  attest-dmg:
-    needs: release
-    if: ${{ github.repository == 'thaw-app/Floe' && !inputs.dry_run }}
-    permissions:
-      id-token: write
-      attestations: write
-      contents: read
-    uses: ./.github/workflows/attest-build-provenance.yml
-    with:
-      subject-name: ${{ needs.release.outputs.dmg-name }}
-      subject-digest: ${{ needs.release.outputs.dmg-digest }}
-
-  attest-sbom:
-    needs: release
-    if: ${{ github.repository == 'thaw-app/Floe' && !inputs.dry_run }}
-    permissions:
-      id-token: write
-      attestations: write
-      contents: read
-    uses: ./.github/workflows/attest-build-provenance.yml
-    with:
-      subject-name: ${{ needs.release.outputs.sbom-name }}
-      subject-digest: ${{ needs.release.outputs.sbom-digest }}
-
   attach-provenance:
-    needs: [release, attest-dmg, attest-sbom]
+    needs: [meta, build, release]
     if: ${{ github.repository == 'thaw-app/Floe' && !inputs.dry_run }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download DMG provenance
+      - name: Download provenance
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: ${{ needs.attest-dmg.outputs.artifact-name }}
+          name: ${{ needs.build.outputs.provenance-artifact-name }}
           path: provenance
 
-      - name: Download SBOM provenance
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: ${{ needs.attest-sbom.outputs.artifact-name }}
-          path: provenance
 
       # No checkout here, so gh cannot infer the repository from a git remote.
       - name: Upload provenance to GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.release.outputs.tag }}
-          DMG_BUNDLE: ${{ needs.attest-dmg.outputs.bundle-name }}
-          SBOM_BUNDLE: ${{ needs.attest-sbom.outputs.bundle-name }}
+          TAG: ${{ needs.meta.outputs.tag }}
+          DMG_BUNDLE: ${{ needs.build.outputs.dmg-bundle-name }}
+          SBOM_BUNDLE: ${{ needs.build.outputs.sbom-bundle-name }}
         run: |
           set -euo pipefail
           dmg_bundle="provenance/${DMG_BUNDLE}"
@@ -759,7 +692,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.release.outputs.tag }}
+          TAG: ${{ needs.meta.outputs.tag }}
         run: |
           set -euo pipefail
           gh release edit "$TAG" --draft=false
@@ -768,14 +701,14 @@ jobs:
       # Last, so the appcast never names a ZIP that is not public yet. Uses this
       # job's own token: gh-pages is in this repository.
       - name: Download appcast
-        if: ${{ inputs.publish_release && inputs.publish_appcast && needs.release.outputs.updates == 'true' }}
+        if: ${{ inputs.publish_release && inputs.publish_appcast && needs.meta.outputs.updates == 'true' }}
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: appcast-${{ needs.release.outputs.tag }}
+          name: appcast-${{ needs.meta.outputs.tag }}
           path: appcast
 
       - name: Publish appcast to gh-pages
-        if: ${{ inputs.publish_release && inputs.publish_appcast && needs.release.outputs.updates == 'true' }}
+        if: ${{ inputs.publish_release && inputs.publish_appcast && needs.meta.outputs.updates == 'true' }}
         uses: thaw-app/org-ci/actions/publish-file-to-branch@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
         with:
           repository: ${{ github.repository }}
@@ -783,7 +716,7 @@ jobs:
           source-path: appcast/appcast.xml
           destination-path: appcast.xml
           token: ${{ github.token }}
-          commit-message: "chore(sparkle): publish appcast for ${{ needs.release.outputs.tag }} (${{ needs.release.outputs.channel }})"
+          commit-message: "chore(sparkle): publish appcast for ${{ needs.meta.outputs.tag }} (${{ needs.meta.outputs.channel }})"
           create-branch-if-missing: "true"
           gitignore-allowlist: |
             *
