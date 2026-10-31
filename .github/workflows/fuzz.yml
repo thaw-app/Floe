@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: "300"
+  pull_request:
+    paths:
+      - "Fuzzing/**"
+      - "Sources/Floe/App/IncomingLink.swift"
+      - ".github/workflows/fuzz.yml"
   push:
     branches:
       - development

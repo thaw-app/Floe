@@ -127,7 +127,7 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     extensions with a `src/` folder are watched, never the ones Raycast installed.
 - `CREDITS.md` and `Sources/Floe/App/Credits.swift` are written by `scripts/generate-credits.py`; run it after changing a dependency.
 - `Vendor/ThawUI`: design system copied from thaw-app/Thaw (commit in `Vendor/ThawUI/UPSTREAM`).
-- `Fuzzing`: the fuzzing harness and its corpus, a package of its own. `.github/workflows/fuzz.yml` runs it nightly.
+- `Fuzzing`: the fuzzing harness and its corpus, a package of its own. `.github/workflows/fuzz.yml` runs it nightly and on any change to it.
 
 The security reasoning is in the [assurance case](ASSURANCE_CASE.md), and what Floe exposes to or asks of the outside is in [External interfaces](INTERFACES.md).
 

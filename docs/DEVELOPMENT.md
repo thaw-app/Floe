@@ -131,7 +131,7 @@ from coverage in `sonar-project.properties`, which also states the rule. New dec
 measured file with a suite beside it.
 
 `Fuzzing` holds a libFuzzer harness for `IncomingLink`, the code that reads links from other apps. It needs Linux, so
-`.github/workflows/fuzz.yml` runs it nightly, and a failed run keeps the input that caused it. On a Mac, replay its corpus:
+`.github/workflows/fuzz.yml` runs it nightly and on any change to it, and a failed run keeps the input that caused it. On a Mac, replay its corpus:
 
     swift build --package-path Fuzzing -c release -Xswiftc -DFUZZ_REPLAY
     ./Fuzzing/.build/release/FuzzIncomingLink Fuzzing/Corpus/IncomingLink

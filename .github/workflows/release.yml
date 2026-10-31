@@ -111,6 +111,12 @@ jobs:
         run: |
           set -euo pipefail
 
+          # A branch's copy of this file could drop the checks below, and its signature names that branch.
+          if [[ "$GITHUB_REF" != "refs/tags/$TAG_NAME" ]]; then
+            echo "::error::Run this workflow on the tag $TAG_NAME, not on $GITHUB_REF."
+            exit 1
+          fi
+
           if [[ ! "$TAG_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._]+)?$ ]]; then
             echo "Invalid tag name format. Must be in the form 1.2.3 or 1.2.3-rc.1"
             exit 1
@@ -392,6 +398,7 @@ jobs:
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: "1.4.3"
+          no-cache: true
 
       - name: Install runtime dependencies
         working-directory: runtime

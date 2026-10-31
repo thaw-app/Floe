@@ -6,7 +6,8 @@
 //  Licensed under the GNU GPLv3
 //
 //  Adapted from Thaw's Fuzzing/Sources/FuzzSettingsURI/FuzzSettingsURI.swift. Floe's changes: the properties
-//  check IncomingLink instead of SettingsURIParser; the entry point and the replay are Thaw's.
+//  check IncomingLink instead of SettingsURIParser, and the replay fails on a corpus it can't read or that is empty.
+//  The entry point is Thaw's.
 //
 //  libFuzzer harness for IncomingLink, which reads the links any app can send Floe.
 //  A failed property counts as a finding, like a crash.
@@ -32,6 +33,7 @@ public func LLVMFuzzerTestOneInput(_ start: UnsafeRawPointer, _ count: Int) -> C
 
     checkRoute(link, url: url, text: text)
     checkRoute(parked, url: url, text: text)
+    checkReturn(link, url: url, text: text)
     checkParking(link, parked: parked, text: text)
     checkState(url, text: text)
     return 0
@@ -54,6 +56,13 @@ private func checkRoute(_ link: IncomingLink, url: URL, text: String) {
     }
     if scheme != "floe", !IncomingLink.redirectSchemes.contains(scheme ?? "") {
         precondition(link == .ignored, "A scheme Floe doesn't own was acted on: \(text)")
+    }
+}
+
+/// With sign-in on, every sign-in's return reaches it.
+private func checkReturn(_ link: IncomingLink, url: URL, text: String) {
+    if IncomingLink.isOAuthCallback(url) {
+        precondition(link == .oauth, "A sign-in's return went elsewhere: \(text)")
     }
 }
 
@@ -84,10 +93,13 @@ private func checkState(_ url: URL, text: String) {
             var replayed = 0
             for directory in arguments.dropFirst() {
                 let url = URL(fileURLWithPath: directory)
-                let files = (try? FileManager.default.contentsOfDirectory(
-                    at: url,
-                    includingPropertiesForKeys: nil
-                )) ?? []
+                let files: [URL]
+                do {
+                    files = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+                } catch {
+                    FileHandle.standardError.write(Data("can't read \(directory): \(error)\n".utf8))
+                    exit(1)
+                }
 
                 for file in files {
                     guard let data = try? Data(contentsOf: file) else { continue }
@@ -99,6 +111,10 @@ private func checkState(_ url: URL, text: String) {
                 }
             }
 
+            guard replayed > 0 else {
+                FileHandle.standardError.write(Data("no corpus inputs to replay\n".utf8))
+                exit(1)
+            }
             print("replayed \(replayed) corpus inputs; all properties held")
         }
     }

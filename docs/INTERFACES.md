@@ -68,7 +68,7 @@ Settings shows a record of what each extension reached.
 | `localhost:11434`, `localhost:1234` | Ollama and LM Studio on this Mac |
 | `raycast.com` | The page a browser sign-in returns through |
 | iCloud | Settings sync, in a release signed with the provisioning profile, when you switch it on |
-| An image's address | Remote icons an extension names |
+| An image's address | Remote icons named by an extension |
 
 Quicklinks open in your browser. Floe's own code opens no listening socket, and App Transport Security allows plain HTTP only to local addresses.
 

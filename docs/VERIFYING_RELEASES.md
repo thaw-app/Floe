@@ -37,11 +37,16 @@ Download `Floe.dmg`, `Floe.dmg.sha256` and `Floe.dmg.sigstore.json` from the rel
 
     cosign verify-blob \
       --bundle Floe.dmg.sigstore.json \
-      --certificate-identity-regexp '^https://github\.com/thaw-app/Floe/\.github/workflows/release\.yml@refs/' \
+      --certificate-identity-regexp '^https://github\.com/thaw-app/Floe/\.github/workflows/release\.yml@refs/tags/[0-9][^/]*$' \
       --certificate-oidc-issuer https://token.actions.githubusercontent.com \
       Floe.dmg
 
-The SBOM works the same way, with `Floe_<version>.cdx.json` in place of `Floe.dmg`.
+The identity must end in a version tag, so a signature made from a branch or a pull request fails. The SBOM works the same
+way, with `Floe_<version>.cdx.json` in place of `Floe.dmg`.
+
+Releases up to 0.2.1 were signed from `development`. For those, use this identity instead:
+
+    --certificate-identity 'https://github.com/thaw-app/Floe/.github/workflows/release.yml@refs/heads/development'
 
 ## Check the build provenance
 
@@ -60,6 +65,13 @@ Releases up to 0.2.1 were attested at Build L2 by a workflow in this repository.
 
 The same attestations are attached to each release as `*.intoto.jsonl`.
 
+The provenance names the commit the file was built from. To print it (this also needs [jq](https://jqlang.org)):
+
+    gh attestation verify Floe.dmg --repo thaw-app/Floe --format json \
+      | jq -r '.[].verificationResult.statement.predicate.buildDefinition.resolvedDependencies[]?.digest.gitCommit'
+
+It must be the commit the tag points at, which the next section prints.
+
 ## Check a Git tag
 
 Tags after 0.2.1 are signed with the maintainer's GPG key, whose fingerprint is
@@ -71,7 +83,7 @@ Tags after 0.2.1 are signed with the maintainer's GPG key, whose fingerprint is
     git verify-tag <tag>
     git rev-parse '<tag>^{}'
 
-The last command prints the tagged commit, which should match the commit on the GitHub Release page.
+The last command prints the tagged commit, which should match the provenance and the commit on the GitHub Release page.
 
 ## Sparkle updates
 

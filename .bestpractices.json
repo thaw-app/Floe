@@ -126,7 +126,7 @@
   "static_analysis_often_status": "Met",
   "static_analysis_often_justification": "SwiftLint and SonarCloud run on pull requests that change code, except that SonarCloud skips forks and Dependabot. CodeQL also runs weekly. https://github.com/thaw-app/Floe/blob/development/.github/workflows/ci.yml",
   "dynamic_analysis_status": "Met",
-  "dynamic_analysis_justification": "libFuzzer with AddressSanitizer runs nightly in CI on the code that reads links from other apps, so it runs before each release: https://github.com/thaw-app/Floe/blob/development/.github/workflows/fuzz.yml",
+  "dynamic_analysis_justification": "libFuzzer with AddressSanitizer runs in CI nightly and on any change to the code that reads links from other apps. A release does not wait for a run. https://github.com/thaw-app/Floe/blob/development/.github/workflows/fuzz.yml",
   "dynamic_analysis_unsafe_status": "N/A",
   "dynamic_analysis_unsafe_justification": "Floe is written in Swift, Rust and TypeScript, which are memory-safe, with no C, C++ or Objective-C source of its own. A small amount of Swift and Rust uses unsafe code at system boundaries.",
   "dynamic_analysis_enable_assertions_status": "Met",
