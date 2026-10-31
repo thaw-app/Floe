@@ -1,8 +1,8 @@
 // swift-tools-version: 6.4
 import PackageDescription
 
-// The Swift 6 language mode with the main actor as the default isolation, and the two features that
-// SWIFT_APPROACHABLE_CONCURRENCY adds to it in project.yml. Keep the two files in step.
+/// The Swift 6 language mode with the main actor as the default isolation, and the two features that
+/// SWIFT_APPROACHABLE_CONCURRENCY adds to it in project.yml. Keep the two files in step.
 let concurrency: [SwiftSetting] = [
     .swiftLanguageMode(.v6),
     .defaultIsolation(MainActor.self),
@@ -49,11 +49,12 @@ let package = Package(
             name: "FloeTests",
             dependencies: [
                 "Floe",
+                "ThawUI",
                 .product(name: "FloeRust", package: "FloeRust"),
             ],
             swiftSettings: concurrency,
             linkerSettings: [
-                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@loader_path/../../.."])
+                .unsafeFlags(["-Xlinker", "-rpath", "-Xlinker", "@loader_path/../../.."]),
             ]
         ),
     ]

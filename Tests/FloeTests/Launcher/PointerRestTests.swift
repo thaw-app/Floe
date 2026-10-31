@@ -9,6 +9,7 @@ import AppKit
 @testable import Floe
 import SwiftUI
 import Testing
+import ThawUI
 
 struct PointerRestTests {
     @Test func aPointerThatNeverRestedMarksRows() {

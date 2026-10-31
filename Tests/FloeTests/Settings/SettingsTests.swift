@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import ThawUI
 
 /// Defaults of a test's own, kept in memory.
 final nonisolated class ScratchDefaults {
