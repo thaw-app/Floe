@@ -21,6 +21,17 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### Changed
+- **Search results in Settings no longer have a page title over them**, and About no longer has one either. Each group of results is headed the way the sidebar heads its groups.
+- **About sits in the middle of its page**, and its menu leaves out a link a build doesn't have.
+- **A keyboard shortcut macOS already uses keeps the recording going**, so you can type another one straight away.
+
+### Fixed
+- **A link in the release notes opens only if it is https**, and a page that isn't the changelog, such as a Wi-Fi sign-in page, no longer replaces the saved notes.
+- **A saved keyboard shortcut with an impossible key is dropped** when settings load, rather than risking a crash when it is registered.
+
 ## [0.2.1] - 2026-10-29
 
 **macOS 26 and later · Build 4**
