@@ -76,7 +76,7 @@ struct RecentDocumentsScope: SearchScope {
         guard let app = RecentDocuments.app(named: text, in: context.apps) else { return nil }
         return .once { [recentlyUsed, opener] in
             RecentDocuments.documents(of: app.url, among: recentlyUsed(), opener: opener).map { used in
-                .file(FileResult(url: used.url, name: used.url.lastPathComponent, displayPath: (used.url.path as NSString).abbreviatingWithTildeInPath, contentType: nil, lastUsed: used.date))
+                .file(FileResult(url: used.url, name: used.url.lastPathComponent, displayPath: FileResult.displayPath(of: used.url.path, home: NSHomeDirectory()), contentType: nil, lastUsed: used.date))
             }
         }
     }

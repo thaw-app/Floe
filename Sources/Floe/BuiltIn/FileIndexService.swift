@@ -5,7 +5,6 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-import Combine
 import CoreServices
 import FloeRust
 import Foundation
@@ -42,10 +41,17 @@ final nonisolated class FileIndexService: Sendable {
         var lastUsed: @Sendable (String) -> Date? = RecentFileUse.date(for:)
     }
 
-    static let shared = FileIndexService(environment: Environment(saved: savedFile))
+    static let shared = FileIndexService(
+        environment: Environment(saved: savedFile),
+        alongside: FileIndexService(environment: Environment(root: { DirectoryWatcher.real(iCloudDrive) }, saved: iCloudSavedFile))
+    )
+
+    /// Library is left out of the walk of the home folder, so iCloud Drive inside it has an index of its own.
+    private static let iCloudDrive = NSHomeDirectory() + "/Library/Mobile Documents/com~apple~CloudDocs"
 
     /// A cache: macOS may clear it, and the next launch then walks the folder again.
     static let savedFile = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("Floe/FileNames.index")
+    private static let iCloudSavedFile = savedFile?.deletingLastPathComponent().appendingPathComponent("iCloudDriveNames.index")
 
     /// How deep the first, quick walk goes: Desktop, Documents and Downloads, and two levels inside them.
     static let firstLevels = 3
@@ -78,14 +84,18 @@ final nonisolated class FileIndexService: Sendable {
     }
 
     private let environment: Environment
+    /// The index of another folder. It is switched and searched with this one, and counted in its state.
+    private let alongside: FileIndexService?
     private let running = Mutex<Running?>(nil)
     private let observer = Mutex<(@MainActor @Sendable (State) -> Void)?>(nil)
     private let published = Mutex<State?>(nil)
     /// The walk and every rescan, one after another and below whatever the user is doing.
     private let work = DispatchQueue(label: "floe.file-index", qos: .utility)
 
-    init(environment: Environment = Environment()) {
+    init(environment: Environment = Environment(), alongside: FileIndexService? = nil) {
         self.environment = environment
+        self.alongside = alongside
+        alongside?.observe { [weak self] _ in self?.publish() }
     }
 
     deinit {
@@ -99,10 +109,11 @@ final nonisolated class FileIndexService: Sendable {
 
     /// What Settings shows. Counting the bytes walks the whole index, so the search asks `isOn` instead.
     var state: State {
-        running.withLock { running in
+        let own = running.withLock { running -> State in
             guard let running else { return .off }
             return running.isReady ? .ready(names: running.index.count, bytes: running.index.byteSize) : .building
         }
+        return alongside.map { own.joined(with: $0.state) } ?? own
     }
 
     /// Told each new state on the main thread, starting with the current one.
@@ -114,6 +125,7 @@ final nonisolated class FileIndexService: Sendable {
 
     /// On starts the walk and the watching; off frees the index and stops the events.
     func set(on isOn: Bool) {
+        alongside?.set(on: isOn)
         if isOn {
             start()
         } else {
@@ -225,6 +237,7 @@ final nonisolated class FileIndexService: Sendable {
     /// Saves the changes still waiting, before Floe quits. A walk still under way is not waited out: the next launch
     /// replays what the saved index lacks.
     func flush() {
+        alongside?.flush()
         let done = DispatchSemaphore(value: 0)
         work.async { [self] in
             if let index = running.withLock({ $0?.hasUnsavedChanges == true ? $0?.index : nil }) {
@@ -285,6 +298,7 @@ final nonisolated class FileIndexService: Sendable {
 
     /// Returns once the walk and every change handed over so far are in the index.
     func settled() async {
+        await alongside?.settled()
         await withCheckedContinuation { continuation in
             work.async { continuation.resume() }
         }
@@ -292,13 +306,20 @@ final nonisolated class FileIndexService: Sendable {
 
     /// The files whose names match, best first; nil while there is no finished index to ask.
     func files(matching query: String, limit: Int = 50) -> [FileResult]? {
-        guard let index = running.withLock({ $0?.isReady == true ? $0?.index : nil }) else { return nil }
-        let home = NSHomeDirectory()
         // Asked for more than is shown, since the apps among the hits are dropped.
-        let ranked = Self.ranked(index.search(query, limit: limit * 2), lastUsed: environment.lastUsed)
+        guard let hits = hits(matching: query, limit: limit * 2) else { return nil }
+        let home = NSHomeDirectory()
+        let ranked = Self.ranked(hits + (alongside?.hits(matching: query, limit: limit * 2) ?? []), lastUsed: environment.lastUsed)
         return Array(ranked.lazy.compactMap { Self.result(for: $0.hit, home: home, lastUsed: $0.lastUsed) }.prefix(limit))
     }
 
+    /// What this index alone finds; nil until it is ready.
+    private func hits(matching query: String, limit: Int) -> [FileIndex.Hit]? {
+        running.withLock { $0?.isReady == true ? $0?.index : nil }?.search(query, limit: limit)
+    }
+}
+
+nonisolated extension FileIndexService {
     /// The hits in the order shown. One opened today gains a quarter of its score, and the gain fades to nothing over thirty days.
     static func ranked(_ hits: [FileIndex.Hit], lastUsed: (String) -> Date?, now: Date = Date()) -> [(hit: FileIndex.Hit, lastUsed: Date?)] {
         let scored = hits.enumerated().map { place, hit in
@@ -311,18 +332,18 @@ final nonisolated class FileIndexService: Sendable {
         return scored.sorted { ($0.score, $1.place) > ($1.score, $0.place) }.map { ($0.hit, $0.lastUsed) }
     }
 
-    /// A hit as the row the file search shows, or nil for what that search leaves out: apps and anything in a Library.
+    /// A hit as the row the file search shows, or nil for what that search leaves out: apps and anything in a Library other than iCloud Drive.
     static func result(for hit: FileIndex.Hit, home: String, lastUsed: Date? = nil) -> FileResult? {
         let url = URL(fileURLWithPath: hit.path, isDirectory: hit.isFolder)
         let name = url.lastPathComponent
         // Apps already have their own scope.
-        guard !hit.path.contains("/Library/"), !name.hasSuffix(".app") else { return nil }
+        guard !FileResult.isInLibrary(hit.path, home: home), !name.hasSuffix(".app") else { return nil }
         let folder = url.deletingLastPathComponent().path
         let type = url.pathExtension.isEmpty ? nil : UTType(filenameExtension: url.pathExtension)
         return FileResult(
             url: url,
             name: name,
-            displayPath: folder.hasPrefix(home) ? "~" + folder.dropFirst(home.count) : folder,
+            displayPath: FileResult.displayPath(of: folder, home: home),
             contentType: type?.identifier ?? (hit.isFolder ? UTType.folder.identifier : nil),
             lastUsed: lastUsed,
             matched: hit.matched
@@ -331,6 +352,16 @@ final nonisolated class FileIndexService: Sendable {
 }
 
 nonisolated extension FileIndexService.State {
+    /// Two indexes as one: building until both are ready, with their names and bytes added up.
+    func joined(with other: Self) -> Self {
+        switch (self, other) {
+        case let (.ready(names, bytes), .ready(otherNames, otherBytes)): .ready(names: names + otherNames, bytes: bytes + otherBytes)
+        case (.off, _): other
+        case (_, .off): self
+        default: .building
+        }
+    }
+
     /// What the Privacy page shows under the switch; nil when there is nothing to say.
     var line: String? {
         switch self {
@@ -365,11 +396,4 @@ nonisolated extension FileIndexService.State {
         default: return nil
         }
     }
-}
-
-/// In the settings process, which holds no index: what the launcher last said about its own.
-final class FileIndexStatus: ObservableObject {
-    static let shared = FileIndexStatus()
-
-    @Published var state: FileIndexService.State?
 }

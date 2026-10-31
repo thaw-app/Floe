@@ -58,7 +58,7 @@ nonisolated enum TypedPath {
         return FileResult(
             url: url,
             name: url.lastPathComponent,
-            displayPath: folder.hasPrefix(home) ? "~" + folder.dropFirst(home.count) : folder,
+            displayPath: FileResult.displayPath(of: folder, home: home),
             contentType: nil,
             lastUsed: nil
         )
