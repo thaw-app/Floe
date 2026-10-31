@@ -2249,7 +2249,7 @@
 			repositoryURL = "https://github.com/thaw-app/ThawUI";
 			requirement = {
 				kind = exactVersion;
-				version = 1.0.0;
+				version = 1.1.0;
 			};
 		};
 		429B82AE91E275656C5172B1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {

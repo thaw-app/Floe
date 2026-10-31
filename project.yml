@@ -11,7 +11,7 @@ packages:
   # Keep in step with Package.swift.
   ThawUI:
     url: https://github.com/thaw-app/ThawUI
-    exactVersion: 1.0.0
+    exactVersion: 1.1.0
   # Keep in step with Package.swift and with sparkle-version in .github/workflows/release.yml.
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
