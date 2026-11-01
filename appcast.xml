@@ -4,39 +4,54 @@
         <title>Floe</title>
         <language>en</language>
         <item>
+            <title>0.3.0</title>
+            <pubDate>Sun, 01 Nov 2026 01:21:36 +0000</pubDate>
+            <link>https://github.com/thaw-app/Floe/releases/tag/0.3.0</link>
+            <sparkle:version>5</sparkle:version>
+            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<p><strong>macOS 26 and later · Build 5</strong></p>
+<div class="markdown-alert markdown-alert-note"><p class="markdown-alert-title"><svg data-component="Octicon" class="octicon octicon-info mr-2" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Zm8-6.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM6.5 7.75A.75.75 0 0 1 7.25 7h1a.75.75 0 0 1 .75.75v2.75h.25a.75.75 0 0 1 0 1.5h-2a.75.75 0 0 1 0-1.5h.25v-2h-.25a.75.75 0 0 1-.75-.75ZM8 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"></path></svg>Note</p><p><strong>Contributing is easier now</strong></p>
+<p><a href="https://github.com/thaw-app/Floe/blob/development/AGENTS.md">AGENTS.md</a> tells AI coding agents, and the people using them, how to contribute to Floe. <a href="https://github.com/thaw-app/Floe/blob/development/docs/CODING_STANDARDS.md">CODING_STANDARDS.md</a> says how code and text are written here. Read both before you open a pull request, whether you write the change yourself or with an agent.</p>
+<p>If an AI helps with your change, see the <a href="https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md#ai-assisted-contributions">AI-assisted contributions</a> section of our contribution guidelines first: you stay responsible for the change and must be able to explain it, and the tool's terms have to let you contribute its output.</p>
+</div>
+<p>Floe's Settings now share their controls and pages with Thaw through <a href="https://github.com/thaw-app/ThawUI">ThawUI</a>, so the two apps look and behave more alike.</p>
+<h3>New</h3>
+<ul>
+<li><strong>File search finds what's in iCloud Drive</strong>, and shows it under that name. With Fast file search on, macOS may ask once for access to iCloud Drive (<a href="https://github.com/thaw-app/Floe/issues/59" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/59/hovercard">#59</a>).</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>A slider sets the search field's corners</strong>, from square to fully round, in place of the three shapes. The shape you had stays as it was, and an older Floe syncing from another Mac keeps working.</li>
+<li><strong>More text follows your Mac's text size</strong>, in the calculator, files, clipboard, Ask AI, Markdown and extension views. Some corners in these views and the note editor's toolbar icons change by a point or two to match the rest of the app.</li>
+<li><strong>The toolbar names each Settings page</strong>, in place of the large title at the top, as in Thaw. Each group of search results has a heading like the sidebar's.</li>
+<li><strong>About sits in the middle of its page</strong>, and its menu leaves out any link a build doesn't have.</li>
+<li><strong>A keyboard shortcut macOS already uses keeps the recording going</strong>, so you can type another one straight away.</li>
+<li><strong>The sidebar scrolls to the current page when Settings opens</strong>, and with Differentiate Without Color on, the selected row gets a ring.</li>
+<li><strong>Numbered steps in the release notes keep their numbers.</strong></li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li><strong>What's New shows the latest releases.</strong> It was reading an older copy of the changelog that stopped at 0.1.0.</li>
+<li><strong>A link in the release notes opens only if it is https</strong>, and a page that isn't the changelog, such as a Wi-Fi sign-in page, no longer replaces the saved notes.</li>
+<li><strong>A saved keyboard shortcut with an impossible key is dropped</strong> when settings load, so registering it can't cause a crash.</li>
+</ul>
+<h3>Contributors</h3>
+<ul>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/matthrz/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/matthrz">@matthrz</a> asked to search iCloud Drive (<a href="https://github.com/thaw-app/Floe/issues/59" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/59/hovercard">#59</a>).</li>
+</ul>]]></description>
+            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.3.0/Floe_0.3.0.zip" length="80616398" type="application/octet-stream" sparkle:edSignature="aD98aJW6WYQ2V1tG8Kj26t0x1J/Efg92ZltOL0KAsBnMAu3+Mwg23Jirnrx+yrzL6kvvMWH1EZJOIsMMH92oBA=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.3.0/Floe5-4.delta" sparkle:deltaFrom="4" length="3190930" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="9FpuaF2qE5nnCN9l5S16NxRU+/j9fy9anmiqECYjMZ5jEZsDbDVP6/xM8oSanXeto0RKblDr3p2ehR+dwwyzCQ=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
             <title>0.2.1</title>
             <pubDate>Fri, 30 Oct 2026 05:12:26 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.2.1</link>
             <sparkle:version>4</sparkle:version>
             <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p><strong>macOS 26 and later · Build 4</strong></p>
-<h3>Changed</h3>
-<ul>
-<li><strong>Each AI service keeps its own API key.</strong> When you switch service, the key field is empty until you enter that service's key, and switching back brings the earlier one back. The key you already saved stays with the service you use now.</li>
-<li><strong>Updates come as a full download</strong>, with no smaller update built from an earlier version.</li>
-<li><strong>A calculation over 1,024 characters, or a shift by anything but a plain number up to 65,536, says it took too long</strong> instead of holding up the calculator.</li>
-<li><strong>Your file index is built once more</strong> after this update.</li>
-</ul>
-<h3>Fixed</h3>
-<h4>Security</h4>
-<p>These come from <a href="https://www.coderabbit.ai" rel="nofollow">CodeRabbit</a>'s security scan of 0.2.0 (<a href="https://github.com/thaw-app/Floe/pull/53" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/53/hovercard">#53</a>).</p>
-<ul>
-<li><strong>An extension can't take another's sign-in by using its name.</strong> Only one extension of a name runs, and its sign-in tokens are given only to the folder that saved them.</li>
-<li><strong>Your API key goes only to the AI service it was saved for</strong>, never to one you switch to or import.</li>
-<li><strong>An AI service can't send your question elsewhere with a redirect.</strong></li>
-<li><strong>Codex answers with its image reading, web search and other tools turned off</strong>, and never asks to run a command.</li>
-<li><strong>Importing settings keeps what you allowed on this Mac</strong>, such as the sign-ins you lend to extensions, whether iCloud sync is on and whether shell commands run.</li>
-<li><strong>Names completed or opened in Terminal stay text</strong>, inside quotes too and with accented letters.</li>
-<li><strong>Text you type into a quicklink can't add fields to it</strong>, such as more recipients for an email.</li>
-<li><strong>A file whose name has a line break is saved in a checkpoint as one file.</strong></li>
-<li><strong>Put Back and daily notes don't follow a folder that has been swapped for a link</strong>, and Put Back never writes over a file.</li>
-<li><strong>Clipboard history leaves out what you copied while recording was off</strong>, and restoring an entry reads only Floe's own files.</li>
-<li><strong>Undo does only what its receipt says</strong>, so an edited receipt can't delete a reminder.</li>
-<li><strong>The file index doesn't follow links out of the folders it covers</strong>, and saving it can't write over another file.</li>
-<li><strong>Long lines in notes, very tall or wide pictures, long searches and long calculations can't stall Floe.</strong></li>
-<li><strong>Log lines can't be faked</strong> by text an AI service sends back.</li>
-</ul>]]></description>
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.1/Floe_0.2.1.zip" length="80042072" type="application/octet-stream" sparkle:edSignature="SA/q4oSyIWIr2gd8PO+bzeGwO9dV9HT9rLNnmSQ0LmIbjHDkAgm6fP5y0/r66TF4SDo/fMD66cTY7QegM5chAQ=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.1/Floe4-3.delta" sparkle:deltaFrom="3" length="1905290" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="aphIs+TqFbA7EeOb2u3f++t+Z73fot8OYSMdZ7XLA4rp7CgEM+bEQeD9f+5tkzIjM1RuXQvH6sVhiZr3+i6cBg=="/>
@@ -53,18 +68,6 @@
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe3-2.delta" sparkle:deltaFrom="2" length="23580314" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="HE6W4PixYoQNGvd+valpjLY/vHvxRD62VY7j/2E9DEkqmqAQ3rLJ+FQ89lq/OvyNlWjhLxgwiZgDkan6ZGFyAQ=="/>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe3-1.delta" sparkle:deltaFrom="1" length="24094346" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="KGHuW3CS9VMouKclKerE3O46yryItimrMVetJUdCdsyzhbNOggx3ethEbrzdZp8hTR9RyhlPTnizEu0vD90gDw=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.1.1</title>
-            <pubDate>Tue, 27 Oct 2026 10:10:41 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.1.1</link>
-            <sparkle:version>2</sparkle:version>
-            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.1/Floe_0.1.1.zip" length="46743445" type="application/octet-stream" sparkle:edSignature="8pb2eCDOtum8MgcdTWH0P2leHSougl14yzKP2TtaMxKbSb2dc2dPaEuAkQRHbtPVXg41RYn8HDbms5BNVzlmAw=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.1.1/Floe2-1.delta" sparkle:deltaFrom="1" length="1961698" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="oWiHxBUKU3RYomYuaA/zCh6XKKFbW7Yvb1X/0Ihtby3gAtlY9CzjEyvVlgKqV/v7kBKhl3V41RTZS1oXYtTKBw=="/>
             </sparkle:deltas>
         </item>
     </channel>
