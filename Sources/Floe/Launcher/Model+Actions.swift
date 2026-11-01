@@ -44,7 +44,7 @@ extension LauncherModel {
     }
 
     /// Opens a scope's row the way its own view does: the file, the pasted entry, the clicked item.
-    func openScopeResult(_ item: RootItem) {
+    func openScopeResult(_ item: RootItem, flags: NSEvent.ModifierFlags = []) {
         switch item {
         case let .file(file): fileSearch.open(file)
         case let .clipboardEntry(entry): clipboardHistory.paste(entry)
@@ -53,7 +53,8 @@ extension LauncherModel {
         case let .browserTab(.tab(tab)): switchToBrowserTab(tab)
         case let .browserTab(.access(browser)): SystemCommand.askForAutomation(toControl: browser.name)
         case let .webAddress(address): open(address)
-        default: _ = openByOwner(item)
+        // The keys held reach the row's owner, as they do from activate: a command opens in a terminal with Command.
+        default: _ = openByOwner(item, flags: flags)
         }
     }
 

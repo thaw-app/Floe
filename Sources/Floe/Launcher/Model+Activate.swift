@@ -18,7 +18,7 @@ extension LauncherModel {
         }
         if item.isScopeResult {
             // Found just now and gone next time: opening one records no frecency entry.
-            (scopeResultOpener ?? openScopeResult)(item)
+            (scopeResultOpener ?? { self.openScopeResult($0, flags: flags) })(item)
             return
         }
         if case let .askAI(question) = item {
