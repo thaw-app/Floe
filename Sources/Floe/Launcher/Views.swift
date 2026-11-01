@@ -181,11 +181,10 @@ struct RootView: View {
             Spacer(minLength: 0)
 
             if let selected = results.indices.contains(model.selection) ? results[model.selection].item : nil {
-                if !selected.isScopeResult {
+                // Where the menu offers Favorites, with the keys its row has.
+                if LauncherModel.keepsItsPlace(selected), let keys = model.rowKeys(for: selected).key(for: .toggleFavorite) {
                     ShortcutHintButton(title: String(localized: "Favorite", bundle: .floe, comment: "A verb on a button: add the selected result to the favorites.")) { model.toggleFavorite(selected) } hint: {
-                        KeyCapView(text: "⌘")
-                        KeyCapView(text: "⇧")
-                        KeyCapView(text: "F")
+                        KeyCaps(keys: keys)
                     }
                 }
                 ShellHintButtons(model: model, action: selected.shellAction)

@@ -99,9 +99,9 @@ samples instead, including `diagnostics`, which fails on purpose to exercise the
 | Key | Where | Does |
 |---|---|---|
 | ↑↓, Page Up/Down, Home/End | lists, action menu | move |
-| ↵ / ⌘↵ | lists | first / second action |
+| ↵ / ⌘↵ | extension lists | first / second action |
 | ⌘K | lists | action menu; type to search it, → and ← in and out of submenus |
-| ⌘⇧F | root | add or remove a favorite |
+| ⌘↵, ⌘Y, ⌘⇧C, ⌘⇧F | a selected result | Show in Finder, Quick Look, Copy Path, Favorites: the keys of its Actions menu rows, by kind of result, in `ActionKeys.floe(for:)` |
 | `files `, `clipboard `, `menu ` then text | root | search only files, the clipboard history or menu bar items |
 | ↵ | menu bar search | open the item's menu (needs Accessibility) |
 | ↵ / ⌘↵ / ⌘R | Ask AI | ask what is typed, or copy the answer when the field is empty / paste the answer / ask again |

@@ -51,7 +51,8 @@ struct FileSearchModelTests {
         model.host.showActions = { menus += 1 }
         #expect(try model.handleKey(key(36), []), "Return")
         #expect(try model.handleKey(key(36, .command), .command), "Command-Return")
-        #expect(try model.handleKey(key(8, [.command, .shift]), [.command, .shift]), "Command-Shift-C")
+        #expect(try model.handleKey(key(FloeKeys.code(typing: "c"), [.command, .shift]), [.command, .shift]), "Command-Shift-C")
+        #expect(try model.handleKey(key(FloeKeys.code(typing: "y"), .command), .command), "Command-Y")
         #expect(try model.handleKey(key(125), []), "Down")
         #expect(model.selection == 0)
         #expect(dismissed == 0)
@@ -76,7 +77,7 @@ struct FileSearchModelTests {
         let model = FileSearchModel()
         var dismissed = 0
         model.host.dismiss = { dismissed += 1 }
-        model.revealSelectedFile()
+        model.run(.showInFinder)
         model.openSelectedFile()
         #expect(dismissed == 0, "there is no file to open")
     }

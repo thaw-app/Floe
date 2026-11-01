@@ -93,7 +93,7 @@ struct LauncherLayoutTests {
         #expect(LauncherPanelState.isRowKey(36, flags: []), "Return")
         #expect(LauncherPanelState.isRowKey(125, flags: []), "Down")
         #expect(LauncherPanelState.isRowKey(40, flags: .command), "Command-K")
-        #expect(LauncherPanelState.isRowKey(3, flags: [.command, .shift]), "Command-Shift-F")
+        #expect(LauncherPanelState.isRowKey(3, flags: [.command, .shift]) == false, "a row's own keys are held back where they are looked up")
         #expect(LauncherPanelState.isRowKey(40, flags: []) == false, "a typed k still reaches the search field")
         #expect(LauncherPanelState.isRowKey(3, flags: []) == false, "and so does a typed f")
         #expect(LauncherPanelState.isRowKey(53, flags: []) == false, "Escape still closes the panel")

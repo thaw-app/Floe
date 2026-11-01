@@ -57,3 +57,19 @@ struct ActionsButton: View {
         .background { ActionsAnchor(model: model, actions: actions) }
     }
 }
+
+/// Keys as caps in a hint, read from where they are kept instead of written out: ⇧ ⌘ F, or ⌘ and the Return glyph.
+struct KeyCaps: View {
+    let keys: KeyCombination
+
+    var body: some View {
+        ForEach(Array(keys.modifiers.symbolicValue), id: \.self) { symbol in
+            KeyCapView(text: String(symbol))
+        }
+        if keys.key == .returnKey {
+            KeyCapView(systemImage: "return")
+        } else {
+            KeyCapView(text: keys.key.stringValue.uppercased())
+        }
+    }
+}
