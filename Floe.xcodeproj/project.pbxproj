@@ -410,6 +410,7 @@
 		FB2DD95541D3352157D47754 /* OnboardingTourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0740127A73E231F715377D0B /* OnboardingTourView.swift */; };
 		FBFCDE368355AF0BD1FEA77D /* AppIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4731FA61633C822F2A037E4 /* AppIconView.swift */; };
 		FC76AF4AECC462F60A92B3C8 /* CheckpointRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81DB794172B27F16BF9E5AAD /* CheckpointRows.swift */; };
+		FCCF52F69D224FA49FD997F5 /* SessionApps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C57AC0E927EED62D758528 /* SessionApps.swift */; };
 		FCD5B4418CD0FDB835EB2519 /* UpdateLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AF1D982AAAE8FF36B96F53F /* UpdateLogic.swift */; };
 		FDC9DFBE52D2FAF5FC3FE248 /* FileSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E8E3E3826ED3A89F5B30E3 /* FileSearch.swift */; };
 		FE11195D111F7CC7EA39CF8E /* SettingsProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE1FD745114DE428E9E078B /* SettingsProcess.swift */; };
@@ -581,6 +582,7 @@
 		56AB9468971A521D2FC58DD1 /* LauncherLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherLayout.swift; sourceTree = "<group>"; };
 		57AF924655AAF233FC7A5A80 /* LauncherWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherWindow.swift; sourceTree = "<group>"; };
 		58C10F9ED246DB97BBD5DF88 /* FloatingNoteModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingNoteModel.swift; sourceTree = "<group>"; };
+		59C57AC0E927EED62D758528 /* SessionApps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionApps.swift; sourceTree = "<group>"; };
 		5A2019932B9B6873D549A377 /* PreferredAppsSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferredAppsSettingsSection.swift; sourceTree = "<group>"; };
 		5AED14490D55CBAE59DEB0A8 /* WindowSearchScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSearchScope.swift; sourceTree = "<group>"; };
 		5AF3BB2338E4948152EECAA1 /* Manifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Manifest.swift; sourceTree = "<group>"; };
@@ -1047,6 +1049,7 @@
 				C328265568FF1ADA014F00C2 /* ScreenTools.swift */,
 				E68175260331547C85A71EBA /* ScriptCommands.swift */,
 				2586ADD4A7E5A2899FE239C7 /* Selection.swift */,
+				59C57AC0E927EED62D758528 /* SessionApps.swift */,
 				2F43BC73615163FC9EA2009B /* ShellAliases.swift */,
 				01DE9A8F192C3A915D449B54 /* ShellCommand.swift */,
 				E32F78329C981B25442EC7DA /* ShellCommand+Running.swift */,
@@ -1952,6 +1955,7 @@
 				E1A24981E779A9465591454B /* Session+Requests.swift in Sources */,
 				CBC030F783199B84520121FB /* Session+ViewState.swift in Sources */,
 				3FEBFBEC7FD0A3FC09F83008 /* Session.swift in Sources */,
+				FCCF52F69D224FA49FD997F5 /* SessionApps.swift in Sources */,
 				C1891D04D4AEAC923DF54C31 /* Settings.swift in Sources */,
 				812D7F552D2AFB08DB00480E /* SettingsMerge.swift in Sources */,
 				E8F562A6C0BF3A1DCBFEDB33 /* SettingsMode.swift in Sources */,

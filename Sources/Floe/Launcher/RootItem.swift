@@ -169,7 +169,7 @@ enum RootItem: Identifiable {
         case let .outgoing(draft): "\(draft.kind.rawValue)-draft"
         case let .focus(request, _): request == .toggle ? "focus-toggle" : "focus-request"
         case let .keyword(hint): "keyword:\(hint.keyword)"
-        case .definition: "definition"
+        case let .definition(definition): "definition:\(definition.word)"
         case let .answer(row): row.id
         case let .menuItem(.item(entry, target)): "menu-item:\(target.pid):\(entry.pathKey)"
         case .menuItem(.access): "menu-item-access"

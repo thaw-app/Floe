@@ -245,20 +245,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     }
 
     private func quitAllApps() {
-        let me = ProcessInfo.processInfo.processIdentifier
-        let myself = Bundle.main.bundleIdentifier
-        for app in NSWorkspace.shared.runningApplications where app.activationPolicy == .regular {
-            if app.processIdentifier == me {
-                continue
-            }
-            if app.bundleIdentifier == "com.apple.finder" {
-                continue
-            }
-            if let myself, app.bundleIdentifier == myself {
-                continue
-            }
-            app.terminate()
-        }
+        SessionApps.quit()
     }
 
     private func quitFloe() {

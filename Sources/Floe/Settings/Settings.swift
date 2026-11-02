@@ -123,6 +123,8 @@ final class AppSettings: ObservableObject {
     @Published var fetchesExchangeRates = false
     /// The name of the Shortcut that sets a Focus, which Toggle Focus and `focus 1 hour` run. Empty until the user names one.
     @Published var focusShortcut = ""
+    /// What the user calls `define`, as typed.
+    @Published var definitionKeyword = WordDefinition.keyword
     /// Extensions pinned to a source other than the one above, by extension name.
     @Published var aiSourceByExtension: [String: AISource] = [:]
     /// Whether the settings in `SettingsSync.synced` are kept in step with iCloud. Off until the user says so.
@@ -204,6 +206,7 @@ final class AppSettings: ObservableObject {
         var shell: ShellSettings?
         var fetchesExchangeRates: Bool?
         var focusShortcut: String?
+        var definitionKeyword: String?
         var aiSourceByExtension: [String: AISource]?
         var syncsWithICloud: Bool?
         var syncsExtensionSettings: Bool?
@@ -336,6 +339,7 @@ final class AppSettings: ObservableObject {
         shell = stored.shell ?? ShellSettings()
         fetchesExchangeRates = stored.fetchesExchangeRates ?? false
         focusShortcut = stored.focusShortcut ?? ""
+        definitionKeyword = stored.definitionKeyword ?? WordDefinition.keyword
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
         syncsWithICloud = stored.syncsWithICloud ?? false
         syncsExtensionSettings = stored.syncsExtensionSettings ?? true
@@ -420,6 +424,7 @@ final class AppSettings: ObservableObject {
             shell: shell,
             fetchesExchangeRates: fetchesExchangeRates,
             focusShortcut: focusShortcut,
+            definitionKeyword: definitionKeyword,
             aiSourceByExtension: aiSourceByExtension,
             syncsWithICloud: syncsWithICloud,
             syncsExtensionSettings: syncsExtensionSettings

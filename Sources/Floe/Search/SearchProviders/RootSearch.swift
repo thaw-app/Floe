@@ -97,8 +97,8 @@ struct RootSearchAnswer {
     }
 
     /// Asks the late providers again, with the answers they wait on as they are now.
-    mutating func update(definition: WordDefinition?, calculation: CalculatorRow?) {
-        context.definition = definition
+    mutating func update(definitions: [WordDefinition], calculation: CalculatorRow?) {
+        context.definitions = definitions
         context.calculation = calculation
         for (index, provider) in providers.enumerated() where provider is any LateSearchProvider {
             contributions[index] = provider.contribution(for: context)

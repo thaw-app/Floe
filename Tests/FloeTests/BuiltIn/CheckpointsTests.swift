@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 @testable import Floe
+import AppKit
 import Foundation
 import Synchronization
 import Testing
@@ -186,6 +187,200 @@ struct CheckpointsTests {
         #expect(opened == [here.path, here.path], "what is there still opens")
         #expect(said.last == "1 of 2 are missing")
         #expect(shown == ["old|true"], "and the list says which")
+    }
+
+    // MARK: The open apps
+
+    private var mail: Checkpoint.Item {
+        .init(kind: .app, value: "/Applications/Mail.app", title: "Mail")
+    }
+
+    private var notes: Checkpoint.Item {
+        .init(kind: .app, value: "/Applications/Notes.app", title: "Notes")
+    }
+
+    /// A model that records what it did to apps, with those two open and no Finder or browser to ask.
+    private func appsModel(in folder: URL, did: @escaping (String) -> Void) -> LauncherModel {
+        let model = model(in: folder)
+        model.features.checkpoints.environment.finderItems = { [] }
+        model.features.checkpoints.environment.tabs = { [] }
+        model.features.checkpoints.environment.openApps = { [mail, notes] in [mail, notes] }
+        model.features.checkpoints.environment.hideApps = { did("hide \($0.map(\.title).joined(separator: "+"))") }
+        model.features.checkpoints.environment.quitApps = { did("quit \($0.map(\.title).joined(separator: "+"))") }
+        return model
+    }
+
+    @Test func returnSavesNoAppsAndTheMenuHidesOrQuitsThemOnceSaved() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        var did: [String] = []
+        let model = appsModel(in: folder) { did.append($0) }
+        let rows = model.features.checkpoints
+
+        await rows.saveCheckpoint(named: "plain", note: "just a note").value
+        #expect(rows.store.all.first?.holdsApps == false)
+        #expect(did.isEmpty)
+
+        let actions = try #require(rows.actions(for: .checkpointDraft(name: "desk", note: ""))).compactMap(\.self)
+        #expect(actions.map(\.title) == ["Save and Hide Apps", "Save and Quit Apps"])
+
+        await rows.saveCheckpoint(named: "desk", note: "", apps: .hidden).value
+        #expect(rows.store.all.first?.summary == "2 apps")
+        #expect(did == ["hide Mail+Notes"], "put away once they are saved, and only those listed")
+
+        await rows.saveCheckpoint(named: "gone", note: "", apps: .quit).value
+        #expect(did == ["hide Mail+Notes", "quit Mail+Notes"])
+    }
+
+    @Test func appsStayOpenWhenTheCheckpointCouldNotBeSaved() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        var did: [String] = []
+        let model = appsModel(in: folder) { did.append($0) }
+        let rows = model.features.checkpoints
+        let inTheWay = folder.appendingPathComponent("a file")
+        try Data().write(to: inTheWay)
+        rows.store = CheckpointStore(file: inTheWay.appendingPathComponent("Checkpoints.json"))
+        await rows.saveCheckpoint(named: "desk", note: "", apps: .quit).value
+        #expect(rows.store.all.isEmpty)
+        #expect(did.isEmpty, "nothing could bring them back")
+    }
+
+    @Test func appsCanBeListedWithoutPuttingThemAway() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        var did: [String] = []
+        let model = appsModel(in: folder) { did.append($0) }
+        let rows = model.features.checkpoints
+        await rows.saveCheckpoint(named: "desk", note: "", apps: .listed).value
+        #expect(rows.store.all.first?.holdsApps == true)
+        #expect(did.isEmpty)
+    }
+
+    @Test func aCheckpointSaysHowManyApps() {
+        let tab = Checkpoint.Item(kind: .link, value: "https://example.com", title: "Example")
+        #expect(Checkpoint(name: "n", note: "", items: [tab, mail, notes], saved: Date()).summary == "1 tab and 2 apps")
+        #expect(Checkpoint(name: "n", note: "", items: [mail], saved: Date()).summary == "1 app")
+    }
+
+    @Test func resumeBringsAppsBackWithTheLastInFrontAndSaysWhichAreGone() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let model = model(in: folder)
+        var back: [String] = []
+        model.features.checkpoints.environment.bringBack = { back.append("\($0.lastPathComponent) \($1)") }
+        var said: [String] = []
+        model.panelHost.showHUD = { said.append($0) }
+        model.features.shell.environment.showOutput = { _, _ in
+            // Listing what is gone is another test's.
+        }
+        let here = folder.appendingPathComponent("One.app")
+        let there = folder.appendingPathComponent("Two.app")
+        try FileManager.default.createDirectory(at: here, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: there, withIntermediateDirectories: true)
+        let gone = Checkpoint.Item(kind: .app, value: folder.appendingPathComponent("Gone.app").path, title: "Gone")
+        let items: [Checkpoint.Item] = [
+            .init(kind: .app, value: here.path, title: "One"),
+            .init(kind: .app, value: there.path, title: "Two"),
+            gone,
+        ]
+        model.features.checkpoints.resume(Checkpoint(name: "desk", note: "", items: items, saved: Date()))
+        #expect(back == ["One.app false", "Two.app true"])
+        #expect(said.last == "1 of 3 are missing")
+    }
+
+    @Test func resumingWithAppsOpensOnlyTheTabsThatAreNotOpenAlready() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let model = model(in: folder)
+        let rows = model.features.checkpoints
+        rows.environment.bringBack = { _, _ in
+            // No app is touched here.
+        }
+        let openTab = tab(.chrome, window: "1", "Open", "https://open.example")
+        rows.environment.tabs = { [openTab] }
+        var opened: [String] = []
+        rows.host.openLink = { opened.append($0.absoluteString) }
+        let open = Checkpoint.Item(kind: .link, value: "https://open.example", title: "Open")
+        let closed = Checkpoint.Item(kind: .link, value: "https://closed.example", title: "Closed")
+
+        let app = folder.appendingPathComponent("One.app")
+        try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
+        let withApps = Checkpoint(name: "desk", note: "", items: [open, closed, .init(kind: .app, value: app.path, title: "One")], saved: Date())
+        await rows.resume(withApps)?.value
+        #expect(opened == ["https://closed.example"])
+
+        opened = []
+        #expect(rows.resume(Checkpoint(name: "site", note: "", items: [open, closed], saved: Date())) == nil)
+        #expect(opened == ["https://open.example", "https://closed.example"], "a checkpoint without apps opens what it holds, as before")
+    }
+
+    @Test func aBrowserThatStartsIsGivenTimeToRestoreItsTabsBeforeLinksOpen() async throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let model = model(in: folder)
+        let rows = model.features.checkpoints
+        let app = folder.appendingPathComponent("Browser.app")
+        try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
+        rows.environment.isStoppedBrowser = { _ in true }
+        rows.environment.bringBack = { _, _ in
+            // No app is touched here.
+        }
+        rows.environment.pause = {
+            // No waiting in a test.
+        }
+        let restored = tab(.chrome, window: "1", "Open", "https://open.example")
+        let reads = Mutex(0)
+        rows.environment.tabs = {
+            reads.withLock { count in
+                count += 1
+                return count == 1 ? [] : [restored]
+            }
+        }
+        var opened: [String] = []
+        rows.host.openLink = { opened.append($0.absoluteString) }
+        let open = Checkpoint.Item(kind: .link, value: "https://open.example", title: "Open")
+        let closed = Checkpoint.Item(kind: .link, value: "https://closed.example", title: "Closed")
+        let checkpoint = Checkpoint(name: "desk", note: "", items: [open, closed, .init(kind: .app, value: app.path, title: "Browser")], saved: Date())
+        await rows.resume(checkpoint)?.value
+        #expect(opened == ["https://closed.example"], "the tab restored after the first read is not opened again")
+    }
+
+    @Test func tabsThatNeverSettleStopBeingWaitedFor() async {
+        let reads = Mutex(0)
+        let found = await Checkpoint.settledTabs(reads: 3, read: {
+            reads.withLock { $0 += 1 }
+            return []
+        }, pause: {
+            // No waiting in a test.
+        })
+        #expect(found.isEmpty)
+        #expect(reads.withLock { $0 } == 3)
+    }
+
+    @Test func theAppsListedLeaveOutFloeAndNamedPathsAreNotBrowsersByAccident() throws {
+        let me = try #require(Bundle.main.bundleURL.path as String?)
+        #expect(!SessionApps.items().contains { $0.value == me })
+        #expect(SessionApps.items().allSatisfy { $0.kind == .app && !$0.title.isEmpty })
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        #expect(!SessionApps.isStoppedBrowser(folder), "a folder that is no app")
+    }
+
+    @Test func anEmptyListPutsNoAppAway() {
+        let running = NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular && $0.isHidden }.count
+        SessionApps.hide([])
+        SessionApps.quit([])
+        #expect(NSWorkspace.shared.runningApplications.filter { $0.activationPolicy == .regular && $0.isHidden }.count == running)
+    }
+
+    @Test func aCheckpointSavedBeforeAppsCouldBeHeldStillReads() throws {
+        let json = #"[{"id":"7C9E6679-7425-40DE-944B-E07FC1F90AE7","name":"old","note":"","items":[{"kind":"file","value":"/tmp/a","title":"a"}],"saved":0}]"#
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("Checkpoints.json")
+        try Data(json.utf8).write(to: file)
+        #expect(CheckpointStore(file: file).all.map(\.name) == ["old"])
     }
 
     // MARK: The preferred apps

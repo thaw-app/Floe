@@ -180,7 +180,7 @@ final class LauncherModel: ObservableObject {
             sourceSearch.search(context, sources: enabled) { [weak self] in self?.showSourceRows() }
             definitionSearch.search(context) { [weak self] in self?.showLateAnswers() }
             calculatorSearch.search(context) { [weak self] in self?.showLateAnswers() }
-            context.definition = definitionSearch.definition
+            context.definitions = definitionSearch.definitions
             context.calculation = calculatorSearch.row
             // No spinner for the calculator: its answer is almost always a moment away.
             isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
