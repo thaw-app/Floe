@@ -27,7 +27,7 @@ these four.
 
 ### New
 
-- **A checkpoint can clear your desk.** Type `pause` and a name, press ⌘K, and choose Save and Hide Apps or Save and Quit Apps. Resuming brings those apps back along with the checkpoint's files and tabs, without opening a tab twice. Pressing Return saves files and tabs alone, as before. An app you quit decides for itself which windows it reopens. The idea comes from [Later](https://github.com/alyssaxuu/later) by Alyssa X.
+- **A checkpoint can clear your desk.** Type `pause` and a name, press ⌘K, and choose Save and Hide Apps or Save and Quit Apps. Resuming brings those apps back along with the checkpoint's files and tabs, without opening a tab twice. Pressing Return saves files and tabs alone, as before. An app you quit decides for itself which windows it reopens.
 
 ### Changed
 
