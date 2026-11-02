@@ -104,7 +104,7 @@ nonisolated enum OpenWindows {
         return AXUIElementPerformAction(button, kAXPressAction as CFString) == .success
     }
 
-    private static func value<T>(_ element: AXUIElement, _ attribute: String) -> T? {
+    static func value<T>(_ element: AXUIElement, _ attribute: String) -> T? {
         var value: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
         return value as? T

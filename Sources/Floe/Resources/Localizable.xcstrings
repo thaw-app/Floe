@@ -525,6 +525,9 @@
     "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it." : {
       "comment" : "Ask AI is the name of the feature that answers a question in the launcher."
     },
+    "A full screen window can't be tiled" : {
+
+    },
     "A search that starts with a program on this Mac and has a flag, a path or a pipe in it gets a Run row under the other results." : {
 
     },
@@ -2533,6 +2536,9 @@
     "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {
 
     },
+    "Maximize Window" : {
+      "comment" : "A command that makes the window in front fill the screen, without entering full screen."
+    },
     "Medium" : {
       "comment" : "A skin tone for emoji."
     },
@@ -2618,6 +2624,9 @@
 
     },
     "Move Up" : {
+
+    },
+    "Move and resize the window in front when you tile it." : {
 
     },
     "Move to Trash" : {
@@ -2856,6 +2865,9 @@
     },
     "No timer is running" : {
 
+    },
+    "No window to tile" : {
+      "comment" : "Shown when the user asks to tile a window and the app in front has none."
     },
     "None" : {
       "comment" : "Shown where a file or folder would be, when none is chosen."
@@ -4495,6 +4507,24 @@
     "This update is ready to install. Use the update window to install it now or later." : {
 
     },
+    "This window can't be moved" : {
+
+    },
+    "Tile Window Bottom" : {
+      "comment" : "A command that moves the window in front to the bottom half of the screen."
+    },
+    "Tile Window Left" : {
+      "comment" : "A command that moves the window in front to the left half of the screen."
+    },
+    "Tile Window Right" : {
+      "comment" : "A command that moves the window in front to the right half of the screen."
+    },
+    "Tile Window Top" : {
+      "comment" : "A command that moves the window in front to the top half of the screen."
+    },
+    "Tiling windows needs Accessibility access. Turn it on in System Settings." : {
+
+    },
     "Time" : {
       "comment" : "A kind of unit, named in a calculator error.\nThe kind of a result, shown beside its title. Here the time in another city."
     },
@@ -5042,6 +5072,9 @@
     "border, outline, stroke, edge, width" : {
       "comment" : "Words that find the Border setting in the settings search, separated by commas."
     },
+    "bottom half, snap bottom, window bottom, window management" : {
+      "comment" : "Words that find the Tile Window Bottom command, separated by commas."
+    },
     "browser, web browser, default browser, web, links, web address, quicklink, preferred app, default app" : {
       "comment" : "Words that find the Browser setting in the settings search, separated by commas."
     },
@@ -5261,6 +5294,9 @@
     "layout, compact, extended, size, search bar, list" : {
       "comment" : "Words that find the Launcher layout setting in the settings search, separated by commas."
     },
+    "left half, snap left, window left, window management" : {
+      "comment" : "Words that find the Tile Window Left command, separated by commas."
+    },
     "lightning, bolt, zap, fast" : {
       "comment" : "Words that find the symbol ⚡, separated by commas."
     },
@@ -5281,6 +5317,9 @@
     },
     "mail accounts, google, exchange" : {
       "comment" : "Words that find the Internet Accounts pane of System Settings, separated by commas."
+    },
+    "maximize, maximise, fullscreen, fill screen, window management" : {
+      "comment" : "Words that find the Maximize Window command, separated by commas."
     },
     "menu bar" : {
       "comment" : "Words that find the Control Center pane of System Settings, separated by commas."
@@ -5389,6 +5428,9 @@
     },
     "restart, reboot" : {
       "comment" : "Words that find the Restart command, separated by commas."
+    },
+    "right half, snap right, window right, window management" : {
+      "comment" : "Words that find the Tile Window Right command, separated by commas."
     },
     "screen lock, turn display off" : {
       "comment" : "Words that find the Lock Screen pane of System Settings, separated by commas."
@@ -5548,6 +5590,9 @@
     },
     "tint, opacity, strength, transparency" : {
       "comment" : "Words that find the Tint Opacity setting in the settings search, separated by commas."
+    },
+    "top half, snap top, window top, window management" : {
+      "comment" : "Words that find the Tile Window Top command, separated by commas."
     },
     "trademark, tm" : {
       "comment" : "Words that find the symbol ™, separated by commas."

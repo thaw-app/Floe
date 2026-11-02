@@ -279,6 +279,7 @@ final class AccessibilityPermission: Permission {
                 String(localized: "Find the items in your menu bar and read their names.", bundle: .floe),
                 String(localized: "Open an item's menu when you pick it in the search.", bundle: .floe),
                 String(localized: "Search the menus of the app in front, and switch windows.", bundle: .floe),
+                String(localized: "Move and resize the window in front when you tile it.", bundle: .floe),
             ],
             summary: String(localized: "Search the menu bar and app menus, and switch windows.", bundle: .floe, comment: "One line on a permission card in the welcome."),
             isRequired: true,
