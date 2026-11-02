@@ -105,11 +105,12 @@ struct LauncherPanelState: Equatable {
         return NSPoint(x: visibleFrame.midX - panelSize.width / 2, y: top - panelSize.height)
     }
 
-    /// Return, the arrows and their kin, Command-K and Command-Shift-F all act on the selected row.
+    /// Return, the arrows and their kin, and Command-K act on the selected row. The keys of its actions are held back
+    /// where they are looked up (ActionKeys.handle).
     static func isRowKey(_ keyCode: UInt16, flags: NSEvent.ModifierFlags) -> Bool {
         switch keyCode {
         case 36: true
-        case 3, 40: flags.contains(.command)
+        case 40: flags.contains(.command)
         default: Shortcuts.navigationDelta(keyCode) != nil
         }
     }

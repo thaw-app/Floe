@@ -108,7 +108,7 @@ extension LauncherModel {
         if event.keyCode == 126, recallOlderQuery() {
             return true
         }
-        // Tab, Space and Command-Y belong to the kind of row that is selected.
+        // The selected row's keys come first: its owner's, its actions', and Tab and Space.
         if handleRowKey(event, flags) {
             return true
         }
@@ -123,10 +123,6 @@ extension LauncherModel {
                 panelHost.hidePanel()
             } else {
                 query = ""
-            }
-        case 3 where flags == [.command, .shift]:
-            if results.indices.contains(selection) {
-                toggleFavorite(results[selection].item)
             }
         case 40 where flags == .command:
             panelHost.showActions()

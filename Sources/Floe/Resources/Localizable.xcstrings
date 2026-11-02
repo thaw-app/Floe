@@ -21,8 +21,14 @@
     "%@ (not installed)" : {
       "comment" : "The placeholder is the name of a command line tool such as claude.\nThe placeholder is the name of an app."
     },
+    "%@ Copy Path" : {
+      "comment" : "A hint under a file's preview: keys, then what they do."
+    },
     "%@ Preferences" : {
       "comment" : "The placeholder is a command's name."
+    },
+    "%@ Quick Look" : {
+      "comment" : "A hint under a file's preview: keys, then what they do."
     },
     "%@ ahead of here" : {
       "comment" : "The placeholder is a length of time, such as 9 hours."
@@ -3284,9 +3290,6 @@
     "Quick Look" : {
       "comment" : "The name of the macOS feature that previews a file."
     },
-    "Quick Look  ⌘Y" : {
-
-    },
     "Quick Look %@" : {
       "comment" : "Quick Look is the macOS preview. The placeholder is the name of a file."
     },
@@ -5565,12 +5568,6 @@
 
     },
     "↵ Open" : {
-
-    },
-    "⌘Y Quick Look" : {
-
-    },
-    "⌘⇧C Copy Path" : {
 
     }
   },

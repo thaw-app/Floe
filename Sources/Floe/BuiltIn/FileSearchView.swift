@@ -71,7 +71,7 @@ struct FileSearchView: View {
                 }
                 Divider()
                 if let file = search.selectedFile {
-                    FilePreview(file: file)
+                    FilePreview(file: file, rowKeys: search.rowKeys(for: file))
                         .frame(width: 250)
                 } else {
                     Color.clear.frame(width: 250)
@@ -89,11 +89,12 @@ struct FileSearchView: View {
             ShortcutHintButton(title: String(localized: "Open", bundle: .floe, comment: "A button that opens the selected file.")) { search.openSelectedFile() } hint: {
                 KeyCapView(systemImage: "return")
             }
-            ShortcutHintButton(title: String(localized: "Show in Finder", bundle: .floe)) { search.revealSelectedFile() } hint: {
-                KeyCapView(text: "⌘")
-                KeyCapView(systemImage: "return")
+            ShortcutHintButton(title: String(localized: "Show in Finder", bundle: .floe)) { search.run(.showInFinder) } hint: {
+                if let keys = search.rowKeys(for: search.selectedFile).key(for: .showInFinder) {
+                    KeyCaps(keys: keys)
+                }
             }
-            // Copy Path keeps its shortcut and moves into the menu, with the rest of what a file can do.
+            // The rest of what a file can do is in the menu, with its keys.
             ActionsButton(model: launcher) { $0.fileSearch.selectedFile.map($0.fileSearch.actions) ?? [] }
         }
     }
@@ -119,6 +120,7 @@ struct FileSearchRow: View {
 
 struct FilePreview: View {
     let file: FileResult
+    let rowKeys: ActionKeys
 
     private var values: URLResourceValues {
         let keys: Set<URLResourceKey> = [.localizedTypeDescriptionKey, .fileSizeKey, .isDirectoryKey, .contentModificationDateKey]
@@ -157,8 +159,12 @@ struct FilePreview: View {
             Spacer(minLength: 0)
             HStack(spacing: ThawSpacing.base) {
                 Text("↵ Open").foregroundStyle(.secondary)
-                Text("⌘Y Quick Look").foregroundStyle(.secondary)
-                Text("⌘⇧C Copy Path").foregroundStyle(.secondary)
+                if let quickLook = rowKeys.key(for: .quickLook) {
+                    Text("\(quickLook.displayValue) Quick Look", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary)
+                }
+                if let copyPath = rowKeys.key(for: .copyPath) {
+                    Text("\(copyPath.displayValue) Copy Path", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary)
+                }
             }
             .font(ThawType.sublabel)
         }
@@ -179,8 +185,8 @@ struct FileMetaRow<Content: View>: View {
     }
 }
 
-/// A file's Quick Look thumbnail, or its Finder icon while that loads. Clicking it, or ⌘Y anywhere in the
-/// preview, opens the full Quick Look panel.
+/// A file's Quick Look thumbnail, or its Finder icon while that loads. Clicking it opens the full Quick Look panel,
+/// as the Quick Look row's keys do.
 struct FileThumbnail: View {
     let url: URL
     var maxHeight: CGFloat = 180
@@ -204,8 +210,7 @@ struct FileThumbnail: View {
             .contentShape(.rect)
         }
         .buttonStyle(.plain)
-        .keyboardShortcut("y", modifiers: .command)
-        .help("Quick Look  ⌘Y")
+        .help(Text("Quick Look", comment: "The name of the macOS feature that previews a file."))
         .accessibilityLabel("Quick Look \(url.lastPathComponent)")
         .quickLookPreview($quickLook)
         .task(id: url) { await load() }

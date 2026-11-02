@@ -137,10 +137,6 @@ final class FileSearch: ObservableObject {
         opener(file.url)
     }
 
-    func reveal(_ file: FileResult) {
-        NSWorkspace.shared.activateFileViewerSelecting([file.url])
-    }
-
     private func start(_ query: String) {
         stopQuery()
         isSearching = true

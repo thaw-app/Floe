@@ -21,6 +21,8 @@ struct ItemAction {
     /// What the row is called where it must be named, the same on every Mac and in every language. Nil for a row
     /// that is only ever where Floe puts it.
     var id: ActionID?
+    /// The keys that run the row while its result is selected, drawn beside it. `ActionKeys.keyed` sets them.
+    var shortcut: KeyCombination?
     var run: () -> Void = { /* a submenu's title */ }
 }
 
@@ -99,6 +101,9 @@ enum ActionsMenu {
             }
             let item = ClosureMenuItem(title: action.title) { action.run() }
             item.image = action.icon ?? NSImage(systemSymbolName: action.symbol, accessibilityDescription: nil)
+            if let keys = action.shortcut {
+                (item.keyEquivalent, item.keyEquivalentModifierMask) = keys.menuKeyEquivalent
+            }
             if !action.children.isEmpty {
                 item.submenu = Self.menu(action.children)
             }
