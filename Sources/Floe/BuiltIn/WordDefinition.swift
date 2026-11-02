@@ -53,13 +53,12 @@ nonisolated struct WordDefinition: Hashable, Sendable {
 
     /// The words to look up: the one typed, then those that start with it, without possessives such as tide's.
     static func words(for typed: String, completions: [String]) -> [String] {
-        var seen = [typed.lowercased()]
-        let others = completions.filter { word in
-            guard !word.contains("'"), !seen.contains(word.lowercased()) else { return false }
-            seen.append(word.lowercased())
-            return true
+        var seen: Set = [typed.lowercased()]
+        var words = [typed]
+        for word in completions where words.count < listLimit && !word.contains("'") && seen.insert(word.lowercased()).inserted {
+            words.append(word)
         }
-        return [typed] + others.prefix(listLimit - 1)
+        return words
     }
 
     /// The words the Mac's spell checker knows that start with what was typed, likeliest first. It works on the main

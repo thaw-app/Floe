@@ -107,6 +107,30 @@ struct WordDefinitionTests {
         #expect(DefinitionSearchProvider().contribution(for: context).pinned.map(\.item.id) == ["definition:tidal", "definition:tide"])
     }
 
+    @Test func theWordTypedShowsBeforeTheSpellCheckerIsAskedAndNotForAnOldQuery() async {
+        var asked: [String] = []
+        var search: DefinitionSearch?
+        var seenAtCompletions: [String] = []
+        search = DefinitionSearch(lookup: { _ in "an entry" }, completions: { word in
+            asked.append(word)
+            seenAtCompletions = search?.definitions.map(\.word) ?? []
+            return []
+        })
+        await search?.search(SearchContext(query: "define tide")) {}?.value
+        #expect(seenAtCompletions == ["tide"], "the exact entry is there first")
+
+        asked = []
+        let answers = DictionaryAnswers()
+        var requests = answers.requests.stream.makeAsyncIterator()
+        search?.lookup = { await answers.entry(for: $0) }
+        let old = search?.search(SearchContext(query: "define ebb")) {}
+        #expect(await requests.next() == "ebb")
+        search?.cancel()
+        await answers.answer("ebb", with: "the sea falls")
+        await old?.value
+        #expect(asked.isEmpty, "a query given up on does not ask the spell checker")
+    }
+
     @Test func lookupLeavesTheMainThreadAndPublishesOnlyOnceForTheSameWord() async {
         let search = DefinitionSearch(lookup: { word in
             Self.checkWorker()
@@ -120,8 +144,9 @@ struct WordDefinitionTests {
         await task?.value
         #expect(search.definitions.first?.text == "the sea rises")
         #expect(search.isSearching == false)
+        #expect(changes == 2, "the entry, then the finished list")
         await search.search(context) { changes += 1 }?.value
-        #expect(changes == 1)
+        #expect(changes == 2)
     }
 
     @Test func anOldAnswerCannotReplaceTheNewWordOrRestoreACancelledSearch() async {
@@ -138,7 +163,7 @@ struct WordDefinitionTests {
         await answers.answer("tide", with: "the sea rises")
         await old?.value
         #expect(search.definitions.map(\.word) == ["ebb"])
-        #expect(changes == 1)
+        #expect(changes == 2, "the entry, then the finished list")
 
         let cancelled = search.search(SearchContext(query: "define flood")) { changes += 1 }
         #expect(await requests.next() == "flood")
@@ -147,7 +172,7 @@ struct WordDefinitionTests {
         await cancelled?.value
         #expect(search.definitions.isEmpty)
         #expect(search.isSearching == false)
-        #expect(changes == 1)
+        #expect(changes == 2)
     }
 
     @Test func theLauncherPinsTheAsyncAnswerAndRemovesItForANewQuery() async {

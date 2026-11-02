@@ -40,17 +40,20 @@ final class DefinitionSearch {
         guard let wanted else { return nil }
         word = wanted
         task = Task { [weak self, lookup, completions] in
-            var found: [WordDefinition] = []
-            // The word typed is read first: the spell checker's first answer after launch takes a moment.
             let exact = await lookup(wanted)
-            let others = WordDefinition.words(for: wanted, completions: completions(wanted)).dropFirst()
-            found += exact.map { [WordDefinition(word: wanted, entry: $0)] } ?? []
-            for other in others where !Task.isCancelled {
+            guard let self, !Task.isCancelled, word == wanted else { return }
+            var found = exact.map { [WordDefinition(word: wanted, entry: $0)] } ?? []
+            // The word typed shows first: the spell checker's first answer after launch takes a moment.
+            if !found.isEmpty {
+                definitions = found
+                onChange()
+            }
+            for other in WordDefinition.words(for: wanted, completions: completions(wanted)).dropFirst() where !Task.isCancelled {
                 if let entry = await lookup(other) {
                     found.append(WordDefinition(word: other, entry: entry))
                 }
             }
-            guard let self, !Task.isCancelled, word == wanted else { return }
+            guard !Task.isCancelled, word == wanted else { return }
             definitions = found
             task = nil
             onChange()
