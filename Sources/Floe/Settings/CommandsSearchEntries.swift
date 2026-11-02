@@ -95,6 +95,17 @@ extension SearchIndex {
             ).searchTerms
         ),
         .commands(
+            "definitionKeyword",
+            String(localized: "Dictionary keyword", bundle: .floe),
+            description: String(localized: "Type this word, then the word you want to look up.", bundle: .floe),
+            section: String(localized: "Built-in Commands", bundle: .floe),
+            keywords: String(
+                localized: "dictionary, define, definition, keyword, alias, word",
+                bundle: .floe,
+                comment: "Words that find the Dictionary keyword setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .commands(
             "thawSupport",
             String(localized: "Thaw", bundle: .floe, comment: "Thaw is the name of an app."),
             description: String(localized: "Thaw's actions are in the search: type “thaw” to see them.", bundle: .floe, comment: "The word in quotation marks is typed as it is and stays in English."),

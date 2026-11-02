@@ -35,6 +35,15 @@ struct KeywordsTests {
 
     // MARK: The table
 
+    @Test func onlyTheRowOfARenamedKeywordChanges() {
+        var context = SearchContext(query: "")
+        context.definitionKeyword = "dict"
+        let offered = KeywordHint.offered(in: context)
+        #expect(offered.contains { $0.keyword == "dict" && $0.example == "dict tide" })
+        let others = KeywordHint.all.filter { $0.keyword != WordDefinition.keyword && $0.isOffered(in: context) && $0.need != .shell }
+        #expect(offered.filter { $0.keyword != "dict" && $0.need != .shell } == others)
+    }
+
     @Test func everyKeywordTheSearchAnswersToHasARow() {
         let own = [KeywordSearchScope.word, KeywordSearchScope.mark]
         let scoped = (RootSearch.standardScopes { [] }.map(\.keyword) + RootSearch.standardSources().map(\.keyword)).filter { !own.contains($0) }

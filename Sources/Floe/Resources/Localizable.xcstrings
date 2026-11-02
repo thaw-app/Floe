@@ -33,17 +33,6 @@
     "%@ ahead of here" : {
       "comment" : "The placeholder is a length of time, such as 9 hours."
     },
-    "%@ and %@" : {
-      "comment" : "Two counts joined, such as 3 files and 5 tabs.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ and %2$@"
-          }
-        }
-      }
-    },
     "%@ behind here" : {
       "comment" : "The placeholder is a length of time, such as 9 hours."
     },
@@ -290,6 +279,29 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$lld aliases, %2$lld hotkeys, %3$lld favorites, preferences for %4$lld extensions."
+          }
+        }
+      }
+    },
+    "%lld apps" : {
+      "comment" : "A count of open apps in a checkpoint.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld app"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld apps"
+                }
+              }
+            }
           }
         }
       }
@@ -1606,6 +1618,9 @@
     },
     "Dictionary" : {
       "comment" : "The kind of a result, shown beside its title. Here what the dictionary says about a word."
+    },
+    "Dictionary keyword" : {
+
     },
     "Digital Storage" : {
       "comment" : "A kind of unit, named in a calculator error."
@@ -3608,6 +3623,12 @@
     "Save and Continue" : {
 
     },
+    "Save and Hide Apps" : {
+      "comment" : "An action that saves a checkpoint with the open apps, then hides them."
+    },
+    "Save and Quit Apps" : {
+      "comment" : "An action that saves a checkpoint with the open apps, then asks them to quit."
+    },
     "Save as Script Command…" : {
 
     },
@@ -3888,6 +3909,9 @@
       "comment" : "The placeholder is the name of an app."
     },
     "Show Again" : {
+
+    },
+    "Show Definition" : {
 
     },
     "Show Details" : {
@@ -4669,6 +4693,9 @@
     "Type the prefix and a command. Return runs it out of sight and shows its first line of output; Command-Return opens it in your terminal." : {
 
     },
+    "Type this word, then the word you want to look up." : {
+
+    },
     "Type “note” and then your text in the search to send it there." : {
       "comment" : "The word in quotation marks is typed as it is and stays in English."
     },
@@ -5074,6 +5101,9 @@
     },
     "desktop picture, background" : {
       "comment" : "Words that find the Wallpaper pane of System Settings, separated by commas."
+    },
+    "dictionary, define, definition, keyword, alias, word" : {
+      "comment" : "Words that find the Dictionary keyword setting in the settings search, separated by commas."
     },
     "disk space" : {
       "comment" : "Words that find the Storage pane of System Settings, separated by commas."
@@ -5548,6 +5578,9 @@
     },
     "wifi, wireless, internet" : {
       "comment" : "Words that find the Wi-Fi pane of System Settings, separated by commas."
+    },
+    "“%@” is already a keyword in the search, so define keeps working." : {
+
     },
     "“Only use AI that runs on this Mac” is on, and the AI source you chose sends questions elsewhere, so nothing was asked. Turn the switch off under Settings › Privacy, or choose Apple Intelligence or a server on this Mac under Settings › AI." : {
 

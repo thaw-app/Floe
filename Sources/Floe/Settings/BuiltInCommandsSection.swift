@@ -31,6 +31,14 @@ struct BuiltInCommandsSection: View {
                 Text("Shortcut for Focus")
                 Text("A Shortcut of yours that sets Focus. It receives the number of minutes, or the word off or toggle.")
             }
+            TextField(text: Binding(get: { settings.definitionKeyword }, set: { settings.definitionKeyword = $0.filter { !$0.isWhitespace } }), prompt: Text(verbatim: WordDefinition.keyword)) {
+                Text("Dictionary keyword")
+                if WordDefinition.isTaken(settings.definitionKeyword) {
+                    Text("“\(settings.definitionKeyword)” is already a keyword in the search, so define keeps working.")
+                } else {
+                    Text("Type this word, then the word you want to look up.")
+                }
+            }
             ThawSupportNotice()
         }
     }

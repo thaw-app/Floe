@@ -336,7 +336,7 @@ struct SettingsSyncTests {
         let limits = SyncLimits.keyValueStore
         let size = limits.size(of: records)
         #expect(extensionRecords.count == 40, "one record for each extension, whatever it has of preferences")
-        #expect(records.count == 630)
+        #expect(records.count == 631)
         #expect(limits.size(of: extensionRecords) < 40 * 600)
         #expect(records.count < limits.keys ?? 0)
         #expect(size < (limits.bytes ?? 0) / 3)

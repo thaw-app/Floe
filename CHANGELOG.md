@@ -21,6 +21,28 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [0.4.0-beta.1] - 2026-11-01
+
+**macOS 26 and later · Build 6**
+
+### New
+
+- **A checkpoint can clear your desk.** Type `pause` and a name, press ⌘K, and choose Save and Hide Apps or Save and Quit Apps. Resuming brings those apps back along with the checkpoint's files and tabs, without opening a tab twice. Pressing Return saves files and tabs alone, as before. An app you quit decides for itself which windows it reopens. The idea comes from [Later](https://github.com/alyssaxuu/later) by Alyssa X.
+
+### Changed
+
+- **`define` lists matching words and shows the whole entry.** It lists the words that start with what you type, and Return shows the entry in Floe instead of opening the Dictionary app, which moved to ⌘K. In Settings, under Commands, you can change the word `define` to one of your own ([#57](https://github.com/thaw-app/Floe/issues/57)).
+- **The Actions menu shows the keys that run its rows.** In the search, ⌘Return on an app, file or folder now shows it in Finder, and ⌘⇧C copies its path, as in Search Files ([#64](https://github.com/thaw-app/Floe/pull/64)).
+
+### Fixed
+
+- **Return with a key held reaches a shell command in the search.** ⌘Return runs it in your terminal, ⌥Return shows the whole output, and ⇧Return runs it in Finder's folder ([#63](https://github.com/thaw-app/Floe/pull/63)).
+
+### Contributors
+
+- @dotvhs asked for a better dictionary ([#57](https://github.com/thaw-app/Floe/issues/57)).
+- @MintCollector added the keys in the Actions menu and fixed Return on shell commands ([#63](https://github.com/thaw-app/Floe/pull/63), [#64](https://github.com/thaw-app/Floe/pull/64)).
+
 ## [0.3.0] - 2026-10-31
 
 **macOS 26 and later · Build 5**

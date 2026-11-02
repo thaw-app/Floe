@@ -169,7 +169,7 @@ struct SearchProviderTests {
         #expect(answer.results().map(\.id) == ["app:/Applications/2+2 Tool.app"])
         #expect(answer.results(sources: [file]).map(\.id) == ["app:/Applications/2+2 Tool.app", "files-for:2+2"])
         let preview = try #require(Calculator.shared.evaluatePreview("2+2"))
-        answer.update(definition: nil, calculation: CalculatorRow(expression: "2+2", preview: preview))
+        answer.update(definitions: [], calculation: CalculatorRow(expression: "2+2", preview: preview))
         #expect(answer.results(sources: [file]).map(\.id) == ["calculator", "app:/Applications/2+2 Tool.app", "files-for:2+2"])
         #expect(counted.asked == 1, "only the providers that wait on a late answer are asked again")
     }

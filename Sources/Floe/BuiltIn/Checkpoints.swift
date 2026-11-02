@@ -9,15 +9,15 @@ import Foundation
 import UniformTypeIdentifiers
 
 /// What the user was doing, saved to come back to: the files and folders selected in Finder, the tabs of the
-/// browser window in front, and a note of the next step. Not which apps were open.
+/// browser window in front, a note of the next step, and the apps that were open when the user asks for them.
 nonisolated struct Checkpoint: Codable, Identifiable, Hashable, Sendable {
     enum ItemKind: String, Codable, Sendable {
-        case file, link
+        case file, link, app
     }
 
     struct Item: Codable, Hashable, Sendable {
         var kind: ItemKind
-        /// A path, or a web address.
+        /// A path of a file, a folder or an app, or a web address.
         var value: String
         var title: String
     }
@@ -42,23 +42,34 @@ nonisolated struct Checkpoint: Codable, Identifiable, Hashable, Sendable {
         return name.isEmpty ? nil : (name, note)
     }
 
-    /// "3 files and 5 tabs", and what there is when one of the two is none.
+    /// Whether resuming brings apps back along with the files and tabs.
+    var holdsApps: Bool {
+        items.contains { $0.kind == .app }
+    }
+
+    /// "3 files and 5 tabs", leaving out what there is none of.
     var summary: String {
         let files = items.count { $0.kind == .file }
         let tabs = items.count { $0.kind == .link }
-        let fileText = String(localized: "\(files) files", bundle: .floe, comment: "A count of files and folders in a checkpoint.")
-        let tabText = String(localized: "\(tabs) tabs", bundle: .floe, comment: "A count of browser tabs in a checkpoint.")
-        switch (files > 0, tabs > 0) {
-        case (true, true): return String(localized: "\(fileText) and \(tabText)", bundle: .floe, comment: "Two counts joined, such as 3 files and 5 tabs.")
-        case (true, false): return fileText
-        case (false, true): return tabText
-        case (false, false): return String(localized: "a note", bundle: .floe, comment: "What a checkpoint holds when it has no files and no tabs.")
+        let apps = items.count { $0.kind == .app }
+        var counts: [String] = []
+        if files > 0 {
+            counts.append(String(localized: "\(files) files", bundle: .floe, comment: "A count of files and folders in a checkpoint."))
         }
+        if tabs > 0 {
+            counts.append(String(localized: "\(tabs) tabs", bundle: .floe, comment: "A count of browser tabs in a checkpoint."))
+        }
+        if apps > 0 {
+            counts.append(String(localized: "\(apps) apps", bundle: .floe, comment: "A count of open apps in a checkpoint."))
+        }
+        return counts.isEmpty
+            ? String(localized: "a note", bundle: .floe, comment: "What a checkpoint holds when it has no files and no tabs.")
+            : counts.formatted(.list(type: .and))
     }
 
-    /// The files and folders that are no longer where they were.
+    /// The files, folders and apps that are no longer where they were.
     func missing(exists: (String) -> Bool = { FileManager.default.fileExists(atPath: $0) }) -> [Item] {
-        items.filter { $0.kind == .file && !exists($0.value) }
+        items.filter { $0.kind != .link && !exists($0.value) }
     }
 
     /// Everything the checkpoint holds, one line each, with what is missing marked.
@@ -70,7 +81,7 @@ nonisolated struct Checkpoint: Codable, Identifiable, Hashable, Sendable {
         let gone = Set(missing(exists: exists))
         lines.append("")
         lines += items.map { item in
-            let place = item.kind == .file ? (item.value as NSString).abbreviatingWithTildeInPath : item.value
+            let place = item.kind == .link ? item.value : (item.value as NSString).abbreviatingWithTildeInPath
             return gone.contains(item) ? String(localized: "Missing: \(place)", bundle: .floe, comment: "A file a checkpoint held that is gone. The placeholder is its path.") : place
         }
         return lines.joined(separator: "\n")
@@ -99,9 +110,29 @@ nonisolated struct Checkpoint: Codable, Identifiable, Hashable, Sendable {
         }.prefix(tabLimit))
     }
 
-    static func items(files: [URL], tabs: [BrowserTab]) -> [Item] {
+    /// The tabs of a browser that is starting, once it has restored them: two reads in a row that agree, or the last read
+    /// when it never settles, as with a browser Floe may not ask.
+    static func settledTabs(
+        reads: Int = 8,
+        read: @Sendable () async -> [BrowserTab],
+        pause: @Sendable () async -> Void
+    ) async -> [BrowserTab] {
+        var last = await read()
+        for _ in 1 ..< reads {
+            await pause()
+            let next = await read()
+            if !next.isEmpty, next.map(\.url) == last.map(\.url) {
+                return next
+            }
+            last = next
+        }
+        return last
+    }
+
+    static func items(files: [URL], tabs: [BrowserTab], apps: [Item] = []) -> [Item] {
         files.map { Item(kind: .file, value: $0.path, title: $0.lastPathComponent) }
             + frontWindowTabs(tabs).filter { !$0.url.isEmpty }.map { Item(kind: .link, value: $0.url, title: $0.title) }
+            + apps
     }
 }
 

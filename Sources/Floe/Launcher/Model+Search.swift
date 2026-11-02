@@ -11,7 +11,7 @@ extension LauncherModel {
     /// An untouched selection follows the new pinned answer, the dictionary's or the calculator's; an explicitly selected row stays selected.
     func showLateAnswers() {
         let followsFirst = selection == 0
-        rootAnswer?.update(definition: definitionSearch.definition, calculation: calculatorSearch.row)
+        rootAnswer?.update(definitions: definitionSearch.definitions, calculation: calculatorSearch.row)
         showSourceRows()
         if followsFirst {
             selection = 0
@@ -21,7 +21,8 @@ extension LauncherModel {
     /// Everything the search providers may know, read once per search.
     func searchContext() -> SearchContext {
         var context = SearchContext(query: query)
-        context.definition = definitionSearch.definition
+        context.definitions = definitionSearch.definitions
+        context.definitionKeyword = WordDefinition.keyword(from: settings.definitionKeyword)
         context.calculation = calculatorSearch.row
         context.favorites = settings.favorites
         context.hidden = Set(settings.hiddenResults.keys)

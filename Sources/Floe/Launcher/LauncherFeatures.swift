@@ -195,6 +195,7 @@ final class LauncherFeatures {
         notes.host = host
         notes.openFloatingNote = { model?.openFloatingNote() }
         found.host = host
+        found.showOutput = { [shell] in shell.environment.showOutput($0, $1) }
         found.typeQuery = {
             model?.query = $0
             model?.focusToken += 1

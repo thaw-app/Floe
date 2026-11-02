@@ -12,8 +12,10 @@ struct SearchContext {
     /// The query as typed. Ranking and the calculator read it untrimmed.
     let query: String
     let trimmed: String
-    /// The dictionary entry already read off the main thread for this query, if any.
-    var definition: WordDefinition?
+    /// The dictionary entries already read off the main thread for this query.
+    var definitions: [WordDefinition] = []
+    /// What `define` is called on this Mac.
+    var definitionKeyword = WordDefinition.keyword
     /// The calculator's row, worked out off the main thread (see `CalculatorSearch`).
     var calculation: CalculatorRow?
     var favorites: [String] = []

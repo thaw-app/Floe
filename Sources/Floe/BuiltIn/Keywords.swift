@@ -93,12 +93,12 @@ extension KeywordHint {
         }
     }
 
-    /// The keywords that work now. The shell's row is written with the prefix the user chose.
+    /// The keywords that work now. The shell's and the dictionary's rows are written with the word the user chose.
     static func offered(in context: SearchContext) -> [KeywordHint] {
         all.filter { $0.isOffered(in: context) }.map { hint in
-            guard hint.need == .shell else { return hint }
-            let prefix = context.shell.prefix.rawValue
-            return KeywordHint(keyword: prefix, example: prefix + hint.example.dropFirst(hint.keyword.count), detail: hint.detail, need: .shell)
+            let chosen = hint.need == .shell ? context.shell.prefix.rawValue : hint.keyword == WordDefinition.keyword ? context.definitionKeyword : hint.keyword
+            guard chosen != hint.keyword else { return hint }
+            return KeywordHint(keyword: chosen, example: chosen + hint.example.dropFirst(hint.keyword.count), detail: hint.detail, need: hint.need, takesASpace: hint.takesASpace)
         }
     }
 

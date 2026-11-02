@@ -53,6 +53,7 @@ enum SettingsSync {
         field("launcherShowsBorder", Bool.self),
         field("launcherShowsShadow", Bool.self),
         field("launcherGlass", LauncherGlass.self),
+        field("definitionKeyword", String.self),
         field("launcherLayout", LauncherLayout.self),
         field("searchFieldShape", SearchFieldShape.self),
         field("searchFieldCorners", SearchFieldCorners.self),

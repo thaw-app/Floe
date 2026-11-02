@@ -15,6 +15,10 @@ final class FoundRows {
     var typeQuery: (String) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+    var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in
+        // Set by LauncherFeatures.
+    }
+
     /// Where Return copies to. Tests replace it, so they leave the clipboard alone.
     var pasteboard = NSPasteboard.general
 
@@ -60,7 +64,7 @@ extension FoundRows: RowOwner {
         case .keyword:
             String(localized: "Type Keyword", bundle: .floe, comment: "A button that puts the selected keyword into the search field, for the user to go on typing.")
         case .definition:
-            String(localized: "Open in Dictionary", bundle: .floe, comment: "Dictionary is the name of Apple's app.")
+            String(localized: "Show Definition", bundle: .floe)
         case let .answer(row) where row.link == nil:
             String(localized: "Copy to Clipboard", bundle: .floe)
         case let .answer(row):
@@ -72,7 +76,9 @@ extension FoundRows: RowOwner {
     func open(_ item: RootItem, flags _: NSEvent.ModifierFlags) -> Bool {
         switch item {
         case let .keyword(hint): typeQuery(hint.typed)
-        case let .definition(definition): host.reach(definition.link)
+        case let .definition(definition):
+            host.hidePanel()
+            showOutput(definition.word, definition.entry)
         case let .answer(row): open(row)
         case let .bookmark(bookmark): host.reach(bookmark.url)
         case let .calculator(_, result, error, _): copyCalculation(result, error: error)
@@ -83,6 +89,9 @@ extension FoundRows: RowOwner {
 
     func actions(for item: RootItem) -> [ItemAction?]? {
         guard case let .definition(definition) = item else { return nil }
-        return [ItemAction(title: String(localized: "Copy Definition", bundle: .floe), symbol: "doc.on.doc") { [weak self] in self?.copy(definition) }]
+        return [
+            ItemAction(title: String(localized: "Open in Dictionary", bundle: .floe, comment: "Dictionary is the name of Apple's app."), symbol: "book") { [weak self] in self?.host.reach(definition.link) },
+            ItemAction(title: String(localized: "Copy Definition", bundle: .floe), symbol: "doc.on.doc") { [weak self] in self?.copy(definition) },
+        ]
     }
 }

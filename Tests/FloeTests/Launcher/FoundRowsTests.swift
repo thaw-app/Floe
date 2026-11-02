@@ -54,25 +54,32 @@ final class FoundRowsTests {
         #expect(board.string(forType: .string) == nil)
     }
 
-    @Test func returnOnAKeywordTypesItAndOnADefinitionOrBookmarkReachesIt() throws {
-        let hint = KeywordHint(keyword: "define", example: "define floe", detail: "Look up a word")
-        let definition = WordDefinition(word: "floe", entry: "floe  a sheet of floating ice")
-        let bookmark = WebBookmark(title: "Floe", url: try #require(URL(string: "https://example.com")), browser: "Safari")
-        #expect(rows.open(.keyword(hint), flags: []))
+    @Test func returnOnADefinitionShowsTheWholeEntryInFloe() {
+        let definition = WordDefinition(word: "floe", entry: "floe\nnoun\n a sheet of floating ice\n")
+        var shown: [String] = []
+        rows.showOutput = { shown.append("\($0)|\($1)") }
         #expect(rows.open(.definition(definition), flags: []))
-        #expect(rows.open(.bookmark(bookmark), flags: []))
-        #expect(asked.all == ["type: define ", "reach: dict://floe", "reach: https://example.com"])
-        #expect(rows.returnTitle(for: .keyword(hint)) == "Type Keyword")
-        #expect(rows.returnTitle(for: .definition(definition)) == "Open in Dictionary")
+        #expect(shown == ["floe|floe\nnoun\n a sheet of floating ice"], "with its line breaks")
+        #expect(rows.returnTitle(for: .definition(definition)) == "Show Definition")
     }
 
-    @Test func aDefinitionsMenuCopiesWhatTheDictionarySays() throws {
+    @Test func returnOnAKeywordTypesItAndOnABookmarkReachesIt() throws {
+        let hint = KeywordHint(keyword: "define", example: "define floe", detail: "Look up a word")
+        let bookmark = WebBookmark(title: "Floe", url: try #require(URL(string: "https://example.com")), browser: "Safari")
+        #expect(rows.open(.keyword(hint), flags: []))
+        #expect(rows.open(.bookmark(bookmark), flags: []))
+        #expect(asked.all == ["type: define ", "reach: https://example.com"])
+        #expect(rows.returnTitle(for: .keyword(hint)) == "Type Keyword")
+    }
+
+    @Test func aDefinitionsMenuOpensTheDictionaryAppOrCopiesWhatItSays() throws {
         let definition = WordDefinition(word: "floe", entry: "floe a sheet of floating ice")
         let actions = try #require(rows.actions(for: .definition(definition)))
-        #expect(actions.compactMap { $0?.title } == ["Copy Definition"])
+        #expect(actions.compactMap { $0?.title } == ["Open in Dictionary", "Copy Definition"])
         actions.first??.run()
+        actions.last??.run()
         #expect(board.string(forType: .string) == "floe a sheet of floating ice")
-        #expect(asked.all == ["hud: Copied floe", "leave"])
+        #expect(asked.all == ["reach: dict://floe", "hud: Copied floe", "leave"])
     }
 
     @Test func returnOnTheCalculatorCopiesTheAnswerOrSaysWhyNot() {
