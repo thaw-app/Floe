@@ -9,9 +9,17 @@ import AppKit
 
 /// Opening a root result.
 extension LauncherModel {
+    /// Return on a result: the default the user chose for it, or else what Floe does.
+    func activate(_ item: RootItem, flags: NSEvent.ModifierFlags = []) {
+        if features.actions.open(item, flags: flags) {
+            return
+        }
+        openAsFloeDoes(item, flags: flags)
+    }
+
     /// Executes the selected root result, including routing Settings rows to their requested page. The keys held
     /// reach the emoji and shell rows, which give them a meaning.
-    func activate(_ item: RootItem, flags: NSEvent.ModifierFlags = []) {
+    func openAsFloeDoes(_ item: RootItem, flags: NSEvent.ModifierFlags = []) {
         // An emoji keeps its own count of uses and remembers no query.
         if features.emoji.open(item, flags: flags) {
             return

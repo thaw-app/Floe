@@ -25,9 +25,8 @@ final class FileSearchModel: ObservableObject {
     var host = ModeHost()
     /// The roles a file can be opened in, read each time the Actions menu is built.
     var preferredApps: () -> [RoleApp] = { [] }
-    /// The kind of the file last asked about: the bottom bar and the preview ask on every draw, and a file's kind
-    /// is read from the disk.
-    private var lastKind: (url: URL, kind: SubjectKind?)?
+    /// The user's choices of what Return, the Actions menu and keys do on a file, as in the root search.
+    var alternatives = AlternativeActions()
 
     init(index: FileIndexService = .shared) {
         spotlight = FileSearch(index: index)
@@ -42,39 +41,57 @@ final class FileSearchModel: ObservableObject {
         spotlight.cancel()
     }
 
-    func openSelectedFile() {
+    /// What Return does on the selected file, as its button says.
+    var returnTitle: String {
+        selectedFile.flatMap { alternatives.returnTitle(for: .file($0)) } ?? Self.openTitle
+    }
+
+    private static var openTitle: String {
+        String(localized: "Open", bundle: .floe, comment: "A button that opens the selected file.")
+    }
+
+    func openSelectedFile(flags: NSEvent.ModifierFlags = []) {
         guard let file = selectedFile else { return }
+        activate(file, flags: flags)
+    }
+
+    /// Return on a file: what the user chose for its kind, when it applies, or else the file opens.
+    func activate(_ file: FileResult, flags: NSEvent.ModifierFlags) {
+        if alternatives.open(.file(file), flags: flags) {
+            return
+        }
         open(file)
     }
 
+    /// Opens the file as Floe does, whatever the user chose.
     func open(_ file: FileResult) {
         spotlight.open(file)
         host.dismiss()
     }
 
-    /// Floe's keys on a file's rows, by its kind. With no file selected, a file's, so they are still this search's
-    /// and not typed into its field.
+    /// The keys on a file's rows: Floe's for its kind, with the user's laid over them. With no file selected, a
+    /// file's, so they are still this search's and not typed into its field.
     func rowKeys(for file: FileResult?) -> ActionKeys {
-        guard let file else { return .floe(for: .file) }
-        if let lastKind, lastKind.url == file.url {
-            return .floe(for: lastKind.kind)
-        }
-        let kind = SubjectKind.of(file.url)
-        lastKind = (file.url, kind)
-        return .floe(for: kind)
+        file.map { alternatives.keys(for: .file($0)) } ?? alternatives.keys(of: .file)
     }
 
-    /// Runs a row of the selected file's menu, as a button in the bottom bar does.
+    /// Runs one of the selected file's rows, as a button in the bottom bar does.
     func run(_ id: ActionID) {
         guard let file = selectedFile else { return }
-        actions(for: file).compactMap(\.self).first { $0.id == id }?.run()
+        rows(for: file).compactMap(\.self).first { $0.id == id }?.run()
     }
 
     func actions(for file: FileResult) -> [ItemAction?] {
+        let item = RootItem.file(file)
+        let returnRow = ItemAction(title: alternatives.returnTitle(for: item) ?? Self.openTitle, symbol: "return") { [weak self] in self?.activate(file, flags: []) }
+        return alternatives.menu(returnRow, rows: rows(for: file), for: item)
+    }
+
+    /// Floe's rows for a file with their keys, before the user's choices arrange the menu: a row the menu leaves
+    /// out still runs by its keys.
+    private func rows(for file: FileResult) -> [ItemAction?] {
         let actionHost = ActionHost(showHUD: host.showHUD, dismiss: host.dismiss, preferredApps: preferredApps())
-        return rowKeys(for: file).keyed([
-            ItemAction(title: String(localized: "Open", bundle: .floe, comment: "A button that opens the selected file."), symbol: "return") { [weak self] in self?.openSelectedFile() },
-        ] + FileActions.actions(for: file.url, host: actionHost))
+        return rowKeys(for: file).keyed(FileActions.actions(for: file.url, host: actionHost))
     }
 
     /// The panel's keys while this search is on screen. Returns true when the key was consumed.
@@ -84,7 +101,7 @@ final class FileSearchModel: ObservableObject {
             isBrowsing = true
             return true
         }
-        if ActionKeys.handle(ActionKeys.pressed(event.keyCode, flags), keys: { rowKeys(for: selectedFile) }, rows: { selectedFile.map { actions(for: $0) } ?? [] }) {
+        if ActionKeys.handle(ActionKeys.pressed(event.keyCode, flags), keys: { rowKeys(for: selectedFile) }, rows: { selectedFile.map { rows(for: $0) } ?? [] }) {
             return true
         }
         switch event.keyCode {
@@ -92,7 +109,7 @@ final class FileSearchModel: ObservableObject {
             guard let file = selectedFile else { return false }
             QuickLookPresenter.shared.show(file.url)
         case 36, 76:
-            openSelectedFile()
+            openSelectedFile(flags: flags)
         case 53:
             if query.isEmpty {
                 host.close()

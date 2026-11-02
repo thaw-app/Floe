@@ -71,7 +71,7 @@ struct FileSearchView: View {
                 }
                 Divider()
                 if let file = search.selectedFile {
-                    FilePreview(file: file, rowKeys: search.rowKeys(for: file))
+                    FilePreview(file: file, returnTitle: search.returnTitle, rowKeys: search.rowKeys(for: file))
                         .frame(width: 250)
                 } else {
                     Color.clear.frame(width: 250)
@@ -86,7 +86,7 @@ struct FileSearchView: View {
 
             Spacer(minLength: 0)
 
-            ShortcutHintButton(title: String(localized: "Open", bundle: .floe, comment: "A button that opens the selected file.")) { search.openSelectedFile() } hint: {
+            ShortcutHintButton(title: search.returnTitle) { search.openSelectedFile() } hint: {
                 KeyCapView(systemImage: "return")
             }
             ShortcutHintButton(title: String(localized: "Show in Finder", bundle: .floe)) { search.run(.showInFinder) } hint: {
@@ -120,6 +120,8 @@ struct FileSearchRow: View {
 
 struct FilePreview: View {
     let file: FileResult
+    /// What Return does on the file, as the bottom bar says it.
+    let returnTitle: String
     let rowKeys: ActionKeys
 
     private var values: URLResourceValues {
@@ -158,7 +160,7 @@ struct FilePreview: View {
             }
             Spacer(minLength: 0)
             HStack(spacing: ThawSpacing.base) {
-                Text("↵ Open").foregroundStyle(.secondary)
+                Text("↵ \(returnTitle)", comment: "A hint under a file's preview: the Return key, then what it does, such as Open.").foregroundStyle(.secondary)
                 if let quickLook = rowKeys.key(for: .quickLook) {
                     Text("\(quickLook.displayValue) Quick Look", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary)
                 }

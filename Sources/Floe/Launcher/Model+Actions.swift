@@ -27,6 +27,11 @@ extension LauncherModel {
 
     /// What Return does to a result, as its button and the first row of its menu say it.
     func primaryActionTitle(for item: RootItem) -> String {
+        features.actions.returnTitle(for: item) ?? floeActionTitle(for: item)
+    }
+
+    /// What Floe's own Return on a result is called.
+    func floeActionTitle(for item: RootItem) -> String {
         switch item {
         case let .command(command) where command.mode == "menu-bar":
             if isInMenuBar(command) {
@@ -72,9 +77,14 @@ extension LauncherModel {
     }
 
     func rootActions(for item: RootItem) -> [ItemAction?] {
-        var actions: [ItemAction?] = [
-            ItemAction(title: primaryActionTitle(for: item), symbol: "return", id: .primary) { [weak self] in self?.activate(item) },
-        ]
+        let returnRow = ItemAction(title: primaryActionTitle(for: item), symbol: "return", id: .primary) { [weak self] in self?.activate(item) }
+        return features.actions.menu(returnRow, rows: floeActions(for: item), for: item)
+    }
+
+    /// Floe's own rows of a result's Actions menu, after the Return row, with their keys. The user's choices
+    /// arrange the menu from them, and keys run them, a row the menu leaves out included.
+    func floeActions(for item: RootItem) -> [ItemAction?] {
+        var actions: [ItemAction?] = []
         switch item {
         case let .app(app):
             actions += [nil] + AppActions.actions(for: app, host: actionHost)

@@ -40,6 +40,8 @@ struct ActionID: RawRepresentable, Hashable, Codable, Sendable {
 
     /// The first row, which does what Return does.
     static let primary = ActionID(floe: "primary")
+    /// What Floe's own Return does, listed lower down once a default the user chose took Return.
+    static let own = ActionID(floe: "own")
     static let showInFinder = ActionID(floe: "showInFinder")
     static let quickLook = ActionID(floe: "quickLook")
     static let moveToTrash = ActionID(floe: "moveToTrash")
@@ -331,7 +333,7 @@ enum AppActions {
         return actions
     }
 
-    private static func processActions(_ app: AppEntry, _ running: NSRunningApplication, host: ActionHost) -> [ItemAction] {
+    static func processActions(_ app: AppEntry, _ running: NSRunningApplication, host: ActionHost) -> [ItemAction] {
         var actions: [ItemAction] = []
         if !running.isHidden {
             actions.append(ItemAction(title: String(localized: "Hide", bundle: .floe, comment: "An action that hides a running app's windows."), symbol: "eye.slash", id: .hide) {

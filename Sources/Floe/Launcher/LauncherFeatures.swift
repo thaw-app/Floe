@@ -32,6 +32,8 @@ final class LauncherFeatures {
     let system = SystemRows()
     let notes: NoteRows
     let found = FoundRows()
+    /// What Return, the Actions menu and keys do on apps, files, folders and links, as the user chose.
+    let actions = AlternativeActions()
 
     /// The features that own rows, asked in turn what a row's Return, actions and keys do.
     let rowOwners: [any RowOwner]
@@ -46,6 +48,7 @@ final class LauncherFeatures {
         connectReaching(links)
         connectKeywords(links)
         connectSearched(links)
+        connectActions(links)
     }
 
     /// What most features ask of the launcher, each reaching the model without keeping it.
@@ -200,5 +203,34 @@ final class LauncherFeatures {
             model?.query = $0
             model?.focusToken += 1
         }
+    }
+
+    /// The user's choices of actions, which stand in front of what Floe does on a result.
+    private func connectActions(_ links: Links) {
+        weak let model = links.model
+        actions.host = AlternativeActions.Host(
+            choices: { model?.settings.actionChoices ?? [:] },
+            floeActions: { model?.floeActions(for: $0) ?? [] },
+            floeTitle: { model?.floeActionTitle(for: $0) ?? "" },
+            openAsFloeDoes: { model?.openAsFloeDoes($0) },
+            used: { item in
+                // As Floe's own Return does: a result found just now and gone next time is not counted.
+                guard !item.isScopeResult else { return }
+                model?.usage.recordUse(of: item.id)
+                model?.rememberQuery()
+            },
+            // Hide is on offer only while an app runs and is in sight, and Quit, Restart and Force Quit while it runs.
+            // The Favorites row is named after what it will do, and an Open in row after the app chosen for its role.
+            offerState: { item in
+                var state = Hasher()
+                state.combine(model?.isFavorite(item) == true)
+                if case let .app(app) = item, let running = AppActions.running(app) {
+                    state.combine(running.isHidden ? 2 : 1)
+                }
+                state.combine(model?.resolvedApps.apps)
+                return state.finalize()
+            },
+            hotkeys: { model?.settings.floeHotkeys ?? [] }
+        )
     }
 }

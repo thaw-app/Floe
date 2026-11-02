@@ -27,6 +27,8 @@ final class AppSettings: ObservableObject {
     @Published var fallbacks: [String]?
     /// Results taken out of the search: `RootItem.id` to the title it had, which Settings lists it by.
     @Published var hiddenResults: [String: String] = [:]
+    /// What Return, the Actions menu and keys do on each kind of result, by `SubjectKind` raw value.
+    @Published var actionChoices: [String: KindActions] = [:]
     @Published var emojiSkinTone = EmojiSkinTone.none
     /// Extension names.
     @Published var disabledExtensions: Set<String> = []
@@ -159,6 +161,7 @@ final class AppSettings: ObservableObject {
         var favorites: [String]?
         var fallbacks: [String]?
         var hiddenResults: [String: String]?
+        var actionChoices: [String: KindActions]?
         var emojiSkinTone: EmojiSkinTone?
         var rememberMenuBarQuery: Bool?
         var clipboardHistoryEnabled: Bool?
@@ -306,6 +309,7 @@ final class AppSettings: ObservableObject {
         favorites = stored.favorites ?? []
         fallbacks = stored.fallbacks
         hiddenResults = stored.hiddenResults ?? [:]
+        actionChoices = stored.actionChoices ?? [:]
         emojiSkinTone = stored.emojiSkinTone ?? .none
         rememberMenuBarQuery = stored.rememberMenuBarQuery ?? false
         clipboardHistoryEnabled = stored.clipboardHistoryEnabled ?? true
@@ -377,6 +381,7 @@ final class AppSettings: ObservableObject {
             favorites: favorites,
             fallbacks: fallbacks,
             hiddenResults: hiddenResults,
+            actionChoices: actionChoices,
             emojiSkinTone: emojiSkinTone,
             rememberMenuBarQuery: rememberMenuBarQuery,
             clipboardHistoryEnabled: clipboardHistoryEnabled,

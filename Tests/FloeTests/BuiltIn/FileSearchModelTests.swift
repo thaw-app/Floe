@@ -8,6 +8,7 @@
 import AppKit
 @testable import Floe
 import Testing
+import ThawUI
 
 /// Every query typed here is cancelled before its pause ends, so Spotlight is never asked.
 @MainActor
@@ -102,5 +103,79 @@ struct FileSearchModelTests {
         #expect(launcher.isSearchingFiles)
         #expect(try launcher.handleKey(key(53)))
         #expect(!launcher.isSearchingFiles)
+    }
+
+    /// The user's choices for files, with rows that record what they ran instead of acting on the Mac.
+    private func choices(_ kind: KindActions, ran: @escaping (String) -> Void) -> AlternativeActions {
+        let actions = AlternativeActions()
+        actions.kindOf = { _ in .file }
+        actions.host = AlternativeActions.Host(
+            choices: { [SubjectKind.file.rawValue: kind] },
+            floeActions: { _ in [ItemAction(title: "Copy Path", symbol: "doc.on.doc", id: .copyPath) { ran("copy path") }] },
+            floeTitle: { _ in "Open" },
+            openAsFloeDoes: { _ in ran("floe") }
+        )
+        return actions
+    }
+
+    @Test func returnOnAFileDoesWhatTheUserChoseForFiles() {
+        var ran: [String] = []
+        var copyPath = KindActions()
+        copyPath.defaults = [.copyPath]
+        let model = FileSearchModel()
+        defer { model.cancel() }
+        model.alternatives = choices(copyPath) { ran.append($0) }
+        model.spotlight.opener = { _ in ran.append("opened") }
+        let file = FileResult(url: URL(fileURLWithPath: "/floe-tests-no-such-folder/a.txt"), name: "a.txt", displayPath: "/floe-tests-no-such-folder", contentType: nil, lastUsed: nil)
+
+        model.activate(file, flags: [])
+        #expect(ran == ["copy path"])
+        model.activate(file, flags: .option)
+        #expect(ran == ["copy path", "opened"], "Return with keys held is Floe's, as in the root search")
+        model.alternatives = choices(KindActions()) { ran.append($0) }
+        model.activate(file, flags: [])
+        #expect(ran == ["copy path", "opened", "opened"], "with nothing chosen the file opens")
+    }
+
+    @Test func theActionsMenuOfAFileFollowsTheUsersChoices() {
+        var choice = KindActions()
+        choice.defaults = [.copyPath]
+        choice.hidden = [.quickLook]
+        let model = FileSearchModel()
+        defer { model.cancel() }
+        model.alternatives = choices(choice) { _ in }
+        let file = FileResult(url: URL(fileURLWithPath: "/floe-tests-no-such-folder/a.txt"), name: "a.txt", displayPath: "/floe-tests-no-such-folder", contentType: nil, lastUsed: nil)
+
+        let rows = model.actions(for: file)
+        #expect(rows.first??.title == "Copy Path", "the chosen row is what Return does")
+        #expect(rows.contains { $0?.title == "Open" && $0?.id == .own }, "what Floe does stays in the menu")
+        #expect(!rows.contains { $0?.id == .quickLook })
+        #expect(!rows.contains { $0?.id == .copyPath }, "the default is the Return row, not listed twice")
+    }
+
+    @Test func aFilesKeysAreTheUsersOverFloesAndARowLeftOutOfTheMenuKeepsThem() {
+        let commandO = KeyCombination(key: .o, modifiers: .command)
+        var choice = KindActions()
+        choice.shortcuts = [.copyName: commandO]
+        choice.clearedKeys = [.quickLook]
+        choice.hidden = [.copyPath]
+        let model = FileSearchModel()
+        defer { model.cancel() }
+        model.alternatives = choices(choice) { _ in }
+        let file = FileResult(url: URL(fileURLWithPath: "/floe-tests-no-such-folder/a.txt"), name: "a.txt", displayPath: "/floe-tests-no-such-folder", contentType: nil, lastUsed: nil)
+
+        let keys = model.rowKeys(for: file)
+        #expect(keys.key(for: .copyName) == commandO)
+        #expect(keys.key(for: .quickLook) == nil, "the user took Floe's ⌘Y off Quick Look")
+        #expect(keys.key(for: .copyPath) == FloeKeys.commandShiftC, "a row left out of the menu keeps its keys")
+        let rows = model.actions(for: file).compactMap(\.self)
+        #expect(rows.first { $0.id == .copyName }?.shortcut == commandO, "the menu shows the user's keys")
+        #expect(!rows.contains { $0.id == .copyPath })
+        #expect(model.rowKeys(for: nil) == keys, "with no file selected, the keys are still the user's for files")
+    }
+
+    @Test func theLauncherHandsTheFileSearchItsChoices() {
+        let launcher = LauncherModel(settings: AppSettings(defaults: MemoryDefaults()), snapshot: CatalogSnapshot(apps: [], commands: []))
+        #expect(launcher.fileSearch.alternatives === launcher.features.actions)
     }
 }
