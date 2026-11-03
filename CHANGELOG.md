@@ -21,6 +21,17 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### New
+
+- **Tile the window in front from the search.** Tile Window Left, Right, Top and Bottom move it to that half of its screen, and Maximize Window fills the screen without going full screen. Floe needs Accessibility access to move another app's window. By @unsecretised in [#67](https://github.com/thaw-app/Floe/pull/67).
+
+### Contributors
+
+- @raumzeit77 asked for window management ([#52](https://github.com/thaw-app/Floe/issues/52)).
+- @unsecretised added the window tiling commands ([#67](https://github.com/thaw-app/Floe/pull/67)).
+
 ## [0.4.0-beta.1] - 2026-11-01
 
 **macOS 26 and later · Build 6**
