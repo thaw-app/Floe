@@ -8,9 +8,10 @@
 import AppKit
 
 extension LauncherModel {
-    /// Floe's keys on a result's rows, by its kind. With nothing selected, those of a result with no kind.
+    /// The keys on a result's rows: Floe's for its kind, with the user's laid over them. With nothing selected,
+    /// those of a result with no kind.
     func rowKeys(for item: RootItem?) -> ActionKeys {
-        .floe(for: item.flatMap { SubjectKind.of($0) })
+        item.map { features.actions.keys(for: $0) } ?? features.actions.keys(of: nil)
     }
 
     /// A key that means something only on the selected row: its owner's keys, then the keys of the rows of its
@@ -22,7 +23,7 @@ extension LauncherModel {
             return true
         }
         let collapsed = panelState.isCollapsed(in: settings.launcherLayout)
-        if ActionKeys.handle(ActionKeys.pressed(event.keyCode, flags), keys: { rowKeys(for: item) }, rows: { item.map { rootActions(for: $0) } ?? [] }, collapsed: collapsed) {
+        if ActionKeys.handle(ActionKeys.pressed(event.keyCode, flags), keys: { rowKeys(for: item) }, rows: { item.map { floeActions(for: $0) } ?? [] }, collapsed: collapsed) {
             return true
         }
         switch (event.keyCode, item) {

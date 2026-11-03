@@ -33,6 +33,9 @@
     "%@ ahead of here" : {
       "comment" : "The placeholder is a length of time, such as 9 hours."
     },
+    "%@ already does something in the launcher." : {
+      "comment" : "The placeholder is a key combination, such as ⌘ K."
+    },
     "%@ behind here" : {
       "comment" : "The placeholder is a length of time, such as 9 hours."
     },
@@ -71,6 +74,9 @@
     "%@ free" : {
       "comment" : "How much room a disk has left. The placeholder is a size, such as 212 GB."
     },
+    "%@ has no Command key. An action's keys need it, so they never take what you type in the search." : {
+      "comment" : "The placeholder is a key combination, such as ⌥ K."
+    },
     "%@ health" : {
       "comment" : "About the battery: how much of its first capacity it still holds. The placeholder is a percentage, such as 91%."
     },
@@ -80,6 +86,17 @@
     "%@ is a sibling of Thaw, built by the same people in the same organization. It shares Thaw’s design system and much of its design." : {
       "comment" : "The placeholder is the name of this app."
     },
+    "%@ is already the keys for %@." : {
+      "comment" : "The first placeholder is a key combination, such as ⌘ K; the second is the name of an action, such as Copy Path.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ is already the keys for %2$@."
+          }
+        }
+      }
+    },
     "%@ is chosen, which is not on this Mac. While the switch below is on, Floe refuses to ask it, so no question is sent." : {
       "comment" : "The placeholder is the address of a server."
     },
@@ -88,6 +105,9 @@
     },
     "%@ is no longer where Floe wrote it" : {
       "comment" : "The placeholder is the name of a note's file."
+    },
+    "%@ is one of Floe's hotkeys, so it can't also run an action." : {
+      "comment" : "The placeholder is a key combination, such as ⌥ ⇧ Space, that opens Floe or runs a command from anywhere."
     },
     "%@ is still running, so it was not restarted" : {
       "comment" : "The placeholder is an app's name."
@@ -636,6 +656,15 @@
     "Action" : {
       "comment" : "Stands in for an action's title when the extension gave none."
     },
+    "Actions" : {
+
+    },
+    "Actions Menu" : {
+
+    },
+    "Actions on Results" : {
+      "comment" : "The heading over the choices of what Return, the Actions menu and keys do on apps, files, folders and links."
+    },
     "Actions…" : {
 
     },
@@ -692,6 +721,9 @@
     },
     "Add to Notes" : {
       "comment" : "A result row in a demo of the welcome tour."
+    },
+    "Add to or Remove from Favorites" : {
+      "comment" : "An action on an app, as Settings lists it. The Actions menu shows Add to Favorites or Remove from Favorites, whichever the app needs."
     },
     "Added a line to the note %@" : {
       "comment" : "A receipt. The placeholder is the name of a note's file, such as 2026-10-08."
@@ -893,6 +925,9 @@
     },
     "Applications" : {
       "comment" : "The name of a settings page."
+    },
+    "Apps" : {
+      "comment" : "Results that are apps, as one of the kinds of result whose actions are chosen in Settings."
     },
     "Area" : {
       "comment" : "A kind of unit, named in a calculator error."
@@ -1160,6 +1195,9 @@
 
     },
     "Choose the microphone" : {
+
+    },
+    "Choose what Return does on apps, files, folders and links, which actions their Actions menu shows, and keys that run an action." : {
 
     },
     "Choose…" : {
@@ -1863,7 +1901,7 @@
 
     },
     "Files" : {
-      "comment" : "Files on this Mac, as a source of search results.\nThe kind of a result, shown beside its title."
+      "comment" : "Files on this Mac, as a source of search results.\nResults that are files, as one of the kinds of result whose actions are chosen in Settings.\nThe kind of a result, shown beside its title."
     },
     "Files open in your editor and links in your browser." : {
       "comment" : "A tile of the welcome tour."
@@ -2038,7 +2076,7 @@
       "comment" : "The title of the row that turns a Focus on for a while. The placeholder is how long, such as 1 hr."
     },
     "Folders" : {
-      "comment" : "The title of a permission: access to the Desktop, Documents and Downloads folders."
+      "comment" : "Results that are folders, as one of the kinds of result whose actions are chosen in Settings.\nThe title of a permission: access to the Desktop, Documents and Downloads folders."
     },
     "Follow Thaw's Appearance" : {
 
@@ -2342,6 +2380,12 @@
         }
       }
     },
+    "Keys" : {
+      "comment" : "Spoken for the control that records the keys that run an action."
+    },
+    "Keys run an action while a result of this kind is selected. Floe gives some actions keys, which you can change or clear; keys you choose need Command. An action left out of the menu keeps its keys." : {
+
+    },
     "Keyword" : {
       "comment" : "The kind of a result, shown beside its title. Here a word the search answers to.\nThe word typed in the search to use a quicklink or a snippet."
     },
@@ -2430,6 +2474,9 @@
     },
     "Link" : {
       "comment" : "A kind of copied thing.\nA web style link that opens an app, as a choice in a picker and as the label of its field."
+    },
+    "Links" : {
+      "comment" : "Results that are web addresses or bookmarks, as one of the kinds of result whose actions are chosen in Settings."
     },
     "Liquid Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
@@ -3251,6 +3298,9 @@
     "Previous Track" : {
       "comment" : "A command that goes back to the song before."
     },
+    "Primary Action" : {
+      "comment" : "The label of the picker that chooses what Return does on a result of this kind."
+    },
     "Printers & Scanners (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
       "extractionState" : "extracted_with_value",
@@ -3536,6 +3586,9 @@
     "Result" : {
 
     },
+    "Results" : {
+      "comment" : "The label of the buttons that pick the kind of result whose actions are set: apps, files, folders or links."
+    },
     "Resume" : {
       "comment" : "A verb on a button: open what a checkpoint holds."
     },
@@ -3547,6 +3600,9 @@
     },
     "Return opens Language & Region, where Translation Languages downloads it." : {
       "comment" : "Language & Region and Translation Languages are named as System Settings names them."
+    },
+    "Return runs it. Where it can't, such as Quit on an app that isn't running, Return opens the result instead." : {
+
     },
     "Return to root search" : {
 
@@ -3957,6 +4013,9 @@
 
     },
     "Show in Finder" : {
+
+    },
+    "Show in the Actions menu" : {
 
     },
     "Show larger" : {
@@ -5429,6 +5488,9 @@
     "restart, reboot" : {
       "comment" : "Words that find the Restart command, separated by commas."
     },
+    "return, enter, primary action, default action, actions menu, keys, keyboard shortcut, hide, show, apps, files, folders, links, open with, copy path, quick look" : {
+      "comment" : "Words that find the Actions on Results setting in the settings search, separated by commas."
+    },
     "right half, snap right, window right, window management" : {
       "comment" : "Words that find the Tile Window Right command, separated by commas."
     },
@@ -5645,8 +5707,8 @@
     "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders." : {
 
     },
-    "↵ Open" : {
-
+    "↵ %@" : {
+      "comment" : "A hint under a file's preview: the Return key, then what it does, such as Open."
     }
   },
   "version" : "1.0"

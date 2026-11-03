@@ -71,6 +71,34 @@ struct ActionKeys: Equatable {
         keys[id]
     }
 
+    /// The keys in force on a kind's rows: Floe's, with the user's choices laid over them, and none of Floe's own
+    /// hotkeys, such as the one that opens it. The Mac takes those before a row could have them.
+    static func inForce(for kind: SubjectKind?, choices: KindActions?, hotkeys: Set<KeyCombination>) -> ActionKeys {
+        let floe = floe(for: kind)
+        var result = choices.map { floe.applying($0) } ?? floe
+        if !hotkeys.isEmpty {
+            result.keys = result.keys.filter { !hotkeys.contains($0.value) }
+        }
+        return result
+    }
+
+    /// These keys with the user's choices for a kind laid over them. Keys the user took off a row are gone. Keys
+    /// the user gave a row replace its own and leave any other row that had them. Keys the user cannot choose are
+    /// passed over however they were stored, and where two of the user's rows have the same keys, the first by
+    /// name keeps them.
+    func applying(_ choices: KindActions, on layout: KeyLayout = .current) -> ActionKeys {
+        var result = keys.filter { !choices.clearedKeys.contains($0.key) }
+        guard !choices.shortcuts.isEmpty else { return ActionKeys(keys: result) }
+        let reserved = AlternativeActionRules.reservedKeys(on: layout)
+        var given: Set<KeyCombination> = []
+        for (id, chosen) in choices.shortcuts.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+            guard AlternativeActionRules.canBeChosen(chosen, reserved: reserved), given.insert(chosen).inserted else { continue }
+            result = result.filter { $0.value != chosen }
+            result[id] = chosen
+        }
+        return ActionKeys(keys: result)
+    }
+
     /// The rows with their keys set, a submenu's rows included. A row is given keys by its id, so a row without one
     /// has none.
     func keyed(_ rows: [ItemAction?]) -> [ItemAction?] {

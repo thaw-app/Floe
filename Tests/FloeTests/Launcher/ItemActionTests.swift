@@ -316,7 +316,7 @@ struct ActionIDTests {
     /// Settings will keep what the user chose under these names, so a renamed one loses it.
     @Test func floesOwnActionIDsKeepTheirNames() {
         let names: [ActionID: String] = [
-            .primary: "floe:primary", .showInFinder: "floe:showInFinder", .quickLook: "floe:quickLook",
+            .primary: "floe:primary", .own: "floe:own", .showInFinder: "floe:showInFinder", .quickLook: "floe:quickLook",
             .moveToTrash: "floe:moveToTrash", .copyPath: "floe:copyPath", .copyName: "floe:copyName",
             .copyFile: "floe:copyFile", .copyBundleIdentifier: "floe:copyBundleIdentifier",
             .copyAddress: "floe:copyAddress", .copy: "floe:copy", .hide: "floe:hide", .quit: "floe:quit",

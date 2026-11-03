@@ -28,6 +28,7 @@ extension LauncherModel {
         let search = FileSearchModel()
         search.host = modeHost { [weak self] in self?.closeFileSearch() }
         search.preferredApps = { [weak self] in self?.resolvedApps.apps ?? [] }
+        search.alternatives = features.actions
         return search
     }
 

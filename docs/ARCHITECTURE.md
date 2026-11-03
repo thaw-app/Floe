@@ -46,6 +46,10 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
   - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
     and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the Actions menus, the catalog
     of apps and commands with its scans (`Catalog.swift`, which also holds `Paths`), and Markdown.
+  - `Actions`: the keys and the user's choices for a result's Actions menu, by kind of result (app, file, folder or
+    link). Floe's own keys for its rows (`ActionKeys.swift`, with `SubjectKind` and `KeyLayout`), the choices for one
+    kind and the rules they follow (`ActionChoices.swift`), what the launcher asks for Return, the menu and the keys
+    (`AlternativeActions.swift`), and what the Actions tab in Settings lists and writes (`ActionOptions.swift`).
   - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
   - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
     clipboard history, snippets and their expander, quicklinks, the calendar, the file search and its index of file

@@ -17,6 +17,7 @@ struct SettingsTabsTests {
         #expect(CommandsTab(entry: "commands.runtime") == .extensions)
         #expect(CommandsTab(entry: "commands.scriptsFolder") == .scripts)
         #expect(CommandsTab(entry: "commands.menuBarCommands") == .menuBar)
+        #expect(CommandsTab(entry: "commands.actionChoices") == .actions)
         #expect(CommandsTab(entry: "commands.runsShellCommands") == .builtIn)
         #expect(CommandsTab(entry: "appearance.border") == nil, "a result of another page")
     }

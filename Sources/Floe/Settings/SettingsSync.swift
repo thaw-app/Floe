@@ -41,6 +41,7 @@ enum SettingsSync {
         field("favorites", String.self, .ordered),
         field("fallbacks", String.self, .ordered),
         field("hiddenResults", String.self, .entries(only: nil)),
+        field("actionChoices", KindActions.self, .entries(only: nil)),
         field("emojiSkinTone", EmojiSkinTone.self),
         field("popToRootDelay", Int.self),
         field("rememberMenuBarQuery", Bool.self),
