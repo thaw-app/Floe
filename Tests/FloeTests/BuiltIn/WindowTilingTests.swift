@@ -105,6 +105,7 @@ struct WindowTilingTests {
         let unmovable = FakeWindow(frame: Self.onFirstScreen)
         unmovable.refusesMove = true
         #expect(WindowTiling.tile(unmovable, to: .left, screens: Self.screens) == .refused)
+        #expect(unmovable.frame == Self.onFirstScreen, "a window that won't move keeps its size")
     }
 
     @Test func aWindowOffEveryScreenGoesToTheFirst() {

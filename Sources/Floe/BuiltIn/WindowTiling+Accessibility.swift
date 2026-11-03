@@ -23,9 +23,9 @@ extension WindowTiling {
         let mainDisplayHeight = NSScreen.screens.first?.frame.height ?? 0
         let screens = NSScreen.screens.map { accessibilityArea(visibleFrame: $0.visibleFrame, mainDisplayHeight: mainDisplayHeight) }
         let pid = target.pid
-        Task.detached(priority: .userInitiated) {
+        AccessibilityWindow.queue.async {
             if let message = AccessibilityWindow.tileFocusedWindow(of: pid, to: tile, screens: screens).message {
-                await say(message)
+                Task { @MainActor in say(message) }
             }
         }
     }
@@ -34,6 +34,9 @@ extension WindowTiling {
 /// A window of another app, moved through the public Accessibility API.
 private nonisolated struct AccessibilityWindow: TilableWindow {
     private static let enhancedInterfaceAttribute = "AXEnhancedUserInterface"
+
+    /// One tile at a time, in the order they were chosen, so a quick second tile isn't undone by the first.
+    static let queue = DispatchQueue(label: "floe.window-tiling", qos: .userInitiated)
 
     let element: AXUIElement
 
@@ -49,11 +52,16 @@ private nonisolated struct AccessibilityWindow: TilableWindow {
             AXUIElementSetAttributeValue(application, enhancedInterfaceAttribute as CFString, kCFBooleanFalse)
         }
         defer {
-            if enhanced {
-                AXUIElementSetAttributeValue(application, enhancedInterfaceAttribute as CFString, kCFBooleanTrue)
+            // Screen readers rely on it in apps such as Chrome, so a write that fails is tried once more.
+            if enhanced, !restoreEnhancedInterface(of: application) {
+                _ = restoreEnhancedInterface(of: application)
             }
         }
         return WindowTiling.tile(AccessibilityWindow(element: element), to: tile, screens: screens)
+    }
+
+    private static func restoreEnhancedInterface(of application: AXUIElement) -> Bool {
+        AXUIElementSetAttributeValue(application, enhancedInterfaceAttribute as CFString, kCFBooleanTrue) == .success
     }
 
     var frame: CGRect? {

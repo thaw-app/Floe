@@ -71,7 +71,7 @@ nonisolated enum WindowTiling {
             switch self {
             case .tiled: nil
             case .noWindow: String(localized: "No window to tile", bundle: .floe, comment: "Shown when the user asks to tile a window and the app in front has none.")
-            case .fullScreen: String(localized: "A full screen window can't be tiled", bundle: .floe)
+            case .fullScreen: String(localized: "A full-screen window can't be tiled", bundle: .floe)
             case .refused: String(localized: "This window can't be moved", bundle: .floe)
             }
         }
@@ -83,7 +83,13 @@ nonisolated enum WindowTiling {
         let target = tile.frame(in: area)
         // macOS limits a window's size to the screen it is on, so a window going to a bigger screen
         // is sized again once it is there, and one going to a smaller screen is sized before it leaves.
-        guard window.resize(to: target.size), window.move(to: target.origin), window.resize(to: target.size) else { return .refused }
+        guard window.resize(to: target.size) else { return .refused }
+        guard window.move(to: target.origin), window.resize(to: target.size) else {
+            // A window that was resized but won't move goes back to its old size and place.
+            _ = window.move(to: current.origin)
+            _ = window.resize(to: current.size)
+            return .refused
+        }
         // A window with a minimum size can end up larger than the tile, so it slides back onto the screen.
         if let settled = window.frame?.size {
             let origin = onScreenOrigin(for: settled, at: target.origin, in: area)

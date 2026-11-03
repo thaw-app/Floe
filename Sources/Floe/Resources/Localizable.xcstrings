@@ -525,7 +525,7 @@
     "A follow-up in Ask AI sends that conversation’s earlier questions and answers again. Floe saves none of it." : {
       "comment" : "Ask AI is the name of the feature that answers a question in the launcher."
     },
-    "A full screen window can't be tiled" : {
+    "A full-screen window can't be tiled" : {
 
     },
     "A search that starts with a program on this Mac and has a flag, a path or a pipe in it gets a Run row under the other results." : {
