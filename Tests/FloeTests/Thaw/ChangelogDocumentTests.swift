@@ -539,7 +539,8 @@ struct ChangelogDocumentShownReleasesTests {
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("CHANGELOG.md")
         let document = try ChangelogDocument.parse(String(contentsOf: file, encoding: .utf8))
-        let releases = ChangelogDocument.displayReleases(in: document)
+        // What is waiting for the next release comes first, ahead of the newest one.
+        let releases = ChangelogDocument.displayReleases(in: document).drop { $0.version == "Unreleased" }
         #expect(releases.first?.version == "0.4.0-beta.1")
         #expect(releases.dropFirst().first?.version == "0.3.0")
         let released = try #require(releases.first { $0.version == "0.2.0" })

@@ -34,6 +34,11 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     case nowPlaying
     case pickColor
     case copyScreenText
+    case tileWindowLeft
+    case tileWindowRight
+    case tileWindowTop
+    case tileWindowBottom
+    case maximizeWindow
 
     var id: String {
         rawValue
@@ -65,6 +70,11 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .nowPlaying: return String(localized: "Now Playing", bundle: .floe, comment: "A command that shows the song that is playing and its artist.")
         case .pickColor: return String(localized: "Pick Color from Screen", bundle: .floe, comment: "A command that shows the eyedropper and copies the color under it.")
         case .copyScreenText: return String(localized: "Copy Text from Screen", bundle: .floe, comment: "A command that reads the text in a part of the screen and copies it.")
+        case .tileWindowLeft: return String(localized: "Tile Window Left", bundle: .floe, comment: "A command that moves the window in front to the left half of the screen.")
+        case .tileWindowRight: return String(localized: "Tile Window Right", bundle: .floe, comment: "A command that moves the window in front to the right half of the screen.")
+        case .tileWindowTop: return String(localized: "Tile Window Top", bundle: .floe, comment: "A command that moves the window in front to the top half of the screen.")
+        case .tileWindowBottom: return String(localized: "Tile Window Bottom", bundle: .floe, comment: "A command that moves the window in front to the bottom half of the screen.")
+        case .maximizeWindow: return String(localized: "Maximize Window", bundle: .floe, comment: "A command that makes the window in front fill the screen, without entering full screen.")
         }
     }
 
@@ -94,6 +104,11 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .nowPlaying: return "music.note"
         case .pickColor: return "eyedropper"
         case .copyScreenText: return "text.viewfinder"
+        case .tileWindowLeft: return "rectangle.lefthalf.filled"
+        case .tileWindowRight: return "rectangle.righthalf.filled"
+        case .tileWindowTop: return "rectangle.tophalf.filled"
+        case .tileWindowBottom: return "rectangle.bottomhalf.filled"
+        case .maximizeWindow: return "rectangle.fill"
         }
     }
 
@@ -123,6 +138,11 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .nowPlaying: String(localized: "what's playing, what is playing, current song, song, track, music, spotify", bundle: .floe, comment: "Words that find the Now Playing command, separated by commas.")
         case .pickColor: String(localized: "color, colour, eyedropper, color picker, hex", bundle: .floe, comment: "Words that find the Pick Color from Screen command, separated by commas.")
         case .copyScreenText: String(localized: "ocr, text from screen, read text, screenshot text, qr, scan, barcode", bundle: .floe, comment: "Words that find the Copy Text from Screen command, separated by commas.")
+        case .tileWindowLeft: String(localized: "left half, snap left, window left, window management", bundle: .floe, comment: "Words that find the Tile Window Left command, separated by commas.")
+        case .tileWindowRight: String(localized: "right half, snap right, window right, window management", bundle: .floe, comment: "Words that find the Tile Window Right command, separated by commas.")
+        case .tileWindowTop: String(localized: "top half, snap top, window top, window management", bundle: .floe, comment: "Words that find the Tile Window Top command, separated by commas.")
+        case .tileWindowBottom: String(localized: "bottom half, snap bottom, window bottom, window management", bundle: .floe, comment: "Words that find the Tile Window Bottom command, separated by commas.")
+        case .maximizeWindow: String(localized: "maximize, maximise, fullscreen, fill screen, window management", bundle: .floe, comment: "Words that find the Maximize Window command, separated by commas.")
         }
         return words.keywordList
     }
@@ -171,6 +191,14 @@ enum SystemCommand: String, CaseIterable, Identifiable {
             runAppleScript(appleScript)
             return
         }
+        if let tile {
+            WindowTiling.tileFrontWindow(to: tile, say: say)
+            return
+        }
+        performBuiltIn(say: say)
+    }
+
+    private func performBuiltIn(say: @escaping @MainActor (String) -> Void) {
         switch self {
         case .lockScreen:
             lockScreen()
