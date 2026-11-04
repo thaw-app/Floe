@@ -18,7 +18,7 @@ typealias CGSConnectionID = Int32
 typealias CGSSpaceID = Int
 
 /// The window server's tag for a kind of Space. Read from the raw number, so an unknown tag is no case.
-enum CGSSpaceType: UInt32 {
+nonisolated enum CGSSpaceType: UInt32 {
     case user = 0
     case system = 2
     case fullscreen = 4

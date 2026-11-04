@@ -112,7 +112,7 @@ struct WindowManagementTests {
     }
 
     @Test func theCommandIsToldWhetherItMayManageWindows() {
-        #expect(ExtensionSession.hostVariables([:], preferences: nil, hasAI: false, managesWindows: true)["FLOE_WINDOWS"] == "1")
-        #expect(ExtensionSession.hostVariables(["FLOE_WINDOWS": "1"], preferences: nil, hasAI: false)["FLOE_WINDOWS"] == nil)
+        #expect(ExtensionSession.hostVariables([:], preferences: nil, grants: [.windows])["FLOE_WINDOWS"] == "1")
+        #expect(ExtensionSession.hostVariables(["FLOE_WINDOWS": "1"], preferences: nil, grants: [])["FLOE_WINDOWS"] == nil)
     }
 }

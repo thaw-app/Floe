@@ -165,13 +165,21 @@ extension ExtensionSession {
     /// Tells the host whether the app is drawn light or dark, for environment.appearance.
     static let appearanceVariable = "FLOE_APPEARANCE"
 
-    /// What the host starts with: the login shell's environment, the command's preferences, whether `AI.ask`
-    /// has a tool to run on, whether what the extension reaches is recorded, and the app's appearance.
+    /// What a command may use that the app has to allow, told to it through `environment.canAccess`.
+    nonisolated struct HostGrants: OptionSet, Sendable {
+        let rawValue: Int
+        /// `AI.ask` has a tool or an API to run on.
+        static let ai = HostGrants(rawValue: 1 << 0)
+        /// Floe has Accessibility access, which `WindowManagement` needs.
+        static let windows = HostGrants(rawValue: 1 << 1)
+    }
+
+    /// What the host starts with: the login shell's environment, the command's preferences, what it may use,
+    /// whether what the extension reaches is recorded, and the app's appearance.
     static func hostVariables(
         _ base: [String: String],
         preferences: Data?,
-        hasAI: Bool,
-        managesWindows: Bool = false,
+        grants: HostGrants,
         launch: (type: String, context: [String: Any]?, fallbackText: String?) = ("userInitiated", nil, nil),
         recordsAccess: Bool = true,
         isDevelopment: Bool = false,
@@ -182,8 +190,8 @@ extension ExtensionSession {
         if let preferences {
             variables["FLOE_PREFERENCES"] = String(bytes: preferences, encoding: .utf8)
         }
-        variables["FLOE_AI"] = hasAI ? "1" : nil
-        variables["FLOE_WINDOWS"] = managesWindows ? "1" : nil
+        variables["FLOE_AI"] = grants.contains(.ai) ? "1" : nil
+        variables["FLOE_WINDOWS"] = grants.contains(.windows) ? "1" : nil
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launch.type
         variables["FLOE_LAUNCH_CONTEXT"] = CommandLauncher.data(launch.context).flatMap { String(bytes: $0, encoding: .utf8) }

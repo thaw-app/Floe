@@ -78,12 +78,15 @@ nonisolated extension WindowManagement {
 
 /// Reads windows of other apps through Accessibility, and moves one.
 private nonisolated enum WindowReader {
+    /// How long one app may take to answer a read, as in Open Windows, so a few slow apps can't hold up a list.
+    private static let readTimeout: Float = 0.25
+
     /// The focused window of the app in front, which is never Floe: its panel doesn't make Floe active.
     static func focusedWindow() -> WindowManagement.Window? {
         let ownPID = ProcessInfo.processInfo.processIdentifier
         guard let app = NSWorkspace.shared.frontmostApplication, app.processIdentifier != ownPID else { return nil }
         let application = AXUIElementCreateApplication(app.processIdentifier)
-        AXUIElementSetMessagingTimeout(application, 1)
+        AXUIElementSetMessagingTimeout(application, readTimeout)
         guard let element: AXUIElement = OpenWindows.value(application, kAXFocusedWindowAttribute) else { return nil }
         return describe(element, of: app, isActive: true)
     }
@@ -110,7 +113,10 @@ private nonisolated enum WindowReader {
 
     /// Moves, sizes or fills the screen with one window. Nil when that worked, else why not.
     static func apply(_ request: WindowManagement.BoundsRequest, desktops: [WindowManagement.Desktop]) -> String? {
-        guard let pid = owner(of: request.windowNumber) else { return noWindow(request.windowNumber) }
+        // Floe's own windows are left out of the lists, so they can't be moved either.
+        guard let pid = owner(of: request.windowNumber), pid != ProcessInfo.processInfo.processIdentifier else {
+            return noWindow(request.windowNumber)
+        }
         return AccessibilityWindow.withApplication(pid) { application in
             guard let element = elements(of: application).first(where: { number(of: $0) == request.windowNumber }) else {
                 return noWindow(request.windowNumber)
@@ -127,7 +133,11 @@ private nonisolated enum WindowReader {
                 guard let frame = window.frame, let own = WindowManagement.desktop(holding: frame, among: desktops) else {
                     return noWindow(request.windowNumber)
                 }
-                let destination = desktopID.map { id in desktops.first { $0.id == id } } ?? own
+                let destination = if let desktopID {
+                    desktops.first { $0.id == desktopID }
+                } else {
+                    own
+                }
                 guard let destination else {
                     return String(localized: "No desktop with the id \(desktopID ?? "") is shown now.", bundle: .floe, comment: "Said to an extension. The placeholder is the desktop id it gave.")
                 }
@@ -142,7 +152,7 @@ private nonisolated enum WindowReader {
     }
 
     private static func describe(_ element: AXUIElement, of app: NSRunningApplication, isActive: Bool) -> WindowManagement.Window? {
-        AXUIElementSetMessagingTimeout(element, 1)
+        AXUIElementSetMessagingTimeout(element, readTimeout)
         guard let number = number(of: element), let frame = AccessibilityWindow(element: element).frame else { return nil }
         return WindowManagement.Window(
             number: number,
@@ -159,7 +169,7 @@ private nonisolated enum WindowReader {
     /// The app's standard windows and dialogs, as Open Windows lists them.
     private static func elements(of pid: pid_t) -> [AXUIElement] {
         let application = AXUIElementCreateApplication(pid)
-        AXUIElementSetMessagingTimeout(application, 0.25)
+        AXUIElementSetMessagingTimeout(application, readTimeout)
         return elements(of: application)
     }
 

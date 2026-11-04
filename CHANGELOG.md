@@ -28,7 +28,7 @@ these four.
 ### New
 
 - **Choose what Return does on a result.** A new Actions tab in Settings › Commands sets, for apps, files, folders and links, what Return does, which of Floe's rows the Actions menu shows, and the keys that run them. Until you choose, everything works as before ([#40](https://github.com/thaw-app/Floe/issues/40)). By @MintCollector in [#68](https://github.com/thaw-app/Floe/pull/68).
-- **Tile the window in front from the search.** Tile Window Left, Right, Top and Bottom move it to that half of its screen, Maximize Window fills the screen without going full screen, and Center Window moves it to the middle of its screen at the size it has. Floe needs Accessibility access to move another app's window. By @unsecretised in [#67](https://github.com/thaw-app/Floe/pull/67).
+- **Tile the window in front from the search.** Tile Window Left, Right, Top and Bottom move it to that half of its screen, Maximize Window fills the screen without going full screen, and Center Window moves it to the middle of its screen at the size it has, shrunk to fit if it's larger than the screen. Floe needs Accessibility access to move another app's window. By @unsecretised in [#67](https://github.com/thaw-app/Floe/pull/67).
 - **Raycast extensions can manage windows.** An extension that lays out, saves or restores your windows, such as Window Layouts, can list the windows on the screen you're using and move them. Floe needs Accessibility access for it.
 
 ### Contributors

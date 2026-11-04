@@ -121,6 +121,15 @@ struct WindowTilingTests {
         #expect(unmovable.frame == Self.onFirstScreen, "a window that won't move keeps its size")
     }
 
+    @Test func aWindowThatWontMoveCanStillBeResizedInPlace() {
+        let pinned = FakeWindow(frame: Self.onFirstScreen)
+        pinned.refusesMove = true
+        let target = CGRect(origin: Self.onFirstScreen.origin, size: CGSize(width: 200, height: 200))
+        #expect(WindowTiling.place(pinned, at: target, from: Self.onFirstScreen, in: Self.screens[0]) == .tiled)
+        #expect(pinned.calls == ["resize"])
+        #expect(pinned.frame == target)
+    }
+
     @Test func aWindowOfFixedSizeIsCenteredWithoutAResize() {
         let fixed = FakeWindow(frame: Self.onFirstScreen)
         fixed.refusesResize = true

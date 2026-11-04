@@ -97,10 +97,11 @@ nonisolated enum WindowTiling {
     static func place(_ window: some TilableWindow, at target: CGRect, from current: CGRect, in area: CGRect) -> Outcome {
         // macOS limits a window's size to the screen it is on, so a window going to a bigger screen
         // is sized again once it is there, and one going to a smaller screen is sized before it leaves.
-        // A window that keeps its size isn't asked to resize, as one with a fixed size refuses that.
+        // What stays the same isn't written, as a window with a fixed size or place refuses that.
         let resizes = target.size != current.size
+        let moves = target.origin != current.origin
         guard !resizes || window.resize(to: target.size) else { return .refused }
-        guard window.move(to: target.origin), !resizes || window.resize(to: target.size) else {
+        guard !moves || (window.move(to: target.origin) && (!resizes || window.resize(to: target.size))) else {
             // A window that was resized but won't move goes back to its old size and place.
             _ = window.move(to: current.origin)
             if resizes {

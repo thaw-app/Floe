@@ -597,12 +597,11 @@ export const environment = {
   // The selection and the clipboard it always answers; an extension that asks first must hear yes.
   // BrowserExtension is read from the browser itself; a call says why when no browser Floe can read is open.
   // FLOE_WINDOWS means Floe had Accessibility access when the command started, which WindowManagement needs.
-  canAccess: (api: unknown) =>
-    api === AI || api === "AI"
-      ? process.env.FLOE_AI === "1"
-      : api === WindowManagement
-        ? process.env.FLOE_WINDOWS === "1"
-        : api === Clipboard || api === getSelectedText || api === getSelectedFinderItems || api === BrowserExtension,
+  canAccess: (api: unknown) => {
+    if (api === AI || api === "AI") return process.env.FLOE_AI === "1";
+    if (api === WindowManagement) return process.env.FLOE_WINDOWS === "1";
+    return api === Clipboard || api === getSelectedText || api === getSelectedFinderItems || api === BrowserExtension;
+  },
 };
 
 // The app starts the command, of this extension or another installed one, and answers once it has.
