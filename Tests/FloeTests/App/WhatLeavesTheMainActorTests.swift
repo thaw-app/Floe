@@ -157,6 +157,14 @@ struct WhatLeavesTheMainActorTests {
         #expect(left > 0)
     }
 
+    @Test func aWindowRequestIsAnsweredOffTheMainActor() async {
+        // Without Accessibility access it is refused at once, after it left the main actor.
+        let left = await CountingExecutor.departures {
+            _ = try? await WindowManagement.answer(.desktops)
+        }
+        #expect(left > 0)
+    }
+
     @Test func theSignInBrokerAnswersOffTheMainActor() async {
         // The same from the other side: the broker refuses what is not a sign-in request before it reads a token.
         let left = await CountingExecutor.departures {

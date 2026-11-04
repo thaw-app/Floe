@@ -77,7 +77,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | AI tools (`tools` in the manifest) | Not yet | |
 | `OAuth.PKCEClient` | Partial | Sign-in goes through Raycast's redirect service for now. GitHub and GitLab use `gh` and `glab`. `providerIcon` and `description` are not shown. |
 | `BrowserExtension` | Partial | Read through AppleScript from Safari, Dia, Helium, Chrome, Brave, Edge and Vivaldi. Other browsers are not read. Tabs have no favicon. |
-| `WindowManagement` | Not yet | Every call fails, and `environment.canAccess` says no. |
+| `WindowManagement` | Partial | Needs Accessibility access, and `environment.canAccess` says no without it. A desktop is a screen and the Space it shows now: other Spaces are not listed, and a window can't be moved to one. A window's position is measured from the top left of its desktop, below the menu bar. |
 
 ## Icons, images, colors and keyboard
 

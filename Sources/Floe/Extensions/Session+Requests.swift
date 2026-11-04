@@ -171,6 +171,7 @@ extension ExtensionSession {
         _ base: [String: String],
         preferences: Data?,
         hasAI: Bool,
+        managesWindows: Bool = false,
         launch: (type: String, context: [String: Any]?, fallbackText: String?) = ("userInitiated", nil, nil),
         recordsAccess: Bool = true,
         isDevelopment: Bool = false,
@@ -182,6 +183,7 @@ extension ExtensionSession {
             variables["FLOE_PREFERENCES"] = String(bytes: preferences, encoding: .utf8)
         }
         variables["FLOE_AI"] = hasAI ? "1" : nil
+        variables["FLOE_WINDOWS"] = managesWindows ? "1" : nil
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"
         variables["FLOE_LAUNCH_TYPE"] = launch.type
         variables["FLOE_LAUNCH_CONTEXT"] = CommandLauncher.data(launch.context).flatMap { String(bytes: $0, encoding: .utf8) }

@@ -1119,6 +1119,9 @@
     "Caution" : {
       "comment" : "The heading of a cautionary note in the release notes."
     },
+    "Center Window" : {
+      "comment" : "A command that moves the window in front to the middle of its screen, keeping its size."
+    },
     "Changed" : {
 
     },
@@ -2009,6 +2012,9 @@
     "Floe may not use Reminders. Allow it in System Settings > Privacy & Security > Reminders." : {
 
     },
+    "Floe needs Accessibility access to manage windows. Turn it on in System Settings." : {
+
+    },
     "Floe needs Accessibility to list your menu bar items" : {
       "comment" : "Accessibility is the name of a permission in System Settings."
     },
@@ -2805,6 +2811,9 @@
     "No date" : {
       "comment" : "Beside a reminder that has no due date."
     },
+    "No desktop with the id %@ is shown now." : {
+      "comment" : "Said to an extension. The placeholder is the desktop id it gave."
+    },
     "No disks to eject" : {
 
     },
@@ -2913,8 +2922,14 @@
     "No timer is running" : {
 
     },
+    "No window is active." : {
+      "comment" : "Said to an extension that asked for the active window when there is none."
+    },
     "No window to tile" : {
       "comment" : "Shown when the user asks to tile a window and the app in front has none."
+    },
+    "No window with the id %@ is open." : {
+      "comment" : "Said to an extension. The placeholder is the window id it gave."
     },
     "None" : {
       "comment" : "Shown where a file or folder would be, when none is chosen."
@@ -4569,6 +4584,9 @@
     "This window can't be moved" : {
 
     },
+    "This window can't go full screen." : {
+
+    },
     "Tile Window Bottom" : {
       "comment" : "A command that moves the window in front to the bottom half of the screen."
     },
@@ -5148,6 +5166,9 @@
     },
     "calendar, today, meetings, events, agenda, next meeting" : {
       "comment" : "Words that bring up the events of today and tomorrow when typed, separated by commas."
+    },
+    "center, centre, middle, window center, window management" : {
+      "comment" : "Words that find the Center Window command, separated by commas."
     },
     "check for updates, update, updates, automatic, upgrade, new version" : {
       "comment" : "Words that find the Automatically check for updates setting in the settings search, separated by commas."

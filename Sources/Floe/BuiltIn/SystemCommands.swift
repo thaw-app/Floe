@@ -39,6 +39,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     case tileWindowTop
     case tileWindowBottom
     case maximizeWindow
+    case centerWindow
 
     var id: String {
         rawValue
@@ -75,6 +76,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .tileWindowTop: return String(localized: "Tile Window Top", bundle: .floe, comment: "A command that moves the window in front to the top half of the screen.")
         case .tileWindowBottom: return String(localized: "Tile Window Bottom", bundle: .floe, comment: "A command that moves the window in front to the bottom half of the screen.")
         case .maximizeWindow: return String(localized: "Maximize Window", bundle: .floe, comment: "A command that makes the window in front fill the screen, without entering full screen.")
+        case .centerWindow: return String(localized: "Center Window", bundle: .floe, comment: "A command that moves the window in front to the middle of its screen, keeping its size.")
         }
     }
 
@@ -109,6 +111,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .tileWindowTop: return "rectangle.tophalf.filled"
         case .tileWindowBottom: return "rectangle.bottomhalf.filled"
         case .maximizeWindow: return "rectangle.fill"
+        case .centerWindow: return "rectangle.center.inset.filled"
         }
     }
 
@@ -143,6 +146,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .tileWindowTop: String(localized: "top half, snap top, window top, window management", bundle: .floe, comment: "Words that find the Tile Window Top command, separated by commas.")
         case .tileWindowBottom: String(localized: "bottom half, snap bottom, window bottom, window management", bundle: .floe, comment: "Words that find the Tile Window Bottom command, separated by commas.")
         case .maximizeWindow: String(localized: "maximize, maximise, fullscreen, fill screen, window management", bundle: .floe, comment: "Words that find the Maximize Window command, separated by commas.")
+        case .centerWindow: String(localized: "center, centre, middle, window center, window management", bundle: .floe, comment: "Words that find the Center Window command, separated by commas.")
         }
         return words.keywordList
     }
@@ -220,7 +224,10 @@ enum SystemCommand: String, CaseIterable, Identifiable {
             _ = flip?()
         }
     }
+}
 
+/// The system calls behind the commands.
+extension SystemCommand {
     private func lockScreen() {
         guard let handle = dlopen("/System/Library/PrivateFrameworks/login.framework/Versions/Current/login", RTLD_NOW),
               let sym = dlsym(handle, "SACLockScreenImmediate") else { return }

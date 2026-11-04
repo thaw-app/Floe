@@ -15,10 +15,12 @@ nonisolated enum WindowTile: Sendable {
     case top
     case bottom
     case maximized
+    case centered
 
     /// The part of the area this tile covers. Halves are whole points, and the right and bottom ones
     /// take what is left, so two tiles side by side meet with no gap on a screen of odd size.
-    func frame(in area: CGRect) -> CGRect {
+    /// A centered window keeps its size, shrunk to fit the area when it is larger.
+    func frame(in area: CGRect, for window: CGSize) -> CGRect {
         let halfWidth = (area.width / 2).rounded(.down)
         let halfHeight = (area.height / 2).rounded(.down)
         switch self {
@@ -32,6 +34,13 @@ nonisolated enum WindowTile: Sendable {
             return CGRect(x: area.minX, y: area.minY + halfHeight, width: area.width, height: area.height - halfHeight)
         case .maximized:
             return area
+        case .centered:
+            let size = CGSize(width: min(window.width, area.width), height: min(window.height, area.height))
+            let origin = CGPoint(
+                x: area.minX + ((area.width - size.width) / 2).rounded(.down),
+                y: area.minY + ((area.height - size.height) / 2).rounded(.down)
+            )
+            return CGRect(origin: origin, size: size)
         }
     }
 }
@@ -45,6 +54,7 @@ extension SystemCommand {
         case .tileWindowTop: .top
         case .tileWindowBottom: .bottom
         case .maximizeWindow: .maximized
+        case .centerWindow: .centered
         default: nil
         }
     }
@@ -80,14 +90,22 @@ nonisolated enum WindowTiling {
     static func tile(_ window: some TilableWindow, to tile: WindowTile, screens: [CGRect]) -> Outcome {
         guard !window.isFullScreen else { return .fullScreen }
         guard let current = window.frame, let area = area(for: current, among: screens) else { return .noWindow }
-        let target = tile.frame(in: area)
+        return place(window, at: tile.frame(in: area, for: current.size), from: current, in: area)
+    }
+
+    /// Moves and sizes the window from current to target, then keeps it on area.
+    static func place(_ window: some TilableWindow, at target: CGRect, from current: CGRect, in area: CGRect) -> Outcome {
         // macOS limits a window's size to the screen it is on, so a window going to a bigger screen
         // is sized again once it is there, and one going to a smaller screen is sized before it leaves.
-        guard window.resize(to: target.size) else { return .refused }
-        guard window.move(to: target.origin), window.resize(to: target.size) else {
+        // A window that keeps its size isn't asked to resize, as one with a fixed size refuses that.
+        let resizes = target.size != current.size
+        guard !resizes || window.resize(to: target.size) else { return .refused }
+        guard window.move(to: target.origin), !resizes || window.resize(to: target.size) else {
             // A window that was resized but won't move goes back to its old size and place.
             _ = window.move(to: current.origin)
-            _ = window.resize(to: current.size)
+            if resizes {
+                _ = window.resize(to: current.size)
+            }
             return .refused
         }
         // A window with a minimum size can end up larger than the tile, so it slides back onto the screen.

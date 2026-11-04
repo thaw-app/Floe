@@ -77,6 +77,7 @@ extension ExtensionSession {
             LoginEnvironment.current,
             preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
             hasAI: AIAnswer.isAvailable(for: command.extensionName),
+            managesWindows: AXIsProcessTrusted(),
             launch: (launchType, launchContext, fallbackText),
             recordsAccess: recordsAccess(),
             isDevelopment: Self.isUnderDevelopment(command.extensionDir),
