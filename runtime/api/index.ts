@@ -15,6 +15,7 @@ import { flushCaches } from "../cache";
 import { createLocalStorage, storagePersistence } from "../local-storage";
 import { render as mount } from "../renderer";
 import { BrowserExtension } from "./browser";
+import { WindowManagement } from "./window-management";
 import { colorNames, iconNames } from "./names";
 
 const h = React.createElement;
@@ -595,10 +596,12 @@ export const environment = {
   // The app sets FLOE_AI when AI.ask has something to answer it: an installed tool or a filled-in API.
   // The selection and the clipboard it always answers; an extension that asks first must hear yes.
   // BrowserExtension is read from the browser itself; a call says why when no browser Floe can read is open.
-  canAccess: (api: unknown) =>
-    api === AI || api === "AI"
-      ? process.env.FLOE_AI === "1"
-      : api === Clipboard || api === getSelectedText || api === getSelectedFinderItems || api === BrowserExtension,
+  // FLOE_WINDOWS means Floe had Accessibility access when the command started, which WindowManagement needs.
+  canAccess: (api: unknown) => {
+    if (api === AI || api === "AI") return process.env.FLOE_AI === "1";
+    if (api === WindowManagement) return process.env.FLOE_WINDOWS === "1";
+    return api === Clipboard || api === getSelectedText || api === getSelectedFinderItems || api === BrowserExtension;
+  },
 };
 
 // The app starts the command, of this extension or another installed one, and answers once it has.
@@ -650,7 +653,7 @@ export const AI = {
   },
 };
 export { OAuth } from "./oauth";
-export { BrowserExtension };
+export { BrowserExtension, WindowManagement };
 
 // Constants
 
@@ -730,16 +733,6 @@ export const preferences = new Proxy({} as Record<string, { value: unknown }>, {
   get: (_target, key) => ({ value: getPreferenceValues<Props>()[key as string] }),
 });
 
-// Raycast's window manager, which Floe has no counterpart for. The names are here because a missing export stops a
-// command before it runs; environment.canAccess says no, and a call says why.
-const refusing = (name: string) => (): Promise<never> => Promise.reject(new Error(`${name} isn't supported in Floe yet`));
-export const WindowManagement = {
-  DesktopType: { User: "User", FullScreen: "FullScreen" },
-  getDesktops: refusing("WindowManagement.getDesktops"),
-  getActiveWindow: refusing("WindowManagement.getActiveWindow"),
-  getWindowsOnActiveDesktop: refusing("WindowManagement.getWindowsOnActiveDesktop"),
-  setWindowBounds: refusing("WindowManagement.setWindowBounds"),
-};
 // Only types live under Tool; the value exists because Raycast exports one.
 export const Tool = {};
 

@@ -562,28 +562,28 @@ struct ExtensionSessionTests {
 
     @Test func theHostStartsWithTheShellsVariablesItsPreferencesAndWhetherAIIsThere() {
         let base = ["PATH": "/opt/homebrew/bin", "FLOE_AI": "stale"]
-        let with = ExtensionSession.hostVariables(base, preferences: Data(#"{"unit":"metric"}"#.utf8), hasAI: true)
+        let with = ExtensionSession.hostVariables(base, preferences: Data(#"{"unit":"metric"}"#.utf8), grants: [.ai])
         #expect(with == [
             "PATH": "/opt/homebrew/bin", "FLOE_PREFERENCES": #"{"unit":"metric"}"#, "FLOE_AI": "1", "FLOE_LAUNCH_TYPE": "userInitiated",
             "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1",
         ])
-        let background = ExtensionSession.hostVariables(base, preferences: nil, hasAI: false, launch: ("background", nil, nil))
+        let background = ExtensionSession.hostVariables(base, preferences: nil, grants: [], launch: ("background", nil, nil))
         #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1"])
-        let fallback = ExtensionSession.hostVariables(base, preferences: nil, hasAI: false, launch: ("userInitiated", nil, "tide"))
+        let fallback = ExtensionSession.hostVariables(base, preferences: nil, grants: [], launch: ("userInitiated", nil, "tide"))
         #expect(fallback["FLOE_FALLBACK_TEXT"] == "tide", "a command run as a fallback reads what was typed")
     }
 
     @Test func theHostIsToldNotToWatchWhileTheRecordIsOff() {
         let stale = ["PATH": "/opt/homebrew/bin", "FLOE_ACCESS": "off"]
-        let off = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: false)
+        let off = ExtensionSession.hostVariables(stale, preferences: nil, grants: [], recordsAccess: false)
         #expect(off == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "userInitiated", "FLOE_ACCESS": "off", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1"])
-        let recording = ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false, recordsAccess: true)
+        let recording = ExtensionSession.hostVariables(stale, preferences: nil, grants: [], recordsAccess: true)
         #expect(recording[ExtensionSession.accessVariable] == nil, "what the shell held is not passed on")
-        #expect(ExtensionSession.hostVariables(stale, preferences: nil, hasAI: false)[ExtensionSession.accessVariable] == nil, "recorded unless said otherwise")
+        #expect(ExtensionSession.hostVariables(stale, preferences: nil, grants: [])[ExtensionSession.accessVariable] == nil, "recorded unless said otherwise")
 
-        let installed = ExtensionSession.hostVariables(["FLOE_DEVELOPMENT": "1"], preferences: nil, hasAI: false)
+        let installed = ExtensionSession.hostVariables(["FLOE_DEVELOPMENT": "1"], preferences: nil, grants: [])
         #expect(installed["FLOE_DEVELOPMENT"] == nil, "an installed extension is not in development, whatever the app inherited")
-        #expect(ExtensionSession.hostVariables([:], preferences: nil, hasAI: false, isDevelopment: true)["FLOE_DEVELOPMENT"] == "1")
+        #expect(ExtensionSession.hostVariables([:], preferences: nil, grants: [], isDevelopment: true)["FLOE_DEVELOPMENT"] == "1")
         let checkout = URL(fileURLWithPath: "/Users/someone/floe/extensions")
         #expect(ExtensionSession.isUnderDevelopment(checkout.appendingPathComponent("hello"), developmentFolder: checkout))
         #expect(!ExtensionSession.isUnderDevelopment(URL(fileURLWithPath: "/Users/someone/Library/Application Support/Floe/Extensions/proton-pass"), developmentFolder: checkout))

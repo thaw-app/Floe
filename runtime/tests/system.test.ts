@@ -630,12 +630,6 @@ describe("what Raycast exports", () => {
     expect(exported.filter((name) => !(name in api))).toEqual([]);
   });
 
-  test("the windows are refused, with the reason", async () => {
-    expect(api.environment.canAccess(api.WindowManagement)).toBe(false);
-    await expect(api.WindowManagement.getActiveWindow()).rejects.toThrow("WindowManagement.getActiveWindow isn't supported in Floe yet");
-    expect(api.WindowManagement.DesktopType.FullScreen).toBe("FullScreen");
-  });
-
   test("the deprecated names still answer", () => {
     expect(api.unstable_AI).toBe(api.AI);
     expect(api.useUnstableAI()).toBeUndefined();

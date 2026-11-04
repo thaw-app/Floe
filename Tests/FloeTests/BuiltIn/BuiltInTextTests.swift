@@ -25,7 +25,7 @@ struct BuiltInTextTests {
             "Lock Screen", "Sleep", "Sleep Displays", "Restart", "Shut Down", "Log Out", "Empty Trash", "Toggle Dark Mode",
             "Toggle Wi-Fi", "Toggle Mute", "Volume Up", "Volume Down", "Toggle Bluetooth", "Eject All Disks", "Toggle Keep Awake", "Hide Other Apps",
             "Quit All Apps", "Quit Floe", "Play/Pause", "Next Track", "Previous Track", "Now Playing", "Pick Color from Screen", "Copy Text from Screen",
-            "Tile Window Left", "Tile Window Right", "Tile Window Top", "Tile Window Bottom", "Maximize Window",
+            "Tile Window Left", "Tile Window Right", "Tile Window Top", "Tile Window Bottom", "Maximize Window", "Center Window",
         ])
     }
 

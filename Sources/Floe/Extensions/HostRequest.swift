@@ -41,7 +41,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
         switch self {
         case .oauthAuthorize, .oauthGetTokens, .oauthSetTokens, .oauthRemoveTokens:
             true
-        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication, .applications, .browserTabs, .browserScript:
+        case .askAI, .selectedText, .selectedFinderItems, .clipboardRead, .frontmostApplication, .defaultApplication, .applications, .browserTabs, .browserScript, .windowManagement:
             false
         }
     }
@@ -63,6 +63,8 @@ nonisolated enum HostRequest: Sendable, Equatable {
     case browserTabs
     /// `BrowserExtension.getContent()`: the runtime's script for the page, run in a tab.
     case browserScript(javascript: String, tabID: Int?)
+    /// The `WindowManagement` methods: desktops, windows, and moving one.
+    case windowManagement(WindowManagement.Request)
 
     /// Nil for a method the app doesn't know, or one whose parameters are missing.
     init?(method: String, params: [String: Any]) {
@@ -110,6 +112,7 @@ nonisolated enum HostRequest: Sendable, Equatable {
     private static let families: [String: @Sendable (String, [String: Any]) -> HostRequest?] = [
         "environment": environmentRequest,
         "browser": browserRequest,
+        "windowManagement": { WindowManagement.Request(method: $0, params: $1).map(HostRequest.windowManagement) },
     ]
 
     /// The `environment.*` methods.
@@ -166,11 +169,19 @@ nonisolated enum HostRequest: Sendable, Equatable {
             return await MainActor.run { Self.defaultApplication(forFileAt: path) } as Any
         case let .applications(path):
             return Self.applications(forFileAt: path)
-        case .browserTabs:
-            return try await BrowserExtensionBridge.tabs(frontmost: frontmostBundleID(), run: AppleScript.execute)
-        case let .browserScript(javascript, tabID):
+        case .browserTabs, .browserScript:
+            return try await answerBrowser(request)
+        case let .windowManagement(request):
+            return try await WindowManagement.answer(request)
+        }
+    }
+
+    /// The `BrowserExtension` requests, answered by the browser in front.
+    private static func answerBrowser(_ request: HostRequest) async throws -> Any {
+        if case let .browserScript(javascript, tabID) = request {
             return try await BrowserExtensionBridge.run(javascript, tabID: tabID, frontmost: frontmostBundleID(), run: AppleScript.execute)
         }
+        return try await BrowserExtensionBridge.tabs(frontmost: frontmostBundleID(), run: AppleScript.execute)
     }
 
     /// The frontmost app's bundle id, which says which browser BrowserExtension reads.

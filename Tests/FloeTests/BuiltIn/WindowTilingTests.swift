@@ -48,23 +48,29 @@ struct WindowTilingTests {
         (WindowTile.top, CGRect(x: 0, y: 25, width: 1000, height: 400)),
         (WindowTile.bottom, CGRect(x: 0, y: 425, width: 1000, height: 400)),
         (WindowTile.maximized, area),
+        (WindowTile.centered, CGRect(x: 350, y: 275, width: 300, height: 300)),
     ])
     func aTileCoversItsPartOfTheScreen(tile: WindowTile, expected: CGRect) {
-        #expect(tile.frame(in: Self.area) == expected)
+        #expect(tile.frame(in: Self.area, for: Self.onFirstScreen.size) == expected)
     }
 
     @Test func tilesOnAnOddSizedScreenMeetWithNoGap() {
         let area = CGRect(x: 10, y: 20, width: 1001, height: 801)
-        #expect(WindowTile.left.frame(in: area).maxX == WindowTile.right.frame(in: area).minX)
-        #expect(WindowTile.right.frame(in: area).maxX == area.maxX)
-        #expect(WindowTile.top.frame(in: area).maxY == WindowTile.bottom.frame(in: area).minY)
-        #expect(WindowTile.bottom.frame(in: area).maxY == area.maxY)
+        #expect(WindowTile.left.frame(in: area, for: .zero).maxX == WindowTile.right.frame(in: area, for: .zero).minX)
+        #expect(WindowTile.right.frame(in: area, for: .zero).maxX == area.maxX)
+        #expect(WindowTile.top.frame(in: area, for: .zero).maxY == WindowTile.bottom.frame(in: area, for: .zero).minY)
+        #expect(WindowTile.bottom.frame(in: area, for: .zero).maxY == area.maxY)
     }
 
     @Test func aWindowEndsUpOnItsTile() {
         let window = FakeWindow(frame: Self.onFirstScreen)
         #expect(WindowTiling.tile(window, to: .right, screens: Self.screens) == .tiled)
-        #expect(window.frame == WindowTile.right.frame(in: Self.area))
+        #expect(window.frame == WindowTile.right.frame(in: Self.area, for: Self.onFirstScreen.size))
+    }
+
+    @Test func aCenteredWindowLargerThanTheScreenIsShrunkToFit() {
+        let frame = WindowTile.centered.frame(in: Self.area, for: CGSize(width: 1200, height: 300))
+        #expect(frame == CGRect(x: 0, y: 275, width: 1000, height: 300))
     }
 
     @Test func aWindowIsSizedAgainAfterItMovesSoABiggerScreenIsFilled() {
@@ -84,6 +90,13 @@ struct WindowTilingTests {
         window.minimumSize = CGSize(width: 700, height: 500)
         #expect(WindowTiling.tile(window, to: .right, screens: Self.screens) == .tiled)
         #expect(window.frame == CGRect(x: 300, y: 25, width: 700, height: 800))
+    }
+
+    @Test func aWindowIsPlacedOnAFrameItWasGiven() {
+        let window = FakeWindow(frame: Self.onFirstScreen)
+        let target = CGRect(x: 1100, y: 50, width: 640, height: 480)
+        #expect(WindowTiling.place(window, at: target, from: Self.onFirstScreen, in: Self.screens[1]) == .tiled)
+        #expect(window.frame == target)
     }
 
     @Test func aFullScreenWindowIsLeftAlone() {
@@ -108,6 +121,24 @@ struct WindowTilingTests {
         #expect(unmovable.frame == Self.onFirstScreen, "a window that won't move keeps its size")
     }
 
+    @Test func aWindowThatWontMoveCanStillBeResizedInPlace() {
+        let pinned = FakeWindow(frame: Self.onFirstScreen)
+        pinned.refusesMove = true
+        let target = CGRect(origin: Self.onFirstScreen.origin, size: CGSize(width: 200, height: 200))
+        #expect(WindowTiling.place(pinned, at: target, from: Self.onFirstScreen, in: Self.screens[0]) == .tiled)
+        #expect(pinned.calls == ["resize"])
+        #expect(pinned.frame == target)
+    }
+
+    @Test func aWindowOfFixedSizeIsCenteredWithoutAResize() {
+        let fixed = FakeWindow(frame: Self.onFirstScreen)
+        fixed.refusesResize = true
+        #expect(WindowTiling.tile(fixed, to: .centered, screens: Self.screens) == .tiled)
+        #expect(fixed.calls == ["move"])
+        #expect(fixed.frame?.size == Self.onFirstScreen.size)
+        #expect(fixed.frame?.origin != Self.onFirstScreen.origin)
+    }
+
     @Test func aWindowOffEveryScreenGoesToTheFirst() {
         let lost = CGRect(x: -5000, y: -5000, width: 100, height: 100)
         #expect(WindowTiling.area(for: lost, among: Self.screens) == Self.area)
@@ -127,13 +158,13 @@ struct WindowTilingTests {
 
     @Test func onlyTheWindowCommandsTile() {
         let tiling = SystemCommand.allCases.filter { $0.tile != nil }
-        #expect(Set(tiling) == [.tileWindowLeft, .tileWindowRight, .tileWindowTop, .tileWindowBottom, .maximizeWindow])
+        #expect(Set(tiling) == [.tileWindowLeft, .tileWindowRight, .tileWindowTop, .tileWindowBottom, .maximizeWindow, .centerWindow])
         #expect(tiling.allSatisfy { $0.confirmation == nil }, "a tile is undone by choosing another")
     }
 
     @Test(arguments: [
         ("left half", "system:tileWindowLeft"), ("snap right", "system:tileWindowRight"), ("top half", "system:tileWindowTop"),
-        ("bottom half", "system:tileWindowBottom"), ("fullscreen", "system:maximizeWindow"),
+        ("bottom half", "system:tileWindowBottom"), ("fullscreen", "system:maximizeWindow"), ("center", "system:centerWindow"),
     ])
     func aWindowCommandIsFoundByWhatPeopleCallIt(query: String, id: String) {
         let results = Ranking.search(

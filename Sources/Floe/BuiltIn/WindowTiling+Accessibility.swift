@@ -32,19 +32,26 @@ extension WindowTiling {
 }
 
 /// A window of another app, moved through the public Accessibility API.
-private nonisolated struct AccessibilityWindow: TilableWindow {
+nonisolated struct AccessibilityWindow: TilableWindow {
     private static let enhancedInterfaceAttribute = "AXEnhancedUserInterface"
 
-    /// One tile at a time, in the order they were chosen, so a quick second tile isn't undone by the first.
+    /// One move at a time, in the order they were asked for, so a quick second tile isn't undone by the first.
     static let queue = DispatchQueue(label: "floe.window-tiling", qos: .userInitiated)
 
     let element: AXUIElement
 
     static func tileFocusedWindow(of pid: pid_t, to tile: WindowTile, screens: [CGRect]) -> WindowTiling.Outcome {
+        withApplication(pid) { application in
+            guard let element: AXUIElement = OpenWindows.value(application, kAXFocusedWindowAttribute) else { return .noWindow }
+            AXUIElementSetMessagingTimeout(element, 1)
+            return WindowTiling.tile(AccessibilityWindow(element: element), to: tile, screens: screens)
+        }
+    }
+
+    /// Runs body with the app's element, which answers within a second, while its enhanced interface is off.
+    static func withApplication<T>(_ pid: pid_t, _ body: (AXUIElement) -> T) -> T {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 1)
-        guard let element: AXUIElement = OpenWindows.value(application, kAXFocusedWindowAttribute) else { return .noWindow }
-        AXUIElementSetMessagingTimeout(element, 1)
         // While this is on, as it is for assistive tools, some apps animate a change of frame and
         // lose the second half of it, so it is off for the move.
         let enhanced: Bool = OpenWindows.value(application, enhancedInterfaceAttribute) ?? false
@@ -57,7 +64,7 @@ private nonisolated struct AccessibilityWindow: TilableWindow {
                 _ = restoreEnhancedInterface(of: application)
             }
         }
-        return WindowTiling.tile(AccessibilityWindow(element: element), to: tile, screens: screens)
+        return body(application)
     }
 
     private static func restoreEnhancedInterface(of application: AXUIElement) -> Bool {

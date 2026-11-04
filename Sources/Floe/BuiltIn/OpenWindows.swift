@@ -40,7 +40,7 @@ nonisolated enum WindowRow: Sendable {
 nonisolated enum OpenWindows {
     static let keyword = "windows"
     /// The kinds of window a person switches to; panels, sheets and popovers are left out.
-    private static let listedSubroles: Set = ["AXStandardWindow", "AXDialog"]
+    static let listedSubroles: Set = ["AXStandardWindow", "AXDialog"]
 
     /// Asks every app that has a Dock icon for its windows, all at once and off the main thread, as the menu bar scan does.
     static func scan() -> [OpenWindow] {
