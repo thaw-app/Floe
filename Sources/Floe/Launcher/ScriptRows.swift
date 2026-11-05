@@ -24,24 +24,27 @@ final class ScriptRows {
     var showOutput: (_ title: String, _ output: String) -> Void = { ScriptOutputWindow.show(title: $0, output: $1) }
 
     /// Runs a script searched for, with the given argv. A script that acts on results runs only on one, from
-    /// `run(_:on:)`: started without it, from a hotkey or a link, it would be told nothing of what to act on.
+    /// `run(_:on:)`: started without it, from a link or a Shortcut, it would be told nothing of what to act on.
     func run(_ script: ScriptCommand, argumentStrings: [String] = []) {
-        guard script.subjects.isEmpty else { return }
-        start(script, argumentStrings: argumentStrings, countsUse: true) { [:] }
+        guard script.subjects.isEmpty else {
+            host.showHUD(String(localized: "\(script.title) runs on a result, from its Actions menu", bundle: .floe, comment: "Shown when a link asks for a script that acts on results. The placeholder is the name of the script."))
+            return
+        }
+        start(script, argumentStrings: argumentStrings) { [:] }
     }
 
     /// Runs a script on the result it acts on. `environment` says what the result is; it is worked out once the
-    /// script is under way, so what it reads from the disk never holds up the launcher. A script that acts on
-    /// results is never searched for, so its use ranks nothing and is not counted.
+    /// script is under way, so what it reads from the disk never holds up the launcher.
     func run(_ script: ScriptCommand, on environment: @escaping @Sendable () async -> [String: String]) {
-        start(script, argumentStrings: [], countsUse: false, environment: environment)
+        start(script, argumentStrings: [], environment: environment)
     }
 
     /// Output follows the script's mode: a window for fullOutput, a HUD for compact and inline, nothing for silent.
-    /// Failures show a HUD with the last stderr line. A run is counted as a use once it is confirmed.
-    private func start(_ script: ScriptCommand, argumentStrings: [String], countsUse: Bool, environment: @escaping @Sendable () async -> [String: String]) {
+    /// Failures show a HUD with the last stderr line. A run is counted as a use once it is confirmed, unless the
+    /// script acts on results: it is never searched for, so its use would rank nothing.
+    private func start(_ script: ScriptCommand, argumentStrings: [String], environment: @escaping @Sendable () async -> [String: String]) {
         guard !script.needsConfirmation || confirms(script) else { return }
-        if countsUse {
+        if script.subjects.isEmpty {
             recordUse(RootItem.script(script).id)
         }
         host.leave()

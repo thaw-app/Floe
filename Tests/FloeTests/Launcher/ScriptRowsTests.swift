@@ -107,10 +107,10 @@ struct ScriptRowsTests {
         rows.run(action)
         try? await Task.sleep(for: .milliseconds(50))
         #expect(asked.left == 0)
-        #expect(asked.huds.isEmpty)
+        #expect(asked.huds == ["Deploy runs on a result, from its Actions menu"], "it says why nothing ran")
         rows.run(action) { ["FLOE_PATH": "/tmp/notes.txt"] }
-        await settle { !asked.huds.isEmpty }
-        #expect(asked.huds == ["ran"])
+        await settle { asked.huds.count == 2 }
+        #expect(asked.huds.last == "ran")
         #expect(asked.used.isEmpty, "a script never searched for ranks nothing")
     }
 

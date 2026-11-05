@@ -33,6 +33,8 @@ nonisolated enum ScriptParseError: Error, LocalizedError, Sendable, Hashable {
     case invalidArgument(Int)
     /// `@floe.subjects` names something that is not a kind of result.
     case unknownSubject(String)
+    /// `@floe.subjects` is there but names nothing, so the script would quietly be searched for instead.
+    case noSubjects
     /// A script that acts on results is run from the Actions menu, where nothing can be typed for an argument.
     case actionNeedsArgument(Int)
 
@@ -52,6 +54,8 @@ nonisolated enum ScriptParseError: Error, LocalizedError, Sendable, Hashable {
             String(localized: "@raycast.argument\(index) isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}.", bundle: .floe, comment: "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument.")
         case let .unknownSubject(name):
             String(localized: "Unknown @floe.subjects \(name). Use app, file, folder or url.", bundle: .floe, comment: "The word that starts with @floe and the four kinds are typed into a script as they are, and the placeholder is the word the script names.")
+        case .noSubjects:
+            String(localized: "@floe.subjects names no kind of result. Use app, file, folder or url.", bundle: .floe, comment: "The word that starts with @floe and the four kinds are typed into a script as they are.")
         case let .actionNeedsArgument(index):
             String(localized: "@raycast.argument\(index) is required, but a script with @floe.subjects runs from the Actions menu, where nothing is typed. Add \"optional\": true.", bundle: .floe, comment: "The words that start with @raycast and @floe and the text in quotes are typed into a script as they are, and the placeholder is the number of the argument.")
         }
@@ -75,6 +79,10 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
     var id: String {
         "script/\(file.lastPathComponent)"
     }
+
+    /// What the script's result id starts with, its file's name after it. Its row in an Actions menu has the same
+    /// id, which the user's choices are kept under.
+    static let itemPrefix = "script:"
 
     var displayPackage: String {
         packageName ?? String(localized: "Script Command", bundle: .floe, comment: "What a script command is called where it names no package.")
@@ -148,8 +156,9 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
     /// The kinds of result a `@floe.subjects` line names. A script that acts on results is run from the Actions menu,
     /// where nothing is typed, so it cannot need an argument.
     private static func actionSubjects(_ line: String?, firstRequired: Int?) -> Result<Set<SubjectKind>, ScriptParseError> {
-        SubjectKind.list(line ?? "").flatMap { kinds in
-            guard let firstRequired, !kinds.isEmpty else { return .success(kinds) }
+        guard let line else { return .success([]) }
+        return SubjectKind.list(line).flatMap { kinds in
+            guard let firstRequired else { return .success(kinds) }
             return .failure(.actionNeedsArgument(firstRequired))
         }
     }

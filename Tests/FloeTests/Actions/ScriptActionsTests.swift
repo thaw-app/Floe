@@ -37,7 +37,6 @@ struct ScriptActionsTests {
 
     @Test func aScriptWithoutTheLineIsSearchedFor() throws {
         #expect(try parse().get().subjects.isEmpty)
-        #expect(try parse("# @floe.subjects").get().subjects.isEmpty, "an empty line names nothing")
     }
 
     @Test func floeLinesAreNotRaycasts() throws {
@@ -48,6 +47,12 @@ struct ScriptActionsTests {
 
     @Test func anUnknownKindIsRefused() throws {
         #expect(throws: ScriptParseError.unknownSubject("photo")) { try parse("# @floe.subjects app, photo").get() }
+    }
+
+    /// Left empty, the line would quietly leave the script in the search, with nothing in Settings to say why.
+    @Test func aLineThatNamesNoKindIsRefused() throws {
+        #expect(throws: ScriptParseError.noSubjects) { try parse("# @floe.subjects").get() }
+        #expect(throws: ScriptParseError.noSubjects) { try parse("# @floe.subjects , ,").get() }
     }
 
     @Test func anActionCannotNeedAnArgument() throws {
@@ -147,6 +152,34 @@ struct ScriptActionsTests {
         #expect(facts.bundleIdentifier == nil)
         let folder = await SubjectFacts.read(ActionSubject(kind: .folder, name: "tmp", url: file.deletingLastPathComponent()))
         #expect(folder.size == nil, "a folder's size would mean adding up all it holds")
+    }
+
+    /// A symbolic link's kind is that of what it points at, and so are the facts a script is told.
+    @Test func aLinkedFileIsReadThroughItsLink() async throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-target-\(UUID().uuidString).txt")
+        let link = FileManager.default.temporaryDirectory.appendingPathComponent("floe-link-\(UUID().uuidString).txt")
+        try Data("hello there".utf8).write(to: file)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: file)
+        defer {
+            try? FileManager.default.removeItem(at: link)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let facts = await SubjectFacts.read(ActionSubject(kind: .file, name: link.lastPathComponent, url: link))
+        #expect(facts.size == 11)
+        #expect(facts.contentType == .plainText)
+    }
+
+    /// A hotkey left on a script that now acts on results runs nothing, and would keep its keys from every row.
+    @Test func hotkeysLeftOnActionScriptsAreTakenOff() {
+        let settings = AppSettings(defaults: MemoryDefaults())
+        let action = script("Upload", file: "upload.sh", on: [.file])
+        let searched = script("Deploy", file: "deploy.sh", on: [])
+        let left = KeyCombination(key: .j, modifiers: [.command, .shift])
+        let kept = KeyCombination(key: .l, modifiers: [.command, .shift])
+        settings.commandHotkeys = [action.id: left, searched.id: kept]
+        settings.dropHotkeys(of: [action])
+        #expect(settings.commandHotkeys == [searched.id: kept])
+        #expect(!settings.floeHotkeys.contains(left), "so a row can have the keys again")
     }
 
     // MARK: - Where the launcher offers it

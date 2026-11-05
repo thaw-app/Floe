@@ -87,14 +87,16 @@ final class AlternativeActions {
     /// A result's rows with their keys: the view's own, then the user's scripts that act on its kind. Each view
     /// builds its rows here, so wherever a row has keys, the scripts are on offer to Return, the menu and keys too.
     func rows(_ own: [ItemAction?], for item: RootItem) -> [ItemAction?] {
-        let keys = keys(for: item)
-        guard let kind = kind(of: item), let subject = ActionSubject.of(item, kind: kind) else { return keys.keyed(own) }
-        let scripts = host.scripts().filter { $0.subjects.contains(kind) }.map { script -> ItemAction? in
+        let kind = kind(of: item)
+        let scripts = scripts(on: kind)
+        let keys = keys(of: kind, scripts: scripts)
+        guard !scripts.isEmpty, let kind, let subject = ActionSubject.of(item, kind: kind) else { return keys.keyed(own) }
+        let scriptRows = scripts.map { script -> ItemAction? in
             ItemAction(title: script.title, symbol: "terminal", id: script.actionID) { [host] in
                 host.runScript(script, subject)
             }
         }
-        return keys.keyed(scripts.isEmpty ? own : own + [nil] + scripts)
+        return keys.keyed(own + [nil] + scriptRows)
     }
 
     /// The keys on a result's rows: Floe's for its kind, with the keys the user chose laid over them.
@@ -104,8 +106,16 @@ final class AlternativeActions {
 
     /// The keys on the rows of a kind of result, as `keys(for:)` gives them on a result of that kind.
     func keys(of kind: SubjectKind?) -> ActionKeys {
-        let scripts = kind.map { kind in Set(host.scripts().filter { $0.subjects.contains(kind) }.map(\.actionID)) } ?? []
-        return ActionKeys.inForce(for: kind, choices: choices(of: kind), hotkeys: host.hotkeys(), scripts: scripts)
+        keys(of: kind, scripts: scripts(on: kind))
+    }
+
+    private func keys(of kind: SubjectKind?, scripts: [ScriptCommand]) -> ActionKeys {
+        ActionKeys.inForce(for: kind, choices: choices(of: kind), hotkeys: host.hotkeys(), scripts: Set(scripts.map(\.actionID)))
+    }
+
+    /// The user's scripts that act on a kind of result; none on a result with no kind.
+    private func scripts(on kind: SubjectKind?) -> [ScriptCommand] {
+        kind.map { host.scripts().acting(on: $0) } ?? []
     }
 
     // MARK: - Working it out

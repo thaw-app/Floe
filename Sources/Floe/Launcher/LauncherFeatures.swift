@@ -233,7 +233,7 @@ final class LauncherFeatures {
                 return state.finalize()
             },
             hotkeys: { model?.settings.floeHotkeys ?? [] },
-            scripts: { model?.catalog.allScripts ?? [] },
+            scripts: { model?.catalog.actionScripts ?? [] },
             // What the disk says about the result is read when the script runs, not each time the menu is built, and
             // off the main actor. The query is the search on screen: File Search has a field of its own.
             runScript: { [scripts] script, subject in

@@ -116,18 +116,20 @@ nonisolated struct SubjectFacts: Equatable, Sendable {
 extension SubjectFacts {
     /// Reads what the disk says about the result, off the main actor: a file on a slow or sleeping volume can
     /// take a while to answer. `process` is the app's, read on the main actor first. A link has nothing to read.
+    /// A symbolic link is read through, as its kind is: what it points at is what the script acts on.
     @concurrent
     static func read(_ subject: ActionSubject, process: AppProcess? = nil) async -> SubjectFacts {
         guard subject.kind != .url else { return SubjectFacts() }
+        let target = subject.url.resolvingSymlinksInPath()
         let keys: Set<URLResourceKey> = [.contentTypeKey, .fileSizeKey, .creationDateKey, .contentModificationDateKey]
-        let values = try? subject.url.resourceValues(forKeys: keys)
+        let values = try? target.resourceValues(forKeys: keys)
         var facts = SubjectFacts(
             contentType: values?.contentType,
             size: subject.kind == .file ? values?.fileSize : nil,
             created: values?.creationDate,
             modified: values?.contentModificationDate
         )
-        if subject.kind == .app, let bundle = Bundle(url: subject.url) {
+        if subject.kind == .app, let bundle = Bundle(url: target) {
             facts.bundleIdentifier = bundle.bundleIdentifier
             facts.version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             facts.build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
@@ -155,14 +157,14 @@ nonisolated extension SubjectKind {
             }
             kinds.insert(kind)
         }
-        return .success(kinds)
+        return kinds.isEmpty ? .failure(.noSubjects) : .success(kinds)
     }
 }
 
 extension ScriptCommand {
     /// The id the script has as a row of an Actions menu, which the user's choices are kept under.
     var actionID: ActionID {
-        ActionID(rawValue: ActionID.scriptPrefix + file.lastPathComponent)
+        ActionID(rawValue: RootItem.script(self).id)
     }
 
     /// The kinds the script acts on, as the Scripts tab lists it: "Actions on Apps and Files".
@@ -174,11 +176,8 @@ extension ScriptCommand {
 }
 
 extension ActionID {
-    /// What a script's id starts with: the rest is its file's name.
-    static let scriptPrefix = "script:"
-
     var isScript: Bool {
-        rawValue.hasPrefix(Self.scriptPrefix)
+        rawValue.hasPrefix(ScriptCommand.itemPrefix)
     }
 }
 
@@ -189,5 +188,12 @@ extension KindActions {
         var kept = self
         kept.shortcuts = shortcuts.filter { !$0.key.isScript || offered.contains($0.key) }
         return kept
+    }
+}
+
+extension [ScriptCommand] {
+    /// The scripts that act on a kind of result.
+    func acting(on kind: SubjectKind) -> [ScriptCommand] {
+        filter { $0.subjects.contains(kind) }
     }
 }

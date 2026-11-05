@@ -126,7 +126,7 @@ enum RootItem: Identifiable {
         case let .app(app): "app:\(app.url.path)"
         case let .command(command): "command:\(command.id)"
         case let .fallbackCommand(command, _): "fallback-command:\(command.id)"
-        case let .script(script): "script:\(script.file.lastPathComponent)"
+        case let .script(script): ScriptCommand.itemPrefix + script.file.lastPathComponent
         case .menuBarSearch: Self.menuBarSearchKey
         case .menuItemSearch: Self.menuItemSearchKey
         case .emojiSearch: Self.emojiSearchKey

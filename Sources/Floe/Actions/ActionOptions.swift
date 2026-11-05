@@ -23,7 +23,7 @@ extension ActionOption {
     /// The user's scripts that act on the kind come after Floe's rows, as the menu has them.
     static func rows(for kind: SubjectKind, roleApps: [RoleApp], scripts: [ScriptCommand] = []) -> [ActionOption] {
         floeRows(for: kind, roleApps: roleApps)
-            + scripts.filter { $0.subjects.contains(kind) }.map { ActionOption(id: $0.actionID, title: $0.title) }
+            + scripts.acting(on: kind).map { ActionOption(id: $0.actionID, title: $0.title) }
     }
 
     private static func floeRows(for kind: SubjectKind, roleApps: [RoleApp]) -> [ActionOption] {

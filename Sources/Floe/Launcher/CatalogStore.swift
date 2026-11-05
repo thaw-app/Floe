@@ -25,6 +25,15 @@ final class CatalogStore: ObservableObject {
     }
     /// Goes up each time the scripts change, so a cache can tell they did without comparing them.
     private(set) var scriptsChanges = 0
+    /// The scripts searched for by their titles, which hotkeys and links can run.
+    var searchedScripts: [ScriptCommand] {
+        allScripts.filter(\.subjects.isEmpty)
+    }
+
+    /// The scripts with a `@floe.subjects` line: rows of the Actions menus of the results they act on.
+    var actionScripts: [ScriptCommand] {
+        allScripts.filter { !$0.subjects.isEmpty }
+    }
     /// Files in the Scripts folder that failed to parse, for the settings pane.
     @Published private(set) var scriptFailures: [ScriptFailure] = []
     /// True until apps, commands and scripts have each been scanned once, and while one of them is scanned again,
@@ -161,6 +170,7 @@ final class CatalogStore: ObservableObject {
         markLoaded(.scripts)
         guard !isSame else { return }
         allScripts = scan.commands
+        settings.dropHotkeys(of: actionScripts)
         scriptFailures = scan.failures
         onChange(.scripts)
     }
