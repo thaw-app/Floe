@@ -91,7 +91,7 @@ final class FileSearchModel: ObservableObject {
     /// menu: a row the menu leaves out still runs by its keys.
     private func rows(for file: FileResult) -> [ItemAction?] {
         let actionHost = ActionHost(showHUD: host.showHUD, dismiss: host.dismiss, preferredApps: preferredApps())
-        return alternatives.rows(rowKeys(for: file).keyed(FileActions.actions(for: file.url, host: actionHost)), for: .file(file))
+        return alternatives.rows(FileActions.actions(for: file.url, host: actionHost), for: .file(file))
     }
 
     /// The panel's keys while this search is on screen. Returns true when the key was consumed.

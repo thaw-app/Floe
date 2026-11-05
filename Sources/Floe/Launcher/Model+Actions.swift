@@ -121,7 +121,7 @@ extension LauncherModel {
                 self?.hideFromSearch(item)
             })
         }
-        return rowKeys(for: item).keyed(actions)
+        return actions
     }
 
     /// Keeps the search that just opened something, unless the user switched that off.

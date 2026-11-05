@@ -221,6 +221,7 @@ final class LauncherFeatures {
             },
             // Hide is on offer only while an app runs and is in sight, and Quit, Restart and Force Quit while it runs.
             // The Favorites row is named after what it will do, and an Open in row after the app chosen for its role.
+            // A script chosen for Return can be renamed, or stop acting on the kind, while the result stays selected.
             offerState: { item in
                 var state = Hasher()
                 state.combine(model?.isFavorite(item) == true)
@@ -228,6 +229,7 @@ final class LauncherFeatures {
                     state.combine(running.isHidden ? 2 : 1)
                 }
                 state.combine(model?.resolvedApps.apps)
+                state.combine(model?.catalog.scriptsChanges)
                 return state.finalize()
             },
             hotkeys: { model?.settings.floeHotkeys ?? [] },

@@ -64,17 +64,7 @@ final class AlternativeActions {
     /// What Return does on a result, when it is not Floe's own.
     func returnTitle(for item: RootItem) -> String? {
         guard let choices = choices(for: item), !choices.defaults.isEmpty else { return nil }
-        // A script chosen for Return can be renamed, or stop acting on the kind, while the result stays selected.
-        // Only what the title can come from is hashed: this is asked on every draw of the bottom bar.
-        var hasher = Hasher()
-        hasher.combine(host.offerState(item))
-        if let kind = kind(of: item) {
-            for script in host.scripts() where script.subjects.contains(kind) {
-                hasher.combine(script.actionID)
-                hasher.combine(script.title)
-            }
-        }
-        let state = hasher.finalize()
+        let state = host.offerState(item)
         if let lastTitle, lastTitle.id == item.id, lastTitle.choices == choices, lastTitle.state == state {
             return lastTitle.title
         }
@@ -94,19 +84,17 @@ final class AlternativeActions {
         return [returnRow] + AlternativeActionRules.arranged(rows, own: own, primaryID: primary?.id, choices: choices)
     }
 
-    /// A result's rows, then the user's scripts that act on its kind with their keys. Each view's rows are built
-    /// through here, the launcher's in `floeActions(for:)`, so a script is on offer to Return, the menu and keys
-    /// wherever Floe's own rows are.
-    func rows(_ rows: [ItemAction?], for item: RootItem) -> [ItemAction?] {
-        guard let kind = kind(of: item) else { return rows }
-        let scripts = host.scripts().filter { $0.subjects.contains(kind) }
-        guard !scripts.isEmpty, let subject = ActionSubject.of(item, kind: kind) else { return rows }
-        let scriptRows = scripts.map { script -> ItemAction? in
+    /// A result's rows with their keys: the view's own, then the user's scripts that act on its kind. Each view
+    /// builds its rows here, so wherever a row has keys, the scripts are on offer to Return, the menu and keys too.
+    func rows(_ own: [ItemAction?], for item: RootItem) -> [ItemAction?] {
+        let keys = keys(for: item)
+        guard let kind = kind(of: item), let subject = ActionSubject.of(item, kind: kind) else { return keys.keyed(own) }
+        let scripts = host.scripts().filter { $0.subjects.contains(kind) }.map { script -> ItemAction? in
             ItemAction(title: script.title, symbol: "terminal", id: script.actionID) { [host] in
                 host.runScript(script, subject)
             }
         }
-        return rows + [nil] + keys(of: kind).keyed(scriptRows)
+        return keys.keyed(scripts.isEmpty ? own : own + [nil] + scripts)
     }
 
     /// The keys on a result's rows: Floe's for its kind, with the keys the user chose laid over them.

@@ -20,7 +20,11 @@ final class CatalogStore: ObservableObject {
     /// Every command found, including those of disabled extensions; the settings window lists these.
     @Published private(set) var allCommands: [ExtensionCommand] = []
     /// Every script command found in the Scripts folder.
-    @Published private(set) var allScripts: [ScriptCommand] = []
+    @Published private(set) var allScripts: [ScriptCommand] = [] {
+        didSet { scriptsChanges &+= 1 }
+    }
+    /// Goes up each time the scripts change, so a cache can tell they did without comparing them.
+    private(set) var scriptsChanges = 0
     /// Files in the Scripts folder that failed to parse, for the settings pane.
     @Published private(set) var scriptFailures: [ScriptFailure] = []
     /// True until apps, commands and scripts have each been scanned once, and while one of them is scanned again,
