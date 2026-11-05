@@ -331,7 +331,7 @@ final class AppSettings: ObservableObject {
         clipboardURL = stored.clipboardURL ?? ""
         menuBarItemNames = stored.menuBarItemNames ?? [:]
         showInDock = stored.showInDock ?? false
-        settingsTheme = stored.settingsTheme ?? settingsTheme
+        settingsTheme = stored.settingsTheme ?? .system
         hasSeenOnboarding = stored.hasSeenOnboarding ?? false
         applyAppearance(stored)
         aiSource = stored.aiSource ?? aiSource

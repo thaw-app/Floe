@@ -11,6 +11,8 @@ import Synchronization
 /// What was worked out for a key, kept for a while: the search asks at every key, and the answer costs a walk of the disk or a program run.
 final nonisolated class TimedCache<Key: Hashable & Sendable, Value: Sendable>: Sendable {
     private let kept = Mutex<[Key: (taken: Date, value: Value)]>([:])
+    /// Counts the times everything was forgotten, so a value made before then is not kept after.
+    private let forgotten = Mutex(0)
 
     /// The value for the key, made now when there is none or the one kept is older than `lifetime`.
     func value(for key: Key, lasting lifetime: TimeInterval = .infinity, now: Date = Date(), make: () -> Value) -> Value {
@@ -27,8 +29,17 @@ final nonisolated class TimedCache<Key: Hashable & Sendable, Value: Sendable>: S
         if let value = kept(for: key, lasting: lifetime, now: now) {
             return value
         }
+        let round = forgotten.withLock { $0 }
         let value = await make()
-        kept.withLock { $0[key] = (now, value) }
+        // A cancelled wait may have made nothing, and one asked later may have finished first.
+        guard !Task.isCancelled else { return value }
+        forgotten.withLock { forgotten in
+            kept.withLock { kept in
+                if forgotten == round, kept[key].map({ $0.taken <= now }) ?? true {
+                    kept[key] = (now, value)
+                }
+            }
+        }
         return value
     }
 
@@ -39,6 +50,9 @@ final nonisolated class TimedCache<Key: Hashable & Sendable, Value: Sendable>: S
     }
 
     func forget() {
-        kept.withLock { $0.removeAll() }
+        forgotten.withLock { forgotten in
+            forgotten += 1
+            kept.withLock { $0.removeAll() }
+        }
     }
 }
