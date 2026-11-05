@@ -230,4 +230,42 @@ struct ScriptActionsTests {
         #expect(ActionOption.rows(for: .url, roleApps: [], scripts: scripts).last?.title == "Shorten")
         #expect(scripts[0].actsOnLabel == "Actions on Apps and Files")
     }
+
+    /// Return on a file, through the launcher as it is wired, runs a real script that writes down what it was told.
+    @Test func returnRunsAChosenScriptOnAFileForReal() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-action-run-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let report = folder.appendingPathComponent("told.txt")
+        let script = folder.appendingPathComponent("tell.sh")
+        try """
+        #!/bin/sh
+        # @raycast.schemaVersion 1
+        # @raycast.title Tell
+        # @raycast.mode silent
+        # @floe.subjects file
+        printf '%s\\n' "$FLOE_SUBJECT" "$FLOE_NAME" "$FLOE_PARENT" "$FLOE_EXTENSION" "$FLOE_SIZE" "$FLOE_CONTENT_TYPE" "$FLOE_QUERY" > '\(report.path)'
+        """.write(to: script, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        let file = folder.appendingPathComponent("notes.txt")
+        try Data("twelve bytes".utf8).write(to: file)
+
+        let command = try ScriptCommand.parse(file: script).get()
+        let settings = AppSettings(defaults: MemoryDefaults())
+        var choices = KindActions()
+        choices.defaults = [command.actionID]
+        settings.actionChoices = [SubjectKind.file.rawValue: choices]
+        let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [], scripts: [command]))
+        model.query = "notes"
+        let item = RootItem.file(FileResult(url: file, name: "notes.txt", displayPath: folder.path, contentType: nil, lastUsed: nil))
+
+        #expect(model.primaryActionTitle(for: item) == "Tell")
+        model.activate(item)
+        for _ in 0 ..< 200 where !FileManager.default.fileExists(atPath: report.path) {
+            try await Task.sleep(for: .milliseconds(25))
+        }
+        let told = try String(contentsOf: report, encoding: .utf8).split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        let parent = folder.standardizedFileURL.path(percentEncoded: false).replacing(/\/$/, with: "")
+        #expect(told.prefix(7) == ["file", "notes.txt", parent, "txt", "12", "public.plain-text", "notes"])
+    }
 }
