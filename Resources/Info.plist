@@ -39,7 +39,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>7</string>
+	<string>8</string>
 	<key>FloeLinks</key>
 	<dict>
 		<key>audioPriorityBar</key>
@@ -86,6 +86,8 @@
 		<string>https://github.com/swiftlang/swift-cmark</string>
 		<key>swiftCollections</key>
 		<string>https://github.com/apple/swift-collections</string>
+		<key>swiftHTTPTypes</key>
+		<string>https://github.com/apple/swift-http-types</string>
 		<key>swiftMarkdown</key>
 		<string>https://github.com/swiftlang/swift-markdown</string>
 		<key>swiftNumerics</key>

@@ -43,7 +43,7 @@ struct ProcessesTests {
         scope.running = { [notch, thaw, finder] in [notch, thaw, finder] }
         let onMain = Mutex<Bool?>(nil)
         scope.listening = { port in
-            onMain.withLock { $0 = Thread.isMainThread }
+            onMain.withLock { $0 = pthread_main_np() != 0 }
             return port == 3000 ? [400] : []
         }
         #expect(scope.text(in: SearchContext(query: "port 3000")) == "3000")
@@ -60,7 +60,26 @@ struct ProcessesTests {
         #expect(onMain.withLock { $0 } == false)
         let unasked = scope.updates(for: "x", context: SearchContext(query: "port x"))
         #expect(unasked == nil)
-        #expect(Processes.listening(on: 1).isEmpty, "nothing listens on port 1, and asking is safe")
+        #expect(await Processes.listening(on: 1).isEmpty, "nothing listens on port 1, and asking is safe")
+    }
+
+    @Test func lsofFindsThisProcessListeningOnAPortOfItsOwn() async throws {
+        let listener = socket(AF_INET, SOCK_STREAM, 0)
+        try #require(listener >= 0)
+        defer { close(listener) }
+        var address = sockaddr_in()
+        address.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        address.sin_family = sa_family_t(AF_INET)
+        address.sin_addr.s_addr = inet_addr("127.0.0.1")
+        var length = socklen_t(MemoryLayout<sockaddr_in>.size)
+        // Port 0 lets the system pick a free one, read back after.
+        let bound = withUnsafeMutablePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { bind(listener, $0, length) == 0 && getsockname(listener, $0, &length) == 0 }
+        }
+        try #require(bound && listen(listener, 1) == 0)
+        let port = Int(UInt16(bigEndian: address.sin_port))
+        Processes.forget()
+        #expect(await Processes.listening(on: port).contains(getpid()))
     }
 
     @Test func thoseNamedSoComeFirstThenThoseThatOnlyRunFromThere() {

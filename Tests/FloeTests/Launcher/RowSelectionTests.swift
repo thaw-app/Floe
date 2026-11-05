@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
 @testable import Floe
 import Foundation
 import Testing
@@ -90,5 +91,31 @@ struct RowSelectionTests {
         model.typing.flush()
         #expect(model.searchedQuery == "se")
         #expect(model.resultsVersion > version)
+    }
+
+    @Test func aTypedLetterWaitsWithTheRestAndAKeyThatActsOnARowDoesNot() throws {
+        let model = LauncherModel(settings: AppSettings(defaults: MemoryDefaults()), snapshot: CatalogSnapshot(apps: [], commands: []))
+        model.typing.window = 60
+        model.query = "s"
+        model.query = "se"
+        _ = try model.handleKey(key(8))
+        #expect(model.searchedQuery == "s", "a letter is typed, not acted on: one search answers the burst")
+        _ = try model.handleKey(key(125))
+        #expect(model.searchedQuery == "se", "Down acts on the rows of the text as typed")
+    }
+
+    @Test(arguments: [
+        (36, [], true), (48, [], true), (125, [], true), (40, .command, true), (8, .control, true),
+        (8, [], false), (8, .shift, false), (49, [], false), (51, [], false),
+    ] as [(UInt16, NSEvent.ModifierFlags, Bool)])
+    func onlyKeysThatActOnRowsAnswerAtOnce(code: UInt16, flags: NSEvent.ModifierFlags, acts: Bool) {
+        #expect(LauncherModel.actsOnResults(code, flags: flags) == acts)
+    }
+
+    private func key(_ code: UInt16) throws -> NSEvent {
+        try #require(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: 0, context: nil,
+            characters: "", charactersIgnoringModifiers: "", isARepeat: false, keyCode: code
+        ))
     }
 }

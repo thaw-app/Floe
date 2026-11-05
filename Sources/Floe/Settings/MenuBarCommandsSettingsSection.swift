@@ -9,7 +9,6 @@ import SwiftUI
 import ThawUI
 
 /// The menu-bar commands of the enabled extensions, each with the switch that gives it a status item.
-/// Left out when no extension has one.
 struct MenuBarCommandsSettingsSection: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
@@ -22,8 +21,10 @@ struct MenuBarCommandsSettingsSection: View {
 
     var body: some View {
         let commands = commands
-        if !commands.isEmpty {
-            ThawSection("Menu Bar Commands") {
+        ThawSection("Menu Bar Commands") {
+            if commands.isEmpty {
+                Text("No enabled extension has a menu bar command.").foregroundStyle(ThawInk.supporting)
+            } else {
                 ForEach(commands, id: \.id) { command in
                     let needsSetup = !PreferenceStore.missingRequired(for: command).isEmpty
                     Toggle(isOn: binding(for: command)) {

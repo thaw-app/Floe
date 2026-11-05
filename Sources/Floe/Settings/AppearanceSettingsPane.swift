@@ -110,7 +110,7 @@ struct AppearanceSettingsPane: View {
             // Shown without Thaw too while it is on, so it can always be turned off.
             if thawIsInstalled || settings.followsThawAppearance {
                 ThawSection("Thaw") {
-                    Toggle("Follow Thaw's menu bar appearance", isOn: $settings.followsThawAppearance)
+                    Toggle("Follow Thaw's appearance", isOn: $settings.followsThawAppearance)
                     if settings.followsThawAppearance {
                         ForEach(ThawAppearanceNote.lines(status: follower.status, mirror: mirror), id: \.self) { footnote(resolved: $0) }
                     }
@@ -336,7 +336,7 @@ nonisolated enum AppearanceTab: SettingsTab {
 
     init?(entry id: String) {
         switch id {
-        case "appearance.glassEffect", "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity": self = .glass
+        case "appearance.glassEffect", "appearance.tintStyle", "appearance.separateTints", "appearance.tintColor", "appearance.tintOpacity": self = .glass
         case "appearance.border", "appearance.shadow": self = .edges
         case _ where id.hasPrefix("appearance."): self = .layout
         default: return nil

@@ -21,6 +21,26 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [0.4.0-beta.3] - 2026-11-05
+
+**macOS 26 and later · Build 8**
+
+### New
+
+- **Choose a theme for Settings.** Settings › General has Match System, Light, Dark and Black. Match System, the default, follows macOS as before. Black puts Settings on pure black, for OLED displays. The welcome window follows your choice too, showing Black as Dark.
+
+### Changed
+
+- **Fast typing runs fewer searches.** Letters typed in quick succession now share one search, instead of each letter running the search for the one before it.
+- **Floe uses less memory until you need your calendar.** Calendar's data is loaded the first time you search for events, not when Floe starts.
+
+### Fixed
+
+- **Floe frees memory after you close it, even if something was still open.** Floe frees memory five minutes after the launcher closes. If a command, form or dialog was still open then, it didn't try again until you next closed the launcher.
+- **The quicklink editor says why it won't save.** Save was greyed out with no reason given. It now says what's missing or wrong, such as a keyword that's already used.
+- **Empty lists say they're empty.** Settings › Quicklinks with no quicklinks, and the Menu Bar tab in Settings › Commands with no menu bar commands, now say so instead of showing nothing.
+- **The Settings search finds more, under the names the pages use.** It now finds the welcome window and Separate light and dark tints. The glass and tint results are called Effect, Color and Opacity, as on the Appearance page.
+
 ## [0.4.0-beta.2] - 2026-11-03
 
 **macOS 26 and later · Build 7**

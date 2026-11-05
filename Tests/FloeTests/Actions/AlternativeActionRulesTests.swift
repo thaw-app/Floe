@@ -55,6 +55,13 @@ struct AlternativeActionRulesTests {
         #expect(offered[.openWith(URL(fileURLWithPath: "/Fake/Zed.app"))]?.title == "Zed")
     }
 
+    @Test func whereTwoRowsShareAnIdTheOneHigherInTheMenuIsOnOffer() {
+        let siblings = AlternativeActionRules.offered([row(.copyName, "First"), nil, row(.copyName, "Second")])
+        #expect(siblings[.copyName]?.title == "First")
+        let nested = AlternativeActionRules.offered([row(.openWith, "Open With", children: [row(.copyPath, "In the submenu")]), row(.copyPath, "After it")])
+        #expect(nested[.copyPath]?.title == "In the submenu", "a submenu's rows come before the rows under it")
+    }
+
     // MARK: The Actions menu
 
     @Test func aMenuNobodyChangedStaysAsFloeHasIt() {

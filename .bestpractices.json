@@ -130,7 +130,7 @@
   "dynamic_analysis_unsafe_status": "N/A",
   "dynamic_analysis_unsafe_justification": "Floe is written in Swift, Rust and TypeScript, which are memory-safe, with no C, C++ or Objective-C source of its own. A small amount of Swift and Rust uses unsafe code at system boundaries.",
   "dynamic_analysis_enable_assertions_status": "Met",
-  "dynamic_analysis_enable_assertions_justification": "The fuzz harness checks its properties with precondition calls, which stay on in its build, under AddressSanitizer. Unit tests run in debug builds, which keep Swift's runtime safety checks on. https://github.com/thaw-app/Floe/blob/development/Fuzzing/Sources/FuzzIncomingLink/FuzzIncomingLink.swift",
+  "dynamic_analysis_enable_assertions_justification": "The fuzz harness checks its properties with precondition calls, which stay on in its build, under AddressSanitizer. Unit tests run in debug builds, which keep Swift's runtime safety checks on. https://github.com/thaw-app/Floe/blob/development/Tests/Fuzzing/Sources/FuzzIncomingLink/FuzzIncomingLink.swift",
   "dynamic_analysis_fixed_status": "N/A",
   "dynamic_analysis_fixed_justification": "Dynamic analysis has found no vulnerabilities.",
   "access_continuity_status": "Met",

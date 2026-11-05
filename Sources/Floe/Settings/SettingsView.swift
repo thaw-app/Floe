@@ -30,10 +30,11 @@ struct SettingsView: View {
         ThawSettingsShell(title: Text(title)) {
             SettingsSidebarPaneList(catalog: catalog, settings: settings, selection: selection)
         } detail: {
-            detail
+            detail.scrollContentBackground(settings.settingsTheme.formBackground)
         }
         .settingsSearchField(search, selection: selection)
         .updateConsentSheet(stores.updates)
+        .settingsWindowBackground(settings.settingsTheme.windowBackground, appearance: settings.settingsTheme.windowAppearance)
         // Glass buttons are capsules, as in macOS's own glass windows.
         .buttonBorderShape(.capsule)
     }
@@ -138,6 +139,13 @@ struct GeneralSettingsView: View {
                 } label: {
                     Text("Return to root search")
                     Text("How long a closed launcher keeps the command you had open.")
+                }
+                LabeledContent {
+                    ThawPillPicker(selection: $settings.settingsTheme, values: SettingsTheme.allCases, title: \.title)
+                        .accessibilityLabel(Text("Theme"))
+                } label: {
+                    Text("Theme")
+                    Text("Applies to Settings and the welcome window. Black suits OLED displays.")
                 }
             }
             WelcomeSettingsSection(showWelcome: showWelcome)

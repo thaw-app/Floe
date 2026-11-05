@@ -50,7 +50,8 @@ final class CalendarAgenda {
     private static nonisolated let meetingHosts = ["zoom.us", "meet.google.com", "teams.microsoft.com", "teams.live.com", "webex.com"]
     private static let cacheLifetime: TimeInterval = 60
 
-    private let store = EKEventStore()
+    /// Made on the first agenda search, since making one loads a few megabytes of EventKit's database.
+    private lazy var store = EKEventStore()
     private var events: [CalendarEvent] = []
     private var loadedAt: Date?
     private var isLoading = false

@@ -25,7 +25,7 @@ struct PortSearchScope: SearchScope {
     let title = String(localized: "Listening on the Port", bundle: .floe)
     let emptyTitle = String(localized: "Nothing is listening on that port", bundle: .floe)
     var running: @Sendable () -> [RunningProcess] = { Processes.running() }
-    var listening: @Sendable (Int) -> [Int32] = { Processes.listening(on: $0) }
+    var listening: @Sendable (Int) async -> [Int32] = { await Processes.listening(on: $0) }
 
     /// Without a port after it the word is not a scope, so "port authority" stays an ordinary search.
     func text(in context: SearchContext) -> String? {
@@ -39,7 +39,7 @@ struct PortSearchScope: SearchScope {
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         guard let port = Int(text) else { return nil }
         return .once { [running, listening] in
-            let pids = Set(listening(port))
+            let pids = await Set(listening(port))
             return running().filter { pids.contains($0.pid) }.map(RootItem.process)
         }
     }

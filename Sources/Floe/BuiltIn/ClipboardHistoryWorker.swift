@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
+import DequeModule
 import Synchronization
 
 /// The clipboard folder's file operations, so a test can count them, hold one back or make one fail.
@@ -93,21 +94,21 @@ final nonisolated class ClipboardHistoryWorker: Sendable {
 
     /// The jobs not started yet, in the order asked, and the original image data they hold.
     private struct Queue {
-        var jobs: [Job] = []
+        var jobs = Deque<Job>()
         var imageBytes = 0
         /// The newest list waiting to be written; a burst of changes becomes one write.
         var unsaved: [ClipboardEntry]?
 
         mutating func next() -> Job? {
-            guard !jobs.isEmpty else { return nil }
-            switch jobs.removeFirst() {
+            guard let job = jobs.popFirst() else { return nil }
+            switch job {
             case let .prepare(capture, epoch):
                 imageBytes -= capture.imageBytes
                 return .prepare(capture, epoch: epoch)
             case .save:
                 // Taken with its job, so a list changed from here on is written by a save queued after it.
                 return unsaved.take().map(Job.write) ?? .save
-            case let job:
+            default:
                 return job
             }
         }
