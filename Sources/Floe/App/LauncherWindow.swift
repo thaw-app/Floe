@@ -232,7 +232,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         trimsWhenHidden = false
         guard !isVisible else { return }
         guard !ModalGuard.isActive, model.runner.session == nil, model.setup == nil else {
-            // Tried again later: a command kept past the delay, or a dialog, would otherwise keep the window for good.
+            // Tried again later, or a command or dialog open now would keep the window until the next close.
             scheduleIdleTrim()
             return
         }
