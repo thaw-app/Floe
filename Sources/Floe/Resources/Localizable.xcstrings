@@ -4030,6 +4030,12 @@
     "Show in Finder" : {
 
     },
+    "Show in MenuBar" : {
+
+    },
+    "Show in Menubar" : {
+
+    },
     "Show in the Actions menu" : {
 
     },
@@ -5225,7 +5231,7 @@
       "comment" : "Words that find the Focus pane of System Settings, separated by commas."
     },
     "dock, icon, menu bar, hide, app switcher" : {
-      "comment" : "Words that find the Show in Dock setting in the settings search, separated by commas."
+      "comment" : "Words that find the Show in Dock setting in the settings search, separated by commas.\nWords that find the Show in MenuBar setting in the settings search, separated by commas."
     },
     "dock, stage manager, mission control, hot corners, widgets" : {
       "comment" : "Words that find the Desktop & Dock pane of System Settings, separated by commas."

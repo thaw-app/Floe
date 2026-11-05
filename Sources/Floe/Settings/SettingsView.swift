@@ -129,6 +129,7 @@ struct GeneralSettingsView: View {
                 )
                 LaunchAtLoginToggle(settings: settings)
                 Toggle("Show in Dock", isOn: $settings.showInDock)
+                Toggle("Show in Menubar", isOn: $settings.showInMenubar)
                 AutomaticUpdateCheckToggle(updatesManager: updates)
                 ThawPicker(selection: $settings.popToRootDelay) {
                     Text("Immediately").tag(0)

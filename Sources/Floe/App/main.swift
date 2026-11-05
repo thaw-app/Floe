@@ -72,6 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Settings' changes reach the search at once: they are this process's own settings, read again.
         settingsLink.onChange = { [weak self] in self?.model.refresh() }
 
+        
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = MenuBarGlyph.image()
         let menu = NSMenu()
@@ -88,6 +89,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.menu = menu
         statusItem = item
         NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings), includesWindowMenu: false)
+        item.isVisible = settings.showInMenubar
+
+        settings.$showInMenubar.removeDuplicates().dropFirst()
+            .sink { [weak self] in self?.statusItem?.isVisible = $0 }
+            .store(in: &cancellables)
 
         appWatcher = AppFolderWatcher { [weak self] in self?.model.catalog.reloadApps() }
         // Without duplicates: a reload of the settings saved by the settings process sends every value again.

@@ -99,6 +99,7 @@ enum SettingsSync {
         "recordsExtensionAccess": "whether this Mac keeps the access record, and off forgets it here",
         "followsThawAppearance": "needs Thaw running on this Mac and asks it",
         "showInDock": "how the app sits on this Mac",
+        "showInMenubar": "if the menubar icon is visible on this Mac",
         "hasSeenOnboarding": "the welcome is shown once on each Mac",
         "diagnosticLogging": "a log file on this Mac",
         "syncsWithICloud": "the sync switch itself, so each Mac joins by choice",
