@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
 @testable import Floe
 import Foundation
 import SwiftUI
@@ -23,6 +24,31 @@ struct SettingsThemeTests {
         #expect(theme.windowBackground == SettingsWindowBackground(isBlack: isBlack))
         // Otherwise each pane's grouped form covers the black.
         #expect(theme.formBackground == (isBlack ? .hidden : .automatic))
+    }
+
+    @MainActor @Test func aWindowHeldToTheThemeTakesEachNewChoice() async throws {
+        let suite = "SettingsThemeTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = AppSettings(defaults: defaults, savesAfterEdits: false)
+        settings.settingsTheme = .dark
+        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 200, height: 100), styleMask: [.borderless], backing: .buffered, defer: true)
+        window.contentView = NSHostingView(rootView: Color.clear.heldToSettingsTheme(settings))
+        // The window is found and held a turn after the view joins it.
+        func appearance(becomes name: NSAppearance.Name?) async -> Bool {
+            for _ in 0 ..< 100 where window.appearance?.name != name {
+                window.contentView?.layoutSubtreeIfNeeded()
+                try? await Task.sleep(for: .milliseconds(10))
+            }
+            return window.appearance?.name == name
+        }
+        #expect(await appearance(becomes: .darkAqua))
+        settings.settingsTheme = .light
+        #expect(await appearance(becomes: .aqua))
+        settings.settingsTheme = .black
+        #expect(await appearance(becomes: .darkAqua), "Black is dark here, without Settings' background")
+        settings.settingsTheme = .system
+        #expect(await appearance(becomes: nil), "Match System lets the window follow macOS")
     }
 
     @MainActor @Test func untilAThemeIsChosenSettingsFollowsMacOS() throws {

@@ -51,6 +51,16 @@ jobs:
         with:
           persist-credentials: false
 
+      # The corpus was saved under Fuzzing/ before it moved, and a cache is tied to its path.
+      # Remove these two steps once a nightly run has saved it under Tests/Fuzzing.
+      - name: Restore corpus saved before the move
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: Fuzzing/Corpus/IncomingLink
+          key: fuzz-corpus-incominglink-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-incominglink-
+
       # Each night starts from the coverage the previous nights reached.
       - name: Restore corpus
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -59,6 +69,16 @@ jobs:
           key: fuzz-corpus-incominglink-${{ github.run_id }}
           restore-keys: |
             fuzz-corpus-incominglink-
+
+      - name: Add the corpus saved before the move
+        run: |
+          set -euo pipefail
+          if [ -d Fuzzing/Corpus/IncomingLink ]; then
+            mkdir -p Tests/Fuzzing/Corpus/IncomingLink
+            # Inputs are named by their content, so one in both is the same input.
+            cp -R Fuzzing/Corpus/IncomingLink/. Tests/Fuzzing/Corpus/IncomingLink/
+            rm -rf Fuzzing
+          fi
 
       - name: Build fuzzer
         run: |
