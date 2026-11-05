@@ -29,4 +29,45 @@ struct TimedCacheTests {
         #expect(value("a", at: 500, lasting: .infinity) == 4)
         #expect(made == 4)
     }
+
+    @Test func aValueThatTakesWaitingIsKeptTheSameWay() async {
+        let cache = TimedCache<Int, Int>()
+        let start = Date(timeIntervalSince1970: 1000)
+        var made = 0
+        for seconds: TimeInterval in [0, 1.9, 2.1] {
+            _ = await cache.value(for: 1, lasting: 2, now: start.addingTimeInterval(seconds)) {
+                await Task.yield()
+                made += 1
+                return made
+            }
+        }
+        #expect(made == 2, "made at first and once it had aged, not while fresh")
+        #expect(cache.kept(for: 1, lasting: 2, now: start.addingTimeInterval(2.1)) == 2)
+    }
+
+    @Test func aWaitThatWasCancelledOrOvertakenKeepsNothing() async {
+        let cache = TimedCache<Int, Int>()
+        let start = Date(timeIntervalSince1970: 1000)
+        // A task of its own, as cancelling this one would spoil the waits after it.
+        let cancelled = await Task {
+            await cache.value(for: 1, lasting: 2, now: start, waitingFor: {
+                withUnsafeCurrentTask { $0?.cancel() }
+                return 1
+            })
+        }.value
+        #expect(cancelled == 1, "what was made is still answered")
+        #expect(cache.kept(for: 1, lasting: 2, now: start) == nil, "but not kept")
+
+        _ = await cache.value(for: 1, lasting: 2, now: start, waitingFor: {
+            cache.forget()
+            return 2
+        })
+        #expect(cache.kept(for: 1, lasting: 2, now: start) == nil, "made before a forget")
+
+        _ = await cache.value(for: 1, lasting: 2, now: start, waitingFor: {
+            _ = await cache.value(for: 1, lasting: 2, now: start.addingTimeInterval(1), waitingFor: { 4 })
+            return 3
+        })
+        #expect(cache.kept(for: 1, lasting: 2, now: start.addingTimeInterval(1)) == 4, "the later lookup's answer stays")
+    }
 }

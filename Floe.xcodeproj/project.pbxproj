@@ -64,6 +64,7 @@
 		1EF83FBC1CC0D02633383FE6 /* WindowTiling.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64BC9847C57825DC991C5165 /* WindowTiling.swift */; };
 		1F44356E5A73AD1AEA83B9A1 /* AskAI.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD3368A5280CF2738C93720E /* AskAI.swift */; };
 		1F9E7B8460E7FD99881B328F /* WindowServerSpaces.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82E275F189C68D1968D50EBF /* WindowServerSpaces.swift */; };
+		202B542B5DE77685FEEDA3B0 /* FloeRust in Frameworks */ = {isa = PBXBuildFile; productRef = C9711B30810CFAD121003AA5 /* FloeRust */; };
 		20C1247AF4E64D45455EE4B0 /* TextChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = 053352E084B404D1AB3EB5B2 /* TextChange.swift */; };
 		20C3374872067DE865A810AE /* WaitAtMost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED24D0EB67EDA6126BD465A /* WaitAtMost.swift */; };
 		21AC0326ABEC20B3E236A44F /* LauncherAppearancePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB4C26AA616B1F4DC7381BFE /* LauncherAppearancePreview.swift */; };
@@ -169,7 +170,7 @@
 		602E606A00E216F429C5548A /* AppleShortcutSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F24BBC55159EA1F9633EAE /* AppleShortcutSearch.swift */; };
 		60E687EE61413628159E2CC4 /* AISettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873178EA70279DFA5A5FB656 /* AISettingsSection.swift */; };
 		60FE0B79D7BF23B80E9E658F /* AskAIModel+Panel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F94F4CB7297C9286F2C8A2D /* AskAIModel+Panel.swift */; };
-		63306AA3252F2A2A9842CF02 /* FloeRust in Frameworks */ = {isa = PBXBuildFile; productRef = C9711B30810CFAD121003AA5 /* FloeRust */; };
+		63306AA3252F2A2A9842CF02 /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 97536C0D3B3159180D4AFBA9 /* DequeModule */; };
 		634C27A628FB29D607187209 /* Session+Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2368E725055044F98037A035 /* Session+Memory.swift */; };
 		63A875F55A40AC8CB417058E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3F4985D458BAC986B45EABD6 /* Localizable.xcstrings */; };
 		6645EF77502B298199062CC3 /* SettingsTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F2A1CE97719EDA4CDBECB31 /* SettingsTabs.swift */; };
@@ -196,6 +197,7 @@
 		6FD4F93109684FF59048E422 /* Picker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB94266FDB7EACCCA3986AD1 /* Picker.swift */; };
 		6FF03D4881BED9650B80EF51 /* MenuBarSearchScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E38B942BAB5A0519D0AB827 /* MenuBarSearchScope.swift */; };
 		6FF25C23C28176E7AE68D90C /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B62548A2DF57C84EDBCBCC0A /* Model.swift */; };
+		701617CCCCBFFD799F2B4B1D /* HTTPTypesFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 2A7CF014417952664C46977F /* HTTPTypesFoundation */; };
 		72598816A609A361840E7831 /* AlternativeActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18A54F7E441F670A08C145F /* AlternativeActions.swift */; };
 		72920B28633C99DABB7050E0 /* EarlierIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31D54FF1A21ED74AD3CB719E /* EarlierIdentifier.swift */; };
 		747084900218D005E77A5CA3 /* ExtensionAccessSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48E70E737A40E9F3F1036BA0 /* ExtensionAccessSection.swift */; };
@@ -284,6 +286,7 @@
 		A10E7B2DBE9FE26F7059D6D7 /* SettingsPageHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BACEDACC6B12A4DCEF77FDE /* SettingsPageHeader.swift */; };
 		A1D15AAC45FDE80BED5CE0C1 /* SystemCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA43444C49957E7742747429 /* SystemCommands.swift */; };
 		A2354990CC49B38386F33165 /* Model+Search.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0454DDF1AC4E2934C468C3A3 /* Model+Search.swift */; };
+		A2FEBC84E77CC2922152AB65 /* SettingsTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5EC6727B5DF3909FF4BE5B /* SettingsTheme.swift */; };
 		A31CA4A5723901F2F47665C6 /* ItemActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B395B312CE9AFB208F23F69 /* ItemActions.swift */; };
 		A48B203D236A4DC4E1BC47FF /* Bookmarks.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC32C86FE1E2384F4C5452DB /* Bookmarks.swift */; };
 		A4F63DF512CFD729C4C1C774 /* ThawUIWords+Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF82F110485EAF0110112262 /* ThawUIWords+Permissions.swift */; };
@@ -628,6 +631,7 @@
 		6C6B48A96B5E4B8222CF9E45 /* TextExpander.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextExpander.swift; sourceTree = "<group>"; };
 		6CEDDD34C97C26441F16E451 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		6D546F23D684533615EC727A /* DataPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataPermissions.swift; sourceTree = "<group>"; };
+		6D5EC6727B5DF3909FF4BE5B /* SettingsTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTheme.swift; sourceTree = "<group>"; };
 		6D5F5C90069D40A3353B1435 /* TabSearchSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabSearchSource.swift; sourceTree = "<group>"; };
 		6DA122EF4A321FB332D7C2F4 /* ExtensionSettingsSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionSettingsSync.swift; sourceTree = "<group>"; };
 		6DCFAEAF70527DFBFD4F4FF1 /* PropFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropFormat.swift; sourceTree = "<group>"; };
@@ -878,7 +882,9 @@
 				5C14B2AB67F03EDC01B4D0A1 /* ArgumentParser in Frameworks */,
 				B46FB365D377BDA4D17AEBAC /* Algorithms in Frameworks */,
 				EEEE4BAA3CEB92F8ECAACBB7 /* AsyncAlgorithms in Frameworks */,
-				63306AA3252F2A2A9842CF02 /* FloeRust in Frameworks */,
+				63306AA3252F2A2A9842CF02 /* DequeModule in Frameworks */,
+				701617CCCCBFFD799F2B4B1D /* HTTPTypesFoundation in Frameworks */,
+				202B542B5DE77685FEEDA3B0 /* FloeRust in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1211,6 +1217,7 @@
 				3EA1420E83E4D30EBC897A57 /* SettingsStores.swift */,
 				F50E9D3C5E5A2B3411933263 /* SettingsSync.swift */,
 				6F2A1CE97719EDA4CDBECB31 /* SettingsTabs.swift */,
+				6D5EC6727B5DF3909FF4BE5B /* SettingsTheme.swift */,
 				AD6E736E94FFB03FFF4F6845 /* SettingsTransfer.swift */,
 				888F73FD3AD3B70CCCED4500 /* SettingsView.swift */,
 				B13EBB5691E5F0FB7A55BE81 /* SettingsWindow.swift */,
@@ -1580,6 +1587,8 @@
 				DCB8704B102A04F10A7ABBEA /* ArgumentParser */,
 				1F43772FB45D60218EFCAC8B /* Algorithms */,
 				620405AD1BB424142F8C61B3 /* AsyncAlgorithms */,
+				97536C0D3B3159180D4AFBA9 /* DequeModule */,
+				2A7CF014417952664C46977F /* HTTPTypesFoundation */,
 				C9711B30810CFAD121003AA5 /* FloeRust */,
 			);
 			productName = Floe;
@@ -1617,6 +1626,7 @@
 				CF0B87BBBDD04DCE39106ADB /* XCRemoteSwiftPackageReference "swift-argument-parser" */,
 				429B82AE91E275656C5172B1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
 				F68F2A94F6327C74C97742E7 /* XCRemoteSwiftPackageReference "swift-collections" */,
+				3BBA907D0296C51B960B8103 /* XCRemoteSwiftPackageReference "swift-http-types" */,
 				97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */,
 				6F2C0D39465C2E214623284A /* XCRemoteSwiftPackageReference "swift-subprocess" */,
 				B457548832AD6CA4307959B6 /* XCLocalSwiftPackageReference "Vendor/FloeRust" */,
@@ -2005,6 +2015,7 @@
 				95227000B5D08D69A24D8F6E /* SettingsSync.swift in Sources */,
 				2C40C06B4FFD0149F302B4C5 /* SettingsSyncService.swift in Sources */,
 				6645EF77502B298199062CC3 /* SettingsTabs.swift in Sources */,
+				A2FEBC84E77CC2922152AB65 /* SettingsTheme.swift in Sources */,
 				1DA318B37ECA5A026EFA2D65 /* SettingsTransfer.swift in Sources */,
 				0ACA1EC1D9EEAAEA9749B129 /* SettingsView.swift in Sources */,
 				7B518EA27B443804350FDA49 /* SettingsWindow.swift in Sources */,
@@ -2305,7 +2316,15 @@
 			repositoryURL = "https://github.com/thaw-app/ThawUI";
 			requirement = {
 				kind = exactVersion;
-				version = 1.1.0;
+				version = 1.2.1;
+			};
+		};
+		3BBA907D0296C51B960B8103 /* XCRemoteSwiftPackageReference "swift-http-types" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-http-types";
+			requirement = {
+				kind = exactVersion;
+				version = 1.8.0;
 			};
 		};
 		429B82AE91E275656C5172B1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */ = {
@@ -2377,6 +2396,11 @@
 			package = 6BFBD1E3602E04FE085AFB58 /* XCRemoteSwiftPackageReference "swift-algorithms" */;
 			productName = Algorithms;
 		};
+		2A7CF014417952664C46977F /* HTTPTypesFoundation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 3BBA907D0296C51B960B8103 /* XCRemoteSwiftPackageReference "swift-http-types" */;
+			productName = HTTPTypesFoundation;
+		};
 		620405AD1BB424142F8C61B3 /* AsyncAlgorithms */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 429B82AE91E275656C5172B1 /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
@@ -2391,6 +2415,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 97B74537E25C64909369E406 /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
+		};
+		97536C0D3B3159180D4AFBA9 /* DequeModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F68F2A94F6327C74C97742E7 /* XCRemoteSwiftPackageReference "swift-collections" */;
+			productName = DequeModule;
 		};
 		A5734F6D7F1BB261482C7608 /* Subprocess */ = {
 			isa = XCSwiftPackageProductDependency;

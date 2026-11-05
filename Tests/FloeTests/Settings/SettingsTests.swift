@@ -115,6 +115,7 @@ struct AppSettingsTests {
         settings.rememberMenuBarQuery = true
         settings.showInDock = true
         settings.showInMenuBar = false
+        settings.settingsTheme = .black
         settings.hasSeenOnboarding = true
         settings.launcherTintIsDynamic = true
         settings.launcherTintLight = LauncherTint(
@@ -182,6 +183,7 @@ struct AppSettingsTests {
         #expect(reloaded.launcherGlass == LauncherGlass(style: .dynamic, isColored: true, opacity: 0.6))
         #expect(reloaded.followsThawAppearance)
         #expect(reloaded.launcherLayout == .compact)
+        #expect(reloaded.settingsTheme == .black)
         #expect(reloaded.menuBarCommands == ["github/unread-notifications"])
         #expect(reloaded.searchSources == ["tabs"])
     }

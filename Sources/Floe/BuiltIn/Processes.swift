@@ -8,6 +8,7 @@
 import Algorithms
 import Darwin
 import Foundation
+import Subprocess
 
 /// A process of the user's that is running now.
 nonisolated struct RunningProcess: Hashable, Sendable {
@@ -49,18 +50,17 @@ nonisolated enum Processes {
     private static let listeners = TimedCache<Int, [Int32]>()
 
     /// The processes listening on a port, asked of `lsof`. Kept for two seconds, as the list of processes is.
-    static func listening(on port: Int, now: Date = Date()) -> [Int32] {
-        listeners.value(for: port, lasting: 2, now: now) {
-            let lsof = Process()
-            lsof.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
-            lsof.arguments = ["-nP", "-iTCP:\(port)", "-sTCP:LISTEN", "-t"]
-            let pipe = Pipe()
-            lsof.standardOutput = pipe
-            lsof.standardError = FileHandle.nullDevice
-            guard (try? lsof.run()) != nil else { return [] }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            lsof.waitUntilExit()
-            return pids(in: String(bytes: data, encoding: .utf8) ?? "")
+    @concurrent
+    static func listening(on port: Int, now: Date = Date()) async -> [Int32] {
+        await listeners.value(for: port, lasting: 2, now: now) {
+            // lsof prints nothing and ends with 1 when no process listens, so only what it printed is read.
+            let lsof = try? await Subprocess.run(
+                .path("/usr/sbin/lsof"),
+                arguments: ["-nP", "-iTCP:\(port)", "-sTCP:LISTEN", "-t"],
+                output: .string(limit: 1 << 20),
+                error: .discarded
+            )
+            return pids(in: lsof?.standardOutput ?? "")
         }
     }
 

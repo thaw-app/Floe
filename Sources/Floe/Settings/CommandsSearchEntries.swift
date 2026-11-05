@@ -76,6 +76,7 @@ extension SearchIndex {
         .commands(
             "emojiSkinTone",
             String(localized: "Emoji skin tone", bundle: .floe),
+            description: String(localized: "Used for emoji in search results that come in skin tones.", bundle: .floe),
             section: String(localized: "Built-in Commands", bundle: .floe),
             keywords: String(
                 localized: "emoji, skin tone, skin colour, skin color, hand, people",

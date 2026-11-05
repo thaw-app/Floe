@@ -79,6 +79,8 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         }
         .frame(minWidth: size.width, idealWidth: size.width, minHeight: size.height, idealHeight: size.height)
         .ignoresSafeArea()
+        // Light or Dark from the Settings theme. Black's background is for Settings, so this window keeps its own.
+        .heldToSettingsTheme(settings)
         // Glass buttons are capsules here too, as in Settings.
         .buttonBorderShape(.capsule)
         .thawTheme(.floe)

@@ -224,12 +224,12 @@ extension SearchIndex {
     static let appearanceEntries: [SearchEntry] = [
         .appearance(
             "followThaw",
-            String(localized: "Follow Thaw's Appearance", bundle: .floe),
+            String(localized: "Follow Thaw's appearance", bundle: .floe),
             section: String(localized: "Thaw", bundle: .floe, comment: "Thaw is the name of an app."),
             keywords: String(
                 localized: "thaw, follow, match, mirror, sync, same look",
                 bundle: .floe,
-                comment: "Words that find the Follow Thaw's Appearance setting in the settings search, separated by commas."
+                comment: "Words that find the Follow Thaw's appearance setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .appearance(
@@ -294,12 +294,12 @@ extension SearchIndex {
         ),
         .appearance(
             "glassEffect",
-            String(localized: "Glass Effect", bundle: .floe),
+            String(localized: "Effect", bundle: .floe, comment: "The label of the picker that chooses how the glass background looks."),
             section: String(localized: "Glass", bundle: .floe, comment: "The heading over the settings for the launcher's glass material."),
             keywords: String(
                 localized: "glass, liquid, dynamic, clear, regular, effect, material",
                 bundle: .floe,
-                comment: "Words that find the Glass Effect setting in the settings search, separated by commas."
+                comment: "Words that find the glass Effect setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .appearance(
@@ -313,23 +313,33 @@ extension SearchIndex {
             ).searchTerms
         ),
         .appearance(
+            "separateTints",
+            String(localized: "Separate light and dark tints", bundle: .floe),
+            section: String(localized: "Tint", bundle: .floe, comment: "The colour laid over the launcher's glass."),
+            keywords: String(
+                localized: "tint, light, dark, separate, two tints",
+                bundle: .floe,
+                comment: "Words that find the Separate light and dark tints setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .appearance(
             "tintColor",
-            String(localized: "Tint color", bundle: .floe),
+            String(localized: "Color", bundle: .floe, comment: "The label of a color picker."),
             section: String(localized: "Tint", bundle: .floe, comment: "The colour laid over the launcher's glass."),
             keywords: String(
                 localized: "tint, colour, color, picker",
                 bundle: .floe,
-                comment: "Words that find the Tint color setting in the settings search, separated by commas."
+                comment: "Words that find the tint Color setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .appearance(
             "tintOpacity",
-            String(localized: "Tint Opacity", bundle: .floe),
+            String(localized: "Opacity", bundle: .floe, comment: "The label of a slider for how see-through something is."),
             section: String(localized: "Tint", bundle: .floe, comment: "The colour laid over the launcher's glass."),
             keywords: String(
                 localized: "tint, opacity, strength, transparency",
                 bundle: .floe,
-                comment: "Words that find the Tint Opacity setting in the settings search, separated by commas."
+                comment: "Words that find the tint Opacity setting in the settings search, separated by commas."
             ).searchTerms
         ),
         .appearance(
@@ -569,6 +579,17 @@ extension SearchIndex {
             ).searchTerms
         ),
         .general(
+            "settingsTheme",
+            String(localized: "Theme", bundle: .floe),
+            description: String(localized: "Applies to Settings and the welcome window. Black suits OLED displays.", bundle: .floe),
+            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
+            keywords: String(
+                localized: "theme, appearance, match system, automatic, light, dark, dark mode, black, oled, background",
+                bundle: .floe,
+                comment: "Words that find the Theme setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
             "checkForUpdates",
             String(localized: "Automatically check for updates", bundle: .floe),
             keywords: String(
@@ -586,6 +607,16 @@ extension SearchIndex {
                 localized: "pop to root, delay, timeout, reset, close, immediately, seconds, minutes",
                 bundle: .floe,
                 comment: "Words that find the Return to root search setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
+            "showWelcome",
+            String(localized: "Welcome window", bundle: .floe),
+            description: String(localized: "The introduction from the first launch.", bundle: .floe),
+            keywords: String(
+                localized: "welcome, onboarding, introduction, tour, first launch, getting started, show welcome",
+                bundle: .floe,
+                comment: "Words that find the Welcome window setting in the settings search, separated by commas."
             ).searchTerms
         ),
     ]

@@ -674,9 +674,6 @@
     "Add %@ to the menu bar?" : {
       "comment" : "The title of a question asked after installing an extension. The placeholder is the extension's name."
     },
-    "Add Alias" : {
-
-    },
     "Add Event" : {
 
     },
@@ -926,6 +923,9 @@
     "Applications" : {
       "comment" : "The name of a settings page."
     },
+    "Applies to Settings and the welcome window. Black suits OLED displays." : {
+
+    },
     "Apps" : {
       "comment" : "Results that are apps, as one of the kinds of result whose actions are chosen in Settings."
     },
@@ -1000,6 +1000,9 @@
     },
     "Beta" : {
       "comment" : "The update channel that also offers test releases."
+    },
+    "Black" : {
+      "comment" : "A theme for the Settings window: dark on pure black."
     },
     "Bluetooth Off" : {
 
@@ -1544,7 +1547,7 @@
       "comment" : "A verb in the Edit menu: remove the selection and put it on the clipboard."
     },
     "Dark" : {
-      "comment" : "A skin tone for emoji."
+      "comment" : "A skin tone for emoji.\nA theme for the Settings window."
     },
     "Dark appearance" : {
 
@@ -1591,7 +1594,7 @@
     "Delete Event" : {
 
     },
-    "Delete Quicklink" : {
+    "Delete Quicklink…" : {
 
     },
     "Delete Reminder" : {
@@ -2084,10 +2087,7 @@
     "Folders" : {
       "comment" : "Results that are folders, as one of the kinds of result whose actions are chosen in Settings.\nThe title of a permission: access to the Desktop, Documents and Downloads folders."
     },
-    "Follow Thaw's Appearance" : {
-
-    },
-    "Follow Thaw's menu bar appearance" : {
+    "Follow Thaw's appearance" : {
 
     },
     "Follow-up questions" : {
@@ -2200,9 +2200,6 @@
     },
     "Glass" : {
       "comment" : "The heading over the settings for the launcher's glass material."
-    },
-    "Glass Effect" : {
-
     },
     "Glass and Tint" : {
 
@@ -2470,7 +2467,7 @@
       "comment" : "The title of the page with the licenses of what Floe is built from."
     },
     "Light" : {
-      "comment" : "A skin tone for emoji."
+      "comment" : "A skin tone for emoji.\nA theme for the Settings window."
     },
     "Light appearance" : {
 
@@ -2584,7 +2581,7 @@
       "comment" : "A kind of unit, named in a calculator error."
     },
     "Match System" : {
-
+      "comment" : "A theme for the Settings window: it follows macOS between light and dark."
     },
     "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {
 
@@ -2817,6 +2814,9 @@
     "No disks to eject" : {
 
     },
+    "No enabled extension has a menu bar command." : {
+
+    },
     "No fallbacks. Searches end with what they found." : {
 
     },
@@ -2869,6 +2869,9 @@
       "comment" : "Shown when no Homebrew package has the name typed."
     },
     "No place matches" : {
+
+    },
+    "No quicklinks yet." : {
 
     },
     "No receipts yet" : {
@@ -4529,6 +4532,9 @@
     "The timer %@ is no longer running" : {
       "comment" : "The placeholder is a timer's label, or how long it ran, such as 10 min."
     },
+    "Theme" : {
+
+    },
     "There is no %@ release of %@ yet." : {
       "localizations" : {
         "en" : {
@@ -4628,12 +4634,6 @@
     },
     "Tint" : {
       "comment" : "The colour laid over the launcher's glass."
-    },
-    "Tint Opacity" : {
-
-    },
-    "Tint color" : {
-
     },
     "Tint, border and shadow for the launcher panel." : {
 
@@ -4882,6 +4882,9 @@
       "comment" : "A button that makes the selected device the one sound plays through."
     },
     "Use {query} where the search text goes." : {
+
+    },
+    "Used for emoji in search results that come in skin tones." : {
 
     },
     "Users & Groups (System Settings)" : {
@@ -5315,7 +5318,7 @@
       "comment" : "Words that find the Trackpad pane of System Settings, separated by commas."
     },
     "glass, liquid, dynamic, clear, regular, effect, material" : {
-      "comment" : "Words that find the Glass Effect setting in the settings search, separated by commas."
+      "comment" : "Words that find the glass Effect setting in the settings search, separated by commas."
     },
     "headphones, pair" : {
       "comment" : "Words that find the Bluetooth pane of System Settings, separated by commas."
@@ -5624,7 +5627,7 @@
       "comment" : "Words that find the Show Layout command of the app Thaw, separated by commas."
     },
     "thaw, follow, match, mirror, sync, same look" : {
-      "comment" : "Words that find the Follow Thaw's Appearance setting in the settings search, separated by commas."
+      "comment" : "Words that find the Follow Thaw's appearance setting in the settings search, separated by commas."
     },
     "thaw, hidden items, thaw bar, menu bar manager" : {
       "comment" : "Words that find the Thaw setting in the settings search, separated by commas."
@@ -5662,6 +5665,9 @@
     "thaw, zen, focus" : {
       "comment" : "Words that find the Toggle Zen Mode command of the app Thaw, separated by commas."
     },
+    "theme, appearance, match system, automatic, light, dark, dark mode, black, oled, background" : {
+      "comment" : "Words that find the Theme setting in the settings search, separated by commas."
+    },
     "this build of Floe may not use iCloud Keychain." : {
 
     },
@@ -5672,13 +5678,16 @@
       "comment" : "Words that find the Date & Time pane of System Settings, separated by commas."
     },
     "tint, colour, color, picker" : {
-      "comment" : "Words that find the Tint color setting in the settings search, separated by commas."
+      "comment" : "Words that find the tint Color setting in the settings search, separated by commas."
     },
     "tint, colour, color, style, solid, gradient, none" : {
       "comment" : "Words that find the Tint setting in the settings search, separated by commas."
     },
+    "tint, light, dark, separate, two tints" : {
+      "comment" : "Words that find the Separate light and dark tints setting in the settings search, separated by commas."
+    },
     "tint, opacity, strength, transparency" : {
-      "comment" : "Words that find the Tint Opacity setting in the settings search, separated by commas."
+      "comment" : "Words that find the tint Opacity setting in the settings search, separated by commas."
     },
     "top half, snap top, window top, window management" : {
       "comment" : "Words that find the Tile Window Top command, separated by commas."
@@ -5703,6 +5712,9 @@
     },
     "volume, audio, output, input, microphone" : {
       "comment" : "Words that find the Sound pane of System Settings, separated by commas."
+    },
+    "welcome, onboarding, introduction, tour, first launch, getting started, show welcome" : {
+      "comment" : "Words that find the Welcome window setting in the settings search, separated by commas."
     },
     "what's playing, what is playing, current song, song, track, music, spotify" : {
       "comment" : "Words that find the Now Playing command, separated by commas."

@@ -1,5 +1,5 @@
 {
-  "originHash" : "206666034681779889ce381e10487b6a0323fa19a9b4532dff0a433385b6ef3b",
+  "originHash" : "b625a985d1f76d2efa047377898ed0b47f1b33dc564f51a32a6a139c1e9f4297",
   "pins" : [
     {
       "identity" : "compactslider",
@@ -65,6 +65,15 @@
       }
     },
     {
+      "identity" : "swift-http-types",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-http-types",
+      "state" : {
+        "revision" : "bff4b6903cdc99dda49649dd52f46c11cfd3ed50",
+        "version" : "1.8.0"
+      }
+    },
+    {
       "identity" : "swift-markdown",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftlang/swift-markdown",
@@ -105,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/thaw-app/ThawUI",
       "state" : {
-        "revision" : "17a40431820c179b3e42d8e3223bd10af270f8fd",
-        "version" : "1.1.0"
+        "revision" : "205a9ea0631aa71f8dace0505970dcb6b2cff7d1",
+        "version" : "1.2.1"
       }
     }
   ],

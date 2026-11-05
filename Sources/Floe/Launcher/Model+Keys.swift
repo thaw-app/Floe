@@ -9,12 +9,23 @@ import AppKit
 
 /// The panel's keys, for whichever view is on screen.
 extension LauncherModel {
+    /// Return, Tab, the keys that move the selection, and anything held with Command or Control.
+    static func actsOnResults(_ keyCode: UInt16, flags: NSEvent.ModifierFlags) -> Bool {
+        LauncherPanelState.isRowKey(keyCode, flags: flags) || [48, 76].contains(keyCode) || !flags.isDisjoint(with: [.command, .control])
+    }
+
+    /// A key that acts on the results acts on those of the text as typed. A typed letter waits with the rest.
+    private func settleTyping(before keyCode: UInt16, flags: NSEvent.ModifierFlags) {
+        if Self.actsOnResults(keyCode, flags: flags) {
+            typing.flush()
+        }
+    }
+
     /// Returns true when the key was consumed. Each mode's own keys are its model's.
     func handleKey(_ event: NSEvent) -> Bool {
-        // A key that acts on the results acts on those of the text as typed, not of a moment ago.
-        typing.flush()
-        pointerRest.rest()
         let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
+        settleTyping(before: event.keyCode, flags: flags)
+        pointerRest.rest()
         if setup != nil {
             return handleSetupKey(event)
         }

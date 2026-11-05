@@ -6,15 +6,15 @@ import PackageDescription
 // main. Sources are symlinked, so the harness compiles the shipped file.
 //
 // On Linux, build with swiftc; swift build's main symbol fights libFuzzer's entry point:
-//   mkdir -p Fuzzing/.build/release
+//   mkdir -p Tests/Fuzzing/.build/release
 //   swiftc -parse-as-library -O -sanitize=fuzzer,address \
-//     -o Fuzzing/.build/release/FuzzIncomingLink \
-//     Fuzzing/Sources/FuzzIncomingLink/*.swift
-//   ./Fuzzing/.build/release/FuzzIncomingLink -max_total_time=60 Fuzzing/Corpus/IncomingLink
+//     -o Tests/Fuzzing/.build/release/FuzzIncomingLink \
+//     Tests/Fuzzing/Sources/FuzzIncomingLink/*.swift
+//   ./Tests/Fuzzing/.build/release/FuzzIncomingLink -max_total_time=60 Tests/Fuzzing/Corpus/IncomingLink
 //
 // On macOS, replay the corpus without libFuzzer:
-//   swift build --package-path Fuzzing -c release -Xswiftc -DFUZZ_REPLAY
-//   ./Fuzzing/.build/release/FuzzIncomingLink Fuzzing/Corpus/IncomingLink
+//   swift build --package-path Tests/Fuzzing -c release -Xswiftc -DFUZZ_REPLAY
+//   ./Tests/Fuzzing/.build/release/FuzzIncomingLink Tests/Fuzzing/Corpus/IncomingLink
 let package = Package(
     name: "FloeFuzz",
     platforms: [.macOS(.v14)],
