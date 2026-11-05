@@ -211,8 +211,7 @@ nonisolated enum ScriptRunner {
 
     /// `environment` is added to the login shell's: what an action script is told about the result it acts on.
     static func run(_ script: ScriptCommand, arguments: [String], environment: [String: String] = [:]) async throws -> ShellResult {
-        let surroundings = environment.isEmpty ? nil : LoginEnvironment.current.merging(environment) { _, given in given }
-        return try await Shell.run(script.file, arguments, in: script.file.deletingLastPathComponent(), environment: surroundings, timeout: timeout)
+        try await Shell.run(script.file, arguments, in: script.file.deletingLastPathComponent(), environment: LoginEnvironment.current.merging(environment) { $1 }, timeout: timeout)
     }
 
     /// Splits typed arguments on whitespace, keeping "quoted spans" together.

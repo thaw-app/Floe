@@ -15,7 +15,7 @@ final class AlternativeActions {
     /// What the feature asks of the launcher.
     struct Host {
         var choices: () -> [String: KindActions] = { [:] }
-        /// Floe's own rows of a result's Actions menu, after its Return row.
+        /// The rows of a result's Actions menu after its Return row, the user's scripts on it among them.
         var floeActions: (RootItem) -> [ItemAction?] = { _ in [] }
         /// What Floe's own Return on a result is called.
         var floeTitle: (RootItem) -> String = { _ in "" }
@@ -65,9 +65,15 @@ final class AlternativeActions {
     func returnTitle(for item: RootItem) -> String? {
         guard let choices = choices(for: item), !choices.defaults.isEmpty else { return nil }
         // A script chosen for Return can be renamed, or stop acting on the kind, while the result stays selected.
+        // Only what the title can come from is hashed: this is asked on every draw of the bottom bar.
         var hasher = Hasher()
         hasher.combine(host.offerState(item))
-        hasher.combine(host.scripts())
+        if let kind = kind(of: item) {
+            for script in host.scripts() where script.subjects.contains(kind) {
+                hasher.combine(script.actionID)
+                hasher.combine(script.title)
+            }
+        }
         let state = hasher.finalize()
         if let lastTitle, lastTitle.id == item.id, lastTitle.choices == choices, lastTitle.state == state {
             return lastTitle.title
@@ -88,8 +94,9 @@ final class AlternativeActions {
         return [returnRow] + AlternativeActionRules.arranged(rows, own: own, primaryID: primary?.id, choices: choices)
     }
 
-    /// A result's rows, then the user's scripts that act on its kind with their keys. Return, the menu and keys
-    /// all read the rows from here, so a script is on offer wherever Floe's own rows are.
+    /// A result's rows, then the user's scripts that act on its kind with their keys. Each view's rows are built
+    /// through here, the launcher's in `floeActions(for:)`, so a script is on offer to Return, the menu and keys
+    /// wherever Floe's own rows are.
     func rows(_ rows: [ItemAction?], for item: RootItem) -> [ItemAction?] {
         guard let kind = kind(of: item) else { return rows }
         let scripts = host.scripts().filter { $0.subjects.contains(kind) }
@@ -109,7 +116,8 @@ final class AlternativeActions {
 
     /// The keys on the rows of a kind of result, as `keys(for:)` gives them on a result of that kind.
     func keys(of kind: SubjectKind?) -> ActionKeys {
-        ActionKeys.inForce(for: kind, choices: choices(of: kind), hotkeys: host.hotkeys())
+        let scripts = kind.map { kind in Set(host.scripts().filter { $0.subjects.contains(kind) }.map(\.actionID)) } ?? []
+        return ActionKeys.inForce(for: kind, choices: choices(of: kind), hotkeys: host.hotkeys(), scripts: scripts)
     }
 
     // MARK: - Working it out
@@ -137,7 +145,7 @@ final class AlternativeActions {
     /// The row Return runs, when a default applies. Floe's rows are only built when one is chosen.
     private func primary(for item: RootItem) -> ItemAction? {
         guard let choices = choices(for: item), !choices.defaults.isEmpty else { return nil }
-        return AlternativeActionRules.primary(choices, offered: AlternativeActionRules.offered(rows(host.floeActions(item), for: item)))
+        return AlternativeActionRules.primary(choices, offered: AlternativeActionRules.offered(host.floeActions(item)))
     }
 
     /// What Floe's own Return does, as a row that stays reachable once a default took its place.

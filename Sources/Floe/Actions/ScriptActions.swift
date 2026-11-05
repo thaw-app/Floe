@@ -37,9 +37,11 @@ nonisolated struct ActionSubject: Equatable, Sendable {
         return values.filter { !$0.value.isEmpty || $0.key == "FLOE_QUERY" }
     }
 
-    /// Where a file is and what its name is made of.
+    /// Where a file is and what its name is made of. The startup disk is only a path: it has no parent, and its
+    /// name is the row's.
     private static func place(of url: URL) -> [String: String] {
         let file = url.standardizedFileURL
+        guard file.path(percentEncoded: false) != "/" else { return ["FLOE_PATH": "/"] }
         return [
             "FLOE_PATH": plainPath(file),
             "FLOE_FILENAME": file.lastPathComponent,
@@ -81,12 +83,12 @@ nonisolated struct SubjectFacts: Equatable, Sendable {
     var version: String?
     var build: String?
     /// An app's process, while it runs.
-    var process: (pid: pid_t, isHidden: Bool)?
+    var process: AppProcess?
 
-    static func == (lhs: SubjectFacts, rhs: SubjectFacts) -> Bool {
-        lhs.contentType == rhs.contentType && lhs.size == rhs.size && lhs.created == rhs.created
-            && lhs.modified == rhs.modified && lhs.bundleIdentifier == rhs.bundleIdentifier && lhs.version == rhs.version
-            && lhs.build == rhs.build && lhs.process?.pid == rhs.process?.pid && lhs.process?.isHidden == rhs.process?.isHidden
+    /// A running app's process, as a script is told of it.
+    nonisolated struct AppProcess: Equatable, Sendable {
+        var pid: pid_t
+        var isHidden: Bool
     }
 
     var environment: [String: String] {
@@ -112,8 +114,10 @@ nonisolated struct SubjectFacts: Equatable, Sendable {
 }
 
 extension SubjectFacts {
-    /// Reads what the disk and the running apps say about the result. A link has nothing to read.
-    static func read(_ subject: ActionSubject) -> SubjectFacts {
+    /// Reads what the disk says about the result, off the main actor: a file on a slow or sleeping volume can
+    /// take a while to answer. `process` is the app's, read on the main actor first. A link has nothing to read.
+    @concurrent
+    static func read(_ subject: ActionSubject, process: AppProcess? = nil) async -> SubjectFacts {
         guard subject.kind != .url else { return SubjectFacts() }
         let keys: Set<URLResourceKey> = [.contentTypeKey, .fileSizeKey, .creationDateKey, .contentModificationDateKey]
         let values = try? subject.url.resourceValues(forKeys: keys)
@@ -127,9 +131,16 @@ extension SubjectFacts {
             facts.bundleIdentifier = bundle.bundleIdentifier
             facts.version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             facts.build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
-            facts.process = AppActions.running(AppEntry(name: subject.name, url: subject.url)).map { ($0.processIdentifier, $0.isHidden) }
+            facts.process = process
         }
         return facts
+    }
+
+    /// An app's process while it runs, from the running apps the main actor keeps. Nil for any other result.
+    @MainActor
+    static func process(of subject: ActionSubject) -> AppProcess? {
+        guard subject.kind == .app else { return nil }
+        return AppActions.running(AppEntry(name: subject.name, url: subject.url)).map { AppProcess(pid: $0.processIdentifier, isHidden: $0.isHidden) }
     }
 }
 
@@ -151,7 +162,7 @@ nonisolated extension SubjectKind {
 extension ScriptCommand {
     /// The id the script has as a row of an Actions menu, which the user's choices are kept under.
     var actionID: ActionID {
-        ActionID(rawValue: "script:" + file.lastPathComponent)
+        ActionID(rawValue: ActionID.scriptPrefix + file.lastPathComponent)
     }
 
     /// The kinds the script acts on, as the Scripts tab lists it: "Actions on Apps and Files".
@@ -159,5 +170,24 @@ extension ScriptCommand {
         let kinds = SubjectKind.allCases.filter(subjects.contains).map(\.title)
         let list = kinds.formatted(.list(type: .and))
         return String(localized: "Actions on \(list)", bundle: .floe, comment: "Beside a script in Settings. The placeholder lists kinds of result, such as Apps and Files.")
+    }
+}
+
+extension ActionID {
+    /// What a script's id starts with: the rest is its file's name.
+    static let scriptPrefix = "script:"
+
+    var isScript: Bool {
+        rawValue.hasPrefix(Self.scriptPrefix)
+    }
+}
+
+extension KindActions {
+    /// These choices without the keys left on any script but `offered`. A script renamed or taken away keeps its
+    /// choices, so they are back if it is, but its keys go to no row while it is not on offer.
+    func keeping(scripts offered: Set<ActionID>) -> KindActions {
+        var kept = self
+        kept.shortcuts = shortcuts.filter { !$0.key.isScript || offered.contains($0.key) }
+        return kept
     }
 }

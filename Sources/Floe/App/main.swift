@@ -146,7 +146,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 model.runner.run(command)
             }
         }
-        for script in model.catalog.allScripts {
+        for script in model.catalog.allScripts where script.subjects.isEmpty {
             guard let keyCombination = settings.commandHotkeys[script.id] else { continue }
             _ = hotkeys.register(keyCombination) { [weak self] in
                 self?.launcher.perform(.script(script.id))

@@ -23,20 +23,32 @@ final class ScriptRows {
     }
     var showOutput: (_ title: String, _ output: String) -> Void = { ScriptOutputWindow.show(title: $0, output: $1) }
 
-    /// Runs a script with the given argv, and with `environment` when it acts on a result. Output follows its mode:
-    /// a window for fullOutput, a HUD for compact and inline, nothing for silent. Failures show a HUD with the last
-    /// stderr line.
-    func run(_ script: ScriptCommand, argumentStrings: [String] = [], environment: [String: String] = [:]) {
+    /// Runs a script searched for, with the given argv. A script that acts on results runs only on one, from
+    /// `run(_:on:)`: started without it, from a hotkey or a link, it would be told nothing of what to act on.
+    func run(_ script: ScriptCommand, argumentStrings: [String] = []) {
+        guard script.subjects.isEmpty else { return }
+        start(script, argumentStrings: argumentStrings, countsUse: true) { [:] }
+    }
+
+    /// Runs a script on the result it acts on. `environment` says what the result is; it is worked out once the
+    /// script is under way, so what it reads from the disk never holds up the launcher. A script that acts on
+    /// results is never searched for, so its use ranks nothing and is not counted.
+    func run(_ script: ScriptCommand, on environment: @escaping @Sendable () async -> [String: String]) {
+        start(script, argumentStrings: [], countsUse: false, environment: environment)
+    }
+
+    /// Output follows the script's mode: a window for fullOutput, a HUD for compact and inline, nothing for silent.
+    /// Failures show a HUD with the last stderr line. A run is counted as a use once it is confirmed.
+    private func start(_ script: ScriptCommand, argumentStrings: [String], countsUse: Bool, environment: @escaping @Sendable () async -> [String: String]) {
         guard !script.needsConfirmation || confirms(script) else { return }
-        // A script that acts on results is never searched for, so its use would rank nothing.
-        if script.subjects.isEmpty {
+        if countsUse {
             recordUse(RootItem.script(script).id)
         }
         host.leave()
         Task { [weak self, runScript] in
             let result: ShellResult
             do {
-                result = try await runScript(script, argumentStrings, environment)
+                result = try await runScript(script, argumentStrings, environment())
             } catch {
                 await MainActor.run { [weak self] in
                     self?.host.showHUD(String(localized: "\(script.title) failed: \(error.localizedDescription)", bundle: .floe, comment: "The first placeholder is the name of a script, the second is the reason."))

@@ -232,9 +232,14 @@ final class LauncherFeatures {
             },
             hotkeys: { model?.settings.floeHotkeys ?? [] },
             scripts: { model?.catalog.allScripts ?? [] },
-            // What the disk says about the result is read now, when the script runs, not each time the menu is built.
+            // What the disk says about the result is read when the script runs, not each time the menu is built, and
+            // off the main actor. The query is the search on screen: File Search has a field of its own.
             runScript: { [scripts] script, subject in
-                scripts.run(script, environment: subject.environment(facts: .read(subject), query: model?.query ?? ""))
+                let query = model.map { $0.isSearchingFiles ? $0.fileSearch.query : $0.query } ?? ""
+                let process = SubjectFacts.process(of: subject)
+                scripts.run(script) {
+                    await subject.environment(facts: SubjectFacts.read(subject, process: process), query: query)
+                }
             }
         )
     }

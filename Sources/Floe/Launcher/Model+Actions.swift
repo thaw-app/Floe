@@ -78,12 +78,17 @@ extension LauncherModel {
 
     func rootActions(for item: RootItem) -> [ItemAction?] {
         let returnRow = ItemAction(title: primaryActionTitle(for: item), symbol: "return", id: .primary) { [weak self] in self?.activate(item) }
-        return features.actions.menu(returnRow, rows: features.actions.rows(floeActions(for: item), for: item), for: item)
+        return features.actions.menu(returnRow, rows: floeActions(for: item), for: item)
     }
 
-    /// Floe's own rows of a result's Actions menu, after the Return row, with their keys. The user's choices
-    /// arrange the menu from them, and keys run them, a row the menu leaves out included.
+    /// The rows of a result's Actions menu after the Return row, with their keys: Floe's own, then the user's
+    /// scripts that act on it. The user's choices arrange the menu from them, Return runs a default among them,
+    /// and keys run them, a row the menu leaves out included.
     func floeActions(for item: RootItem) -> [ItemAction?] {
+        features.actions.rows(ownActions(for: item), for: item)
+    }
+
+    private func ownActions(for item: RootItem) -> [ItemAction?] {
         var actions: [ItemAction?] = []
         switch item {
         case let .app(app):

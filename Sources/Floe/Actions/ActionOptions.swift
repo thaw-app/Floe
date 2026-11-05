@@ -112,8 +112,9 @@ extension KindActions {
 
     /// The keys that run a row: Floe's for the kind, with the user's laid over them and none of Floe's hotkeys, as
     /// the launcher has them.
-    func keys(for id: ActionID, of kind: SubjectKind, hotkeys: Set<KeyCombination> = []) -> KeyCombination? {
-        ActionKeys.inForce(for: kind, choices: self, hotkeys: hotkeys).key(for: id)
+    /// `rows` are those listed, the user's scripts among them.
+    func keys(for id: ActionID, of kind: SubjectKind, among rows: [ActionOption] = [], hotkeys: Set<KeyCombination> = []) -> KeyCombination? {
+        ActionKeys.inForce(for: kind, choices: self, hotkeys: hotkeys, scripts: Set(rows.map(\.id)).union([id])).key(for: id)
     }
 
     /// Gives a row keys, or with nil takes its keys away, Floe's included. Floe's own keys for the row are stored as
@@ -176,7 +177,7 @@ enum KeyRefusal: Equatable {
             self = keys.modifiers.contains(.command) ? .reserved(keys) : .needsCommand(keys)
             return
         }
-        let inForce = ActionKeys.inForce(for: kind, choices: choices, hotkeys: hotkeys)
+        let inForce = ActionKeys.inForce(for: kind, choices: choices, hotkeys: hotkeys, scripts: Set(rows.map(\.id)))
         guard let other = rows.first(where: { $0.id != id && inForce.key(for: $0.id) == keys }) else { return nil }
         self = .taken(keys, by: other.title)
     }

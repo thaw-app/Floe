@@ -97,7 +97,7 @@ struct ScriptActionsTests {
         #expect(values["FLOE_APP_PID"] == nil)
         #expect(values["FLOE_QUERY"] == "", "an empty search is still said")
 
-        facts.process = (pid: 412, isHidden: true)
+        facts.process = SubjectFacts.AppProcess(pid: 412, isHidden: true)
         values = subject.environment(facts: facts, query: "")
         #expect(values["FLOE_APP_RUNNING"] == "1")
         #expect(values["FLOE_APP_PID"] == "412")
@@ -129,19 +129,23 @@ struct ScriptActionsTests {
         #expect(values["FLOE_PATH"] == "/Users/me/Documents")
         #expect(values["FLOE_PARENT"] == "/Users/me")
         let root = ActionSubject(kind: .folder, name: "Macintosh HD", url: URL(fileURLWithPath: "/", isDirectory: true))
-        #expect(root.environment(facts: SubjectFacts(), query: "")["FLOE_PATH"] == "/")
+        let told = root.environment(facts: SubjectFacts(), query: "")
+        #expect(told["FLOE_PATH"] == "/")
+        #expect(told["FLOE_PARENT"] == nil, "the startup disk has no parent")
+        #expect(told["FLOE_FILENAME"] == nil)
+        #expect(told["FLOE_NAME"] == "Macintosh HD")
     }
 
-    @Test func aFilesFactsAreReadFromTheDisk() throws {
+    @Test func aFilesFactsAreReadFromTheDisk() async throws {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-facts-\(UUID().uuidString).txt")
         try Data("hello".utf8).write(to: file)
         defer { try? FileManager.default.removeItem(at: file) }
-        let facts = SubjectFacts.read(ActionSubject(kind: .file, name: file.lastPathComponent, url: file))
+        let facts = await SubjectFacts.read(ActionSubject(kind: .file, name: file.lastPathComponent, url: file))
         #expect(facts.size == 5)
         #expect(facts.contentType == .plainText)
         #expect(facts.modified != nil)
         #expect(facts.bundleIdentifier == nil)
-        let folder = SubjectFacts.read(ActionSubject(kind: .folder, name: "tmp", url: file.deletingLastPathComponent()))
+        let folder = await SubjectFacts.read(ActionSubject(kind: .folder, name: "tmp", url: file.deletingLastPathComponent()))
         #expect(folder.size == nil, "a folder's size would mean adding up all it holds")
     }
 
@@ -211,6 +215,46 @@ struct ScriptActionsTests {
         #expect(model.rootActions(for: .app(app)).last??.shortcut == KeyCombination(key: .o, modifiers: [.command, .option]), "the menu shows its keys")
     }
 
+    /// File Search has a field of its own: a script run there is told what is typed in it.
+    @Test func aScriptIsToldTheSearchOnScreen() async throws {
+        let upload = script("Upload", file: "upload.sh", on: [.file])
+        let model = makeModel(scripts: [upload])
+        let told = Told()
+        model.features.scripts.runScript = { _, _, environment in
+            told.environment = environment
+            return ShellResult(status: 0, stdout: Data(), stderr: Data())
+        }
+        // A file's kind is read from the disk, so it is there.
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("floe-invoice-\(UUID().uuidString).pdf")
+        try Data().write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+        model.query = "search files"
+        model.openFileSearch(with: "invoice")
+        let file = FileResult(url: url, name: url.lastPathComponent, displayPath: "", contentType: nil, lastUsed: nil)
+        let row = try #require(model.fileSearch.actions(for: file).compactMap(\.self).first { $0.id == upload.actionID })
+        row.run()
+        for _ in 0 ..< 200 where told.environment == nil {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(told.environment?["FLOE_QUERY"] == "invoice")
+        #expect(told.environment?["FLOE_FILENAME"] == url.lastPathComponent)
+    }
+
+    /// Choices stay with a script's file name, so a renamed script leaves its keys behind. They must not keep the
+    /// same keys from the script under its new name, in Settings or in the launcher.
+    @Test func keysLeftOnARenamedScriptGoToNoRow() {
+        let renamed = script("Upload", file: "upload2.sh", on: [.app])
+        let keys = KeyCombination(key: .o, modifiers: [.command, .option])
+        var choices = KindActions()
+        choices.shortcuts = [ActionID(rawValue: "script:upload.sh"): keys]
+        let rows = ActionOption.rows(for: .app, roleApps: [], scripts: [renamed])
+        #expect(choices.setKeys(keys, for: renamed.actionID, of: .app, among: rows) == nil)
+        #expect(choices.keys(for: renamed.actionID, of: .app, among: rows) == keys)
+
+        let model = makeModel(scripts: [renamed], choices: choices)
+        #expect(model.rootActions(for: .app(app)).last??.shortcut == keys, "the old name sorts first, and still has none")
+    }
+
     @Test func aScriptThatActsOnResultsIsNotSearchedFor() {
         let model = makeModel(scripts: [script("Upload Thing", file: "upload.sh", on: [.file]), script("Deploy Thing", file: "deploy.sh", on: [])])
         model.query = "Thing"
@@ -268,4 +312,9 @@ struct ScriptActionsTests {
         let parent = folder.standardizedFileURL.path(percentEncoded: false).replacing(/\/$/, with: "")
         #expect(told.prefix(7) == ["file", "notes.txt", parent, "txt", "12", "public.plain-text", "notes"])
     }
+}
+
+/// What a script was told, set from the runner off the main actor.
+private final nonisolated class Told: @unchecked Sendable {
+    var environment: [String: String]?
 }

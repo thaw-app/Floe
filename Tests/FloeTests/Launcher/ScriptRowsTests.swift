@@ -99,6 +99,21 @@ struct ScriptRowsTests {
         #expect(asked.windows.isEmpty)
     }
 
+    /// Started from a hotkey or a link, a script that acts on results would be told nothing of what to act on.
+    @Test func aScriptThatActsOnResultsRunsOnlyOnOne() async {
+        let rows = rows(stdout: "ran")
+        var action = script(.compact)
+        action.subjects = [.file]
+        rows.run(action)
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(asked.left == 0)
+        #expect(asked.huds.isEmpty)
+        rows.run(action) { ["FLOE_PATH": "/tmp/notes.txt"] }
+        await settle { !asked.huds.isEmpty }
+        #expect(asked.huds == ["ran"])
+        #expect(asked.used.isEmpty, "a script never searched for ranks nothing")
+    }
+
     @Test func aScriptThatCouldNotStartSaysWhy() async {
         let rows = rows()
         rows.runScript = { _, _, _ in throw Failure() }

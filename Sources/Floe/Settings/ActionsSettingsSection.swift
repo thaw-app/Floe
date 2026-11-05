@@ -106,7 +106,7 @@ struct ActionsSettingsSection: View {
     /// back to the row's keys, and the refusal says why under it.
     private func keys(for option: ActionOption, among options: [ActionOption]) -> Binding<KeyCombination?> {
         Binding {
-            settings.actionChoices[kind: kind].keys(for: option.id, of: kind, hotkeys: settings.floeHotkeys)
+            settings.actionChoices[kind: kind].keys(for: option.id, of: kind, among: options, hotkeys: settings.floeHotkeys)
         } set: { keys in
             var choices = settings.actionChoices[kind: kind]
             if let refused = choices.setKeys(keys, for: option.id, of: kind, among: options, hotkeys: settings.floeHotkeys) {
