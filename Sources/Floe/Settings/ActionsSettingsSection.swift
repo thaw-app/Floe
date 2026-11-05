@@ -9,10 +9,12 @@ import SwiftUI
 import ThawUI
 
 /// The Commands page's Actions tab: for each kind of result, what Return does, and for each of Floe's rows of its
-/// Actions menu, keys that run it and whether the menu shows it. What is offered and what is refused is decided in
-/// ActionOptions.swift.
+/// Actions menu and each of the user's scripts that acts on the kind, keys that run it and whether the menu shows it.
+/// What is offered and what is refused is decided in ActionOptions.swift.
 struct ActionsSettingsSection: View {
     @ObservedObject var settings: AppSettings
+    /// The user's script commands; those with a `@floe.subjects` line are listed with the kinds they act on.
+    var scripts: [ScriptCommand] = []
     var installed = AppLookup.system
     @State private var kind = SubjectKind.app
     /// Keys just refused, shown under the row they were recorded for.
@@ -20,7 +22,7 @@ struct ActionsSettingsSection: View {
 
     /// The kind's rows, a role's named after the app it opens in now.
     private var options: [ActionOption] {
-        ActionOption.rows(for: kind, roleApps: PreferredApps.apps(choice: settings.appChoice, installed: installed))
+        ActionOption.rows(for: kind, roleApps: PreferredApps.apps(choice: settings.appChoice, installed: installed), scripts: scripts)
     }
 
     var body: some View {

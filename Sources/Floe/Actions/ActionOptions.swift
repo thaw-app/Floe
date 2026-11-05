@@ -20,7 +20,13 @@ extension ActionOption {
     /// Floe's own rows on a kind of result, in the order its Actions menu has them. A row only some results have,
     /// such as Quit, is listed all the same; one that depends on the result, such as an app in Open With, is left to
     /// its submenu's row. `roleApps` are the roles a file opens in with their apps, as the launcher resolves them.
-    static func rows(for kind: SubjectKind, roleApps: [RoleApp]) -> [ActionOption] {
+    /// The user's scripts that act on the kind come after Floe's rows, as the menu has them.
+    static func rows(for kind: SubjectKind, roleApps: [RoleApp], scripts: [ScriptCommand] = []) -> [ActionOption] {
+        floeRows(for: kind, roleApps: roleApps)
+            + scripts.filter { $0.subjects.contains(kind) }.map { ActionOption(id: $0.actionID, title: $0.title) }
+    }
+
+    private static func floeRows(for kind: SubjectKind, roleApps: [RoleApp]) -> [ActionOption] {
         let openWith = ActionOption(id: .openWith, title: String(localized: "Open With", bundle: .floe, comment: "The title of a submenu that lists apps."), isSubmenu: true)
         let roles = roleApps.map { entry in
             ActionOption(id: .openIn(entry.role), title: String(localized: "Open in \(entry.app.name)", bundle: .floe, comment: "The placeholder is the name of an app."))

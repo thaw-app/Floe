@@ -23,7 +23,7 @@ extension LauncherModel {
             return true
         }
         let collapsed = panelState.isCollapsed(in: settings.launcherLayout)
-        if ActionKeys.handle(ActionKeys.pressed(event.keyCode, flags), keys: { rowKeys(for: item) }, rows: { item.map { floeActions(for: $0) } ?? [] }, collapsed: collapsed) {
+        if ActionKeys.handle(ActionKeys.pressed(event.keyCode, flags), keys: { rowKeys(for: item) }, rows: { item.map { features.actions.rows(floeActions(for: $0), for: $0) } ?? [] }, collapsed: collapsed) {
             return true
         }
         switch (event.keyCode, item) {

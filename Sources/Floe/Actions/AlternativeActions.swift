@@ -9,7 +9,8 @@ import AppKit
 import ThawUI
 
 /// The user's choices on apps, files, folders and web addresses: what Return does, which rows the Actions menu
-/// shows, and the keys on its rows. Nothing chosen leaves every result as Floe has it.
+/// shows, and the keys on its rows. Nothing chosen leaves every result as Floe has it. Script commands with a
+/// `@floe.subjects` line are rows of the user's own, after Floe's.
 final class AlternativeActions {
     /// What the feature asks of the launcher.
     struct Host {
@@ -34,6 +35,12 @@ final class AlternativeActions {
         var offerState: (RootItem) -> Int = { _ in 0 }
         /// Floe's own hotkeys, which no row's keys can be.
         var hotkeys: () -> Set<KeyCombination> = { [] }
+        /// The user's script commands, those that act on results among them.
+        var scripts: () -> [ScriptCommand] = { [] }
+        /// Runs a script on the result it acts on.
+        var runScript: (ScriptCommand, ActionSubject) -> Void = { _, _ in
+            // Set by LauncherFeatures.
+        }
     }
 
     var host = Host()
@@ -57,7 +64,11 @@ final class AlternativeActions {
     /// What Return does on a result, when it is not Floe's own.
     func returnTitle(for item: RootItem) -> String? {
         guard let choices = choices(for: item), !choices.defaults.isEmpty else { return nil }
-        let state = host.offerState(item)
+        // A script chosen for Return can be renamed, or stop acting on the kind, while the result stays selected.
+        var hasher = Hasher()
+        hasher.combine(host.offerState(item))
+        hasher.combine(host.scripts())
+        let state = hasher.finalize()
         if let lastTitle, lastTitle.id == item.id, lastTitle.choices == choices, lastTitle.state == state {
             return lastTitle.title
         }
@@ -75,6 +86,20 @@ final class AlternativeActions {
         returnRow.shortcut = primary?.shortcut
         let own = primary == nil ? nil : ownAction(for: item)
         return [returnRow] + AlternativeActionRules.arranged(rows, own: own, primaryID: primary?.id, choices: choices)
+    }
+
+    /// A result's rows, then the user's scripts that act on its kind with their keys. Return, the menu and keys
+    /// all read the rows from here, so a script is on offer wherever Floe's own rows are.
+    func rows(_ rows: [ItemAction?], for item: RootItem) -> [ItemAction?] {
+        guard let kind = kind(of: item) else { return rows }
+        let scripts = host.scripts().filter { $0.subjects.contains(kind) }
+        guard !scripts.isEmpty, let subject = ActionSubject.of(item, kind: kind) else { return rows }
+        let scriptRows = scripts.map { script -> ItemAction? in
+            ItemAction(title: script.title, symbol: "terminal", id: script.actionID) { [host] in
+                host.runScript(script, subject)
+            }
+        }
+        return rows + [nil] + keys(of: kind).keyed(scriptRows)
     }
 
     /// The keys on a result's rows: Floe's for its kind, with the keys the user chose laid over them.
@@ -112,7 +137,7 @@ final class AlternativeActions {
     /// The row Return runs, when a default applies. Floe's rows are only built when one is chosen.
     private func primary(for item: RootItem) -> ItemAction? {
         guard let choices = choices(for: item), !choices.defaults.isEmpty else { return nil }
-        return AlternativeActionRules.primary(choices, offered: AlternativeActionRules.offered(host.floeActions(item)))
+        return AlternativeActionRules.primary(choices, offered: AlternativeActionRules.offered(rows(host.floeActions(item), for: item)))
     }
 
     /// What Floe's own Return does, as a row that stays reachable once a default took its place.

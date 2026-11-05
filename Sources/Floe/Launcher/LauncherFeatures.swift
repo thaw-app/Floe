@@ -230,7 +230,12 @@ final class LauncherFeatures {
                 state.combine(model?.resolvedApps.apps)
                 return state.finalize()
             },
-            hotkeys: { model?.settings.floeHotkeys ?? [] }
+            hotkeys: { model?.settings.floeHotkeys ?? [] },
+            scripts: { model?.catalog.allScripts ?? [] },
+            // What the disk says about the result is read now, when the script runs, not each time the menu is built.
+            runScript: { [scripts] script, subject in
+                scripts.run(script, environment: subject.environment(facts: .read(subject), query: model?.query ?? ""))
+            }
         )
     }
 }

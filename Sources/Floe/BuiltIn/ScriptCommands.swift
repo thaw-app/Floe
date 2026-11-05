@@ -31,6 +31,10 @@ nonisolated enum ScriptParseError: Error, LocalizedError, Sendable, Hashable {
     case missingTitle
     case unsupportedMode(String)
     case invalidArgument(Int)
+    /// `@floe.subjects` names something that is not a kind of result.
+    case unknownSubject(String)
+    /// A script that acts on results is run from the Actions menu, where nothing can be typed for an argument.
+    case actionNeedsArgument(Int)
 
     var errorDescription: String? {
         switch self {
@@ -46,12 +50,17 @@ nonisolated enum ScriptParseError: Error, LocalizedError, Sendable, Hashable {
             String(localized: "Unknown @raycast.mode \(mode). Use fullOutput, compact, silent or inline.", bundle: .floe, comment: "The word that starts with @raycast and the four mode names are typed into a script as they are.")
         case let .invalidArgument(index):
             String(localized: "@raycast.argument\(index) isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}.", bundle: .floe, comment: "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument.")
+        case let .unknownSubject(name):
+            String(localized: "Unknown @floe.subjects \(name). Use app, file, folder or url.", bundle: .floe, comment: "The word that starts with @floe and the four kinds are typed into a script as they are, and the placeholder is the word the script names.")
+        case let .actionNeedsArgument(index):
+            String(localized: "@raycast.argument\(index) is required, but a script with @floe.subjects runs from the Actions menu, where nothing is typed. Add \"optional\": true.", bundle: .floe, comment: "The words that start with @raycast and @floe and the text in quotes are typed into a script as they are, and the placeholder is the number of the argument.")
         }
     }
 }
 
 /// A Raycast-compatible script command: an executable file in the Scripts folder with
-/// `@raycast.*` metadata in its leading comments.
+/// `@raycast.*` metadata in its leading comments. Its `@floe.*` lines, which Raycast reads none of, make it an
+/// action on results.
 nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
     let file: URL
     let title: String
@@ -60,6 +69,8 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
     let needsConfirmation: Bool
     let icon: String?
     let arguments: [ScriptArgument]
+    /// The kinds of result the script acts on, from `@floe.subjects`. Empty for a script searched for by its title.
+    var subjects: Set<SubjectKind> = []
 
     var id: String {
         "script/\(file.lastPathComponent)"
@@ -69,20 +80,24 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
         packageName ?? String(localized: "Script Command", bundle: .floe, comment: "What a script command is called where it names no package.")
     }
 
+    /// The `@raycast.*` and `@floe.*` fields of a file's text, keys lowercased. The first of a name wins.
+    static func fields(of text: String) -> (raycast: [String: String], floe: [String: String]) {
+        var fields: [Substring: [String: String]] = [:]
+        for line in text.components(separatedBy: .newlines) {
+            guard let match = line.firstMatch(of: /@(raycast|floe)\.\h*(\p{L}*\p{N}*)(.*)/), !match.2.isEmpty else { continue }
+            let key = match.2.lowercased()
+            fields[match.1, default: [:]][key] = fields[match.1]?[key] ?? match.3.trimmingCharacters(in: .whitespaces)
+        }
+        return (fields["raycast"] ?? [:], fields["floe"] ?? [:])
+    }
+
     /// Reads one file's metadata. schemaVersion and title are required; mode defaults to
     /// fullOutput; up to three arguments are kept.
     static func parse(file: URL) -> Result<ScriptCommand, ScriptParseError> {
         guard let text = try? String(contentsOf: file, encoding: .utf8) else {
             return .failure(.unreadable)
         }
-        var values: [String: String] = [:]
-        for line in text.components(separatedBy: .newlines) {
-            guard let match = line.firstMatch(of: /@raycast\.\h*(\p{L}*\p{N}*)(.*)/) else { continue }
-            let key = match.1.lowercased()
-            let value = match.2.trimmingCharacters(in: .whitespaces)
-            guard !key.isEmpty, values[key] == nil else { continue }
-            values[key] = value
-        }
+        let (values, floeValues) = fields(of: text)
         guard let schema = values["schemaversion"], !schema.isEmpty else {
             return .failure(.missingSchemaVersion)
         }
@@ -102,6 +117,7 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
             mode = .fullOutput
         }
         var arguments: [ScriptArgument] = []
+        var firstRequired: Int?
         for index in 1 ... 3 {
             guard let raw = values["argument\(index)"], !raw.isEmpty else { continue }
             guard let data = raw.data(using: .utf8),
@@ -110,18 +126,32 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
             else {
                 return .failure(.invalidArgument(index))
             }
-            arguments.append(ScriptArgument(placeholder: placeholder, optional: (json["optional"] as? Bool) ?? false))
+            let optional = (json["optional"] as? Bool) ?? false
+            firstRequired = firstRequired ?? (optional ? nil : index)
+            arguments.append(ScriptArgument(placeholder: placeholder, optional: optional))
         }
         let confirmation = values["needsconfirmation"]?.lowercased()
-        return .success(ScriptCommand(
-            file: file,
-            title: title,
-            packageName: values["packagename"].flatMap { $0.isEmpty ? nil : $0 },
-            mode: mode,
-            needsConfirmation: confirmation == "true" || confirmation == "1" || confirmation == "yes",
-            icon: values["icon"].flatMap { $0.isEmpty ? nil : $0 },
-            arguments: arguments
-        ))
+        return actionSubjects(floeValues["subjects"], firstRequired: firstRequired).map { subjects in
+            ScriptCommand(
+                file: file,
+                title: title,
+                packageName: values["packagename"].flatMap { $0.isEmpty ? nil : $0 },
+                mode: mode,
+                needsConfirmation: confirmation == "true" || confirmation == "1" || confirmation == "yes",
+                icon: values["icon"].flatMap { $0.isEmpty ? nil : $0 },
+                arguments: arguments,
+                subjects: subjects
+            )
+        }
+    }
+
+    /// The kinds of result a `@floe.subjects` line names. A script that acts on results is run from the Actions menu,
+    /// where nothing is typed, so it cannot need an argument.
+    private static func actionSubjects(_ line: String?, firstRequired: Int?) -> Result<Set<SubjectKind>, ScriptParseError> {
+        SubjectKind.list(line ?? "").flatMap { kinds in
+            guard let firstRequired, !kinds.isEmpty else { return .success(kinds) }
+            return .failure(.actionNeedsArgument(firstRequired))
+        }
     }
 
     /// Every runnable command in a folder, with the files that failed to parse alongside.
@@ -179,8 +209,10 @@ nonisolated struct ScriptScan: Sendable {
 nonisolated enum ScriptRunner {
     static let timeout: TimeInterval = 60
 
-    static func run(_ script: ScriptCommand, arguments: [String]) async throws -> ShellResult {
-        try await Shell.run(script.file, arguments, in: script.file.deletingLastPathComponent(), timeout: timeout)
+    /// `environment` is added to the login shell's: what an action script is told about the result it acts on.
+    static func run(_ script: ScriptCommand, arguments: [String], environment: [String: String] = [:]) async throws -> ShellResult {
+        let surroundings = environment.isEmpty ? nil : LoginEnvironment.current.merging(environment) { _, given in given }
+        return try await Shell.run(script.file, arguments, in: script.file.deletingLastPathComponent(), environment: surroundings, timeout: timeout)
     }
 
     /// Splits typed arguments on whitespace, keeping "quoted spans" together.

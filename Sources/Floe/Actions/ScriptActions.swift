@@ -1,0 +1,163 @@
+//
+//  ScriptActions.swift
+//  Project: Floe
+//
+//  Copyright (Floe) © 2026 René Jiménez
+//  Licensed under the GNU AGPLv3
+
+import AppKit
+import UniformTypeIdentifiers
+
+/// The result a script acts on: what it is, what it is called and where it is. Built when the Actions menu is, so it
+/// reads nothing from the disk; `SubjectFacts` are read when the script runs.
+nonisolated struct ActionSubject: Equatable, Sendable {
+    let kind: SubjectKind
+    /// What the row is called: the app's or file's name, or the link's title or address.
+    let name: String
+    /// The app's bundle, the file or folder, or the web address.
+    let url: URL
+
+    /// What a script is told about the result, as environment variables. A value Floe doesn't know is left unset.
+    /// Nothing is written into the script's text, so a name with quotes or `$` in it cannot change the command.
+    func environment(facts: SubjectFacts, query: String) -> [String: String] {
+        var values = [
+            "FLOE_SUBJECT": kind.rawValue,
+            "FLOE_NAME": name,
+            "FLOE_URL": url.absoluteString,
+            "FLOE_QUERY": query,
+        ]
+        switch kind {
+        case .app, .file, .folder:
+            values.merge(Self.place(of: url)) { $1 }
+            values.merge(facts.environment) { $1 }
+        case .url:
+            values["FLOE_HOST"] = url.host(percentEncoded: false)
+            values["FLOE_SCHEME"] = url.scheme
+        }
+        return values.filter { !$0.value.isEmpty || $0.key == "FLOE_QUERY" }
+    }
+
+    /// Where a file is and what its name is made of.
+    private static func place(of url: URL) -> [String: String] {
+        let file = url.standardizedFileURL
+        return [
+            "FLOE_PATH": plainPath(file),
+            "FLOE_FILENAME": file.lastPathComponent,
+            "FLOE_BASENAME": file.deletingPathExtension().lastPathComponent,
+            "FLOE_EXTENSION": file.pathExtension,
+            "FLOE_PARENT": plainPath(file.deletingLastPathComponent()),
+        ]
+    }
+
+    /// A folder's URL ends in a slash, which a script joining paths would double.
+    private static func plainPath(_ url: URL) -> String {
+        let path = url.path(percentEncoded: false)
+        return path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path
+    }
+}
+
+extension ActionSubject {
+    /// The result a script acts on, or nil for a result that is not an app, a file, a folder or a link.
+    static func of(_ item: RootItem, kind: SubjectKind) -> ActionSubject? {
+        switch item {
+        case let .app(app): ActionSubject(kind: kind, name: app.name, url: app.url)
+        case let .file(file): ActionSubject(kind: kind, name: file.name, url: file.url)
+        case let .webAddress(address): ActionSubject(kind: kind, name: address.text, url: address.url)
+        case let .bookmark(bookmark): ActionSubject(kind: kind, name: bookmark.title, url: bookmark.url)
+        default: nil
+        }
+    }
+}
+
+/// What is read about a result from the disk and the running apps when a script runs on it.
+nonisolated struct SubjectFacts: Equatable, Sendable {
+    /// A uniform type identifier, such as `com.adobe.pdf`.
+    var contentType: UTType?
+    /// A file's size in bytes. Folders and apps have none: adding up what is in them could take long.
+    var size: Int?
+    var created: Date?
+    var modified: Date?
+    var bundleIdentifier: String?
+    var version: String?
+    var build: String?
+    /// An app's process, while it runs.
+    var process: (pid: pid_t, isHidden: Bool)?
+
+    static func == (lhs: SubjectFacts, rhs: SubjectFacts) -> Bool {
+        lhs.contentType == rhs.contentType && lhs.size == rhs.size && lhs.created == rhs.created
+            && lhs.modified == rhs.modified && lhs.bundleIdentifier == rhs.bundleIdentifier && lhs.version == rhs.version
+            && lhs.build == rhs.build && lhs.process?.pid == rhs.process?.pid && lhs.process?.isHidden == rhs.process?.isHidden
+    }
+
+    var environment: [String: String] {
+        var values: [String: String] = [:]
+        values["FLOE_CONTENT_TYPE"] = contentType?.identifier
+        values["FLOE_TYPE_DESCRIPTION"] = contentType?.localizedDescription
+        values["FLOE_MIME_TYPE"] = contentType?.preferredMIMEType
+        values["FLOE_SIZE"] = size.map(String.init)
+        values["FLOE_CREATED"] = created?.formatted(.iso8601)
+        values["FLOE_MODIFIED"] = modified?.formatted(.iso8601)
+        values["FLOE_BUNDLE_ID"] = bundleIdentifier
+        values["FLOE_APP_VERSION"] = version
+        values["FLOE_APP_BUILD"] = build
+        if bundleIdentifier != nil {
+            values["FLOE_APP_RUNNING"] = process == nil ? "0" : "1"
+        }
+        if let process {
+            values["FLOE_APP_PID"] = String(process.pid)
+            values["FLOE_APP_HIDDEN"] = process.isHidden ? "1" : "0"
+        }
+        return values
+    }
+}
+
+extension SubjectFacts {
+    /// Reads what the disk and the running apps say about the result. A link has nothing to read.
+    static func read(_ subject: ActionSubject) -> SubjectFacts {
+        guard subject.kind != .url else { return SubjectFacts() }
+        let keys: Set<URLResourceKey> = [.contentTypeKey, .fileSizeKey, .creationDateKey, .contentModificationDateKey]
+        let values = try? subject.url.resourceValues(forKeys: keys)
+        var facts = SubjectFacts(
+            contentType: values?.contentType,
+            size: subject.kind == .file ? values?.fileSize : nil,
+            created: values?.creationDate,
+            modified: values?.contentModificationDate
+        )
+        if subject.kind == .app, let bundle = Bundle(url: subject.url) {
+            facts.bundleIdentifier = bundle.bundleIdentifier
+            facts.version = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+            facts.build = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+            facts.process = AppActions.running(AppEntry(name: subject.name, url: subject.url)).map { ($0.processIdentifier, $0.isHidden) }
+        }
+        return facts
+    }
+}
+
+nonisolated extension SubjectKind {
+    /// The kinds a `@floe.subjects` line names, written with commas, spaces or both. Links can be named either way.
+    static func list(_ text: String) -> Result<Set<SubjectKind>, ScriptParseError> {
+        var kinds: Set<SubjectKind> = []
+        for word in text.split(whereSeparator: { $0 == "," || $0.isWhitespace }) {
+            let name = word.lowercased()
+            guard let kind = name == "link" ? .url : SubjectKind(rawValue: name) else {
+                return .failure(.unknownSubject(String(word)))
+            }
+            kinds.insert(kind)
+        }
+        return .success(kinds)
+    }
+}
+
+extension ScriptCommand {
+    /// The id the script has as a row of an Actions menu, which the user's choices are kept under.
+    var actionID: ActionID {
+        ActionID(rawValue: "script:" + file.lastPathComponent)
+    }
+
+    /// The kinds the script acts on, as the Scripts tab lists it: "Actions on Apps and Files".
+    var actsOnLabel: String {
+        let kinds = SubjectKind.allCases.filter(subjects.contains).map(\.title)
+        let list = kinds.formatted(.list(type: .and))
+        return String(localized: "Actions on \(list)", bundle: .floe, comment: "Beside a script in Settings. The placeholder lists kinds of result, such as Apps and Files.")
+    }
+}

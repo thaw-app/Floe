@@ -49,7 +49,8 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
   - `Actions`: the keys and the user's choices for a result's Actions menu, by kind of result (app, file, folder or
     link). Floe's own keys for its rows (`ActionKeys.swift`, with `SubjectKind` and `KeyLayout`), the choices for one
     kind and the rules they follow (`ActionChoices.swift`), what the launcher asks for Return, the menu and the keys
-    (`AlternativeActions.swift`), and what the Actions tab in Settings lists and writes (`ActionOptions.swift`).
+    (`AlternativeActions.swift`), what the Actions tab in Settings lists and writes (`ActionOptions.swift`), and the
+    user's script commands as rows of the menu, with what they are told about the result (`ScriptActions.swift`).
   - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
   - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
     clipboard history, snippets and their expander, quicklinks, the calendar, the file search and its index of file

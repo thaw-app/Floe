@@ -87,11 +87,11 @@ final class FileSearchModel: ObservableObject {
         return alternatives.menu(returnRow, rows: rows(for: file), for: item)
     }
 
-    /// Floe's rows for a file with their keys, before the user's choices arrange the menu: a row the menu leaves
-    /// out still runs by its keys.
+    /// Floe's rows for a file and the user's scripts on it, with their keys, before the user's choices arrange the
+    /// menu: a row the menu leaves out still runs by its keys.
     private func rows(for file: FileResult) -> [ItemAction?] {
         let actionHost = ActionHost(showHUD: host.showHUD, dismiss: host.dismiss, preferredApps: preferredApps())
-        return rowKeys(for: file).keyed(FileActions.actions(for: file.url, host: actionHost))
+        return alternatives.rows(rowKeys(for: file).keyed(FileActions.actions(for: file.url, host: actionHost)), for: .file(file))
     }
 
     /// The panel's keys while this search is on screen. Returns true when the key was consumed.

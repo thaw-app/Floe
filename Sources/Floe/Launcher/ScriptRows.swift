@@ -18,19 +18,25 @@ final class ScriptRows {
     }
     /// Asks before a script that declares it needs confirming runs.
     var confirms: (ScriptCommand) -> Bool = { ScriptRows.confirmRun(of: $0) }
-    var runScript: @Sendable (ScriptCommand, [String]) async throws -> ShellResult = { try await ScriptRunner.run($0, arguments: $1) }
+    var runScript: @Sendable (ScriptCommand, [String], [String: String]) async throws -> ShellResult = {
+        try await ScriptRunner.run($0, arguments: $1, environment: $2)
+    }
     var showOutput: (_ title: String, _ output: String) -> Void = { ScriptOutputWindow.show(title: $0, output: $1) }
 
-    /// Runs a script with the given argv. Output follows its mode: a window for fullOutput, a HUD for compact
-    /// and inline, nothing for silent. Failures show a HUD with the last stderr line.
-    func run(_ script: ScriptCommand, argumentStrings: [String] = []) {
+    /// Runs a script with the given argv, and with `environment` when it acts on a result. Output follows its mode:
+    /// a window for fullOutput, a HUD for compact and inline, nothing for silent. Failures show a HUD with the last
+    /// stderr line.
+    func run(_ script: ScriptCommand, argumentStrings: [String] = [], environment: [String: String] = [:]) {
         guard !script.needsConfirmation || confirms(script) else { return }
-        recordUse(RootItem.script(script).id)
+        // A script that acts on results is never searched for, so its use would rank nothing.
+        if script.subjects.isEmpty {
+            recordUse(RootItem.script(script).id)
+        }
         host.leave()
         Task { [weak self, runScript] in
             let result: ShellResult
             do {
-                result = try await runScript(script, argumentStrings)
+                result = try await runScript(script, argumentStrings, environment)
             } catch {
                 await MainActor.run { [weak self] in
                     self?.host.showHUD(String(localized: "\(script.title) failed: \(error.localizedDescription)", bundle: .floe, comment: "The first placeholder is the name of a script, the second is the reason."))

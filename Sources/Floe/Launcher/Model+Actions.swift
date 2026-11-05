@@ -78,7 +78,7 @@ extension LauncherModel {
 
     func rootActions(for item: RootItem) -> [ItemAction?] {
         let returnRow = ItemAction(title: primaryActionTitle(for: item), symbol: "return", id: .primary) { [weak self] in self?.activate(item) }
-        return features.actions.menu(returnRow, rows: floeActions(for: item), for: item)
+        return features.actions.menu(returnRow, rows: features.actions.rows(floeActions(for: item), for: item), for: item)
     }
 
     /// Floe's own rows of a result's Actions menu, after the Return row, with their keys. The user's choices

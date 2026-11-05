@@ -37,7 +37,8 @@ extension LauncherModel {
         context.notesApp = settings.notesApp
         context.frecency = { [usage] in usage.frecency(of: $0) }
         context.commands = commands
-        context.scripts = catalog.allScripts
+        // A script that acts on results is offered in their Actions menus, not searched for.
+        context.scripts = catalog.allScripts.filter(\.subjects.isEmpty)
         context.apps = catalog.apps
         context.thawActions = Thaw.actions()
         context.preferredApps = resolvedApps.apps

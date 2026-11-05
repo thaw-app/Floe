@@ -50,7 +50,7 @@ struct ScriptRowsTests {
             asked.confirmed += 1
             return false
         }
-        rows.runScript = { _, arguments in
+        rows.runScript = { _, arguments, _ in
             ShellResult(status: status, stdout: Data((stdout + arguments.joined(separator: ",")).utf8), stderr: Data(stderr.utf8))
         }
         return rows
@@ -101,7 +101,7 @@ struct ScriptRowsTests {
 
     @Test func aScriptThatCouldNotStartSaysWhy() async {
         let rows = rows()
-        rows.runScript = { _, _ in throw Failure() }
+        rows.runScript = { _, _, _ in throw Failure() }
         rows.run(script(.compact))
         await settle { !asked.huds.isEmpty }
         #expect(asked.huds.count == 1)
