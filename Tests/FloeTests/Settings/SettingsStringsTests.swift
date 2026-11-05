@@ -54,7 +54,7 @@ struct SettingsStringsTests {
             "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
             "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
-            "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.checkForUpdates", "general.popToRootDelay",
+            "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.showInMenuBar", "general.checkForUpdates", "general.popToRootDelay",
             "applications.terminalApp", "applications.editorApp", "applications.browserApp", "applications.notesApp", "applications.clipboardApp", "applications.clearClipboardHistory",
             "ai.aiSource", "ai.aiTool", "ai.aiAddress", "ai.aiModel", "ai.aiKey",
             "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "privacy.diagnosticLogging",

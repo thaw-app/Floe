@@ -21,6 +21,17 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### New
+
+- **Hide Floe's icon in the menu bar.** Settings › General has Show in Menu Bar. With it off, the hotkey, the Dock or opening Floe again still brings up the launcher ([#71](https://github.com/thaw-app/Floe/issues/71)). By @unsecretised in [#72](https://github.com/thaw-app/Floe/pull/72).
+
+### Contributors
+
+- @Evolinox asked for hiding the menu bar icon ([#71](https://github.com/thaw-app/Floe/issues/71)).
+- @unsecretised added it ([#72](https://github.com/thaw-app/Floe/pull/72)).
+
 ## [0.4.0-beta.2] - 2026-11-03
 
 **macOS 26 and later · Build 7**
