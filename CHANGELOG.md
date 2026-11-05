@@ -29,8 +29,14 @@ these four.
 
 - **Choose a theme for Settings.** Settings › General has Match System, Light, Dark and Black. Match System, the default, follows macOS as before. Black puts Settings on pure black, for OLED displays. The welcome window follows your choice too, showing Black as Dark.
 
+### Changed
+
+- **Typing fast is lighter.** Letters typed in quick succession share one search again, instead of each letter starting its own a moment late.
+- **Floe uses less memory until you need your calendar.** Calendar's data is loaded the first time you search for events, not when Floe starts.
+
 ### Fixed
 
+- **A closed launcher lets go of its memory after a pause, even if it had to wait.** When a command, form or dialog was still open at that moment, Floe never tried again until the next time you closed it.
 - **The quicklink editor says why it won't save.** Save was greyed out with no reason given. It now says what's missing or wrong, such as a keyword that's already used.
 - **Empty lists say they're empty.** Settings › Quicklinks with no quicklinks, and the Menu Bar tab in Settings › Commands with no menu bar commands, now say so instead of showing nothing.
 - **The Settings search finds more, under the names the pages use.** It now finds the welcome window and Separate light and dark tints. The glass and tint results are called Effect, Color and Opacity, as on the Appearance page.

@@ -230,7 +230,12 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
     /// Lets go of the window's drawing, the icons and the results, all of which the next show makes again.
     func trim() {
         trimsWhenHidden = false
-        guard !isVisible, !ModalGuard.isActive, model.runner.session == nil, model.setup == nil else { return }
+        guard !isVisible else { return }
+        guard !ModalGuard.isActive, model.runner.session == nil, model.setup == nil else {
+            // Tried again later: a command kept past the delay, or a dialog, would otherwise keep the window for good.
+            scheduleIdleTrim()
+            return
+        }
         panel?.contentView = nil
         panel = nil
         model.reset()

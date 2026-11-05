@@ -42,4 +42,17 @@ import Testing
         #expect(model.query == "half typed", "a form being filled in is not taken away")
         #expect(model.setup != nil)
     }
+
+    @Test func aTrimThatHadToWaitIsTriedAgain() async throws {
+        let (launcher, model) = launcher(idleTrimDelay: .milliseconds(50))
+        model.query = "half typed"
+        model.setup = SetupRequest(command: Fixture.command("planets"), kind: .arguments, fields: [])
+        launcher.trim()
+        #expect(model.query == "half typed")
+        model.setup = nil
+        for _ in 0 ..< 100 where !model.query.isEmpty {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(model.query.isEmpty, "once the form is gone, the next try lets go")
+    }
 }

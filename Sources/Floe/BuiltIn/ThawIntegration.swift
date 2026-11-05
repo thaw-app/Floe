@@ -104,8 +104,13 @@ enum ThawAction: String, CaseIterable, Identifiable {
 enum Thaw {
     /// Where the app that answers `thaw://` links is, release or debug build; nil when none is installed.
     static var applicationURL: URL? {
-        URL(string: "thaw://").flatMap { NSWorkspace.shared.urlForApplication(toOpen: $0) }
+        // Asked at every key and for every Thaw row drawn; an install or removal shows within a minute.
+        located.value(for: 0, lasting: 60) {
+            URL(string: "thaw://").flatMap { NSWorkspace.shared.urlForApplication(toOpen: $0) }
+        }
     }
+
+    private static let located = TimedCache<Int, URL?>()
 
     /// The actions to list: all of them with Thaw installed, none without.
     static func actions(isInstalled: Bool = applicationURL != nil) -> [ThawAction] {
