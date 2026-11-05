@@ -38,8 +38,10 @@ final class AppSettings: ObservableObject {
     @Published var includeRaycastExtensions = true
     /// Seconds a closed panel keeps the open command before going back to the root search; 0 resets at once.
     @Published var popToRootDelay = 90
-    /// Show Floe's icon in the Dock; off, it lives only in the menu bar.
+    /// Show Floe's icon in the Dock.
     @Published var showInDock = false
+    /// Show Floe's icon in the menu bar. Off, the hotkey, the Dock or opening the app again shows the launcher.
+    @Published var showInMenuBar = true
     /// How Settings and the welcome window look: following macOS, Light, Dark or Black.
     @Published var settingsTheme = SettingsTheme.system
     /// The welcome window was finished or skipped once, so it does not open on later launches.
@@ -136,21 +138,6 @@ final class AppSettings: ObservableObject {
     /// Whether extension preferences are among what syncs. Only matters while `syncsWithICloud` is on.
     @Published var syncsExtensionSettings = true
 
-    /// Whether a command may be found and run: its extension is on, and so is the command.
-    func isEnabled(_ command: ExtensionCommand) -> Bool {
-        !disabledExtensions.contains(command.extensionName) && CommandLookup.isOn(command, disabled: disabledCommands, enabled: enabledCommands)
-    }
-
-    /// The switch on one command. It reads as off while its extension is off, and keeps its own value underneath.
-    func enabledBinding(for command: ExtensionCommand) -> Binding<Bool> {
-        Binding(
-            get: { self.isEnabled(command) },
-            set: { isOn in
-                self.setEnabled(isOn, for: command)
-            }
-        )
-    }
-
     private struct Stored: Codable {
         var toggleHotkey: KeyCombination?
         var commandHotkeys: [String: KeyCombination]?
@@ -182,6 +169,7 @@ final class AppSettings: ObservableObject {
         var clipboardURL: String?
         var menuBarItemNames: [String: String]?
         var showInDock: Bool?
+        var showInMenuBar: Bool?
         var settingsTheme: SettingsTheme?
         var hasSeenOnboarding: Bool?
         var launcherTintIsDynamic: Bool?
@@ -330,8 +318,7 @@ final class AppSettings: ObservableObject {
         clipboardApp = stored.clipboardApp
         clipboardURL = stored.clipboardURL ?? ""
         menuBarItemNames = stored.menuBarItemNames ?? [:]
-        showInDock = stored.showInDock ?? false
-        settingsTheme = stored.settingsTheme ?? .system
+        applyPresence(stored)
         hasSeenOnboarding = stored.hasSeenOnboarding ?? false
         applyAppearance(stored)
         aiSource = stored.aiSource ?? aiSource
@@ -351,6 +338,13 @@ final class AppSettings: ObservableObject {
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
         syncsWithICloud = stored.syncsWithICloud ?? false
         syncsExtensionSettings = stored.syncsExtensionSettings ?? true
+    }
+
+    /// Where Floe shows itself on this Mac and how Settings looks.
+    private func applyPresence(_ stored: Stored) {
+        showInDock = stored.showInDock ?? false
+        showInMenuBar = stored.showInMenuBar ?? true
+        settingsTheme = stored.settingsTheme ?? .system
     }
 
     /// How the launcher looks, taken in apart from the rest so neither list grows past reading.
@@ -404,6 +398,7 @@ final class AppSettings: ObservableObject {
             clipboardURL: clipboardURL,
             menuBarItemNames: menuBarItemNames,
             showInDock: showInDock,
+            showInMenuBar: showInMenuBar,
             settingsTheme: settingsTheme,
             hasSeenOnboarding: hasSeenOnboarding,
             launcherTintIsDynamic: launcherTintIsDynamic,
@@ -442,6 +437,24 @@ final class AppSettings: ObservableObject {
         if let data = try? JSONEncoder().encode(stored) {
             write(data)
         }
+    }
+}
+
+/// A command's switch, worked out from its extension's and its own.
+extension AppSettings {
+    /// Whether a command may be found and run: its extension is on, and so is the command.
+    func isEnabled(_ command: ExtensionCommand) -> Bool {
+        !disabledExtensions.contains(command.extensionName) && CommandLookup.isOn(command, disabled: disabledCommands, enabled: enabledCommands)
+    }
+
+    /// The switch on one command. It reads as off while its extension is off, and keeps its own value underneath.
+    func enabledBinding(for command: ExtensionCommand) -> Binding<Bool> {
+        Binding(
+            get: { self.isEnabled(command) },
+            set: { isOn in
+                self.setEnabled(isOn, for: command)
+            }
+        )
     }
 }
 

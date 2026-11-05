@@ -28,6 +28,7 @@ these four.
 ### New
 
 - **Choose a theme for Settings.** Settings › General has Match System, Light, Dark and Black. Match System, the default, follows macOS as before. Black puts Settings on pure black, for OLED displays. The welcome window follows your choice too, showing Black as Dark.
+- **Hide Floe's icon in the menu bar.** Settings › General has Show in Menu Bar. With it off, the hotkey, the Dock or opening Floe again still brings up the launcher ([#71](https://github.com/thaw-app/Floe/issues/71)). By @unsecretised in [#72](https://github.com/thaw-app/Floe/pull/72).
 
 ### Changed
 
@@ -40,6 +41,11 @@ these four.
 - **The quicklink editor says why it won't save.** Save was greyed out with no reason given. It now says what's missing or wrong, such as a keyword that's already used.
 - **Empty lists say they're empty.** Settings › Quicklinks with no quicklinks, and the Menu Bar tab in Settings › Commands with no menu bar commands, now say so instead of showing nothing.
 - **The Settings search finds more, under the names the pages use.** It now finds the welcome window and Separate light and dark tints. The glass and tint results are called Effect, Color and Opacity, as on the Appearance page.
+
+### Contributors
+
+- @Evolinox asked for hiding the menu bar icon ([#71](https://github.com/thaw-app/Floe/issues/71)).
+- @unsecretised added it ([#72](https://github.com/thaw-app/Floe/pull/72)).
 
 ## [0.4.0-beta.2] - 2026-11-03
 

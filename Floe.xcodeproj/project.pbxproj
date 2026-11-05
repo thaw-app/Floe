@@ -244,6 +244,7 @@
 		8BD4A191E29780ED9E926D80 /* ActionChoices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5307000AA25220E185B0047 /* ActionChoices.swift */; };
 		8BEFCC26CE89A055A219A10B /* DiagnosticLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005087DC701DB4768699889F /* DiagnosticLogger.swift */; };
 		8C3FC9BB1B1CFAC8425C478E /* ThawUI in Frameworks */ = {isa = PBXBuildFile; productRef = 0539F14C5ECF7F15A371B8BA /* ThawUI */; };
+		8C6FDFF770264D326E56CF71 /* StatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4123E16098556123EBFA71CF /* StatusMenu.swift */; };
 		8CEE5B2AC0BC215538D26F98 /* MenuItemSearchScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA244C9C244EC6BCBB7039C9 /* MenuItemSearchScope.swift */; };
 		8D20C5B2FDFE7773234E085E /* EmojiRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4E100E7CC5D879F30DB26F5 /* EmojiRows.swift */; };
 		8D2F0AA78B40E0096B679671 /* Places.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0C759E6D0A9F25D54A1D789 /* Places.swift */; };
@@ -554,6 +555,7 @@
 		3EA1420E83E4D30EBC897A57 /* SettingsStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStores.swift; sourceTree = "<group>"; };
 		3EA18EB6B58207A689ABA635 /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 		3F4985D458BAC986B45EABD6 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		4123E16098556123EBFA71CF /* StatusMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenu.swift; sourceTree = "<group>"; };
 		4350774BAFE25F278DF643A7 /* MainMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainMenu.swift; sourceTree = "<group>"; };
 		43B92AFF31F28A7B38B57533 /* Model+Clipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Clipboard.swift"; sourceTree = "<group>"; };
 		4414ABADC645ACDA3F864887 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
@@ -1474,6 +1476,7 @@
 				CAE1FD745114DE428E9E078B /* SettingsProcess.swift */,
 				3100D60F947CCED23DE9323E /* SettingsSyncService.swift */,
 				348720DBE211B7470E8566C5 /* SharedStores.swift */,
+				4123E16098556123EBFA71CF /* StatusMenu.swift */,
 				1AF1D982AAAE8FF36B96F53F /* UpdateLogic.swift */,
 				70891E9ABBE4E3EFF52220DE /* UpdatesLink.swift */,
 				1ED24D0EB67EDA6126BD465A /* WaitAtMost.swift */,
@@ -2034,6 +2037,7 @@
 				A6364F799336535D87ABDCFE /* SnippetsSettingsPage.swift in Sources */,
 				12ED4372071031940B98F3E7 /* SoundDevices.swift in Sources */,
 				49931F177BD73946A127B1BF /* SoundRows.swift in Sources */,
+				8C6FDFF770264D326E56CF71 /* StatusMenu.swift in Sources */,
 				850B7B94E7F7EF68C083D50A /* SyncAvailability.swift in Sources */,
 				0A74E23C8016AE1FB4354509 /* SyncEngine.swift in Sources */,
 				99BEFA324285975C6C22D63D /* SyncRecord.swift in Sources */,

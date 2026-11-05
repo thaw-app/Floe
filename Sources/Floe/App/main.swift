@@ -72,22 +72,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Settings' changes reach the search at once: they are this process's own settings, read again.
         settingsLink.onChange = { [weak self] in self?.model.refresh() }
 
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = MenuBarGlyph.image()
-        let menu = NSMenu()
-        showItem = menu.addItem(withTitle: String(localized: "Show Floe", bundle: .floe), action: #selector(show), keyEquivalent: "")
-        showItem?.target = self
-        menu.addItem(withTitle: String(localized: "About Floe", bundle: .floe), action: #selector(openAbout), keyEquivalent: "").target = self
-        // Nil until Info.plist carries a Sparkle public key.
-        if let updateItem = UpdatesManager.shared.makeMenuItem() {
-            menu.addItem(updateItem)
-        }
-        menu.addItem(withTitle: String(localized: "Settings…", bundle: .floe), action: #selector(openSettings), keyEquivalent: ",").target = self
-        menu.addItem(.separator())
-        menu.addItem(withTitle: String(localized: "Quit", bundle: .floe, comment: "The menu item that quits Floe."), action: #selector(NSApplication.terminate), keyEquivalent: "q")
-        item.menu = menu
-        statusItem = item
+        (statusItem, showItem) = StatusMenu.make(target: self, show: #selector(show), about: #selector(openAbout), settings: #selector(openSettings))
         NSApp.mainMenu = MainMenu.make(target: self, about: #selector(openAbout), settings: #selector(openSettings), includesWindowMenu: false)
+        // Hidden, Floe is still reached by its hotkey, the Dock if it is there, or by opening the app again.
+        settings.$showInMenuBar.removeDuplicates()
+            .sink { [weak self] in self?.statusItem?.isVisible = $0 }
+            .store(in: &cancellables)
 
         appWatcher = AppFolderWatcher { [weak self] in self?.model.catalog.reloadApps() }
         // Without duplicates: a reload of the settings saved by the settings process sends every value again.

@@ -99,6 +99,7 @@ enum SettingsSync {
         "recordsExtensionAccess": "whether this Mac keeps the access record, and off forgets it here",
         "followsThawAppearance": "needs Thaw running on this Mac and asks it",
         "showInDock": "how the app sits on this Mac",
+        "showInMenuBar": "how the app sits on this Mac",
         "settingsTheme": "Black is chosen for this Mac's display",
         "hasSeenOnboarding": "the welcome is shown once on each Mac",
         "diagnosticLogging": "a log file on this Mac",

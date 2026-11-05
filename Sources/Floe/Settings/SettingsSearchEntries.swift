@@ -569,6 +569,16 @@ extension SearchIndex {
             ).searchTerms
         ),
         .general(
+            "showInMenuBar",
+            String(localized: "Show in Menu Bar", bundle: .floe),
+            section: String(localized: "Floe", bundle: .floe, comment: "Floe is the name of this app."),
+            keywords: String(
+                localized: "menu bar, status bar, icon, hide, status item",
+                bundle: .floe,
+                comment: "Words that find the Show in Menu Bar setting in the settings search, separated by commas."
+            ).searchTerms
+        ),
+        .general(
             "settingsTheme",
             String(localized: "Theme", bundle: .floe),
             description: String(localized: "Applies to Settings and the welcome window. Black suits OLED displays.", bundle: .floe),

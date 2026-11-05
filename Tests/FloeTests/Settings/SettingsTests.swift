@@ -44,6 +44,7 @@ struct AppSettingsTests {
         #expect(settings.popToRootDelay == 90)
         #expect(settings.rememberMenuBarQuery == false)
         #expect(settings.showInDock == false)
+        #expect(settings.showInMenuBar, "the icon is in the menu bar until it is switched off")
         #expect(settings.hasSeenOnboarding == false)
         #expect(settings.menuBarItemNames.isEmpty)
         #expect(settings.terminalApp == nil, "no choice is the system's Terminal")
@@ -113,6 +114,7 @@ struct AppSettingsTests {
         settings.popToRootDelay = 30
         settings.rememberMenuBarQuery = true
         settings.showInDock = true
+        settings.showInMenuBar = false
         settings.settingsTheme = .black
         settings.hasSeenOnboarding = true
         settings.launcherTintIsDynamic = true
@@ -158,6 +160,7 @@ struct AppSettingsTests {
         #expect(reloaded.popToRootDelay == 30)
         #expect(reloaded.rememberMenuBarQuery)
         #expect(reloaded.showInDock)
+        #expect(reloaded.showInMenuBar == false)
         #expect(reloaded.hasSeenOnboarding)
         #expect(reloaded.menuBarItemNames == ["com.a|status": "Renamed"])
         #expect(reloaded.terminalApp == AppChoice(bundleIdentifier: "com.mitchellh.ghostty", path: "/Applications/Ghostty.app"))
