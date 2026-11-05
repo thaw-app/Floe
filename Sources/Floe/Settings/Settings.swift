@@ -40,6 +40,8 @@ final class AppSettings: ObservableObject {
     @Published var popToRootDelay = 90
     /// Show Floe's icon in the Dock; off, it lives only in the menu bar.
     @Published var showInDock = false
+    /// How Settings and the welcome window look: following macOS, Light, Dark or Black.
+    @Published var settingsTheme = SettingsTheme.system
     /// The welcome window was finished or skipped once, so it does not open on later launches.
     @Published var hasSeenOnboarding = false
     /// Keep the menu bar search's query between showings, like Thaw's "Remember last search".
@@ -180,6 +182,7 @@ final class AppSettings: ObservableObject {
         var clipboardURL: String?
         var menuBarItemNames: [String: String]?
         var showInDock: Bool?
+        var settingsTheme: SettingsTheme?
         var hasSeenOnboarding: Bool?
         var launcherTintIsDynamic: Bool?
         var launcherTintLight: LauncherTint?
@@ -328,6 +331,7 @@ final class AppSettings: ObservableObject {
         clipboardURL = stored.clipboardURL ?? ""
         menuBarItemNames = stored.menuBarItemNames ?? [:]
         showInDock = stored.showInDock ?? false
+        settingsTheme = stored.settingsTheme ?? settingsTheme
         hasSeenOnboarding = stored.hasSeenOnboarding ?? false
         applyAppearance(stored)
         aiSource = stored.aiSource ?? aiSource
@@ -400,6 +404,7 @@ final class AppSettings: ObservableObject {
             clipboardURL: clipboardURL,
             menuBarItemNames: menuBarItemNames,
             showInDock: showInDock,
+            settingsTheme: settingsTheme,
             hasSeenOnboarding: hasSeenOnboarding,
             launcherTintIsDynamic: launcherTintIsDynamic,
             launcherTintLight: launcherTintLight,

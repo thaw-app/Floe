@@ -22,10 +22,13 @@ struct BuiltInCommandsSection: View {
                     row(for: .system(command))
                 }
             }
-            ThawPicker("Emoji skin tone", selection: $settings.emojiSkinTone) {
+            ThawPicker(selection: $settings.emojiSkinTone) {
                 ForEach(EmojiSkinTone.allCases) { tone in
                     Text(verbatim: tone.applied(to: "\u{1F44B}") + " " + tone.label).tag(tone)
                 }
+            } label: {
+                Text("Emoji skin tone")
+                Text("Used for emoji in search results that come in skin tones.")
             }
             TextField(text: $settings.focusShortcut, prompt: Text("None")) {
                 Text("Shortcut for Focus")

@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import Foundation
+import HTTPTypesFoundation
 
 nonisolated struct StoreListing: Identifiable, Hashable {
     let name: String
@@ -308,19 +309,14 @@ final class ExtensionStore: ObservableObject {
     /// is an error, so a missing file is never taken for its contents.
     @concurrent
     static nonisolated func download(_ url: URL) async throws -> Data {
-        let request = url.host == "api.github.com" ? apiRequest(url: url) : URLRequest(url: url)
+        let request = url.host == "api.github.com" ? apiRequest(url: url) : HTTPRequest(url: url)
         let (data, response) = try await URLSession.shared.data(for: request)
-        if let status = (response as? HTTPURLResponse)?.statusCode, !(200 ..< 300).contains(status) {
-            throw URLError(.badServerResponse)
-        }
+        guard response.status.kind == .successful else { throw URLError(.badServerResponse) }
         return data
     }
 
-    static nonisolated func apiRequest(url: URL) -> URLRequest {
-        var request = URLRequest(url: url)
-        request.setValue("Floe", forHTTPHeaderField: "User-Agent")
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        return request
+    static nonisolated func apiRequest(url: URL) -> HTTPRequest {
+        HTTPRequest(url: url, headerFields: [.userAgent: "Floe", .accept: "application/vnd.github+json"])
     }
 
     private static func fetchExtensionNames() async throws -> [String] {

@@ -29,4 +29,19 @@ struct TimedCacheTests {
         #expect(value("a", at: 500, lasting: .infinity) == 4)
         #expect(made == 4)
     }
+
+    @Test func aValueThatTakesWaitingIsKeptTheSameWay() async {
+        let cache = TimedCache<Int, Int>()
+        let start = Date(timeIntervalSince1970: 1000)
+        var made = 0
+        for seconds: TimeInterval in [0, 1.9, 2.1] {
+            _ = await cache.value(for: 1, lasting: 2, now: start.addingTimeInterval(seconds)) {
+                await Task.yield()
+                made += 1
+                return made
+            }
+        }
+        #expect(made == 2, "made at first and once it had aged, not while fresh")
+        #expect(cache.kept(for: 1, lasting: 2, now: start.addingTimeInterval(2.1)) == 2)
+    }
 }

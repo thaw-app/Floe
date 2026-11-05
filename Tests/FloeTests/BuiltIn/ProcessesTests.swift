@@ -43,7 +43,7 @@ struct ProcessesTests {
         scope.running = { [notch, thaw, finder] in [notch, thaw, finder] }
         let onMain = Mutex<Bool?>(nil)
         scope.listening = { port in
-            onMain.withLock { $0 = Thread.isMainThread }
+            onMain.withLock { $0 = pthread_main_np() != 0 }
             return port == 3000 ? [400] : []
         }
         #expect(scope.text(in: SearchContext(query: "port 3000")) == "3000")
@@ -60,7 +60,7 @@ struct ProcessesTests {
         #expect(onMain.withLock { $0 } == false)
         let unasked = scope.updates(for: "x", context: SearchContext(query: "port x"))
         #expect(unasked == nil)
-        #expect(Processes.listening(on: 1).isEmpty, "nothing listens on port 1, and asking is safe")
+        #expect(await Processes.listening(on: 1).isEmpty, "nothing listens on port 1, and asking is safe")
     }
 
     @Test func thoseNamedSoComeFirstThenThoseThatOnlyRunFromThere() {

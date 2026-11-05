@@ -100,13 +100,13 @@ enum AlternativeActionRules {
     /// The rows on offer by id, those in submenus included. Where two share an id, the first is kept.
     static func offered(_ actions: [ItemAction?]) -> [ActionID: ItemAction] {
         var found: [ActionID: ItemAction] = [:]
-        var pending = actions.compactMap(\.self)
-        while !pending.isEmpty {
-            let action = pending.removeFirst()
+        // Reversed, so taking from the end visits rows in menu order, each submenu's rows right after it.
+        var pending = Array(actions.compactMap(\.self).reversed())
+        while let action = pending.popLast() {
             if let id = action.id, found[id] == nil {
                 found[id] = action
             }
-            pending.insert(contentsOf: action.children, at: 0)
+            pending.append(contentsOf: action.children.reversed())
         }
         return found
     }

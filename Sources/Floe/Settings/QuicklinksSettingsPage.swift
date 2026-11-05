@@ -15,11 +15,13 @@ struct QuicklinksSettingsPage: View {
     @State private var editingID: UUID?
     @State private var showingEditor = false
     @State private var pendingDelete: Quicklink?
-    @State private var editorError = ""
 
     var body: some View {
         Form {
             ThawSection(header: { Text("Quicklinks") }, content: {
+                if store.links.isEmpty {
+                    Text("No quicklinks yet.").foregroundStyle(ThawInk.supporting)
+                }
                 ForEach(store.links) { link in
                     HStack(spacing: ThawSpacing.row) {
                         QuicklinkTile(symbol: link.symbol)
@@ -75,14 +77,14 @@ struct QuicklinksSettingsPage: View {
             } footer: {
                 VStack(alignment: .leading, spacing: ThawSpacing.tight) {
                     Text("Use {query} where the search text goes.")
-                    if !editorError.isEmpty {
-                        Text(editorError).foregroundStyle(.red)
+                    if let problem = shownProblem {
+                        Text(problem).foregroundStyle(.red)
                     }
                 }
             }
             if editingID != nil {
                 ThawSection {
-                    Button("Delete Quicklink", role: .destructive) {
+                    Button("Delete Quicklink…", role: .destructive) {
                         if let id = editingID,
                            let link = store.links.first(where: { $0.id == id })
                         {
@@ -116,25 +118,25 @@ struct QuicklinksSettingsPage: View {
         store.problem(with: draft, ignoring: editingID)
     }
 
+    /// Why Save is off, once there is a name or keyword: a new link's empty fields are not a mistake yet.
+    private var shownProblem: String? {
+        draft.name.isEmpty && draft.keyword.isEmpty ? nil : validationError
+    }
+
     private func add() {
         draft = Quicklink(name: "", keyword: "", url: "https://")
         editingID = nil
-        editorError = ""
         showingEditor = true
     }
 
     private func edit(_ link: Quicklink) {
         draft = link
         editingID = link.id
-        editorError = ""
         showingEditor = true
     }
 
     private func save() {
-        if let error = validationError {
-            editorError = error
-            return
-        }
+        guard validationError == nil else { return }
         draft.keyword = draft.keyword.trimmingCharacters(in: .whitespaces)
         draft.name = draft.name.trimmingCharacters(in: .whitespaces)
         if editingID != nil {

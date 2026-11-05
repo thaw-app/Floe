@@ -11,12 +11,12 @@ packages:
   # Keep in step with Package.swift.
   ThawUI:
     url: https://github.com/thaw-app/ThawUI
-    exactVersion: 1.1.0
+    exactVersion: 1.2.1
   # Keep in step with Package.swift and with sparkle-version in .github/workflows/release.yml.
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.10.0
-  # Keep these six in step with Package.swift.
+  # Keep these seven in step with Package.swift.
   swift-subprocess:
     url: https://github.com/swiftlang/swift-subprocess
     exactVersion: 1.0.0
@@ -32,10 +32,13 @@ packages:
   swift-async-algorithms:
     url: https://github.com/apple/swift-async-algorithms
     exactVersion: 1.1.3
-  # Only swift-async-algorithms uses this. Held back because 1.7 does not build with the Xcode 27 beta.
+  # Held back because 1.7 does not build with the Xcode 27 beta.
   swift-collections:
     url: https://github.com/apple/swift-collections
     exactVersion: 1.6.0
+  swift-http-types:
+    url: https://github.com/apple/swift-http-types
+    exactVersion: 1.8.0
   FloeRust:
     path: Vendor/FloeRust
 
@@ -83,6 +86,10 @@ targets:
         product: Algorithms
       - package: swift-async-algorithms
         product: AsyncAlgorithms
+      - package: swift-collections
+        product: DequeModule
+      - package: swift-http-types
+        product: HTTPTypesFoundation
       - package: FloeRust
     postBuildScripts:
       - name: Embed Runtime
@@ -149,6 +156,7 @@ targets:
           swiftNumerics: https://github.com/apple/swift-numerics
           swiftAsyncAlgorithms: https://github.com/apple/swift-async-algorithms
           swiftCollections: https://github.com/apple/swift-collections
+          swiftHTTPTypes: https://github.com/apple/swift-http-types
           swiftSystem: https://github.com/apple/swift-system
           fend: https://github.com/printfn/fend
           nucleo: https://github.com/helix-editor/nucleo
@@ -156,7 +164,7 @@ targets:
         # Filled in from git by the Embed Runtime step.
         GitCommitSHA: unknown
         CFBundleShortVersionString: "0.4.0"
-        CFBundleVersion: "7"
+        CFBundleVersion: "8"
         LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
         LSUIElement: true
         # Thaw answers Floe's appearance request by opening floe://thaw-appearance. IncomingURLRouter takes every floe:// link.

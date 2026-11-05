@@ -51,10 +51,10 @@ struct SettingsStringsTests {
         #expect(SearchIndex.staticEntries.map(\.id) == [
             "pane.appearance", "pane.privacy", "pane.general", "pane.applications", "pane.ai", "pane.sync", "pane.quicklinks", "pane.fallbacks", "pane.snippets", "pane.commands", "pane.extensionStore", "pane.about",
             "appearance.followThaw", "appearance.launcherLayout", "appearance.launcherScreen", "appearance.searchFieldCorners", "appearance.searchFieldBeam", "appearance.searchFieldBeamFrameRate", "appearance.separatesSearchField", "appearance.glassEffect",
-            "appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
+            "appearance.tintStyle", "appearance.separateTints", "appearance.tintColor", "appearance.tintOpacity", "appearance.border", "appearance.shadow",
             "privacy.permissions", "privacy.accessibility", "privacy.network", "privacy.searchSources", "privacy.searchSources.files",
             "privacy.searchSources.tabs", "privacy.searchSources.shortcuts", "privacy.indexesFileNames", "privacy.shellCommands", "privacy.recordsExtensionAccess", "privacy.reminders", "privacy.contacts", "privacy.keepsReceipts", "privacy.remembersSearches", "privacy.fetchesExchangeRates", "privacy.aiOnThisMacOnly",
-            "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.checkForUpdates", "general.popToRootDelay",
+            "general.toggleHotkey", "general.launchAtLogin", "general.showInDock", "general.settingsTheme", "general.checkForUpdates", "general.popToRootDelay", "general.showWelcome",
             "applications.terminalApp", "applications.editorApp", "applications.browserApp", "applications.notesApp", "applications.clipboardApp", "applications.clearClipboardHistory",
             "ai.aiSource", "ai.aiTool", "ai.aiAddress", "ai.aiModel", "ai.aiKey",
             "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "privacy.diagnosticLogging",
@@ -83,7 +83,8 @@ struct SettingsStringsTests {
         for id in underMenuBarItems {
             #expect(try #require(SearchIndex.staticEntries.first { $0.id == id }).section == "Built-in Commands")
         }
-        #expect(found("tint") == ["appearance.tintStyle", "appearance.tintColor", "appearance.tintOpacity", "pane.appearance"], "the ranking is the one it was")
+        // Color and Opacity don't say tint, so a keyword finds them, after the entries that do.
+        #expect(found("tint") == ["appearance.tintStyle", "appearance.separateTints", "pane.appearance", "appearance.tintColor", "appearance.tintOpacity"])
     }
 
     @Test func anExtensionsEntriesKeepTheirSectionsAndTerms() {

@@ -18,6 +18,7 @@
 //  followed, so the question and the key go only to the address that was checked.
 
 import Foundation
+import HTTPTypesFoundation
 
 nonisolated enum ProviderError: LocalizedError, Equatable {
     case failed(String)
@@ -76,14 +77,17 @@ nonisolated enum ChatCompletionStream {
 
     /// `earlier` is the messages of the turns before the prompt, oldest first; a first question has none.
     static func request(chatURL: URL, apiKey: String, model: String, prompt: String, earlier: [[String: String]] = []) -> URLRequest {
-        var request = URLRequest(url: chatURL, timeoutInterval: 300)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var fields: HTTPFields = [.contentType: "application/json", .accept: "application/json"]
         // A server on the same Mac takes no key, and an empty one would be a malformed header.
         if !apiKey.isEmpty {
-            request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+            fields[.authorization] = "Bearer \(apiKey)"
         }
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        // HTTPRequest holds no time limit or body, so the fields go onto a URLRequest.
+        var request = URLRequest(url: chatURL, timeoutInterval: 300)
+        request.httpMethod = HTTPRequest.Method.post.rawValue
+        for field in fields {
+            request.setValue(field.value, forHTTPHeaderField: field.name.rawName)
+        }
         let payload: [String: Any] = [
             "model": model,
             "messages": earlier + [["role": "user", "content": prompt]],
@@ -179,8 +183,8 @@ nonisolated enum ChatCompletionStream {
 
     /// Throws for any status but 200: a redirect that was not followed, or a refusal in the API's own words.
     private static func refuseUnlessAnswered(_ response: URLResponse, bytes: URLSession.AsyncBytes) async throws {
-        guard let http = response as? HTTPURLResponse, http.statusCode != 200 else { return }
-        if (300 ..< 400).contains(http.statusCode) {
+        guard let status = (response as? HTTPURLResponse)?.httpResponse?.status, status != .ok else { return }
+        if status.kind == .redirection {
             throw ProviderError.failed(redirectRefusedMessage)
         }
         // Read the error body for a useful message.
@@ -191,7 +195,7 @@ nonisolated enum ChatCompletionStream {
                 break
             }
         }
-        throw ProviderError.failed(errorMessage(fromBody: body, statusCode: http.statusCode))
+        throw ProviderError.failed(errorMessage(fromBody: body, statusCode: status.code))
     }
 
     private static func stream(

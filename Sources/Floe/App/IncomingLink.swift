@@ -8,7 +8,7 @@
 import Foundation
 
 /// What a link the system hands Floe asks for, read from the link alone. Any app can open one, so a receiver still
-/// checks it against a request of its own. Foundation only: `Fuzzing` compiles this file on Linux.
+/// checks it against a request of its own. Foundation only: `Tests/Fuzzing` compiles this file on Linux.
 nonisolated enum IncomingLink: Equatable {
     /// The browser's return from a sign-in.
     case oauth

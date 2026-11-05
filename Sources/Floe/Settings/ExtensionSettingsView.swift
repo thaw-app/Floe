@@ -200,7 +200,7 @@ struct CommandSettingsRow: View {
                     get: { settings.aliases[command.id] ?? "" },
                     set: { settings.aliases[command.id] = $0.isEmpty ? nil : $0 }
                 ),
-                prompt: Text("Add Alias")
+                prompt: Text("Alias")
             )
             .labelsHidden()
             .textFieldStyle(.plain)

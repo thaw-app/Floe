@@ -22,6 +22,16 @@ final nonisolated class TimedCache<Key: Hashable & Sendable, Value: Sendable>: S
         return value
     }
 
+    /// The same, for a value made asynchronously, such as a program's output.
+    func value(for key: Key, lasting lifetime: TimeInterval = .infinity, now: Date = Date(), waitingFor make: () async -> Value) async -> Value {
+        if let value = kept(for: key, lasting: lifetime, now: now) {
+            return value
+        }
+        let value = await make()
+        kept.withLock { $0[key] = (now, value) }
+        return value
+    }
+
     /// The value kept for the key, when there is one no older than `lifetime`. Nothing is made.
     func kept(for key: Key, lasting lifetime: TimeInterval = .infinity, now: Date = Date()) -> Value? {
         guard let entry = kept.withLock({ $0[key] }), now.timeIntervalSince(entry.taken) < lifetime else { return nil }

@@ -16,15 +16,16 @@ let package = Package(
     platforms: [.macOS(.v26)],
     dependencies: [
         // Keep in step with project.yml.
-        .package(url: "https://github.com/thaw-app/ThawUI", exact: "1.1.0"),
+        .package(url: "https://github.com/thaw-app/ThawUI", exact: "1.2.1"),
         .package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.0"),
         .package(url: "https://github.com/swiftlang/swift-subprocess", exact: "1.0.0"),
         .package(url: "https://github.com/swiftlang/swift-markdown", exact: "0.9.0"),
         .package(url: "https://github.com/apple/swift-argument-parser", exact: "1.8.2"),
         .package(url: "https://github.com/apple/swift-algorithms", exact: "1.2.1"),
         .package(url: "https://github.com/apple/swift-async-algorithms", exact: "1.1.3"),
-        // Only swift-async-algorithms uses this. Held back because 1.7 does not build with the Xcode 27 beta.
+        // Held back because 1.7 does not build with the Xcode 27 beta.
         .package(url: "https://github.com/apple/swift-collections", exact: "1.6.0"),
+        .package(url: "https://github.com/apple/swift-http-types", exact: "1.8.0"),
         .package(path: "Vendor/FloeRust"),
     ],
     targets: [
@@ -38,6 +39,8 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
+                .product(name: "DequeModule", package: "swift-collections"),
+                .product(name: "HTTPTypesFoundation", package: "swift-http-types"),
                 .product(name: "FloeRust", package: "FloeRust"),
             ],
             resources: [.process("Resources")],

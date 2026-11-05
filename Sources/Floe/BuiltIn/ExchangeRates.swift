@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import Foundation
+import HTTPTypesFoundation
 
 /// The European Central Bank's reference rates for one day: how much of each currency one euro buys.
 nonisolated struct ExchangeRates: Codable, Equatable, Sendable {
@@ -67,7 +68,7 @@ nonisolated enum ExchangeRateStore {
         var request = URLRequest(url: source, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
         request.httpShouldHandleCookies = false
         guard let (data, response) = try? await URLSession.shared.data(for: request),
-              (response as? HTTPURLResponse)?.statusCode == 200,
+              (response as? HTTPURLResponse)?.httpResponse?.status == .ok,
               let xml = String(bytes: data, encoding: .utf8) else { return nil }
         return ExchangeRates.parse(xml, fetched: now)
     }

@@ -30,7 +30,8 @@ language, join the project there.
 - [swift-algorithms](https://github.com/apple/swift-algorithms) `1.2.1`: Picks the best matches and drops repeats in lists. Apache-2.0.
 - [swift-numerics](https://github.com/apple/swift-numerics) `1.1.1`: Used by swift-algorithms. Apache-2.0.
 - [swift-async-algorithms](https://github.com/apple/swift-async-algorithms) `1.1.3`: Waits for typing and folder changes to settle. Apache-2.0.
-- [swift-collections](https://github.com/apple/swift-collections) `1.6.0`: Used by swift-async-algorithms. Apache-2.0.
+- [swift-collections](https://github.com/apple/swift-collections) `1.6.0`: Queues the clipboard history's work. Also used by swift-async-algorithms. Apache-2.0.
+- [swift-http-types](https://github.com/apple/swift-http-types) `1.8.0`: Names the headers and statuses of web requests. Apache-2.0.
 - [fend](https://github.com/printfn/fend) `1.5.8`: Calculates and converts units in the search. MIT.
 - [nucleo](https://github.com/helix-editor/nucleo) `0.3.1`: Matches file names in the fast file search. MPL-2.0.
 - [Rayon](https://github.com/rayon-rs/rayon) `1.12.0`: Matches file names on several cores at once. MIT.
