@@ -7,12 +7,21 @@ set -euo pipefail
 
 BINARY="${1:?usage: check-budget.sh <Floe binary> [megabytes]}"
 LIMIT="${2:-100}"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+# Forgets the LaunchServices entry the run made for a bundle built in the repository. A bare binary such as
+# .build/debug/Floe makes none, and an installed app keeps its entry.
+forget_bundle() {
+    [[ "$BINARY" == *.app/Contents/MacOS/* ]] || return 0
+    local bundle
+    bundle="$(cd "${BINARY%.app/Contents/MacOS/*}.app" 2>/dev/null && pwd -P)" || return 0
+    [[ "$bundle" == "$ROOT"/* ]] || return 0
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$bundle" >/dev/null 2>&1 \
+        || echo "::warning::LaunchServices still has $bundle; run lsregister -u on it before deleting the build." >&2
+}
+trap forget_bundle EXIT
 
 output="$("$BINARY" --bench-search 2>&1 || true)"
-# Forget the LaunchServices entry the run made for its bundle; a bare binary such as .build/debug/Floe makes none.
-if [[ "$BINARY" == *.app/Contents/MacOS/* ]]; then
-    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "${BINARY%%.app/Contents/MacOS/*}.app" >/dev/null 2>&1 || true
-fi
 grep -E '^(FIRST RENDER|TYPE|FOOTPRINT)' <<<"$output" || true
 
 footprint=$(sed -n 's/^FOOTPRINT \([0-9]*\).*/\1/p' <<<"$output")

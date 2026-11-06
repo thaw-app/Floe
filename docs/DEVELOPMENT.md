@@ -505,8 +505,8 @@ profile carries `production` for push and allows the Production environment.
 
 Every app bundle that runs is registered with LaunchServices, and the entry outlives the bundle. Thousands of dead
 entries slow every lookup of an app or a URL scheme and grow the copy of the database each process holds. The budget
-scripts unregister the bundle they ran. Build into `.build/` rather than a temporary folder, and forget a bundle you
-launched from elsewhere before deleting it:
+scripts unregister a bundle they ran from inside the repository. Build into `.build/` rather than a temporary folder,
+and forget a bundle you launched from elsewhere before deleting it:
 
     /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u path/to/Floe.app
 

@@ -43,9 +43,16 @@ def within_budget(output, limit):
 
 def forget_registration(binary):
     """Forget the LaunchServices entry a run makes for its bundle, which would outlive the build; a bare binary makes none."""
-    bundle = next((Path(*binary.parts[: index + 1]) for index, part in enumerate(binary.parts) if part.endswith(".app")), None)
-    if bundle is not None:
-        subprocess.run([LSREGISTER, "-u", str(bundle)], check=False, capture_output=True)
+    depth = next((index for index, part in reversed(list(enumerate(binary.parts))) if part.endswith(".app")), None)
+    if depth is None:
+        return
+    bundle = Path(*binary.parts[: depth + 1])
+    try:
+        forgotten = subprocess.run([LSREGISTER, "-u", str(bundle)], check=False, capture_output=True, timeout=30).returncode == 0
+    except subprocess.TimeoutExpired:
+        forgotten = False
+    if not forgotten:
+        print(f"::warning::LaunchServices still has {bundle}; run lsregister -u on it before deleting the build.")
 
 
 def measure(target, limit, timeout=120):
