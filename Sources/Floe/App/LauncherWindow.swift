@@ -227,7 +227,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         pressureWatch = watch
     }
 
-    /// Lets go of the window's drawing, the icons and the results, all of which the next show makes again.
+    /// Lets go of the window's drawing, the icons, the results and the emoji table, all of which are made again when needed.
     func trim() {
         trimsWhenHidden = false
         guard !isVisible else { return }
@@ -240,6 +240,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         panel = nil
         model.reset()
         IconThumbnailCache.shared.removeAll()
+        EmojiCatalog.release()
         URLCache.shared.removeAllCachedResponses()
         // The allocator keeps freed pages for later; this hands them back to macOS.
         malloc_zone_pressure_relief(nil, 0)

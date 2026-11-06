@@ -56,7 +56,8 @@ Window menu attached lets Accessibility queries populate AppKit's window command
 process still builds the full menu, including Close Window and Minimize.
 
 Once the launcher has been closed for five minutes, or at once under memory pressure, it gives memory back: its
-window's drawing, the icon thumbnails, the results and the URL cache, all made again on the next show. A warning
+window's drawing, the icon thumbnails, the results, the emoji table and the URL cache, all made again when next
+needed. A warning
 that arrives while the launcher is open trims once it closes. Nothing stays switched: once memory is back the
 launcher keeps what it makes as before. Measured on a Release build with a real extension folder: about 110 MiB
 while the launcher is kept, 41 MiB trimmed; a show takes 5 to 8 ms with the window kept and about 50 ms after a trim.

@@ -81,7 +81,7 @@ nonisolated enum EmojiSkinTone: String, Codable, CaseIterable, Identifiable, Sen
 
 /// The emoji and symbol catalog. Entries come from Unicode scalar properties, not bundled data:
 /// every named symbol scalar (which covers the pictographic emoji) becomes a searchable entry.
-/// The table is built once, in the background when the panel first opens; a search before then builds it itself.
+/// The table is built by the first search that needs it, about 20 ms, and dropped when the launcher trims.
 nonisolated enum EmojiCatalog {
     struct Entry: Sendable {
         let character: String
@@ -92,21 +92,13 @@ nonisolated enum EmojiCatalog {
 
     private struct Cache {
         var entries: [Entry]?
-        var preloadStarted = false
     }
 
     private static let cache = Mutex(Cache())
 
-    /// Starts building the table off the caller's thread; safe to call more than once.
-    static func preload() {
-        let isFirst = cache.withLock { cache in
-            defer { cache.preloadStarted = true }
-            return !cache.preloadStarted
-        }
-        guard isFirst else { return }
-        DispatchQueue.global(qos: .utility).async {
-            _ = entries()
-        }
+    /// Lets the table go; the next search builds it again.
+    static func release() {
+        cache.withLock { $0.entries = nil }
     }
 
     static func entries() -> [Entry] {

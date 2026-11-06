@@ -266,8 +266,6 @@ final class LauncherModel: ObservableObject {
     /// Cancels the deferred reset. What is read again for the search waits for panelDidShow.
     func panelWillShow() {
         isPanelShown = true
-        // Built the first time the panel opens rather than at launch, and well before `:` is typed.
-        EmojiCatalog.preload()
         pendingReset?.cancel()
         pendingReset = nil
     }
