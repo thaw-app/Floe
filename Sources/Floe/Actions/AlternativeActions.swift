@@ -87,6 +87,8 @@ final class AlternativeActions {
     /// A result's rows with their keys: the view's own, then the user's scripts that act on its kind. Each view
     /// builds its rows here, so wherever a row has keys, the scripts are on offer to Return, the menu and keys too.
     func rows(_ own: [ItemAction?], for item: RootItem) -> [ItemAction?] {
+        // Read again, as rows are built on a key or a menu, not on every draw: a path can be a folder by now.
+        lastKind = nil
         let kind = kind(of: item)
         let scripts = scripts(on: kind)
         let keys = keys(of: kind, scripts: scripts)

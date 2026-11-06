@@ -238,10 +238,7 @@ final class LauncherFeatures {
             // off the main actor. The query is the search on screen: File Search has a field of its own.
             runScript: { [scripts] script, subject in
                 let query = model.map { $0.isSearchingFiles ? $0.fileSearch.query : $0.query } ?? ""
-                let process = SubjectFacts.process(of: subject)
-                scripts.run(script) {
-                    await subject.environment(facts: SubjectFacts.read(subject, process: process), query: query)
-                }
+                scripts.run(script) { await SubjectFacts.environment(of: subject, query: query) }
             }
         )
     }

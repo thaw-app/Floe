@@ -69,6 +69,14 @@ extension ActionSubject {
         default: nil
         }
     }
+
+    /// The result with a symbolic link read through to what it points at, as its kind is: what the script acts on.
+    /// Its path and its facts then name the same item. Off the main actor, since it asks the disk.
+    @concurrent
+    func resolved() async -> ActionSubject {
+        guard kind != .url else { return self }
+        return ActionSubject(kind: kind, name: name, url: url.resolvingSymlinksInPath())
+    }
 }
 
 /// What is read about a result from the disk and the running apps when a script runs on it.
@@ -116,11 +124,10 @@ nonisolated struct SubjectFacts: Equatable, Sendable {
 extension SubjectFacts {
     /// Reads what the disk says about the result, off the main actor: a file on a slow or sleeping volume can
     /// take a while to answer. `process` is the app's, read on the main actor first. A link has nothing to read.
-    /// A symbolic link is read through, as its kind is: what it points at is what the script acts on.
     @concurrent
     static func read(_ subject: ActionSubject, process: AppProcess? = nil) async -> SubjectFacts {
         guard subject.kind != .url else { return SubjectFacts() }
-        let target = subject.url.resolvingSymlinksInPath()
+        let target = subject.url
         let keys: Set<URLResourceKey> = [.contentTypeKey, .fileSizeKey, .creationDateKey, .contentModificationDateKey]
         let values = try? target.resourceValues(forKeys: keys)
         var facts = SubjectFacts(
@@ -143,6 +150,19 @@ extension SubjectFacts {
     static func process(of subject: ActionSubject) -> AppProcess? {
         guard subject.kind == .app else { return nil }
         return AppActions.running(AppEntry(name: subject.name, url: subject.url)).map { AppProcess(pid: $0.processIdentifier, isHidden: $0.isHidden) }
+    }
+
+    /// What a script is told about a result, read when it starts: after it was confirmed, so a running app's
+    /// process is the one it acts on. A link is read through first, and its app looked up by both paths. A volume
+    /// that stopped answering can keep a read waiting for good, so after `limit` the script is told what the
+    /// result's row knows, and the disk's facts are left unset.
+    @MainActor
+    static func environment(of subject: ActionSubject, query: String, limit: Duration = .seconds(10)) async -> [String: String] {
+        await waitAtMost(limit, otherwise: subject.environment(facts: SubjectFacts(), query: query)) {
+            let target = await subject.resolved()
+            let process = process(of: target) ?? process(of: subject)
+            return await target.environment(facts: read(target, process: process), query: query)
+        }
     }
 }
 
@@ -168,9 +188,9 @@ extension ScriptCommand {
     }
 
     /// The kinds the script acts on, as the Scripts tab lists it: "Actions on Apps and Files".
-    var actsOnLabel: String {
+    func actsOnLabel(locale: Locale = .autoupdatingCurrent) -> String {
         let kinds = SubjectKind.allCases.filter(subjects.contains).map(\.title)
-        let list = kinds.formatted(.list(type: .and))
+        let list = kinds.formatted(.list(type: .and).locale(locale))
         return String(localized: "Actions on \(list)", bundle: .floe, comment: "Beside a script in Settings. The placeholder lists kinds of result, such as Apps and Files.")
     }
 }

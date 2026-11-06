@@ -253,4 +253,21 @@ struct AlternativeActionsTests {
         running = true
         #expect(actions.returnTitle(for: item) == "Quit", "once it runs, Return quits it and its button says so")
     }
+
+    /// The bottom bar asks a result's kind on every draw, so it is kept; the rows read it again, as a path can have
+    /// become a folder since, and a script on files must not be offered on it.
+    @Test func rowsReadTheKindAgain() {
+        var kind = SubjectKind.file
+        let upload = ScriptCommand(
+            file: URL(fileURLWithPath: "/tmp/upload.sh"), title: "Upload", packageName: nil, mode: .silent,
+            needsConfirmation: false, icon: nil, arguments: [], subjects: [.file]
+        )
+        let actions = AlternativeActions()
+        actions.kindOf = { _ in kind }
+        actions.host = AlternativeActions.Host(scripts: { [upload] })
+        let item = RootItem.file(FileResult(url: URL(fileURLWithPath: "/tmp/notes"), name: "notes", displayPath: "", contentType: nil, lastUsed: nil))
+        _ = actions.keys(for: item)
+        kind = .folder
+        #expect(!actions.rows([], for: item).contains { $0?.id == upload.actionID })
+    }
 }

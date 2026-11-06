@@ -8,16 +8,23 @@
 @testable import Floe
 import Foundation
 import Testing
+import ThawUI
 
 /// Answers each scan at once with what it was given, and remembers what it was asked.
 private actor FixedScanner: CatalogScanning {
     private let apps: [AppEntry]
     private var commands: [[ExtensionCommand]]
+    private let scripts: [ScriptCommand]
     private(set) var includeRaycast: [Bool] = []
 
-    init(apps: [AppEntry], commands: [[ExtensionCommand]]) {
+    init(apps: [AppEntry], commands: [[ExtensionCommand]], scripts: [ScriptCommand] = []) {
         self.apps = apps
         self.commands = commands
+        self.scripts = scripts
+    }
+
+    func scanScripts() async -> ScriptScan {
+        ScriptScan(commands: scripts)
     }
 
     func scanApps() async -> [AppEntry] {
@@ -106,6 +113,23 @@ struct CatalogStoreTests {
 
         catalog.reloadScripts(quietly: true)
         #expect(!catalog.isLoading, "the rescan on each panel open shows no spinner")
+        withExtendedLifetime(scratch) {}
+    }
+
+    /// Settings brought back from an export can give a script that acts on results its hotkey again, while the
+    /// Scripts folder stays the same: the next scan still takes it off, so its keys are free for rows.
+    @Test func aScanThatFindsTheSameScriptsStillTakesTheirHotkeysOff() async throws {
+        let (scratch, settings) = try makeSettings()
+        let upload = ScriptCommand(
+            file: URL(fileURLWithPath: "/tmp/upload.sh"), title: "Upload", packageName: nil, mode: .silent,
+            needsConfirmation: false, icon: nil, arguments: [], subjects: [.file]
+        )
+        let catalog = CatalogStore(scanner: FixedScanner(apps: [], commands: [], scripts: [upload]), settings: settings)
+        catalog.reloadScripts()
+        await waitFor("the first scan") { catalog.actionScripts == [upload] }
+        settings.commandHotkeys[upload.id] = KeyCombination(key: .u, modifiers: [.command, .shift])
+        catalog.reloadScripts()
+        await waitFor("the same scripts again") { settings.commandHotkeys.isEmpty }
         withExtendedLifetime(scratch) {}
     }
 }

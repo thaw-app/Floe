@@ -7,6 +7,7 @@
 
 import AppKit
 @testable import Floe
+import Synchronization
 import Testing
 
 /// Script commands as a row owner, with a runner that answers at once: no script is run.
@@ -133,5 +134,27 @@ struct ScriptRowsTests {
         rows.run(script(.compact, confirming: true))
         await settle { !asked.huds.isEmpty }
         #expect(asked.huds == ["done"])
+    }
+
+    /// What a script is told is read once it is confirmed, so an app that quit while the question was open is
+    /// told as not running.
+    @Test func aResultIsReadOnlyOnceTheScriptIsConfirmed() async {
+        let rows = rows(stdout: "ran")
+        var action = script(.compact, confirming: true)
+        action.subjects = [.app]
+        let reads = Mutex(0)
+        rows.run(action) {
+            reads.withLock { $0 += 1 }
+            return [:]
+        }
+        #expect(asked.confirmed == 1)
+        rows.confirms = { _ in reads.withLock { $0 } == 0 }
+        rows.run(action) {
+            reads.withLock { $0 += 1 }
+            return [:]
+        }
+        await settle { !asked.huds.isEmpty }
+        #expect(asked.huds == ["ran"], "it was confirmed before anything was read")
+        #expect(reads.withLock { $0 } == 1)
     }
 }

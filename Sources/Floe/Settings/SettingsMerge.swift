@@ -26,10 +26,24 @@ enum SettingsMerge {
     static func merged(base: Data?, mine: Data, theirs: Data) -> Data {
         let base = object(base)
         let theirs = object(theirs)
-        var result = object(mine)
+        let own = object(mine)
+        var result = merged(base: base, mine: own, theirs: theirs)
+        for key in byEntry where theirs[key] != base[key] {
+            let entries = merged(base: base[key] as? [String: NSObject] ?? [:], mine: own[key] as? [String: NSObject] ?? [:], theirs: theirs[key] as? [String: NSObject] ?? [:])
+            result[key] = entries.isEmpty && own[key] == nil && theirs[key] == nil ? nil : entries as NSDictionary
+        }
+        return (try? JSONSerialization.data(withJSONObject: result)) ?? mine
+    }
+
+    /// Keys merged entry by entry: the launcher takes a hotkey off a script on its own, and that must not undo a
+    /// hotkey Settings gave another command in the meantime.
+    private static let byEntry = ["commandHotkeys"]
+
+    private static func merged(base: [String: NSObject], mine: [String: NSObject], theirs: [String: NSObject]) -> [String: NSObject] {
+        var result = mine
         for key in Set(base.keys).union(theirs.keys) where theirs[key] != base[key] && result[key] == base[key] {
             result[key] = theirs[key]
         }
-        return (try? JSONSerialization.data(withJSONObject: result)) ?? mine
+        return result
     }
 }

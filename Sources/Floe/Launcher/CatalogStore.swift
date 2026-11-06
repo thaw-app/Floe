@@ -168,9 +168,10 @@ final class CatalogStore: ObservableObject {
         // The folder is scanned each time the panel opens and is nearly always the same: then nothing changes.
         let isSame = loaded.contains(.scripts) && scan.commands == allScripts && scan.failures == scriptFailures
         markLoaded(.scripts)
+        // Also when nothing changed: settings brought back from an export can give such a script a hotkey again.
+        settings.dropHotkeys(of: scan.commands.filter { !$0.subjects.isEmpty })
         guard !isSame else { return }
         allScripts = scan.commands
-        settings.dropHotkeys(of: actionScripts)
         scriptFailures = scan.failures
         onChange(.scripts)
     }

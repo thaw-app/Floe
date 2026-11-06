@@ -100,7 +100,7 @@ struct CommandsSettingsView: View {
             }
             ForEach(catalog.allScripts) { script in
                 LabeledContent(script.title) {
-                    Text(script.subjects.isEmpty ? script.mode.rawValue : script.actsOnLabel).foregroundStyle(ThawInk.supporting)
+                    Text(script.subjects.isEmpty ? script.mode.rawValue : script.actsOnLabel()).foregroundStyle(ThawInk.supporting)
                 }
             }
             ForEach(catalog.scriptFailures) { failure in

@@ -8,6 +8,7 @@
 import AppKit
 @testable import Floe
 import Foundation
+import Synchronization
 import Testing
 import ThawUI
 import UniformTypeIdentifiers
@@ -43,6 +44,14 @@ struct ScriptActionsTests {
         let script = try parse("# @floe.title Something else", "# @floe.mode silent").get()
         #expect(script.title == "Upload")
         #expect(script.mode == .fullOutput)
+    }
+
+    /// Only a comment is read as a `@floe.` line: a script that prints one is still searched for.
+    @Test func aFloeLineCountsOnlyAsAComment() throws {
+        #expect(try parse("echo '@floe.subjects file'").get().subjects.isEmpty)
+        #expect(try parse("printf \"@floe.subjects nothing\"").get().subjects.isEmpty)
+        #expect(try parse("// @floe.subjects file").get().subjects == [.file])
+        #expect(try parse("-- @floe.subjects url").get().subjects == [.url])
     }
 
     @Test func anUnknownKindIsRefused() throws {
@@ -154,7 +163,7 @@ struct ScriptActionsTests {
         #expect(folder.size == nil, "a folder's size would mean adding up all it holds")
     }
 
-    /// A symbolic link's kind is that of what it points at, and so are the facts a script is told.
+    /// A symbolic link's kind is that of what it points at, and so are the path and the facts a script is told.
     @Test func aLinkedFileIsReadThroughItsLink() async throws {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-target-\(UUID().uuidString).txt")
         let link = FileManager.default.temporaryDirectory.appendingPathComponent("floe-link-\(UUID().uuidString).txt")
@@ -164,9 +173,11 @@ struct ScriptActionsTests {
             try? FileManager.default.removeItem(at: link)
             try? FileManager.default.removeItem(at: file)
         }
-        let facts = await SubjectFacts.read(ActionSubject(kind: .file, name: link.lastPathComponent, url: link))
-        #expect(facts.size == 11)
-        #expect(facts.contentType == .plainText)
+        let told = await SubjectFacts.environment(of: ActionSubject(kind: .file, name: link.lastPathComponent, url: link), query: "")
+        #expect(told["FLOE_PATH"] == file.resolvingSymlinksInPath().path(percentEncoded: false))
+        #expect(told["FLOE_SIZE"] == "11")
+        #expect(told["FLOE_CONTENT_TYPE"] == "public.plain-text")
+        #expect(told["FLOE_NAME"] == link.lastPathComponent, "the row's name")
     }
 
     /// A hotkey left on a script that now acts on results runs nothing, and would keep its keys from every row.
@@ -305,7 +316,7 @@ struct ScriptActionsTests {
         #expect(rows.last == ActionOption(id: scripts[0].actionID, title: "Upload"))
         #expect(!rows.contains { $0.title == "Shorten" })
         #expect(ActionOption.rows(for: .url, roleApps: [], scripts: scripts).last?.title == "Shorten")
-        #expect(scripts[0].actsOnLabel == "Actions on Apps and Files")
+        #expect(scripts[0].actsOnLabel(locale: Locale(identifier: "en_US")) == "Actions on Apps and Files")
     }
 
     /// Return on a file, through the launcher as it is wired, runs a real script that writes down what it was told.
@@ -321,7 +332,8 @@ struct ScriptActionsTests {
         # @raycast.title Tell
         # @raycast.mode silent
         # @floe.subjects file
-        printf '%s\\n' "$FLOE_SUBJECT" "$FLOE_NAME" "$FLOE_PARENT" "$FLOE_EXTENSION" "$FLOE_SIZE" "$FLOE_CONTENT_TYPE" "$FLOE_QUERY" > '\(report.path)'
+        printf '%s\\n' "$FLOE_SUBJECT" "$FLOE_NAME" "$FLOE_PARENT" "$FLOE_EXTENSION" "$FLOE_SIZE" "$FLOE_CONTENT_TYPE" "$FLOE_QUERY" > '\(report.path).part'
+        mv '\(report.path).part' '\(report.path)'
         """.write(to: script, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
         let file = folder.appendingPathComponent("notes.txt")
@@ -347,7 +359,12 @@ struct ScriptActionsTests {
     }
 }
 
-/// What a script was told, set from the runner off the main actor.
-private final nonisolated class Told: @unchecked Sendable {
-    var environment: [String: String]?
+/// What a script was told, set from the runner and read by the test.
+private final nonisolated class Told: Sendable {
+    private let state = Mutex<[String: String]?>(nil)
+
+    var environment: [String: String]? {
+        get { state.withLock { $0 } }
+        set { state.withLock { $0 = newValue } }
+    }
 }

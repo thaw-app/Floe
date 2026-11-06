@@ -8,27 +8,42 @@
 /// Runs `work` and calls `done` once: when the work ends, or when `limit` has passed, whichever comes first.
 /// What Floe saves before it quits goes through it, since AppKit greys out Quit until the quit is answered.
 func waitAtMost(_ limit: Duration, for work: @escaping () async -> Void, then done: @escaping () -> Void) {
-    let once = CallOnce(done)
+    let once = CallOnce<Void> { done() }
     Task {
         await work()
-        once.call()
+        once.call(())
     }
     Task {
         try? await Task.sleep(for: limit)
-        once.call()
+        once.call(())
     }
 }
 
-private final class CallOnce {
-    private var action: (() -> Void)?
+/// What `work` gives, or `fallback` once `limit` has passed. The work is not stopped, since a read of a volume
+/// that stopped answering can't be: its answer is only let go.
+func waitAtMost<Value: Sendable>(_ limit: Duration, otherwise fallback: Value, for work: @escaping () async -> Value) async -> Value {
+    await withCheckedContinuation { continuation in
+        let once = CallOnce<Value> { continuation.resume(returning: $0) }
+        Task {
+            await once.call(work())
+        }
+        Task {
+            try? await Task.sleep(for: limit)
+            once.call(fallback)
+        }
+    }
+}
 
-    init(_ action: @escaping () -> Void) {
+private final class CallOnce<Value> {
+    private var action: ((Value) -> Void)?
+
+    init(_ action: @escaping (Value) -> Void) {
         self.action = action
     }
 
-    func call() {
+    func call(_ value: Value) {
         let action = action
         self.action = nil
-        action?()
+        action?(value)
     }
 }

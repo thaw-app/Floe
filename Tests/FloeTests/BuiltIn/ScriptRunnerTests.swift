@@ -170,4 +170,9 @@ struct ScriptRunnerTests {
         let result = try await ScriptRunner.run(command, arguments: [], environment: subject.environment(facts: SubjectFacts(), query: ""))
         #expect(result.output == "\(name)|\(folder.standardizedFileURL.path(percentEncoded: false).replacing(/\/$/, with: ""))|home", "the name arrives as it is, beside the login shell's own variables")
     }
+
+    @Test func aFloeNameFromTheLoginShellIsNeverPassedOn() {
+        let shell = ["HOME": "/Users/ada", "FLOE_PATH": "/from/the/shell", "FLOE_NAME": "shell"]
+        #expect(ScriptRunner.environment(["FLOE_NAME": "Example"], over: shell) == ["HOME": "/Users/ada", "FLOE_NAME": "Example"])
+    }
 }

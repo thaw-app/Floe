@@ -59,7 +59,7 @@ A script command is an executable file in the Scripts folder with Raycast's `@ra
 
 ### Actions on results
 
-A `@floe.subjects` line makes a script an action on results. Raycast reads no `@floe.*` line, so the same file still works there.
+A `@floe.subjects` comment makes a script an action on results. Raycast reads no `@floe.*` line and runs the file as a plain command, where no `FLOE_*` variable is set, so a script like the one below fails there.
 
 ```sh
 #!/bin/bash
@@ -71,9 +71,9 @@ A `@floe.subjects` line makes a script an action on results. Raycast reads no `@
 cp -R "$FLOE_PATH" ~/Desktop/ && echo "Copied $FLOE_FILENAME"
 ```
 
-The line names the kinds of result the script acts on: `app`, `file`, `folder` and `url` (or `link`), separated by commas or spaces; a line that names none is an error. Such a script is not found by searching for its title. It is listed at the end of the Actions menu (⌘K) of each result of those kinds, and in Settings › Commands › Actions, where it can be made what Return does, given keys or left out of the menu. A script that needs confirming asks before it runs, and its output follows `@raycast.mode` as when it is searched for. It cannot have a required argument, since nothing is typed in the Actions menu; an argument with `"optional": true` is fine and is passed nothing. It runs only on a result, so it has no hotkey of its own: one it had before it got the line is taken off it, and a link that names it says where it runs instead.
+The comment names the kinds of result the script acts on: `app`, `file`, `folder` and `url` (or `link`), separated by commas or spaces; a line that names none is an error. Such a script is not found by searching for its title. It is listed at the end of the Actions menu (⌘K) of each result of those kinds, and in Settings › Commands › Actions, where it can be made what Return does, given keys or left out of the menu. A script that needs confirming asks before it runs, and its output follows `@raycast.mode` as when it is searched for. It cannot have a required argument, since nothing is typed in the Actions menu; an argument with `"optional": true` is fine and is passed nothing. It runs only on a result, so it has no hotkey of its own: one it had before it got the line is taken off it, and a link that names it says where it runs instead.
 
-The result is handed to the script in environment variables, never written into its command, so a name with quotes or `$` in it is just a name. A value Floe doesn't know is left unset.
+The result is handed to the script in environment variables, never written into its command, so a name with quotes or `$` in it is just a name. A value Floe doesn't know is left unset, and a `FLOE_*` variable your login shell exports is not passed on. A symbolic link is read through: the path and everything else describe what it points at, and only `FLOE_NAME` is the link's. What is read from the disk waits at most 10 seconds, for a volume that stopped answering; then the script runs with only the result's name and path.
 
 | Variable | On | What it holds |
 | --- | --- | --- |

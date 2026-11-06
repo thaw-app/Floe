@@ -88,11 +88,14 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
         packageName ?? String(localized: "Script Command", bundle: .floe, comment: "What a script command is called where it names no package.")
     }
 
-    /// The `@raycast.*` and `@floe.*` fields of a file's text, keys lowercased. The first of a name wins.
+    /// The `@raycast.*` and `@floe.*` fields of a file's text, keys lowercased. The first of a name wins. A
+    /// `@floe.` line counts only as a comment, with nothing but its marker before it, so a script that prints one,
+    /// as `echo '@floe.subjects file'`, is searched for as before.
     static func fields(of text: String) -> (raycast: [String: String], floe: [String: String]) {
         var fields: [Substring: [String: String]] = [:]
         for line in text.components(separatedBy: .newlines) {
             guard let match = line.firstMatch(of: /@(raycast|floe)\.\h*(\p{L}*\p{N}*)(.*)/), !match.2.isEmpty else { continue }
+            guard match.1 == "raycast" || line[..<match.range.lowerBound].allSatisfy(\.isCommentMarker) else { continue }
             let key = match.2.lowercased()
             fields[match.1, default: [:]][key] = fields[match.1]?[key] ?? match.3.trimmingCharacters(in: .whitespaces)
         }
@@ -220,7 +223,13 @@ nonisolated enum ScriptRunner {
 
     /// `environment` is added to the login shell's: what an action script is told about the result it acts on.
     static func run(_ script: ScriptCommand, arguments: [String], environment: [String: String] = [:]) async throws -> ShellResult {
-        try await Shell.run(script.file, arguments, in: script.file.deletingLastPathComponent(), environment: LoginEnvironment.current.merging(environment) { $1 }, timeout: timeout)
+        try await Shell.run(script.file, arguments, in: script.file.deletingLastPathComponent(), environment: Self.environment(environment, over: LoginEnvironment.current), timeout: timeout)
+    }
+
+    /// What a script is told over the login shell's variables. The `FLOE_` names are Floe's to set, so one the login
+    /// shell exports never stands in for a value left unset.
+    static func environment(_ told: [String: String], over shell: [String: String]) -> [String: String] {
+        shell.filter { !$0.key.hasPrefix("FLOE_") }.merging(told) { $1 }
     }
 
     /// Splits typed arguments on whitespace, keeping "quoted spans" together.
@@ -315,5 +324,12 @@ enum ScriptOutputWindow {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.center()
         return panel
+    }
+}
+
+private nonisolated extension Character {
+    /// What starts a comment in the languages scripts are written in, such as `#`, `//`, `--` and `;`, or space.
+    var isCommentMarker: Bool {
+        isWhitespace || "#/-;*(".contains(self)
     }
 }
