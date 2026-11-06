@@ -12,8 +12,10 @@ import Testing
 struct EmojiTests {
     @Test func aReleasedTableIsBuiltAgainByTheNextSearch() {
         let before = EmojiCatalog.search(term: "fire", frecency: { _ in 0 }).map(\.character)
+        let builds = EmojiCatalog.buildCount
         EmojiCatalog.release()
         #expect(EmojiCatalog.search(term: "fire", frecency: { _ in 0 }).map(\.character) == before)
+        #expect(EmojiCatalog.buildCount > builds)
     }
 
     @Test func anEmptyTermListsRecentsByUseThenTheStandbys() {

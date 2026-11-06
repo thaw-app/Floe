@@ -92,6 +92,7 @@ nonisolated enum EmojiCatalog {
 
     private struct Cache {
         var entries: [Entry]?
+        var builds = 0
     }
 
     private static let cache = Mutex(Cache())
@@ -99,6 +100,11 @@ nonisolated enum EmojiCatalog {
     /// Lets the table go; the next search builds it again.
     static func release() {
         cache.withLock { $0.entries = nil }
+    }
+
+    /// How many times the table has been built since launch.
+    static var buildCount: Int {
+        cache.withLock { $0.builds }
     }
 
     static func entries() -> [Entry] {
@@ -112,6 +118,7 @@ nonisolated enum EmojiCatalog {
                 return cached
             }
             cache.entries = built
+            cache.builds += 1
             return built
         }
     }
