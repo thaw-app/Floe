@@ -295,6 +295,7 @@
 		A6C6CEA52FE88F03991F5AE9 /* Contacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 208ECA39C6285356E6199F7A /* Contacts.swift */; };
 		A79B81EE2B1D08AB671D4B8A /* ShellRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB126E15016D489A2EDAAB59 /* ShellRows.swift */; };
 		A801729F67E721311FCDCD13 /* OutgoingDrafts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80740EC675CC466D11F41A52 /* OutgoingDrafts.swift */; };
+		A91ECE6EB14E57F5E4FF2782 /* ScriptActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F1074D99C608E508045015 /* ScriptActions.swift */; };
 		A927D7580E12A9B670504416 /* Model+Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA9FB3C79E7CCFC3BC79521 /* Model+Catalog.swift */; };
 		AA9773F82E103CF7CF9F5940 /* CalculatorFormatter+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD86360FB59649B01FDD998C /* CalculatorFormatter+Display.swift */; };
 		AA9C7E355B2F52EE97B6C97B /* TextGeneration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46789D9D3D1E774F7F4F3A5F /* TextGeneration.swift */; };
@@ -693,6 +694,7 @@
 		95F42770ECB0255BA11434C8 /* Timers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timers.swift; sourceTree = "<group>"; };
 		962E6B4A1AD362AEF3BE6C57 /* build-rust.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "build-rust.sh"; sourceTree = "<group>"; };
 		96930AAEECE7733AB82EE655 /* SettingsSearchNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSearchNavigation.swift; sourceTree = "<group>"; };
+		96F1074D99C608E508045015 /* ScriptActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScriptActions.swift; sourceTree = "<group>"; };
 		975C93B46D2CE2C1CB09E1ED /* AppleScript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScript.swift; sourceTree = "<group>"; };
 		97A5B790800A314D24197729 /* OpenWindows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenWindows.swift; sourceTree = "<group>"; };
 		98ACB02E799D643634A013D4 /* Model+Hotkeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Model+Hotkeys.swift"; sourceTree = "<group>"; };
@@ -1437,6 +1439,7 @@
 				E7DCC87E199BD39B7930CE31 /* ActionKeys.swift */,
 				AFD6BB901BAC3B6C007C605B /* ActionOptions.swift */,
 				F18A54F7E441F670A08C145F /* AlternativeActions.swift */,
+				96F1074D99C608E508045015 /* ScriptActions.swift */,
 			);
 			path = Actions;
 			sourceTree = "<group>";
@@ -1981,6 +1984,7 @@
 				C7736ACC6DCFDB827967C091 /* SSHSearch.swift in Sources */,
 				9BCA580FCA8421373D07A616 /* ScopeRows.swift in Sources */,
 				C0C507DB95A13EA96467BB39 /* ScreenTools.swift in Sources */,
+				A91ECE6EB14E57F5E4FF2782 /* ScriptActions.swift in Sources */,
 				132B83E8D45E3CE01CD04852 /* ScriptCommands.swift in Sources */,
 				086B6949B11CB58A65E4BFDC /* ScriptRows.swift in Sources */,
 				4902891941C787A1667EB50E /* SearchBench.swift in Sources */,

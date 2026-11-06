@@ -144,6 +144,9 @@
     "%@ ran into an error" : {
       "comment" : "The placeholder is the name of a command."
     },
+    "%@ runs on a result, from its Actions menu" : {
+      "comment" : "Shown when a link asks for a script that acts on results. The placeholder is the name of the script."
+    },
     "%@ sign-in" : {
       "comment" : "The placeholder is a service, such as GitHub."
     },
@@ -524,6 +527,12 @@
     ";sig" : {
 
     },
+    "@floe.subjects names no kind of result. Use app, file, folder or url." : {
+      "comment" : "The word that starts with @floe and the four kinds are typed into a script as they are."
+    },
+    "@raycast.argument%lld is required, but a script with @floe.subjects runs from the Actions menu, where nothing is typed. Add \"optional\": true." : {
+      "comment" : "The words that start with @raycast and @floe and the text in quotes are typed into a script as they are, and the placeholder is the number of the argument."
+    },
     "@raycast.argument%lld isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}." : {
       "comment" : "The word that starts with @raycast and the keys in the braces are typed into a script as they are, and the placeholder is the number of the argument."
     },
@@ -661,6 +670,9 @@
     },
     "Actions Menu" : {
 
+    },
+    "Actions on %@" : {
+      "comment" : "Beside a script in Settings. The placeholder lists kinds of result, such as Apps and Files."
     },
     "Actions on Results" : {
       "comment" : "The heading over the choices of what Return, the Actions menu and keys do on apps, files, folders and links."
@@ -4832,6 +4844,9 @@
     },
     "Uninstall in Terminal" : {
       "comment" : "A button that runs the command removing a Homebrew package in the terminal."
+    },
+    "Unknown @floe.subjects %@. Use app, file, folder or url." : {
+      "comment" : "The word that starts with @floe and the four kinds are typed into a script as they are, and the placeholder is the word the script names."
     },
     "Unknown @raycast.mode %@. Use fullOutput, compact, silent or inline." : {
       "comment" : "The word that starts with @raycast and the four mode names are typed into a script as they are."

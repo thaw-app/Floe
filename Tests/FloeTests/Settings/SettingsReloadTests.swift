@@ -160,6 +160,14 @@ struct SettingsMergeTests {
         let theirs = try json(["a": 1, "new": "x"])
         #expect(try object(SettingsMerge.merged(base: base, mine: mine, theirs: theirs)) == ["a": 1, "new": "x"])
     }
+
+    /// The launcher takes a hotkey off a script while Settings gives another command one: both are kept.
+    @Test func hotkeysAreMergedOneByOne() throws {
+        let base = try json(["commandHotkeys": ["script/upload.sh": "⌘U", "a": "⌘A"]])
+        let mine = try json(["commandHotkeys": ["a": "⌘A"]])
+        let theirs = try json(["commandHotkeys": ["script/upload.sh": "⌘U", "a": "⌘A", "b": "⌘B"]])
+        #expect(try object(SettingsMerge.merged(base: base, mine: mine, theirs: theirs)) == ["commandHotkeys": ["a": "⌘A", "b": "⌘B"]])
+    }
 }
 
 /// The stores Settings edits in files: the other process reads them again without saving them back.

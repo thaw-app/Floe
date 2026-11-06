@@ -21,6 +21,12 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### New
+
+- **Run your scripts on a result.** Add a `@floe.subjects` line to a script command, such as `# @floe.subjects file, folder`, and it shows at the end of the Actions menu (⌘K) of apps, files, folders or links instead of in the search. In Settings › Commands › Actions it can be what Return does, have its own keys, or be left out of the menu. The script is told what it acts on in environment variables, such as `FLOE_PATH` and `FLOE_NAME`. [INTERFACES.md](docs/INTERFACES.md#actions-on-results) lists them all.
+
 ## [0.4.0-beta.3] - 2026-11-05
 
 **macOS 26 and later · Build 8**

@@ -20,7 +20,13 @@ extension ActionOption {
     /// Floe's own rows on a kind of result, in the order its Actions menu has them. A row only some results have,
     /// such as Quit, is listed all the same; one that depends on the result, such as an app in Open With, is left to
     /// its submenu's row. `roleApps` are the roles a file opens in with their apps, as the launcher resolves them.
-    static func rows(for kind: SubjectKind, roleApps: [RoleApp]) -> [ActionOption] {
+    /// The user's scripts that act on the kind come after Floe's rows, as the menu has them.
+    static func rows(for kind: SubjectKind, roleApps: [RoleApp], scripts: [ScriptCommand] = []) -> [ActionOption] {
+        floeRows(for: kind, roleApps: roleApps)
+            + scripts.acting(on: kind).map { ActionOption(id: $0.actionID, title: $0.title) }
+    }
+
+    private static func floeRows(for kind: SubjectKind, roleApps: [RoleApp]) -> [ActionOption] {
         let openWith = ActionOption(id: .openWith, title: String(localized: "Open With", bundle: .floe, comment: "The title of a submenu that lists apps."), isSubmenu: true)
         let roles = roleApps.map { entry in
             ActionOption(id: .openIn(entry.role), title: String(localized: "Open in \(entry.app.name)", bundle: .floe, comment: "The placeholder is the name of an app."))
@@ -106,8 +112,9 @@ extension KindActions {
 
     /// The keys that run a row: Floe's for the kind, with the user's laid over them and none of Floe's hotkeys, as
     /// the launcher has them.
-    func keys(for id: ActionID, of kind: SubjectKind, hotkeys: Set<KeyCombination> = []) -> KeyCombination? {
-        ActionKeys.inForce(for: kind, choices: self, hotkeys: hotkeys).key(for: id)
+    /// `rows` are those listed, the user's scripts among them.
+    func keys(for id: ActionID, of kind: SubjectKind, among rows: [ActionOption] = [], hotkeys: Set<KeyCombination> = []) -> KeyCombination? {
+        ActionKeys.inForce(for: kind, choices: self, hotkeys: hotkeys, scripts: Set(rows.map(\.id)).union([id])).key(for: id)
     }
 
     /// Gives a row keys, or with nil takes its keys away, Floe's included. Floe's own keys for the row are stored as
@@ -170,7 +177,7 @@ enum KeyRefusal: Equatable {
             self = keys.modifiers.contains(.command) ? .reserved(keys) : .needsCommand(keys)
             return
         }
-        let inForce = ActionKeys.inForce(for: kind, choices: choices, hotkeys: hotkeys)
+        let inForce = ActionKeys.inForce(for: kind, choices: choices, hotkeys: hotkeys, scripts: Set(rows.map(\.id)))
         guard let other = rows.first(where: { $0.id != id && inForce.key(for: $0.id) == keys }) else { return nil }
         self = .taken(keys, by: other.title)
     }

@@ -147,6 +147,12 @@ struct WhatLeavesTheMainActorTests {
         #expect(left > 0)
     }
 
+    @Test func whatAScriptIsToldOfAResultIsReadOffTheMainActor() async {
+        let folder = ActionSubject(kind: .folder, name: "Applications", url: URL(fileURLWithPath: "/Applications", isDirectory: true))
+        #expect(await CountingExecutor.departures { _ = await folder.resolved() } > 0)
+        #expect(await CountingExecutor.departures { _ = await SubjectFacts.read(folder) } > 0)
+    }
+
     // MARK: What an extension asks for
 
     @Test func anExtensionsRequestIsAnsweredOffTheMainActor() async {

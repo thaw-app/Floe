@@ -20,7 +20,20 @@ final class CatalogStore: ObservableObject {
     /// Every command found, including those of disabled extensions; the settings window lists these.
     @Published private(set) var allCommands: [ExtensionCommand] = []
     /// Every script command found in the Scripts folder.
-    @Published private(set) var allScripts: [ScriptCommand] = []
+    @Published private(set) var allScripts: [ScriptCommand] = [] {
+        didSet { scriptsChanges &+= 1 }
+    }
+    /// Goes up each time the scripts change, so a cache can tell they did without comparing them.
+    private(set) var scriptsChanges = 0
+    /// The scripts searched for by their titles, which hotkeys and links can run.
+    var searchedScripts: [ScriptCommand] {
+        allScripts.filter(\.subjects.isEmpty)
+    }
+
+    /// The scripts with a `@floe.subjects` line: rows of the Actions menus of the results they act on.
+    var actionScripts: [ScriptCommand] {
+        allScripts.filter { !$0.subjects.isEmpty }
+    }
     /// Files in the Scripts folder that failed to parse, for the settings pane.
     @Published private(set) var scriptFailures: [ScriptFailure] = []
     /// True until apps, commands and scripts have each been scanned once, and while one of them is scanned again,
@@ -155,6 +168,8 @@ final class CatalogStore: ObservableObject {
         // The folder is scanned each time the panel opens and is nearly always the same: then nothing changes.
         let isSame = loaded.contains(.scripts) && scan.commands == allScripts && scan.failures == scriptFailures
         markLoaded(.scripts)
+        // Also when nothing changed: settings brought back from an export can give such a script a hotkey again.
+        settings.dropHotkeys(of: scan.commands.filter { !$0.subjects.isEmpty })
         guard !isSame else { return }
         allScripts = scan.commands
         scriptFailures = scan.failures

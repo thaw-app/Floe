@@ -41,7 +41,7 @@ struct CommandsSettingsView: View {
             case .extensions: extensionsSection
             case .scripts: scriptsSection
             case .menuBar: MenuBarCommandsSettingsSection(catalog: catalog, settings: settings)
-            case .actions: ActionsSettingsSection(settings: settings)
+            case .actions: ActionsSettingsSection(settings: settings, scripts: catalog.allScripts)
             }
         }
         .formStyle(.grouped)
@@ -100,7 +100,7 @@ struct CommandsSettingsView: View {
             }
             ForEach(catalog.allScripts) { script in
                 LabeledContent(script.title) {
-                    Text(script.mode.rawValue).foregroundStyle(ThawInk.supporting)
+                    Text(script.subjects.isEmpty ? script.mode.rawValue : script.actsOnLabel()).foregroundStyle(ThawInk.supporting)
                 }
             }
             ForEach(catalog.scriptFailures) { failure in

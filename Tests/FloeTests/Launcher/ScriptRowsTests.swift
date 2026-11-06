@@ -7,6 +7,7 @@
 
 import AppKit
 @testable import Floe
+import Synchronization
 import Testing
 
 /// Script commands as a row owner, with a runner that answers at once: no script is run.
@@ -50,7 +51,7 @@ struct ScriptRowsTests {
             asked.confirmed += 1
             return false
         }
-        rows.runScript = { _, arguments in
+        rows.runScript = { _, arguments, _ in
             ShellResult(status: status, stdout: Data((stdout + arguments.joined(separator: ",")).utf8), stderr: Data(stderr.utf8))
         }
         return rows
@@ -99,9 +100,24 @@ struct ScriptRowsTests {
         #expect(asked.windows.isEmpty)
     }
 
+    /// Started from a hotkey or a link, a script that acts on results would be told nothing of what to act on.
+    @Test func aScriptThatActsOnResultsRunsOnlyOnOne() async {
+        let rows = rows(stdout: "ran")
+        var action = script(.compact)
+        action.subjects = [.file]
+        rows.run(action)
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(asked.left == 0)
+        #expect(asked.huds == ["Deploy runs on a result, from its Actions menu"], "it says why nothing ran")
+        rows.run(action) { ["FLOE_PATH": "/tmp/notes.txt"] }
+        await settle { asked.huds.count == 2 }
+        #expect(asked.huds.last == "ran")
+        #expect(asked.used.isEmpty, "a script never searched for ranks nothing")
+    }
+
     @Test func aScriptThatCouldNotStartSaysWhy() async {
         let rows = rows()
-        rows.runScript = { _, _ in throw Failure() }
+        rows.runScript = { _, _, _ in throw Failure() }
         rows.run(script(.compact))
         await settle { !asked.huds.isEmpty }
         #expect(asked.huds.count == 1)
@@ -118,5 +134,27 @@ struct ScriptRowsTests {
         rows.run(script(.compact, confirming: true))
         await settle { !asked.huds.isEmpty }
         #expect(asked.huds == ["done"])
+    }
+
+    /// What a script is told is read once it is confirmed, so an app that quit while the question was open is
+    /// told as not running.
+    @Test func aResultIsReadOnlyOnceTheScriptIsConfirmed() async {
+        let rows = rows(stdout: "ran")
+        var action = script(.compact, confirming: true)
+        action.subjects = [.app]
+        let reads = Mutex(0)
+        rows.run(action) {
+            reads.withLock { $0 += 1 }
+            return [:]
+        }
+        #expect(asked.confirmed == 1)
+        rows.confirms = { _ in reads.withLock { $0 } == 0 }
+        rows.run(action) {
+            reads.withLock { $0 += 1 }
+            return [:]
+        }
+        await settle { !asked.huds.isEmpty }
+        #expect(asked.huds == ["ran"], "it was confirmed before anything was read")
+        #expect(reads.withLock { $0 } == 1)
     }
 }

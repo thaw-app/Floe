@@ -53,6 +53,14 @@ extension AppSettings {
     var floeHotkeys: Set<KeyCombination> {
         Set(commandHotkeys.values).union(toggleHotkey.map { [$0] } ?? [])
     }
+
+    /// Takes the hotkeys off scripts that act on results. Such a script runs on the result selected, which a hotkey
+    /// pressed anywhere has none of, and a hotkey left on it would still keep its keys from every row.
+    func dropHotkeys(of actionScripts: [ScriptCommand]) {
+        for script in actionScripts where commandHotkeys[script.id] != nil {
+            commandHotkeys[script.id] = nil
+        }
+    }
 }
 
 extension ActionID: CodingKeyRepresentable {

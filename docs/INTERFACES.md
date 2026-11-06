@@ -53,6 +53,52 @@ Through that channel a command can also ask Floe for:
 
 Settings shows a record of what each extension reached.
 
+## Script commands
+
+A script command is an executable file in the Scripts folder with Raycast's `@raycast.*` comments. It runs under your account with no sandbox, from its own folder, with your login shell's environment.
+
+### Actions on results
+
+A `@floe.subjects` comment makes a script an action on results. Raycast reads no `@floe.*` line and runs the file as a plain command, where no `FLOE_*` variable is set, so a script like the one below fails there.
+
+```sh
+#!/bin/bash
+# @raycast.schemaVersion 1
+# @raycast.title Copy to Desktop
+# @raycast.mode compact
+# @floe.subjects file, folder
+
+cp -R "$FLOE_PATH" ~/Desktop/ && echo "Copied $FLOE_FILENAME"
+```
+
+The comment names the kinds of result the script acts on: `app`, `file`, `folder` and `url` (or `link`), separated by commas or spaces; a line that names none is an error. Such a script is not found by searching for its title. It is listed at the end of the Actions menu (⌘K) of each result of those kinds, and in Settings › Commands › Actions, where it can be made what Return does, given keys or left out of the menu. A script that needs confirming asks before it runs, and its output follows `@raycast.mode` as when it is searched for. It cannot have a required argument, since nothing is typed in the Actions menu; an argument with `"optional": true` is fine and is passed nothing. It runs only on a result, so it has no hotkey of its own: one it had before it got the line is taken off it, and a link that names it says where it runs instead.
+
+The result is handed to the script in environment variables, never written into its command, so a name with quotes or `$` in it is just a name. A value Floe doesn't know is left unset, and a `FLOE_*` variable your login shell exports is not passed on. A symbolic link is read through: the path and everything else describe what it points at, and only `FLOE_NAME` is the link's. What is read from the disk waits at most 10 seconds, for a volume that stopped answering; then the script runs with only the result's name and path.
+
+| Variable | On | What it holds |
+| --- | --- | --- |
+| `FLOE_SUBJECT` | all | `app`, `file`, `folder` or `url` |
+| `FLOE_NAME` | all | The result's name as Floe shows it: the app's or file's name, or the link's title or address |
+| `FLOE_URL` | all | The web address, or the `file://` URL of an app, file or folder |
+| `FLOE_QUERY` | all | What was typed in the search on screen, Search Files' own there, which can be empty |
+| `FLOE_PATH` | app, file, folder | The full path, with no slash at the end |
+| `FLOE_FILENAME` | app, file, folder | The last part of the path, such as `Report.pdf` |
+| `FLOE_BASENAME` | app, file, folder | The file name without its extension, such as `Report` |
+| `FLOE_EXTENSION` | app, file, folder | The extension without its dot, such as `pdf` |
+| `FLOE_PARENT` | app, file, folder | The folder it is in. The startup disk, `/`, has none, nor `FLOE_FILENAME`, `FLOE_BASENAME` or `FLOE_EXTENSION` |
+| `FLOE_CONTENT_TYPE` | app, file, folder | Its uniform type identifier, such as `com.adobe.pdf` |
+| `FLOE_TYPE_DESCRIPTION` | app, file, folder | Its kind as Finder names it, such as `PDF document` |
+| `FLOE_MIME_TYPE` | app, file, folder | Its MIME type, such as `application/pdf`, where the type has one |
+| `FLOE_SIZE` | file | Its size in bytes |
+| `FLOE_CREATED`, `FLOE_MODIFIED` | app, file, folder | When it was made and last changed, in ISO 8601, such as `2026-11-05T17:30:00Z` |
+| `FLOE_BUNDLE_ID` | app | Its bundle identifier, such as `com.apple.Safari` |
+| `FLOE_APP_VERSION`, `FLOE_APP_BUILD` | app | Its version and build number |
+| `FLOE_APP_RUNNING` | app | `1` while it runs, else `0` |
+| `FLOE_APP_PID`, `FLOE_APP_HIDDEN` | app | Its process identifier, and `1` if it is hidden, while it runs |
+| `FLOE_HOST`, `FLOE_SCHEME` | url | The address's host, such as `www.youtube.com`, and its scheme, such as `https` |
+
+An app found by Search Files, or by its path, is an app. The choices made for a script in Settings are kept under its file name, so renaming the file loses them. Keys it had are free again, not kept from another row.
+
 ## What Floe reaches out to
 
 ### Network

@@ -72,10 +72,11 @@ struct ActionKeys: Equatable {
     }
 
     /// The keys in force on a kind's rows: Floe's, with the user's choices laid over them, and none of Floe's own
-    /// hotkeys, such as the one that opens it. The Mac takes those before a row could have them.
-    static func inForce(for kind: SubjectKind?, choices: KindActions?, hotkeys: Set<KeyCombination>) -> ActionKeys {
+    /// hotkeys, such as the one that opens it. The Mac takes those before a row could have them. `scripts` are the
+    /// user's scripts on offer: keys left on any other, one renamed or taken away, never keep keys from a row that is.
+    static func inForce(for kind: SubjectKind?, choices: KindActions?, hotkeys: Set<KeyCombination>, scripts: Set<ActionID>) -> ActionKeys {
         let floe = floe(for: kind)
-        var result = choices.map { floe.applying($0) } ?? floe
+        var result = choices.map { floe.applying($0.keeping(scripts: scripts)) } ?? floe
         if !hotkeys.isEmpty {
             result.keys = result.keys.filter { !hotkeys.contains($0.value) }
         }

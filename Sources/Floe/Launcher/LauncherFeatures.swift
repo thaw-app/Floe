@@ -221,6 +221,7 @@ final class LauncherFeatures {
             },
             // Hide is on offer only while an app runs and is in sight, and Quit, Restart and Force Quit while it runs.
             // The Favorites row is named after what it will do, and an Open in row after the app chosen for its role.
+            // A script chosen for Return can be renamed, or stop acting on the kind, while the result stays selected.
             offerState: { item in
                 var state = Hasher()
                 state.combine(model?.isFavorite(item) == true)
@@ -228,9 +229,17 @@ final class LauncherFeatures {
                     state.combine(running.isHidden ? 2 : 1)
                 }
                 state.combine(model?.resolvedApps.apps)
+                state.combine(model?.catalog.scriptsChanges)
                 return state.finalize()
             },
-            hotkeys: { model?.settings.floeHotkeys ?? [] }
+            hotkeys: { model?.settings.floeHotkeys ?? [] },
+            scripts: { model?.catalog.actionScripts ?? [] },
+            // What the disk says about the result is read when the script runs, not each time the menu is built, and
+            // off the main actor. The query is the search on screen: File Search has a field of its own.
+            runScript: { [scripts] script, subject in
+                let query = model.map { $0.isSearchingFiles ? $0.fileSearch.query : $0.query } ?? ""
+                scripts.run(script) { await SubjectFacts.environment(of: subject, query: query) }
+            }
         )
     }
 }

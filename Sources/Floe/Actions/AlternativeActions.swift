@@ -9,12 +9,13 @@ import AppKit
 import ThawUI
 
 /// The user's choices on apps, files, folders and web addresses: what Return does, which rows the Actions menu
-/// shows, and the keys on its rows. Nothing chosen leaves every result as Floe has it.
+/// shows, and the keys on its rows. Nothing chosen leaves every result as Floe has it. Script commands with a
+/// `@floe.subjects` line are rows of the user's own, after Floe's.
 final class AlternativeActions {
     /// What the feature asks of the launcher.
     struct Host {
         var choices: () -> [String: KindActions] = { [:] }
-        /// Floe's own rows of a result's Actions menu, after its Return row.
+        /// The rows of a result's Actions menu after its Return row, the user's scripts on it among them.
         var floeActions: (RootItem) -> [ItemAction?] = { _ in [] }
         /// What Floe's own Return on a result is called.
         var floeTitle: (RootItem) -> String = { _ in "" }
@@ -34,6 +35,12 @@ final class AlternativeActions {
         var offerState: (RootItem) -> Int = { _ in 0 }
         /// Floe's own hotkeys, which no row's keys can be.
         var hotkeys: () -> Set<KeyCombination> = { [] }
+        /// The user's script commands, those that act on results among them.
+        var scripts: () -> [ScriptCommand] = { [] }
+        /// Runs a script on the result it acts on.
+        var runScript: (ScriptCommand, ActionSubject) -> Void = { _, _ in
+            // Set by LauncherFeatures.
+        }
     }
 
     var host = Host()
@@ -77,6 +84,23 @@ final class AlternativeActions {
         return [returnRow] + AlternativeActionRules.arranged(rows, own: own, primaryID: primary?.id, choices: choices)
     }
 
+    /// A result's rows with their keys: the view's own, then the user's scripts that act on its kind. Each view
+    /// builds its rows here, so wherever a row has keys, the scripts are on offer to Return, the menu and keys too.
+    func rows(_ own: [ItemAction?], for item: RootItem) -> [ItemAction?] {
+        // Read again, as rows are built on a key or a menu, not on every draw: a path can be a folder by now.
+        lastKind = nil
+        let kind = kind(of: item)
+        let scripts = scripts(on: kind)
+        let keys = keys(of: kind, scripts: scripts)
+        guard !scripts.isEmpty, let kind, let subject = ActionSubject.of(item, kind: kind) else { return keys.keyed(own) }
+        let scriptRows = scripts.map { script -> ItemAction? in
+            ItemAction(title: script.title, symbol: "terminal", id: script.actionID) { [host] in
+                host.runScript(script, subject)
+            }
+        }
+        return keys.keyed(own + [nil] + scriptRows)
+    }
+
     /// The keys on a result's rows: Floe's for its kind, with the keys the user chose laid over them.
     func keys(for item: RootItem) -> ActionKeys {
         keys(of: kind(of: item))
@@ -84,7 +108,16 @@ final class AlternativeActions {
 
     /// The keys on the rows of a kind of result, as `keys(for:)` gives them on a result of that kind.
     func keys(of kind: SubjectKind?) -> ActionKeys {
-        ActionKeys.inForce(for: kind, choices: choices(of: kind), hotkeys: host.hotkeys())
+        keys(of: kind, scripts: scripts(on: kind))
+    }
+
+    private func keys(of kind: SubjectKind?, scripts: [ScriptCommand]) -> ActionKeys {
+        ActionKeys.inForce(for: kind, choices: choices(of: kind), hotkeys: host.hotkeys(), scripts: Set(scripts.map(\.actionID)))
+    }
+
+    /// The user's scripts that act on a kind of result; none on a result with no kind.
+    private func scripts(on kind: SubjectKind?) -> [ScriptCommand] {
+        kind.map { host.scripts().acting(on: $0) } ?? []
     }
 
     // MARK: - Working it out

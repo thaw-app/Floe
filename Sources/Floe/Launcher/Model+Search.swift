@@ -37,7 +37,7 @@ extension LauncherModel {
         context.notesApp = settings.notesApp
         context.frecency = { [usage] in usage.frecency(of: $0) }
         context.commands = commands
-        context.scripts = catalog.allScripts
+        context.scripts = catalog.searchedScripts
         context.apps = catalog.apps
         context.thawActions = Thaw.actions()
         context.preferredApps = resolvedApps.apps

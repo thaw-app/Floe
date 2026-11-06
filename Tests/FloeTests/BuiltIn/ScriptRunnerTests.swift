@@ -149,4 +149,30 @@ struct ScriptRunnerTests {
         #expect(!result.succeeded)
         #expect(ScriptRunner.timeout == 60)
     }
+
+    @Test func anActionScriptIsToldTheResultInItsEnvironment() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-script-env-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let file = folder.appendingPathComponent("show.sh")
+        try """
+        #!/bin/sh
+        # @raycast.schemaVersion 1
+        # @raycast.title Show
+        # @floe.subjects file
+        printf '%s|%s|%s' "$FLOE_NAME" "$FLOE_PARENT" "${HOME:+home}"
+        """.write(to: file, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path)
+
+        let command = try ScriptCommand.parse(file: file).get()
+        let name = "it's \"$(echo no)\".txt"
+        let subject = ActionSubject(kind: .file, name: name, url: folder.appendingPathComponent(name))
+        let result = try await ScriptRunner.run(command, arguments: [], environment: subject.environment(facts: SubjectFacts(), query: ""))
+        #expect(result.output == "\(name)|\(folder.standardizedFileURL.path(percentEncoded: false).replacing(/\/$/, with: ""))|home", "the name arrives as it is, beside the login shell's own variables")
+    }
+
+    @Test func aFloeNameFromTheLoginShellIsNeverPassedOn() {
+        let shell = ["HOME": "/Users/ada", "FLOE_PATH": "/from/the/shell", "FLOE_NAME": "shell"]
+        #expect(ScriptRunner.environment(["FLOE_NAME": "Example"], over: shell) == ["HOME": "/Users/ada", "FLOE_NAME": "Example"])
+    }
 }

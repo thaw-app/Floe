@@ -36,4 +36,16 @@ import Testing
         }
         #expect(calls == 1)
     }
+
+    @Test func anAnswerInTimeIsTheWorks() async {
+        #expect(await waitAtMost(.seconds(30), otherwise: "late") { "in time" } == "in time")
+    }
+
+    @Test func workThatNeverEndsGivesTheFallbackOnceTheLimitHasPassed() async {
+        let answer = await waitAtMost(.milliseconds(50), otherwise: "late") {
+            try? await Task.sleep(for: .seconds(30))
+            return "in time"
+        }
+        #expect(answer == "late")
+    }
 }
