@@ -14,6 +14,8 @@ You need macOS 26 or later, Bun, Rust and Xcode 27. The steps are in [Developmen
 
 `./scripts/devrun.sh` installs the build as `/Applications/Floe.app`, which replaces the person's own Floe. Ask before you run it. Ask before launching Floe at all, too: it registers the launcher hotkey, and its first launch asks for Accessibility. Explain what that is for and let the person decide.
 
+Build into `.build/` inside the repository, not into a temporary folder. macOS registers every app bundle that runs with LaunchServices and keeps the entry after the folder is gone; see [Checks](docs/DEVELOPMENT.md#checks) for how to unregister a bundle you ran from somewhere else.
+
 ## Where to read next
 
 Open pull requests against `development`. Before writing code, read [Architecture](docs/ARCHITECTURE.md) for where things live and [Coding standards](docs/CODING_STANDARDS.md) for how code is written here. [Development](docs/DEVELOPMENT.md) has the test and check commands and the rest.

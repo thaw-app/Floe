@@ -9,6 +9,10 @@ BINARY="${1:?usage: check-budget.sh <Floe binary> [megabytes]}"
 LIMIT="${2:-100}"
 
 output="$("$BINARY" --bench-search 2>&1 || true)"
+# Forget the LaunchServices entry the run made for its bundle; a bare binary such as .build/debug/Floe makes none.
+if [[ "$BINARY" == *.app/Contents/MacOS/* ]]; then
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "${BINARY%%.app/Contents/MacOS/*}.app" >/dev/null 2>&1 || true
+fi
 grep -E '^(FIRST RENDER|TYPE|FOOTPRINT)' <<<"$output" || true
 
 footprint=$(sed -n 's/^FOOTPRINT \([0-9]*\).*/\1/p' <<<"$output")
