@@ -1,4 +1,5 @@
 import importlib.util
+import io
 from pathlib import Path
 import unittest
 from unittest import mock
@@ -35,13 +36,27 @@ class ResidentBudgetTests(unittest.TestCase):
                 process.communicate.return_value = (self.report(), None)
                 with mock.patch.object(budget.subprocess, "Popen", return_value=process) as launch:
                     with mock.patch.object(budget.os, "killpg") as kill_group:
-                        self.assertTrue(budget.measure(target, 30))
+                        with mock.patch.object(budget.subprocess, "run") as unregister:
+                            self.assertTrue(budget.measure(target, 30))
                 self.assertEqual(launch.call_args.args[0], [str(binary)])
                 self.assertTrue(binary.is_absolute())
                 self.assertTrue(binary.is_relative_to(budget.ROOT))
                 self.assertEqual(launch.call_args.kwargs["env"]["FLOE_RESIDENT_BENCH"], "30")
                 self.assertTrue(launch.call_args.kwargs["start_new_session"])
                 kill_group.assert_called_once_with(process.pid, budget.signal.SIGTERM)
+                if target == "swiftpm":
+                    unregister.assert_not_called()
+                else:
+                    unregister.assert_called_once()
+                    self.assertEqual(unregister.call_args.args[0], [budget.LSREGISTER, "-u", str(binary.parents[2])])
+
+    def test_a_bundle_that_stays_registered_is_named(self):
+        binary = budget.BUILD_PRODUCTS["ci"]
+        for outcome in [mock.Mock(returncode=1), budget.subprocess.TimeoutExpired(budget.LSREGISTER, 30)]:
+            with self.subTest(outcome=outcome), mock.patch("sys.stdout", new_callable=io.StringIO) as out:
+                with mock.patch.object(budget.subprocess, "run", side_effect=[outcome]):
+                    budget.forget_registration(binary)
+            self.assertIn(f"::warning::LaunchServices still has {binary.parents[2]}", out.getvalue())
 
     def test_direct_calls_cannot_bypass_the_target_allowlist(self):
         with mock.patch.object(budget.subprocess, "Popen") as launch:

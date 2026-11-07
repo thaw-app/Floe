@@ -40,6 +40,7 @@ these four.
 
 - **Fast typing runs fewer searches.** Letters typed in quick succession now share one search, instead of each letter running the search for the one before it.
 - **Floe uses less memory until you need your calendar.** Calendar's data is loaded the first time you search for events, not when Floe starts.
+- **Floe uses less memory until you search for an emoji.** The emoji and symbol table is built the first time you type `:` and let go when Floe frees memory after you close it.
 
 ### Fixed
 

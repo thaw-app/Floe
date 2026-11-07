@@ -25,6 +25,8 @@ BUILD_PRODUCTS = {
 }
 
 
+LSREGISTER = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+
 # The order the benchmark prints its measurements in.
 STAGES = ["cold", "after-menu"] + [f"{state}-{cycle}" for cycle in (1, 2, 3) for state in ("shown", "dismissed")] + ["trimmed", "settled"]
 
@@ -37,6 +39,20 @@ def within_budget(output, limit):
         and all(float(value) <= limit for _, value in rows)
         and "RESIDENT PASS" in output.splitlines()
     )
+
+
+def forget_registration(binary):
+    """Forget the LaunchServices entry a run makes for its bundle, which would outlive the build; a bare binary makes none."""
+    depth = next((index for index, part in reversed(list(enumerate(binary.parts))) if part.endswith(".app")), None)
+    if depth is None:
+        return
+    bundle = Path(*binary.parts[: depth + 1])
+    try:
+        forgotten = subprocess.run([LSREGISTER, "-u", str(bundle)], check=False, capture_output=True, timeout=30).returncode == 0
+    except subprocess.TimeoutExpired:
+        forgotten = False
+    if not forgotten:
+        print(f"::warning::LaunchServices still has {bundle}; run lsregister -u on it before deleting the build.")
 
 
 def measure(target, limit, timeout=120):
@@ -65,6 +81,7 @@ def measure(target, limit, timeout=120):
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGKILL)
             process.wait()
+        forget_registration(binary)
 
 
 def main():

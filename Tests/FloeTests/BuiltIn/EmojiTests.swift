@@ -10,6 +10,14 @@ import Foundation
 import Testing
 
 struct EmojiTests {
+    @Test func aReleasedTableIsBuiltAgainByTheNextSearch() {
+        let before = EmojiCatalog.search(term: "fire", frecency: { _ in 0 }).map(\.character)
+        let builds = EmojiCatalog.buildCount
+        EmojiCatalog.release()
+        #expect(EmojiCatalog.search(term: "fire", frecency: { _ in 0 }).map(\.character) == before)
+        #expect(EmojiCatalog.buildCount > builds)
+    }
+
     @Test func anEmptyTermListsRecentsByUseThenTheStandbys() {
         // The star and the fire are used equally; the star comes first in the table.
         let usage = ["❤": 5.0, "🔥": 1.0, "⭐": 1.0]

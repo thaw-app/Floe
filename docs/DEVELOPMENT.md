@@ -56,7 +56,8 @@ Window menu attached lets Accessibility queries populate AppKit's window command
 process still builds the full menu, including Close Window and Minimize.
 
 Once the launcher has been closed for five minutes, or at once under memory pressure, it gives memory back: its
-window's drawing, the icon thumbnails, the results and the URL cache, all made again on the next show. A warning
+window's drawing, the icon thumbnails, the results, the emoji table and the URL cache, all made again when next
+needed. A warning
 that arrives while the launcher is open trims once it closes. Nothing stays switched: once memory is back the
 launcher keeps what it makes as before. Measured on a Release build with a real extension folder: about 110 MiB
 while the launcher is kept, 41 MiB trimmed; a show takes 5 to 8 ms with the window kept and about 50 ms after a trim.
@@ -501,6 +502,13 @@ profile carries `production` for push and allows the Production environment.
     FLOE_OPEN_SETTINGS=5,20 swift run                   # the launcher opens Settings by itself after 5 and 20 seconds
     printf 'a\nb\n' | FLOE_PICK_AUTO=1 .build/debug/Floe --pick --query b  # the picker, without its panel
     FLOE_AUTORUN=hacker-news/frontpage swift run        # open straight into a command
+
+Every app bundle that runs is registered with LaunchServices, and the entry outlives the bundle. Thousands of dead
+entries slow every lookup of an app or a URL scheme and grow the copy of the database each process holds. The budget
+scripts unregister a bundle they ran from inside the repository. Build into `.build/` rather than a temporary folder,
+and forget a bundle you launched from elsewhere before deleting it:
+
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u path/to/Floe.app
 
 ## Picker
 
