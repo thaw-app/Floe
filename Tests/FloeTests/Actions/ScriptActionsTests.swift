@@ -138,6 +138,13 @@ struct ScriptActionsTests {
         #expect(values["FLOE_URL"] == nil && values["FLOE_PATH"] == nil, "a text is nowhere")
         let long = ActionSubject(text: String(repeating: "x", count: ActionSubject.textLimit + 1), name: "x")
         #expect(long.environment(facts: SubjectFacts(), query: "")["FLOE_TEXT"]?.count == ActionSubject.textLimit)
+        // A family of three is 18 bytes; the cut falls between families, never inside one.
+        let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}"
+        let size = family.utf8.count
+        let families = ActionSubject(text: String(repeating: family, count: ActionSubject.textLimit / size + 2), name: "family")
+        let told = families.environment(facts: SubjectFacts(), query: "")["FLOE_TEXT"]
+        #expect(told?.utf8.count == ActionSubject.textLimit / size * size)
+        #expect(told?.allSatisfy { String($0) == family } == true)
     }
 
     @Test func aClipboardEntryThatHoldsTextAndASnippetAreTexts() {

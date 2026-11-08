@@ -96,7 +96,7 @@ The result is handed to the script in environment variables, never written into 
 | `FLOE_APP_RUNNING` | app | `1` while it runs, else `0` |
 | `FLOE_APP_PID`, `FLOE_APP_HIDDEN` | app | Its process identifier, and `1` if it is hidden, while it runs |
 | `FLOE_HOST`, `FLOE_SCHEME` | url | The address's host, such as `www.youtube.com`, and its scheme, such as `https` |
-| `FLOE_TEXT` | text | The text, up to 100,000 characters: a clipboard entry's, or a snippet's as written, before its placeholders are filled |
+| `FLOE_TEXT` | text | The text, up to 100,000 bytes of UTF-8 cut between characters: a clipboard entry's, or a snippet's as written, before its placeholders are filled |
 
 An app found by Search Files, or by its path, is an app. The choices made for a script in Settings are kept under its file name, so renaming the file loses them. Keys it had are free again, not kept from another row.
 

@@ -19,7 +19,8 @@ nonisolated struct ActionSubject: Equatable, Sendable {
     /// The text itself, on a text.
     let text: String?
 
-    /// A script gets a text up to this long: the environment a process starts with holds about a megabyte in all.
+    /// A script gets a text up to this many bytes of UTF-8: the environment a process starts with holds about a
+    /// megabyte in all, and one emoji can take dozens.
     static let textLimit = 100_000
 
     init(kind: SubjectKind, name: String, url: URL) {
@@ -55,9 +56,22 @@ nonisolated struct ActionSubject: Equatable, Sendable {
             values["FLOE_HOST"] = url?.host(percentEncoded: false)
             values["FLOE_SCHEME"] = url?.scheme
         case .text:
-            values["FLOE_TEXT"] = text.map { String($0.prefix(Self.textLimit)) }
+            values["FLOE_TEXT"] = text.map(Self.shortened)
         }
         return values.filter { !$0.value.isEmpty || $0.key == "FLOE_QUERY" }
+    }
+
+    /// The text within the limit, cut between characters so an emoji is whole or gone.
+    private static func shortened(_ text: String) -> String {
+        guard text.utf8.count > textLimit else { return text }
+        var end = text.startIndex
+        var bytes = 0
+        for index in text.indices {
+            bytes += text[index].utf8.count
+            guard bytes <= textLimit else { break }
+            end = text.index(after: index)
+        }
+        return String(text[..<end])
     }
 
     /// Where a file is and what its name is made of. The startup disk is only a path: it has no parent, and its
