@@ -843,4 +843,14 @@ struct CalculatorTests {
     func aNumberWithAMultiplierIsStillASum(typed: String, answer: String) {
         #expect(calculator.evaluatePreview(typed)?.result == answer)
     }
+
+    @Test func indiaGroupsTheFirstThreeDigitsThenPairs() throws {
+        let india = Locale(identifier: "en_IN")
+        #expect(CalculatorFormatter.formatString("475000 + 525002", locale: india) == "4,75,000 + 5,25,002")
+        #expect(CalculatorFormatter.grouped("1234567.89", locale: india) == "12,34,567.89")
+        #expect(CalculatorFormatter.grouped("1000", locale: india) == "1,000")
+        #expect(CalculatorFormatter.grouped("1000002", locale: Locale(identifier: "en_US")) == "1,000,002")
+        let sum = try #require(calculator.evaluatePreview("475000 + 525002"))
+        #expect(String(CalculatorFormatter.formatResult(spans: sum.spans, locale: india).characters) == "10,00,002")
+    }
 }
