@@ -242,7 +242,7 @@ enum FendCorpusDrawn {
     1-i	1 ,- i⟨primary⟩
     -1 + i	-1 ,+ i⟨primary⟩
     -1 - i	-1 ,- i⟨primary⟩
-    -1 - 2i	-,1 -, 2i⟨primary⟩
+    -1 - 2i	-1 -, 2i⟨primary⟩
     -1 - 0.5i	-1 ,- 0.5i⟨primary⟩
     -1 - 0.5i + 1.5i	-1 ,+ i⟨primary⟩
     -i	-i⟨primary⟩
@@ -276,7 +276,7 @@ enum FendCorpusDrawn {
     16#DEAD_BEEF	16,#de,adb,eef⟨primary⟩
     16#D3AD_BEEF	16,#d3,adb,eef⟨primary⟩
     0 + 36#ii	666⟨primary⟩
-    19#i/i	-,19#,i i⟨primary⟩
+    19#i/i	-19#,i i⟨primary⟩
     0+36#0123456789abcdefghijklmnopqrstuvwxyz	≈ ⟨secondary⟩8.684682361⟨primary⟩ × ⟨secondary⟩10⁵²⟨primary⟩
     36#0 + 86846823611197163108337531226495015298096208677436155	36,#12,345,678,9ab,cde,fgh,ijk,lmn,opq,rst,uvw,xyz⟨primary⟩
     18#100/65537 i	18#,100,i/1,8#b,44h⟨primary⟩
@@ -665,7 +665,7 @@ enum FendCorpusDrawn {
     1°C+1°R	≈ ⟨secondary⟩1.5555555556 °C⟨primary⟩
     1°F+1°C	2.8 °F⟨primary⟩
     1°F+10kK	18,001 °F⟨primary⟩
-    -273.15°C+1mK	-,273.149 °C⟨primary⟩
+    -273.15°C+1mK	-273.149 °C⟨primary⟩
     1J/K to J/°F	≈ ⟨secondary⟩0.5555555556 J/°F⟨primary⟩
     0°C to K	273.15 K⟨primary⟩
     6°K	6 K⟨primary⟩
@@ -673,7 +673,7 @@ enum FendCorpusDrawn {
     (1°F)^2 to 1 K^2	≈ ⟨secondary⟩0.3086419753 K^2⟨primary⟩
     100°C to °F	212 °F⟨primary⟩
     0°C to °F	32 °F⟨primary⟩
-    0K to °F	-,459.67 °F⟨primary⟩
+    0K to °F	-459.67 °F⟨primary⟩
     0 millicelsius to °F	32 °F⟨primary⟩
     0 kilocelsius to °F	32 °F⟨primary⟩
     0 kilocelsius to millifahrenheit	32,000 millifahrenheit⟨primary⟩

@@ -850,7 +850,12 @@ struct CalculatorTests {
         #expect(CalculatorFormatter.grouped("1234567.89", locale: india) == "12,34,567.89")
         #expect(CalculatorFormatter.grouped("1000", locale: india) == "1,000")
         #expect(CalculatorFormatter.grouped("1000002", locale: Locale(identifier: "en_US")) == "1,000,002")
+        #expect(CalculatorFormatter.grouped("-12345", locale: india) == "-12,345")
+        #expect(CalculatorFormatter.grouped("−1234567.5", locale: india) == "−12,34,567.5")
         let sum = try #require(calculator.evaluatePreview("475000 + 525002"))
         #expect(String(CalculatorFormatter.formatResult(spans: sum.spans, locale: india).characters) == "10,00,002")
+        let negative = try #require(calculator.evaluatePreview("525002 - 1525004"))
+        let drawn = String(CalculatorFormatter.formatResult(spans: negative.spans, locale: india).characters)
+        #expect(drawn.hasSuffix("10,00,002") && drawn.count == "-10,00,002".count, "\(drawn)")
     }
 }

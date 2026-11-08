@@ -36,6 +36,7 @@ these four.
 ### Fixed
 
 - **Large numbers are grouped the way your region writes them.** With the Mac set to India, the calculator shows 10,00,002, not 1,000,002.
+- **A negative answer no longer has a comma after its minus sign.** `0K to °F` was drawn as -,459.67 °F.
 
 ## [0.4.0-beta.3] - 2026-11-05
 

@@ -136,9 +136,11 @@ nonisolated extension CalculatorFormatter {
     }
 
     static func grouped(_ number: String, locale: Locale) -> String {
-        let parts = number.split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
+        // The sign is not a digit; counted as one, it would draw a separator right after itself.
+        let sign = number.prefix { $0 == "-" || $0 == "−" }
+        let parts = number.dropFirst(sign.count).split(separator: ".", maxSplits: 1, omittingEmptySubsequences: false)
         let whole = groupDigits(String(parts[0]), groupSize: 3, thenEvery: secondaryGroupSize(in: locale), separator: locale.groupingSeparator ?? " ")
-        return parts.count > 1 ? whole + (locale.decimalSeparator ?? ".") + parts[1] : whole
+        return sign + (parts.count > 1 ? whole + (locale.decimalSeparator ?? ".") + parts[1] : whole)
     }
 
     /// The size of the groups past the first when a region's differ: 2 in India, which writes 10,00,002.
