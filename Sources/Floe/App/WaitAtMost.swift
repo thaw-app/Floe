@@ -25,11 +25,13 @@ func waitAtMost<Value: Sendable>(_ limit: Duration, otherwise fallback: Value, f
     await withCheckedContinuation { continuation in
         let once = CallOnce<Value> { continuation.resume(returning: $0) }
         Task {
+            // The limit runs from when the work starts: a busy executor that holds the work back holds it back too.
+            let timer = Task {
+                try? await Task.sleep(for: limit)
+                once.call(fallback)
+            }
             await once.call(work())
-        }
-        Task {
-            try? await Task.sleep(for: limit)
-            once.call(fallback)
+            timer.cancel()
         }
     }
 }
