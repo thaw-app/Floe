@@ -27,7 +27,7 @@ struct ActionsSettingsSection: View {
 
     var body: some View {
         let options = options
-        let results = String(localized: "Results", bundle: .floe, comment: "The label of the buttons that pick the kind of result whose actions are set: apps, files, folders or links.")
+        let results = String(localized: "Results", bundle: .floe, comment: "The label of the buttons that pick the kind of result whose actions are set: apps, files, folders, links or text.")
         ThawSection("Actions on Results") {
             LabeledContent {
                 ThawPillPicker(selection: $kind, values: SubjectKind.allCases, title: \.title)

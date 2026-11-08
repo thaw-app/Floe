@@ -5,6 +5,8 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import Synchronization
+
 /// Runs `work` and calls `done` once: when the work ends, or when `limit` has passed, whichever comes first.
 /// What Floe saves before it quits goes through it, since AppKit greys out Quit until the quit is answered.
 func waitAtMost(_ limit: Duration, for work: @escaping () async -> Void, then done: @escaping () -> Void) {
@@ -20,17 +22,36 @@ func waitAtMost(_ limit: Duration, for work: @escaping () async -> Void, then do
 }
 
 /// What `work` gives, or `fallback` once `limit` has passed. The work is not stopped, since a read of a volume
-/// that stopped answering can't be: its answer is only let go.
-func waitAtMost<Value: Sendable>(_ limit: Duration, otherwise fallback: Value, for work: @escaping () async -> Value) async -> Value {
+/// that stopped answering can't be: its answer is only let go. Both run off the caller's actor, the work first in
+/// line, so a pool with its hands full gets to the work before the limit, and an actor that is held delays neither.
+func waitAtMost<Value: Sendable>(_ limit: Duration, otherwise fallback: Value, for work: @escaping @Sendable () async -> Value) async -> Value {
     await withCheckedContinuation { continuation in
-        let once = CallOnce<Value> { continuation.resume(returning: $0) }
-        Task {
-            await once.call(work())
+        let answer = Answer(continuation)
+        Task { @concurrent in
+            let timer = Task { @concurrent in
+                try? await Task.sleep(for: limit)
+                answer.give(fallback)
+            }
+            answer.give(await work())
+            timer.cancel()
         }
-        Task {
-            try? await Task.sleep(for: limit)
-            once.call(fallback)
+    }
+}
+
+/// A continuation resumed by whichever of two gets to it first.
+private nonisolated final class Answer<Value: Sendable>: Sendable {
+    private let pending: Mutex<CheckedContinuation<Value, Never>?>
+
+    init(_ continuation: CheckedContinuation<Value, Never>) {
+        pending = Mutex(continuation)
+    }
+
+    func give(_ value: Value) {
+        let continuation = pending.withLock { pending in
+            defer { pending = nil }
+            return pending
         }
+        continuation?.resume(returning: value)
     }
 }
 

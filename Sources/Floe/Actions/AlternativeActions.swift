@@ -8,7 +8,7 @@
 import AppKit
 import ThawUI
 
-/// The user's choices on apps, files, folders and web addresses: what Return does, which rows the Actions menu
+/// The user's choices on apps, files, folders, web addresses and texts: what Return does, which rows the Actions menu
 /// shows, and the keys on its rows. Nothing chosen leaves every result as Floe has it. Script commands with a
 /// `@floe.subjects` line are rows of the user's own, after Floe's.
 final class AlternativeActions {

@@ -21,11 +21,23 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.4.0-rc.1] - 2026-11-08
+
+**macOS 26 and later · Build 9**
 
 ### New
 
 - **Run your scripts on a result.** Add a `@floe.subjects` line to a script command, such as `# @floe.subjects file, folder`, and it shows at the end of the Actions menu (⌘K) of apps, files, folders or links instead of in the search. In Settings › Commands › Actions it can be what Return does, have its own keys, or be left out of the menu. The script is told what it acts on in environment variables, such as `FLOE_PATH` and `FLOE_NAME`. [INTERFACES.md](docs/INTERFACES.md#actions-on-results) lists them all.
+- **Scripts can act on text.** A script command with `# @floe.subjects text` is listed in the Actions menu (⌘K) of clipboard entries and snippets, and gets the text in `FLOE_TEXT`.
+
+### Changed
+
+- **Floe uses less memory until you search for an emoji.** The emoji and symbol table is built the first time you type `:` and let go when Floe frees memory after you close it.
+
+### Fixed
+
+- **Large numbers are grouped the way your region writes them.** With the Mac set to India, the calculator shows 10,00,002, not 1,000,002.
+- **A negative answer no longer has a comma after its minus sign.** `0K to °F` was drawn as -,459.67 °F.
 
 ## [0.4.0-beta.3] - 2026-11-05
 
@@ -40,7 +52,6 @@ these four.
 
 - **Fast typing runs fewer searches.** Letters typed in quick succession now share one search, instead of each letter running the search for the one before it.
 - **Floe uses less memory until you need your calendar.** Calendar's data is loaded the first time you search for events, not when Floe starts.
-- **Floe uses less memory until you search for an emoji.** The emoji and symbol table is built the first time you type `:` and let go when Floe frees memory after you close it.
 
 ### Fixed
 

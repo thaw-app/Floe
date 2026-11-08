@@ -208,14 +208,17 @@ nonisolated enum CalculatorFormatter {
         return nil
     }
 
-    /// Groups digits with a separator, e.g. groupSize: 4 for binary/hex, 3 for decimal/octal.
-    static func groupDigits(_ digits: String, groupSize: Int, separator: String) -> String {
+    /// Digits in groups from the right, `groupSize` long, or `thenEvery` long past the first where a region
+    /// groups that way, as India's 10,00,000 does.
+    static func groupDigits(_ digits: String, groupSize: Int, thenEvery rest: Int? = nil, separator: String) -> String {
         guard digits.count > groupSize else { return digits }
+        let rest = rest ?? groupSize
         var result = ""
         let chars = Array(digits)
         let count = chars.count
         for i in 0 ..< count {
-            if i > 0, (count - i) % groupSize == 0 {
+            let fromRight = count - i
+            if i > 0, fromRight == groupSize || (fromRight > groupSize && (fromRight - groupSize) % rest == 0) {
                 result += separator
             }
             result.append(chars[i])

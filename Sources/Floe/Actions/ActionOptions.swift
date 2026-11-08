@@ -39,6 +39,8 @@ extension ActionOption {
         ]
         let copyFile = ActionOption(id: .copyFile, title: String(localized: "Copy File", bundle: .floe))
         let trash = ActionOption(id: .moveToTrash, title: String(localized: "Move to Trash…", bundle: .floe))
+        let favorite = ActionOption(id: .toggleFavorite, title: String(localized: "Add to or Remove from Favorites", bundle: .floe, comment: "An action on an app, as Settings lists it. The Actions menu shows Add to Favorites or Remove from Favorites, whichever the app needs."))
+        let hideFromSearch = ActionOption(id: .hideFromSearch, title: String(localized: "Hide from Search", bundle: .floe))
         switch kind {
         case .app:
             // An app found as a file, such as by its path, has a file's menu, so its rows are an app's too.
@@ -52,13 +54,16 @@ extension ActionOption {
                 copyFile,
                 ActionOption(id: .copyBundleIdentifier, title: String(localized: "Copy Bundle Identifier", bundle: .floe)),
                 trash,
-                ActionOption(id: .toggleFavorite, title: String(localized: "Add to or Remove from Favorites", bundle: .floe, comment: "An action on an app, as Settings lists it. The Actions menu shows Add to Favorites or Remove from Favorites, whichever the app needs.")),
-                ActionOption(id: .hideFromSearch, title: String(localized: "Hide from Search", bundle: .floe)),
+                favorite,
+                hideFromSearch,
             ]
         case .file, .folder:
             return [openWith] + roles + [showInFinder, quickLook] + copies + [copyFile, trash]
         case .url:
             return [openWith, ActionOption(id: .copyAddress, title: String(localized: "Copy Address", bundle: .floe))]
+        case .text:
+            // A clipboard entry has Copy; a snippet keeps its place in the search, so it has the favorite and hide rows.
+            return [ActionOption(id: .copy, title: String(localized: "Copy", bundle: .floe, comment: "A verb: put the selection on the clipboard.")), favorite, hideFromSearch]
         }
     }
 }
@@ -71,15 +76,17 @@ extension SubjectKind {
         case .file: String(localized: "Files", bundle: .floe, comment: "Results that are files, as one of the kinds of result whose actions are chosen in Settings.")
         case .folder: String(localized: "Folders", bundle: .floe, comment: "Results that are folders, as one of the kinds of result whose actions are chosen in Settings.")
         case .url: String(localized: "Links", bundle: .floe, comment: "Results that are web addresses or bookmarks, as one of the kinds of result whose actions are chosen in Settings.")
+        case .text: String(localized: "Text", bundle: .floe, comment: "Results that are text, such as clipboard entries and snippets, as one of the kinds of result whose actions are chosen in Settings.")
         }
     }
 
     /// What Floe does on Return with nothing chosen, named as the first row of the kind's Actions menu names it: a
-    /// link opens in the browser the user chose.
+    /// link opens in the browser the user chose, and a text is pasted.
     func floeActionTitle(browser: BrowserMenu) -> String {
         switch self {
         case .url: browser.openTitle
         case .app, .file, .folder: String(localized: "Open", bundle: .floe, comment: "A verb on a button: open the selected result.")
+        case .text: String(localized: "Paste", bundle: .floe, comment: "A verb: insert what is on the clipboard.")
         }
     }
 }
