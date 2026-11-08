@@ -197,11 +197,16 @@ extension SubjectFacts {
     /// result's row knows, and the disk's facts are left unset.
     @MainActor
     static func environment(of subject: ActionSubject, query: String, limit: Duration = .seconds(10)) async -> [String: String] {
-        await waitAtMost(limit, otherwise: subject.environment(facts: SubjectFacts(), query: query)) {
+        // Only the disk is asked within the limit, in one piece off the main actor: the limit is for the disk, not
+        // for a turn on the main actor. The running app is the main actor's, read after.
+        var (target, facts) = await waitAtMost(limit, otherwise: (subject, SubjectFacts())) { @concurrent in
             let target = await subject.resolved()
-            let process = process(of: target) ?? process(of: subject)
-            return await target.environment(facts: read(target, process: process), query: query)
+            return (target, await read(target))
         }
+        if facts.bundleIdentifier != nil {
+            facts.process = process(of: target) ?? process(of: subject)
+        }
+        return target.environment(facts: facts, query: query)
     }
 }
 
