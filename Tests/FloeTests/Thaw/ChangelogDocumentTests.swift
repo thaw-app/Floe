@@ -541,8 +541,8 @@ struct ChangelogDocumentShownReleasesTests {
         let document = try ChangelogDocument.parse(String(contentsOf: file, encoding: .utf8))
         // What is waiting for the next release comes first, ahead of the newest one.
         let releases = ChangelogDocument.displayReleases(in: document).drop { $0.version == "Unreleased" }
-        #expect(releases.first?.version == "0.4.0-beta.3")
-        #expect(releases.dropFirst().first?.version == "0.4.0-beta.2")
+        #expect(releases.first?.version == "0.4.0-rc.1")
+        #expect(releases.dropFirst().first?.version == "0.4.0-beta.3")
         let released = try #require(releases.first { $0.version == "0.2.0" })
         #expect(released.sections.first?.title == "New")
         let newest = try #require(releases.first { $0.version == "0.2.1" })
