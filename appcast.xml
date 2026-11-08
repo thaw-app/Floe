@@ -5,35 +5,40 @@
         <language>en</language>
         <item>
             <title>0.4.0</title>
+            <pubDate>Sun, 08 Nov 2026 21:10:15 +0000</pubDate>
+            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-rc.1</link>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>9</sparkle:version>
+            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<p><strong>macOS 26 and later · Build 9</strong></p>
+<h3>New</h3>
+<ul>
+<li><strong>Run your scripts on a result.</strong> Add a <code class="notranslate">@floe.subjects</code> line to a script command, such as <code class="notranslate"># @floe.subjects file, folder</code>, and it shows at the end of the Actions menu (⌘K) of apps, files, folders or links instead of in the search. In Settings › Commands › Actions it can be what Return does, have its own keys, or be left out of the menu. The script is told what it acts on in environment variables, such as <code class="notranslate">FLOE_PATH</code> and <code class="notranslate">FLOE_NAME</code>. <a href="docs/INTERFACES.md#actions-on-results">INTERFACES.md</a> lists them all.</li>
+<li><strong>Scripts can act on text.</strong> A script command with <code class="notranslate"># @floe.subjects text</code> is listed in the Actions menu (⌘K) of clipboard entries and snippets, and gets the text in <code class="notranslate">FLOE_TEXT</code>.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>Floe uses less memory until you search for an emoji.</strong> The emoji and symbol table is built the first time you type <code class="notranslate">:</code> and let go when Floe frees memory after you close it.</li>
+</ul>
+<h3>Fixed</h3>
+<ul>
+<li><strong>Large numbers are grouped the way your region writes them.</strong> With the Mac set to India, the calculator shows 10,00,002, not 1,000,002.</li>
+<li><strong>A negative answer no longer has a comma after its minus sign.</strong> <code class="notranslate">0K to °F</code> was drawn as -,459.67 °F.</li>
+</ul>]]></description>
+            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.1/Floe_0.4.0-rc.1.zip" length="81129389" type="application/octet-stream" sparkle:edSignature="hDB+N4SRi8a2lWtVr/bsC+Cr2HnqbRK3lJEBbaI+kYwWfiQn1+l/n7pScFnrdcMkCa/fHj/q5waptiKeWvRGBQ=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.1/Floe9-8.delta" sparkle:deltaFrom="8" length="1858018" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="0lewBifO8s8pvKN+eXBuvet9TWKamYVcNRSeiwh/K6lTFRr2wAeoRQh22UvCBt687JXUwvg6X23p/5SM0RNUAQ=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
+            <title>0.4.0</title>
             <pubDate>Thu, 05 Nov 2026 10:11:17 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-beta.3</link>
             <sparkle:channel>beta</sparkle:channel>
             <sparkle:version>8</sparkle:version>
             <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p><strong>macOS 26 and later · Build 8</strong></p>
-<h3>New</h3>
-<ul>
-<li><strong>Choose a theme for Settings.</strong> Settings › General has Match System, Light, Dark and Black. Match System, the default, follows macOS as before. Black puts Settings on pure black, for OLED displays. The welcome window follows your choice too, showing Black as Dark.</li>
-<li><strong>Hide Floe's icon in the menu bar.</strong> Settings › General has Show in Menu Bar. With it off, the hotkey, the Dock or opening Floe again still brings up the launcher (<a href="https://github.com/thaw-app/Floe/issues/71" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/71/hovercard">#71</a>). By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> in <a href="https://github.com/thaw-app/Floe/pull/72" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/72/hovercard">#72</a>.</li>
-</ul>
-<h3>Changed</h3>
-<ul>
-<li><strong>Fast typing runs fewer searches.</strong> Letters typed in quick succession now share one search, instead of each letter running the search for the one before it.</li>
-<li><strong>Floe uses less memory until you need your calendar.</strong> Calendar's data is loaded the first time you search for events, not when Floe starts.</li>
-</ul>
-<h3>Fixed</h3>
-<ul>
-<li><strong>Floe frees memory after you close it, even if something was still open.</strong> Floe frees memory five minutes after the launcher closes. If a command, form or dialog was still open then, it didn't try again until you next closed the launcher.</li>
-<li><strong>The quicklink editor says why it won't save.</strong> Save was greyed out with no reason given. It now says what's missing or wrong, such as a keyword that's already used.</li>
-<li><strong>Empty lists say they're empty.</strong> Settings › Quicklinks with no quicklinks, and the Menu Bar tab in Settings › Commands with no menu bar commands, now say so instead of showing nothing.</li>
-<li><strong>The Settings search finds more, under the names the pages use.</strong> It now finds the welcome window and Separate light and dark tints. The glass and tint results are called Effect, Color and Opacity, as on the Appearance page.</li>
-</ul>
-<h3>Contributors</h3>
-<ul>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/Evolinox/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/Evolinox">@Evolinox</a> asked for hiding the menu bar icon (<a href="https://github.com/thaw-app/Floe/issues/71" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/71/hovercard">#71</a>).</li>
-<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> added it (<a href="https://github.com/thaw-app/Floe/pull/72" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/72/hovercard">#72</a>).</li>
-</ul>]]></description>
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.3/Floe_0.4.0-beta.3.zip" length="81075726" type="application/octet-stream" sparkle:edSignature="YRYENTfQtPSU20gRlgB54UMmU1Wch6kKzIc0bAc1+wew2SeujPJUzGEnH8caWEHtDuO6Jl3V8Es6EzN9gx26CQ=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.3/Floe8-7.delta" sparkle:deltaFrom="7" length="2186414" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="4PNWmbbB5yr8GNLBjaem1Kjbq+5V3C37fIhirCpxZ0Sf62/TCIzPWtIC8Yf77+AOibGGAY26cfUR0LIxpwaVBw=="/>
@@ -51,16 +56,6 @@
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.2/Floe7-6.delta" sparkle:deltaFrom="6" length="2073774" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="tdB4QfMempGiFtV3JInNUf9PwwPSdgNgUMLy7QJ9o6qtkdYNO9ahsEnEIWsYKkb5e8HpPpSv9abUroVmyZSDCw=="/>
             </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.4.0</title>
-            <pubDate>Tue, 03 Nov 2026 06:31:36 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-beta.1</link>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>6</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.1/Floe_0.4.0-beta.1.zip" length="80688717" type="application/octet-stream" sparkle:edSignature="wtUnCoeeZSuRMRnlhn5nUWvEVZHk2Azaf1Vtl+53wU+SztBZxaMxXNnHFWiPFQ4zoWtY36gScrtZeqHk/JyxDA=="/>
         </item>
         <item>
             <title>0.3.0</title>
