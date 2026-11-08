@@ -3617,7 +3617,7 @@
 
     },
     "Results" : {
-      "comment" : "The label of the buttons that pick the kind of result whose actions are set: apps, files, folders or links."
+      "comment" : "The label of the buttons that pick the kind of result whose actions are set: apps, files, folders, links or text."
     },
     "Resume" : {
       "comment" : "A verb on a button: open what a checkpoint holds."
@@ -4297,7 +4297,7 @@
       "comment" : "The kind of app that runs a shell, as the label of the picker that chooses one."
     },
     "Text" : {
-      "comment" : "A kind of copied thing."
+      "comment" : "A kind of copied thing.\nResults that are text, such as clipboard entries and snippets, as one of the kinds of result whose actions are chosen in Settings."
     },
     "Text that expands as you type, and quicklinks." : {
       "comment" : "A tile of the welcome tour."

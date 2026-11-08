@@ -8,14 +8,33 @@
 import AppKit
 import UniformTypeIdentifiers
 
-/// The result a script acts on: what it is, what it is called and where it is. Built when the Actions menu is, so it
-/// reads nothing from the disk; `SubjectFacts` are read when the script runs.
+/// The result a script acts on: what it is, what it is called, and where it is or what it says. Built when the
+/// Actions menu is, so it reads nothing from the disk; `SubjectFacts` are read when the script runs.
 nonisolated struct ActionSubject: Equatable, Sendable {
     let kind: SubjectKind
-    /// What the row is called: the app's or file's name, or the link's title or address.
+    /// What the row is called: the app's or file's name, the link's title or address, or the text's first line.
     let name: String
-    /// The app's bundle, the file or folder, or the web address.
-    let url: URL
+    /// The app's bundle, the file or folder, or the web address. A text has none.
+    let url: URL?
+    /// The text itself, on a text.
+    let text: String?
+
+    /// A script gets a text up to this long: the environment a process starts with holds about a megabyte in all.
+    static let textLimit = 100_000
+
+    init(kind: SubjectKind, name: String, url: URL) {
+        self.kind = kind
+        self.name = name
+        self.url = url
+        text = nil
+    }
+
+    init(text: String, name: String) {
+        kind = .text
+        self.name = name
+        url = nil
+        self.text = text
+    }
 
     /// What a script is told about the result, as environment variables. A value Floe doesn't know is left unset.
     /// Nothing is written into the script's text, so a name with quotes or `$` in it cannot change the command.
@@ -23,16 +42,20 @@ nonisolated struct ActionSubject: Equatable, Sendable {
         var values = [
             "FLOE_SUBJECT": kind.rawValue,
             "FLOE_NAME": name,
-            "FLOE_URL": url.absoluteString,
             "FLOE_QUERY": query,
         ]
+        values["FLOE_URL"] = url?.absoluteString
         switch kind {
         case .app, .file, .folder:
-            values.merge(Self.place(of: url)) { $1 }
+            if let url {
+                values.merge(Self.place(of: url)) { $1 }
+            }
             values.merge(facts.environment) { $1 }
         case .url:
-            values["FLOE_HOST"] = url.host(percentEncoded: false)
-            values["FLOE_SCHEME"] = url.scheme
+            values["FLOE_HOST"] = url?.host(percentEncoded: false)
+            values["FLOE_SCHEME"] = url?.scheme
+        case .text:
+            values["FLOE_TEXT"] = text.map { String($0.prefix(Self.textLimit)) }
         }
         return values.filter { !$0.value.isEmpty || $0.key == "FLOE_QUERY" }
     }
@@ -59,13 +82,16 @@ nonisolated struct ActionSubject: Equatable, Sendable {
 }
 
 extension ActionSubject {
-    /// The result a script acts on, or nil for a result that is not an app, a file, a folder or a link.
+    /// The result a script acts on, or nil for a result that is not an app, a file, a folder, a link or a text. A
+    /// snippet's text is as written, before its placeholders are filled.
     static func of(_ item: RootItem, kind: SubjectKind) -> ActionSubject? {
         switch item {
         case let .app(app): ActionSubject(kind: kind, name: app.name, url: app.url)
         case let .file(file): ActionSubject(kind: kind, name: file.name, url: file.url)
         case let .webAddress(address): ActionSubject(kind: kind, name: address.text, url: address.url)
         case let .bookmark(bookmark): ActionSubject(kind: kind, name: bookmark.title, url: bookmark.url)
+        case let .clipboardEntry(entry): entry.text.map { ActionSubject(text: $0, name: entry.title) }
+        case let .snippet(snippet): ActionSubject(text: snippet.text, name: snippet.name)
         default: nil
         }
     }
@@ -74,7 +100,7 @@ extension ActionSubject {
     /// Its path and its facts then name the same item. Off the main actor, since it asks the disk.
     @concurrent
     func resolved() async -> ActionSubject {
-        guard kind != .url else { return self }
+        guard kind != .url, let url else { return self }
         return ActionSubject(kind: kind, name: name, url: url.resolvingSymlinksInPath())
     }
 }
@@ -123,11 +149,10 @@ nonisolated struct SubjectFacts: Equatable, Sendable {
 
 extension SubjectFacts {
     /// Reads what the disk says about the result, off the main actor: a file on a slow or sleeping volume can
-    /// take a while to answer. `process` is the app's, read on the main actor first. A link has nothing to read.
+    /// take a while to answer. `process` is the app's, read on the main actor first. A link or a text has nothing to read.
     @concurrent
     static func read(_ subject: ActionSubject, process: AppProcess? = nil) async -> SubjectFacts {
-        guard subject.kind != .url else { return SubjectFacts() }
-        let target = subject.url
+        guard subject.kind != .url, let target = subject.url else { return SubjectFacts() }
         let keys: Set<URLResourceKey> = [.contentTypeKey, .fileSizeKey, .creationDateKey, .contentModificationDateKey]
         let values = try? target.resourceValues(forKeys: keys)
         var facts = SubjectFacts(
@@ -148,8 +173,8 @@ extension SubjectFacts {
     /// An app's process while it runs, from the running apps the main actor keeps. Nil for any other result.
     @MainActor
     static func process(of subject: ActionSubject) -> AppProcess? {
-        guard subject.kind == .app else { return nil }
-        return AppActions.running(AppEntry(name: subject.name, url: subject.url)).map { AppProcess(pid: $0.processIdentifier, isHidden: $0.isHidden) }
+        guard subject.kind == .app, let url = subject.url else { return nil }
+        return AppActions.running(AppEntry(name: subject.name, url: url)).map { AppProcess(pid: $0.processIdentifier, isHidden: $0.isHidden) }
     }
 
     /// What a script is told about a result, read when it starts: after it was confirmed, so a running app's

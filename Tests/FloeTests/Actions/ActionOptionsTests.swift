@@ -143,6 +143,18 @@ struct ActionOptionsTests {
         #expect(differences(menu, kind: .url, roleApps: model.resolvedApps.apps) == [])
     }
 
+    @Test func everyRowOfATextsMenuIsListed() {
+        let model = makeModel()
+        let entry = RootItem.clipboardEntry(ClipboardEntry(id: UUID(), kind: .text, text: "hello", date: .now, pinned: false))
+        let snippet = RootItem.snippet(Snippet(name: "Sign-off", keyword: "sig", text: "Best"))
+        for item in [entry, snippet] {
+            #expect(SubjectKind.of(item) == .text)
+            #expect(differences(model.floeActions(for: item), kind: .text, roleApps: model.resolvedApps.apps) == [])
+        }
+        let browser = BrowserMenu(choice: model.settings.browserApp, installed: model.resolvedApps.lookup)
+        #expect(SubjectKind.text.floeActionTitle(browser: browser) == model.floeActionTitle(for: entry), "a text is pasted")
+    }
+
     @Test func whatFloeDoesIsNamedAsTheMenusFirstRowNamesIt() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-options-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -177,7 +189,8 @@ struct ActionOptionsTests {
         let submenus = SubjectKind.allCases.flatMap { ActionOption.rows(for: $0, roleApps: Fake.roleApps) }.filter(\.isSubmenu)
         #expect(Set(submenus.map(\.id)) == [.openWith], "Open With is the one submenu")
         #expect(!ActionOption.rows(for: .file, roleApps: []).contains { $0.id == .openIn(.editor) }, "a role without an app has no row, as in the menu")
-        #expect(SubjectKind.allCases.map(\.title) == ["Apps", "Files", "Folders", "Links"])
+        #expect(ActionOption.rows(for: .text, roleApps: Fake.roleApps).map(\.id) == [.copy, .toggleFavorite, .hideFromSearch])
+        #expect(SubjectKind.allCases.map(\.title) == ["Apps", "Files", "Folders", "Links", "Text"])
     }
 }
 

@@ -28,6 +28,7 @@ these four.
 ### New
 
 - **Run your scripts on a result.** Add a `@floe.subjects` line to a script command, such as `# @floe.subjects file, folder`, and it shows at the end of the Actions menu (⌘K) of apps, files, folders or links instead of in the search. In Settings › Commands › Actions it can be what Return does, have its own keys, or be left out of the menu. The script is told what it acts on in environment variables, such as `FLOE_PATH` and `FLOE_NAME`. [INTERFACES.md](docs/INTERFACES.md#actions-on-results) lists them all.
+- **Scripts can act on text.** A script command with `# @floe.subjects text` is listed in the Actions menu (⌘K) of clipboard entries and snippets, and gets the text in `FLOE_TEXT`.
 
 ### Changed
 

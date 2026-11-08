@@ -15,15 +15,19 @@ nonisolated enum SubjectKind: String, CaseIterable, Sendable {
     case file
     case folder
     case url
+    case text
 
     /// The kind of a result, or nil for one that has none, such as a command. A file is read where it is now:
-    /// an app found as a file is an app, a link to a folder is a folder, and a file that is gone is nothing.
+    /// an app found as a file is an app, a link to a folder is a folder, and a file that is gone is nothing. A text
+    /// is a clipboard entry that holds one, or a snippet.
     static func of(_ item: RootItem) -> SubjectKind? {
         switch item {
         case .app: .app
         case let .file(file): of(file.url)
         // A browser's tab is switched to, not opened, so it is not a link.
         case .webAddress, .bookmark: .url
+        case let .clipboardEntry(entry): entry.kind == .text && entry.text != nil ? .text : nil
+        case .snippet: .text
         default: nil
         }
     }
@@ -44,14 +48,15 @@ struct ActionKeys: Equatable {
     private(set) var keys: [ActionID: KeyCombination]
 
     /// Floe's own keys on a kind of result, or with nil on a result that has none, such as a command. Files and
-    /// folders share theirs, and an app has them too: one found by Search Files has a file's rows. A letter is the
-    /// key that types it on the layout, as the main menu's keys are.
+    /// folders share theirs, and an app has them too: one found by Search Files has a file's rows. A text keeps the
+    /// favorite key a snippet had as a result with no kind. A letter is the key that types it on the layout, as the
+    /// main menu's keys are.
     static func floe(for kind: SubjectKind?, on layout: KeyLayout = .current) -> ActionKeys {
         switch kind {
         case .file, .folder: ActionKeys(keys: files(on: layout))
         case .app: ActionKeys(keys: files(on: layout).merging(favorite(on: layout)) { $1 })
         case .url: ActionKeys(keys: [:])
-        case nil: ActionKeys(keys: favorite(on: layout))
+        case nil, .text: ActionKeys(keys: favorite(on: layout))
         }
     }
 

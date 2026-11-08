@@ -34,6 +34,7 @@ struct ScriptActionsTests {
         #expect(script.subjects == [.app, .file, .folder])
         #expect(script.title == "Upload", "Raycast's lines read as before")
         #expect(try parse("# @floe.subjects link").get().subjects == [.url], "a link can be named either way")
+        #expect(try parse("# @floe.subjects text").get().subjects == [.text])
     }
 
     @Test func aScriptWithoutTheLineIsSearchedFor() throws {
@@ -126,6 +127,30 @@ struct ScriptActionsTests {
         #expect(values["FLOE_HOST"] == "www.youtube.com")
         #expect(values["FLOE_SCHEME"] == "https")
         #expect(values["FLOE_PATH"] == nil, "a link has no place on the disk")
+    }
+
+    @Test func aTextIsHandedOverWithNoPlace() {
+        let subject = ActionSubject(text: "Dear all,\nthe meeting moved to 3 pm.", name: "Dear all,")
+        let values = subject.environment(facts: SubjectFacts(), query: "")
+        #expect(values["FLOE_SUBJECT"] == "text")
+        #expect(values["FLOE_TEXT"] == "Dear all,\nthe meeting moved to 3 pm.")
+        #expect(values["FLOE_NAME"] == "Dear all,")
+        #expect(values["FLOE_URL"] == nil && values["FLOE_PATH"] == nil, "a text is nowhere")
+        let long = ActionSubject(text: String(repeating: "x", count: ActionSubject.textLimit + 1), name: "x")
+        #expect(long.environment(facts: SubjectFacts(), query: "")["FLOE_TEXT"]?.count == ActionSubject.textLimit)
+    }
+
+    @Test func aClipboardEntryThatHoldsTextAndASnippetAreTexts() {
+        let entry = ClipboardEntry(id: UUID(), kind: .text, text: "hello", date: .now, pinned: false)
+        let item = RootItem.clipboardEntry(entry)
+        #expect(SubjectKind.of(item) == .text)
+        #expect(ActionSubject.of(item, kind: .text) == ActionSubject(text: "hello", name: entry.title))
+        let snippet = RootItem.snippet(Snippet(name: "Sign-off", keyword: "sig", text: "Best,\n{name}"))
+        #expect(SubjectKind.of(snippet) == .text)
+        #expect(ActionSubject.of(snippet, kind: .text)?.text == "Best,\n{name}", "as written, before its placeholders are filled")
+        let picture = ClipboardEntry(id: UUID(), kind: .image, text: nil, date: .now, pinned: false)
+        #expect(SubjectKind.of(.clipboardEntry(picture)) == nil, "a picture is not a text")
+        #expect(ActionKeys.floe(for: .text) == ActionKeys.floe(for: nil), "a snippet keeps the favorite key it had")
     }
 
     @Test func aNameIsHandedOverAsItIs() {
