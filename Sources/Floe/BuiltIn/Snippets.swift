@@ -50,6 +50,11 @@ struct Snippet: Codable, Identifiable, Equatable {
     static func match(typed: String, in snippets: [Snippet]) -> Snippet? {
         snippets.filter { !$0.keyword.isEmpty && typed.hasSuffix($0.keyword) }.max { $0.keyword.count < $1.keyword.count }
     }
+
+    /// Whether any key typed could expand a snippet. While none could, the keys of other apps are not listened to.
+    static func canExpand(_ snippets: [Snippet], enabled: Bool) -> Bool {
+        enabled && snippets.contains { !$0.keyword.isEmpty }
+    }
 }
 
 /// Snippets and whether typed keywords expand, kept in Floe's support folder.

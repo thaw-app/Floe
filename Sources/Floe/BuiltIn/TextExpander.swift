@@ -8,6 +8,7 @@
 import AppKit
 import ApplicationServices
 import Carbon
+import Combine
 
 /// Expands snippet keywords typed in other apps. Watches keystrokes with a
 /// listen-only event tap, then deletes the keyword and pastes the expansion.
@@ -22,6 +23,7 @@ import Carbon
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var retryTimer: Timer?
+    private var following: AnyCancellable?
     private var buffer = ""
 
     /// Keycodes that end a word rather than extend it.
@@ -37,6 +39,20 @@ import Carbon
     func start() {
         guard tap == nil else { return }
         attemptTap()
+    }
+
+    /// Listens while a snippet could expand, and stops when the last keyword goes or expansion is switched off.
+    func follow(_ store: SnippetStore) {
+        following = store.$snippets.combineLatest(store.$expansionEnabled)
+            .map { Snippet.canExpand($0, enabled: $1) }
+            .removeDuplicates()
+            .sink { [weak self] listens in
+                if listens {
+                    self?.start()
+                } else {
+                    self?.stop()
+                }
+            }
     }
 
     func stop() {
@@ -83,6 +99,8 @@ import Carbon
         retryTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.attemptTap() }
         }
+        // Lets the system fire this with its other timers.
+        retryTimer?.tolerance = 2
     }
 
     /// Re-enables the tap after the system disables it for timeout or heavy input.
