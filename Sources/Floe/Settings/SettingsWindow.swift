@@ -78,6 +78,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 nonisolated enum SettingsPage: Hashable {
     case general
     case commands
+    case actions
     case applications
     case ai
     case sync
@@ -94,6 +95,7 @@ nonisolated enum SettingsPage: Hashable {
     private static let fixed: [String: SettingsPage] = [
         "general": .general,
         "commands": .commands,
+        "actions": .actions,
         "applications": .applications,
         "ai": .ai,
         "sync": .sync,

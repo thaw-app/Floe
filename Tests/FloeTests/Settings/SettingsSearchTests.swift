@@ -133,6 +133,7 @@ struct SearchIndexTests {
             switch entry.pane {
             case .general: #expect(entry.paneLabel == .general)
             case .commands: #expect(entry.paneLabel == .commands)
+            case .actions: #expect(entry.paneLabel == .actions)
             case .applications: #expect(entry.paneLabel == .applications)
             case .ai: #expect(entry.paneLabel == .ai)
             case .sync: #expect(entry.paneLabel == .sync)
@@ -148,7 +149,7 @@ struct SearchIndexTests {
         }
     }
 
-    @Test(arguments: [SettingsPage.general, .commands, .applications, .ai, .sync, .quicklinks, .fallbacks, .snippets, .extensionStore, .appearance, .privacy, .about])
+    @Test(arguments: [SettingsPage.general, .commands, .actions, .applications, .ai, .sync, .quicklinks, .fallbacks, .snippets, .extensionStore, .appearance, .privacy, .about])
     func everyPaneOfFloeCanBeFoundByName(pane: SettingsPage) {
         #expect(SearchIndex.paneEntries.contains { $0.pane == pane })
     }

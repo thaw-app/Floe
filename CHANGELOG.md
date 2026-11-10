@@ -25,7 +25,7 @@ these four.
 
 ### Changed
 
-- **An app's hotkey runs its Primary Action.** The Primary Action you choose for apps in Settings › Commands › Actions is now also what an app's hotkey does, such as hiding the app or running one of your scripts on it. With none chosen, or one that can't run, such as Quit on an app that isn't running, the hotkey still opens the app, or hides it if it's in front ([#40](https://github.com/thaw-app/Floe/issues/40)).
+- **An app's hotkey runs its Primary Action.** The Primary Action you choose for apps in Settings › Actions is now also what an app's hotkey does, such as hiding the app or running one of your scripts on it. With none chosen, or one that can't run, such as Quit on an app that isn't running, the hotkey still opens the app, or hides it if it's in front ([#40](https://github.com/thaw-app/Floe/issues/40)).
 
 ## [0.4.0-rc.2] - 2026-11-09
 

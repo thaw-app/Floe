@@ -666,7 +666,7 @@
       "comment" : "Stands in for an action's title when the extension gave none."
     },
     "Actions" : {
-
+      "comment" : "The name of a settings page: what Return, the Actions menu and keys do on apps, files, folders, links and text."
     },
     "Actions Menu" : {
 
@@ -1251,7 +1251,7 @@
     "Click a menu bar item" : {
 
     },
-    "Click an app to give it an alias or a hotkey. A hotkey runs the Primary Action chosen for apps in Settings › Commands › Actions. With none chosen, or one that can't run, it opens the app, or hides it if it's already in front." : {
+    "Click an app to give it an alias or a hotkey. A hotkey runs the Primary Action chosen for apps in Settings › Actions. With none chosen, or one that can't run, it opens the app, or hides it if it's already in front." : {
 
     },
     "Clipboard" : {
@@ -4996,6 +4996,9 @@
     "What It Has Reached" : {
 
     },
+    "What Return does on apps, files, folders, links and text, which actions their Actions menu shows, and the keys that run them." : {
+
+    },
     "What answers Ask AI and extensions." : {
 
     },
@@ -5103,6 +5106,9 @@
     },
     "accounts, guest user" : {
       "comment" : "Words that find the Users & Groups pane of System Settings, separated by commas."
+    },
+    "actions, actions menu, primary action, return, enter, keys, keyboard shortcut" : {
+      "comment" : "Words that find the Actions page in the settings search, separated by commas."
     },
     "add to note" : {
       "comment" : "A search keyword for the row that adds text to a note. Lowercase."
