@@ -103,6 +103,18 @@ final class ItemActionPanel: ObservableObject, ActionPanelDriver {
         close()
     }
 
+    /// A row's keys, pressed with the panel open, run that row of the rows the panel shows, as a menu's keys run its
+    /// own items: the result they were built for, whatever is selected under the panel by now. False when no row has
+    /// them, a submenu's rows included.
+    func runRow(withKeys pressed: KeyCombination) -> Bool {
+        guard let row = Self.flattened(rows.compactMap(\.self)).first(where: { $0.children.isEmpty && $0.shortcut == pressed }) else {
+            return false
+        }
+        closePanel()
+        row.run()
+        return true
+    }
+
     private func open(_ submenu: ItemAction) {
         path.append(submenu)
         panelQuery = ""

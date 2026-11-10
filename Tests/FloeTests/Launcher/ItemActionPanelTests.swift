@@ -155,6 +155,25 @@ struct ItemActionPanelTests {
         #expect(model.settings.favorites == [RootItem.app(app).id], "⌘⇧F ran Favorites, as with the panel closed")
     }
 
+    /// File Search can show new results while the panel is open on an earlier one's rows: a row's keys run the row the
+    /// panel shows, not the one the result under it would have now.
+    @Test func aRowsKeysRunTheRowThePanelShows() throws {
+        let model = try openPanel()
+        model.actionPanel.close()
+        var ran: [String] = []
+        let favorites = FloeKeys.commandShiftF
+        model.actionPanel.toggle([
+            ItemAction(title: "Open With", symbol: "app", children: [ItemAction(title: "Preview", symbol: "app", shortcut: KeyCombination(key: .o, modifiers: [.command, .option])) { ran.append("Preview") }]),
+            ItemAction(title: "Add to Favorites", symbol: "star", shortcut: favorites) { ran.append("Favorites") },
+        ])
+        #expect(try model.handlePanelKey(key(FloeKeys.code(typing: "f"), [.command, .shift], "f"), layout: .extended))
+        #expect(ran == ["Favorites"] && model.actionPanel.panel == nil)
+        #expect(model.settings.favorites.isEmpty, "the selected app was not made a favorite: the panel's row ran")
+        model.actionPanel.toggle([ItemAction(title: "Open With", symbol: "app", children: [ItemAction(title: "Preview", symbol: "app", shortcut: KeyCombination(key: .o, modifiers: [.command, .option])) { ran.append("Preview") }])])
+        #expect(try model.handlePanelKey(key(31, [.command, .option], "o"), layout: .extended))
+        #expect(ran == ["Favorites", "Preview"], "a submenu's row runs by its keys too")
+    }
+
     @Test func returnRunsTheSelectedRowAndClosingTheLauncherClosesThePanel() throws {
         let model = try openPanel()
         let rows = try #require(model.actionPanel.panel).panelEntries
@@ -199,6 +218,8 @@ struct ItemActionPanelTests {
             ActionPanelEntry(id: 2, title: "Copy", icon: .symbol("doc.on.doc"), keys: .label("⌘C")),
             ActionPanelEntry(id: 3, title: "Delete", icon: .symbol("trash"), isDestructive: true),
         ] + (4 ..< 30).map { ActionPanelEntry(id: $0, title: "Row \($0)", icon: .symbol("circle")) }
+        #expect(rows[0].spokenKeys == KeyCombination(key: .returnKey, modifiers: .command).displayValue)
+        #expect(rows[2].spokenKeys == "⌘C" && rows[3].spokenKeys == nil, "VoiceOver says each row's keys")
         let card = ActionPanelCard(entries: rows, query: "", submenuTitle: "More", selection: 1, room: 200) { _ in }
         let host = laidOut(card)
         #expect(host.fittingSize.height <= 200, "thirty rows scroll inside the room instead of running past it")

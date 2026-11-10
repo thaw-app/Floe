@@ -284,6 +284,9 @@
     "%@, on this Mac" : {
       "comment" : "The placeholder is the address of a server such as localhost:8080."
     },
+    "%@, submenu" : {
+      "comment" : "Said by VoiceOver for a row of the Actions menu that opens a submenu. The placeholder is the row's title."
+    },
     "%@: %@" : {
       "comment" : "The first placeholder says what failed, the second is the reason.",
       "localizations" : {

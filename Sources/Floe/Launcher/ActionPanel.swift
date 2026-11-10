@@ -22,6 +22,15 @@ struct ActionPanelEntry: Identifiable {
     var isSubmenu = false
     var isDestructive = false
 
+    /// The keys as VoiceOver says them: Floe's as the Settings page names them, an extension's as it declared them.
+    var spokenKeys: String? {
+        switch keys {
+        case let .label(label): label
+        case let .combination(keys): keys.displayValue
+        case nil: nil
+        }
+    }
+
     /// The keys that run it: an extension's as it declared them, in one cap, or Floe's own, a cap for each key as
     /// the bottom bar draws them.
     enum Keys {
@@ -132,6 +141,7 @@ struct ActionPanelCard: View {
                             }
                             row(entry, selected: index == selection)
                                 .onTapGesture { activate(index) }
+                                .accessibilityAction { activate(index) }
                                 .id(index)
                         }
                         if entries.isEmpty {
@@ -142,7 +152,12 @@ struct ActionPanelCard: View {
                 .frame(maxHeight: listHeight)
                 .fixedSize(horizontal: false, vertical: true)
                 .scrollEdgeEffectStyle(.soft, for: .top)
-                .onChange(of: selection) { proxy.scrollTo(selection) }
+                .onChange(of: selection) {
+                    proxy.scrollTo(selection)
+                    announceSelection()
+                }
+                .onChange(of: submenuTitle) { announceSelection() }
+                .onAppear { announceSelection() }
             }
         }
         .font(ThawType.body)
@@ -170,6 +185,23 @@ struct ActionPanelCard: View {
             }
         }
         .modifier(RowBackground(selected: selected))
+        // One element per row, as a menu item is: its title, its keys, and whether the arrows are on it.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(entry.title))
+        .accessibilityValue(Text(entry.spokenKeys ?? ""))
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+    }
+
+    /// The arrows move a highlight, not VoiceOver's cursor, as typing goes to the panel through the key monitor; the
+    /// row they land on is said, as a menu says its items.
+    private func announceSelection() {
+        guard NSWorkspace.shared.isVoiceOverEnabled, entries.indices.contains(selection) else { return }
+        let entry = entries[selection]
+        let said = entry.isSubmenu ? String(localized: "\(entry.title), submenu", bundle: .floe, comment: "Said by VoiceOver for a row of the Actions menu that opens a submenu. The placeholder is the row's title.") : entry.title
+        NSAccessibility.post(element: NSApp.keyWindow ?? NSApp as Any, notification: .announcementRequested, userInfo: [
+            .announcement: said,
+            .priority: NSAccessibilityPriorityLevel.high.rawValue,
+        ])
     }
 }
 
