@@ -12,7 +12,8 @@
 //  Floe's logs folder under Floe's name, and what counts as a stall, a report's name and header and
 //  which reports to drop are functions a test can call. A stall is counted from the oldest ping not
 //  yet answered, on a clock that stops while the Mac sleeps: counted from the last answer, the seconds
-//  `sample` itself takes read as a new stall and set off report after report.
+//  `sample` itself takes read as a new stall and set off report after report. The main thread is
+//  pinged once a second, not twice.
 
 import Foundation
 import os
@@ -22,13 +23,13 @@ import os
 /// A freeze that ends in a force quit leaves nothing behind: the Dock asks spindump for a
 /// hang report, spindump declines for a development build, and the crash reporter never
 /// sees a process that was killed rather than crashed. So the app watches itself. A thread
-/// of its own pings the main thread twice a second; when a ping goes unanswered for
+/// of its own pings the main thread once a second; when a ping goes unanswered for
 /// `stallThreshold`, it runs `sample` on the process and writes every thread's stack to
 /// `~/Library/Logs/Floe/hang-<date>.txt`. `sample` reads the stacks from outside,
 /// so a main thread stuck in a loop or a lock is exactly what it captures. One report per
 /// stall; the next stall gets one of its own.
 ///
-/// This costs a timer on a background thread and a block on the main queue every half
+/// This costs a timer on a background thread and a block on the main queue every
 /// second, nothing more, so it stays on in every build.
 nonisolated enum HangWatchdog {
     private static let log = Logger(subsystem: "org.thaw.floe", category: "hang")
@@ -38,6 +39,10 @@ nonisolated enum HangWatchdog {
     /// does not set off a report, short enough that a real freeze is caught well before the
     /// user reaches for Force Quit.
     static let stallThreshold: TimeInterval = 4
+
+    /// How often the main thread is pinged. A stall is counted from the oldest ping still waiting, so
+    /// this only sets how soon after the threshold it is noticed.
+    private static let pingInterval: TimeInterval = 1
 
     /// How long `sample` watches the process. Short: a stuck thread does not move, and a
     /// long sample only delays the write.
@@ -72,7 +77,7 @@ nonisolated enum HangWatchdog {
         guard shouldStart else { return }
         let thread = Thread {
             while true {
-                Thread.sleep(forTimeInterval: 0.5)
+                Thread.sleep(forTimeInterval: pingInterval)
                 ping()
                 check()
             }

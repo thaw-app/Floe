@@ -128,6 +128,8 @@ extension ExtensionSession {
             guard let self, let processID, !stopsOverCeiling(holding: Processes.memory(of: processID)) else { return }
             heartbeat()
         }
+        // Lets the system fire this with its other timers.
+        watchdog?.tolerance = 0.6
     }
 
     private func hostEnded(_ status: TerminationStatus) {
