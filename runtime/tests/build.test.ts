@@ -161,14 +161,16 @@ describe("fingerprint", () => {
 
 const commandSource = `
 import { List } from "@raycast/api";
+import { useMemo } from "react";
 import { label } from "./label";
 export default function Command() {
-  return <List><List.Item title={label} /></List>;
+  const title = useMemo(() => label, []);
+  return <List><List.Item title={title} /></List>;
 }
 `;
 
 describe("bundle", () => {
-  test("bundles a command so that @raycast/api is the shim and JSX is built by Floe's module", async () => {
+  test("bundles a command so that @raycast/api is the shim, React is the host's copy and JSX is built by Floe's module", async () => {
     const extDir = makeExtension({ "src/hello.tsx": commandSource, "src/label.ts": 'export const label = "from the bundle";' }, "hello");
     const output = await bundle(findEntry());
 
@@ -176,6 +178,7 @@ describe("bundle", () => {
     const code = fs.readFileSync(output, "utf8");
     expect(code).toContain(JSON.stringify(shimPath));
     expect(code).toContain("from the bundle");
+    expect(code).toContain(path.dirname(require.resolve("react")));
     expect(code).toContain(path.join(import.meta.dir, "..", "compat", "jsx-dev-runtime.ts"));
     expect(code).not.toContain("react/jsx-dev-runtime.js");
     expect(code).not.toContain(path.join(extDir, "node_modules"));
