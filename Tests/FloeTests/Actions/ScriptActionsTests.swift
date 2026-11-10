@@ -316,9 +316,10 @@ struct ScriptActionsTests {
         #expect(told.environment?["FLOE_FILENAME"] == url.lastPathComponent)
     }
 
-    /// An app's hotkey runs the script chosen for Return on apps. Nothing was typed for it, so whatever the closed
-    /// panel still holds is not its search.
-    @Test func anAppsHotkeyRunsTheScriptChosenForReturnWithNoSearch() async throws {
+    /// An app's hotkey runs the script chosen for Return on apps. Nothing was typed for it, so the search the panel
+    /// holds, the root's or File Search's, is not its search.
+    @Test(arguments: [false, true])
+    func anAppsHotkeyRunsTheScriptChosenForReturnWithNoSearch(searchingFiles: Bool) async throws {
         let upload = script("Upload", file: "upload.sh", on: [.app])
         var choices = KindActions()
         choices.defaults = [upload.actionID]
@@ -329,12 +330,19 @@ struct ScriptActionsTests {
             return ShellResult(status: 0, stdout: Data(), stderr: Data())
         }
         model.query = "left in the closed panel"
+        if searchingFiles {
+            model.openFileSearch(with: "invoice")
+        }
+        let held = model.query
+
         model.runAppHotkey(app)
+
         for _ in 0 ..< 200 where told.environment == nil {
             try await Task.sleep(for: .milliseconds(5))
         }
         #expect(told.environment?["FLOE_NAME"] == app.name)
         #expect(told.environment?["FLOE_QUERY"] == "")
+        #expect(model.query == held && model.isSearchingFiles == searchingFiles, "the panel is left as it was, for closing it to keep or let go")
     }
 
     /// Choices stay with a script's file name, so a renamed script leaves its keys behind. They must not keep the

@@ -21,7 +21,8 @@ struct AlternativeActionsTests {
         if let choices {
             settings.actionChoices = [SubjectKind.app.rawValue: choices]
         }
-        return LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [app], commands: []))
+        // A store of its own: the shared one keeps the uses and searches of earlier runs.
+        return LauncherModel(settings: settings, usage: UsageStore(defaults: MemoryDefaults()), snapshot: CatalogSnapshot(apps: [app], commands: []))
     }
 
     private func titles(_ rows: [ItemAction?]) -> [String] {
@@ -73,7 +74,9 @@ struct AlternativeActionsTests {
         let model = makeModel(choices)
         let item = RootItem.app(app)
         model.query = "left in the closed panel"
+
         model.runAppHotkey(app)
+
         #expect(model.settings.favorites == [item.id])
         #expect(model.usage.records[item.id]?.count == 1, "the app counts as used, as its hotkey always counted it")
         #expect(model.usage.queries.isEmpty, "and no search is remembered, since none was typed for it")

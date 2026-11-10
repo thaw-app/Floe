@@ -55,6 +55,8 @@ extension LauncherModel {
     /// the app, or hides it if it's already in front, like a per-app hotkey in Thaw.
     func runAppHotkey(_ app: AppEntry) {
         usage.recordUse(of: RootItem.app(app).id)
+        isRunningAppHotkey = true
+        defer { isRunningAppHotkey = false }
         if features.actions.runFromHotkey(.app(app)) {
             return
         }

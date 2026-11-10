@@ -24,10 +24,12 @@ extension LauncherModel {
         features.rowOwners.contains { $0.handleKey(keyCode, flags: flags, on: item) }
     }
 
-    /// Hides the panel and goes back to the root search.
+    /// Hides the panel and goes back to the root search. From an app's hotkey it only hides it.
     func leave() {
         panelHost.hidePanel()
-        reset()
+        if !isRunningAppHotkey {
+            reset()
+        }
     }
 
     /// Opens a link through the system once the panel is gone. A link that could not be made opens nothing.

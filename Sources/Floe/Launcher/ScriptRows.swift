@@ -85,6 +85,8 @@ final class ScriptRows {
         alert.informativeText = script.displayPackage
         alert.addButton(withTitle: String(localized: "Run", bundle: .floe, comment: "A verb on a button: run the shortcut or script."))
         alert.addButton(withTitle: String(localized: "Cancel", bundle: .floe))
+        // An app's hotkey can run it while another app is in front, and macOS would keep the question behind it.
+        NSApp.activate()
         return alert.runModal() == .alertFirstButtonReturn
     }
 }

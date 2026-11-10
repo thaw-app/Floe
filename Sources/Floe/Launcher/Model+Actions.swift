@@ -12,10 +12,7 @@ extension LauncherModel {
     private var actionHost: ActionHost {
         ActionHost(
             showHUD: { [weak self] in self?.panelHost.showHUD($0) },
-            dismiss: { [weak self] in
-                self?.panelHost.hidePanel()
-                self?.reset()
-            },
+            dismiss: { [weak self] in self?.leave() },
             preferredApps: resolvedApps.apps,
             record: { [weak self] in self?.record($0) }
         )
