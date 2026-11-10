@@ -10,9 +10,11 @@ import Foundation
 import Synchronization
 import Testing
 
-/// Accounts and their secrets, in memory, in place of the Keychain.
+/// Accounts and their secrets, in memory, in place of the Keychain, with a count of reads and of writes and removals.
 final nonisolated class FakeAIVault: Sendable {
     let accounts: Mutex<[String: String]>
+    let reads = Mutex(0)
+    let writes = Mutex(0)
 
     init(_ accounts: [String: String] = [:]) {
         self.accounts = Mutex(accounts)
@@ -24,9 +26,18 @@ final nonisolated class FakeAIVault: Sendable {
 
     var keys: AIKeys {
         AIKeys(
-            read: { account in self.accounts.withLock { $0[account] } },
-            write: { key, account in self.accounts.withLock { $0[account] = key } },
-            delete: { account in _ = self.accounts.withLock { $0.removeValue(forKey: account) } }
+            read: { account in
+                self.reads.withLock { $0 += 1 }
+                return self.accounts.withLock { $0[account] }
+            },
+            write: { key, account in
+                self.writes.withLock { $0 += 1 }
+                self.accounts.withLock { $0[account] = key }
+            },
+            delete: { account in
+                self.writes.withLock { $0 += 1 }
+                _ = self.accounts.withLock { $0.removeValue(forKey: account) }
+            }
         )
     }
 }
