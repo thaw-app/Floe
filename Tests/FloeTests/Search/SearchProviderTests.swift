@@ -234,6 +234,9 @@ struct SearchProviderTests {
         #expect(RootSearch.alias(for: .settings, aliases: ["settings": "s"]) == nil, "a row without a settings key has no alias")
         #expect(RootSearch.alias(for: .fileSearch, aliases: [RootItem.fileSearchKey: "f"]) == "f")
         #expect(RootSearch.alias(for: .fileSearch, aliases: [RootItem.fileSearchKey: ""]) == nil)
+        let safari = Fixture.app("Safari")
+        #expect(RootSearch.alias(for: safari, aliases: [:]) == nil)
+        #expect(RootSearch.alias(for: safari, aliases: ["app:/Applications/Safari.app": "web"]) == "web")
     }
 
     @Test func aSearchesKeywordAloneDoesNotLeadTheAppOfThatName() {

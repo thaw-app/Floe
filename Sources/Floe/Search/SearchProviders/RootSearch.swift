@@ -68,6 +68,8 @@ enum RootSearch {
         if case let .quicklink(link, _, _, _) = item {
             return link.takesQuery ? nil : link.keyword
         }
+        // Without aliases no row has one, and the key that would look it up is not built.
+        guard !aliases.isEmpty else { return nil }
         return item.settingsKey.flatMap { aliases[$0] }.flatMap { $0.isEmpty ? nil : $0 }
     }
 }
