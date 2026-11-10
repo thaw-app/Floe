@@ -186,6 +186,11 @@ extension ExtensionSession {
         isDark: Bool? = nil
     ) -> [String: String] {
         var variables = base
+        // React picks its build from this. An extension being worked on keeps the development build and its
+        // warnings, and a value the shell already holds is left as it is.
+        if !isDevelopment, variables["NODE_ENV"] == nil {
+            variables["NODE_ENV"] = "production"
+        }
         // Preferences go through the environment so the host has them before the command's first line runs.
         if let preferences {
             variables["FLOE_PREFERENCES"] = String(bytes: preferences, encoding: .utf8)

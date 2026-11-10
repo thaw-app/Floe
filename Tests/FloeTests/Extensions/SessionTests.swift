@@ -565,18 +565,24 @@ struct ExtensionSessionTests {
         let with = ExtensionSession.hostVariables(base, preferences: Data(#"{"unit":"metric"}"#.utf8), grants: [.ai])
         #expect(with == [
             "PATH": "/opt/homebrew/bin", "FLOE_PREFERENCES": #"{"unit":"metric"}"#, "FLOE_AI": "1", "FLOE_LAUNCH_TYPE": "userInitiated",
-            "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1",
+            "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1", "NODE_ENV": "production",
         ])
         let background = ExtensionSession.hostVariables(base, preferences: nil, grants: [], launch: ("background", nil, nil))
-        #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1"])
+        #expect(background == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "background", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1", "NODE_ENV": "production"])
         let fallback = ExtensionSession.hostVariables(base, preferences: nil, grants: [], launch: ("userInitiated", nil, "tide"))
         #expect(fallback["FLOE_FALLBACK_TEXT"] == "tide", "a command run as a fallback reads what was typed")
+    }
+
+    @Test func installedExtensionsRunOnReactsProductionBuildAndOnesInDevelopmentDoNot() {
+        #expect(ExtensionSession.hostVariables([:], preferences: nil, grants: [])["NODE_ENV"] == "production")
+        #expect(ExtensionSession.hostVariables([:], preferences: nil, grants: [], isDevelopment: true)["NODE_ENV"] == nil)
+        #expect(ExtensionSession.hostVariables(["NODE_ENV": "development"], preferences: nil, grants: [])["NODE_ENV"] == "development")
     }
 
     @Test func theHostIsToldNotToWatchWhileTheRecordIsOff() {
         let stale = ["PATH": "/opt/homebrew/bin", "FLOE_ACCESS": "off"]
         let off = ExtensionSession.hostVariables(stale, preferences: nil, grants: [], recordsAccess: false)
-        #expect(off == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "userInitiated", "FLOE_ACCESS": "off", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1"])
+        #expect(off == ["PATH": "/opt/homebrew/bin", "FLOE_LAUNCH_TYPE": "userInitiated", "FLOE_ACCESS": "off", "FLOE_RENDER_REFERENCES": "1", "FLOE_OAUTH": "1", "NODE_ENV": "production"])
         let recording = ExtensionSession.hostVariables(stale, preferences: nil, grants: [], recordsAccess: true)
         #expect(recording[ExtensionSession.accessVariable] == nil, "what the shell held is not passed on")
         #expect(ExtensionSession.hostVariables(stale, preferences: nil, grants: [])[ExtensionSession.accessVariable] == nil, "recorded unless said otherwise")
