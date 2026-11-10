@@ -41,6 +41,8 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
     private let linkKey = LinkKey.fromStandardInput()
     private lazy var link = ProcessLink(role: .settings, gate: LinkGate(ownPid: getpid(), key: { [linkKey] in linkKey }, peerPid: { [launcherPid] in launcherPid }))
     private let startPage: SettingsPage?
+    /// The launch already scans everything, so the activation that follows it at once does not scan again.
+    private var launchScanIsFresh = true
     private var appWatcher: AppFolderWatcher?
     private var launcherWatch: DispatchSourceProcess?
     private var terminationWatch: DispatchSourceSignal?
@@ -189,6 +191,10 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
 
     /// Scripts and extensions are added in Finder too, so coming back to Settings looks again.
     func applicationDidBecomeActive(_: Notification) {
+        guard !launchScanIsFresh else {
+            launchScanIsFresh = false
+            return
+        }
         catalog.reloadCommands()
         catalog.reloadScripts()
     }

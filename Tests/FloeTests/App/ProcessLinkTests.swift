@@ -95,6 +95,11 @@ struct LinkMessageTests {
         }
     }
 
+    @Test func onlyMessagesThatCanChangeTheSearchHaveItReadAgain() {
+        let changing = LinkMessage.Kind.allCases.filter(\.changesSearch)
+        #expect(Set(changing) == [.settingsChanged, .storeChanged, .rescan, .clearClipboardHistory, .removeSyncedSettings])
+    }
+
     @Test func payloadsAreChecked() {
         #expect(LinkMessage.storeChanged(.snippets).isWellFormed)
         #expect(!LinkMessage(.storeChanged, "passwords").isWellFormed)

@@ -57,6 +57,17 @@ struct LinkMessage: Equatable {
             Notification.Name("org.thaw.floe.link.\(rawValue)")
         }
 
+        /// Whether the launcher's search may answer differently once this message is acted on. A page shown, a
+        /// recorder listening or an update asked for changes no result, so the search is left as it is.
+        var changesSearch: Bool {
+            switch self {
+            case .settingsChanged, .storeChanged, .rescan, .clearClipboardHistory, .removeSyncedSettings:
+                true
+            case .showPage, .updatesState, .thawStatus, .fileIndexState, .syncState, .ready, .pageChanged, .recording, .updates, .forwardURL, .quit:
+                false
+            }
+        }
+
         /// Whether a process in this role acts on the message: neither takes what only it would send.
         func isMeant(for role: ProcessLink.Role) -> Bool {
             switch self {
