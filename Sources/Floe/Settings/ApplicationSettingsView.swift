@@ -57,7 +57,7 @@ struct ApplicationSettingsView: View {
                         .textFieldStyle(.plain)
                 }
             } footer: {
-                Text("Click an app to give it an alias or a hotkey. A hotkey opens the app, or hides it if it's already in front.")
+                Text("Click an app to give it an alias or a hotkey. A hotkey runs the Primary Action for apps, set in Settings › Commands › Actions. Until you set one, it opens the app, or hides it if it's already in front.")
             }
             ThawSection {
                 ForEach(apps, id: \.url) { app in

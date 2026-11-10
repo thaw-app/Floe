@@ -235,9 +235,10 @@ final class LauncherFeatures {
             hotkeys: { model?.settings.floeHotkeys ?? [] },
             scripts: { model?.catalog.actionScripts ?? [] },
             // What the disk says about the result is read when the script runs, not each time the menu is built, and
-            // off the main actor. The query is the search on screen: File Search has a field of its own.
-            runScript: { [scripts] script, subject in
-                let query = model.map { $0.isSearchingFiles ? $0.fileSearch.query : $0.query } ?? ""
+            // off the main actor. The query is the search on screen: File Search has a field of its own. An app's
+            // hotkey has none, whatever the closed panel still holds.
+            runScript: { [scripts] script, subject, fromHotkey in
+                let query = fromHotkey ? "" : model.map { $0.isSearchingFiles ? $0.fileSearch.query : $0.query } ?? ""
                 scripts.run(script) { await SubjectFacts.environment(of: subject, query: query) }
             }
         )

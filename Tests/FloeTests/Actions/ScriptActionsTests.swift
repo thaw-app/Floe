@@ -261,7 +261,7 @@ struct ScriptActionsTests {
         choices.defaults = [upload.actionID]
         let model = makeModel(scripts: [upload], choices: choices)
         var ran: [(String, ActionSubject)] = []
-        model.features.actions.host.runScript = { ran.append(($0.title, $1)) }
+        model.features.actions.host.runScript = { script, subject, _ in ran.append((script.title, subject)) }
         let item = RootItem.app(app)
 
         #expect(model.primaryActionTitle(for: item) == "Upload")
@@ -276,7 +276,7 @@ struct ScriptActionsTests {
         choices.shortcuts = [upload.actionID: KeyCombination(key: .o, modifiers: [.command, .option])]
         let model = makeModel(scripts: [upload], choices: choices)
         var ran: [String] = []
-        model.features.actions.host.runScript = { script, _ in ran.append(script.title) }
+        model.features.actions.host.runScript = { script, _, _ in ran.append(script.title) }
         model.settings.launcherLayout = .extended
         model.query = app.name
         model.refresh()
@@ -314,6 +314,27 @@ struct ScriptActionsTests {
         }
         #expect(told.environment?["FLOE_QUERY"] == "invoice")
         #expect(told.environment?["FLOE_FILENAME"] == url.lastPathComponent)
+    }
+
+    /// An app's hotkey runs the script chosen for Return on apps. Nothing was typed for it, so whatever the closed
+    /// panel still holds is not its search.
+    @Test func anAppsHotkeyRunsTheScriptChosenForReturnWithNoSearch() async throws {
+        let upload = script("Upload", file: "upload.sh", on: [.app])
+        var choices = KindActions()
+        choices.defaults = [upload.actionID]
+        let model = makeModel(scripts: [upload], choices: choices)
+        let told = Told()
+        model.features.scripts.runScript = { _, _, environment in
+            told.environment = environment
+            return ShellResult(status: 0, stdout: Data(), stderr: Data())
+        }
+        model.query = "left in the closed panel"
+        model.runAppHotkey(app)
+        for _ in 0 ..< 200 where told.environment == nil {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        #expect(told.environment?["FLOE_NAME"] == app.name)
+        #expect(told.environment?["FLOE_QUERY"] == "")
     }
 
     /// Choices stay with a script's file name, so a renamed script leaves its keys behind. They must not keep the

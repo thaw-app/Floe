@@ -43,7 +43,11 @@ struct ActionsSettingsSection: View {
                 }
             } label: {
                 Text(String(localized: "Primary Action", bundle: .floe, comment: "The label of the picker that chooses what Return does on a result of this kind."))
-                Text("Return runs it. Where it can't, such as Quit on an app that isn't running, Return opens the result instead.")
+                if kind == .app {
+                    Text("Return and an app's hotkey run it. Where they can't, such as Quit on an app that isn't running, Return opens the app, and its hotkey opens it or hides it.")
+                } else {
+                    Text("Return runs it. Where it can't, such as Quit on an app that isn't running, Return opens the result instead.")
+                }
             }
         }
         .onChange(of: kind) { refusal = nil }

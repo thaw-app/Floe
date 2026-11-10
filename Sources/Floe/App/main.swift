@@ -157,7 +157,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         for app in model.catalog.apps {
             guard let key = RootItem.app(app).settingsKey, let keyCombination = settings.commandHotkeys[key] else { continue }
-            _ = hotkeys.register(keyCombination) { [weak self] in self?.model.toggleApp(app) }
+            _ = hotkeys.register(keyCombination) { [weak self] in self?.model.runAppHotkey(app) }
         }
     }
 

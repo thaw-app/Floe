@@ -66,6 +66,26 @@ struct AlternativeActionsTests {
         #expect(!model.features.actions.open(.app(app), flags: .command))
     }
 
+    /// An app's hotkey is pressed anywhere, with no search typed for it: it runs what Return on apps does.
+    @Test func anAppsHotkeyRunsTheDefaultChosenForApps() {
+        var choices = KindActions()
+        choices.defaults = [.toggleFavorite]
+        let model = makeModel(choices)
+        let item = RootItem.app(app)
+        model.query = "left in the closed panel"
+        model.runAppHotkey(app)
+        #expect(model.settings.favorites == [item.id])
+        #expect(model.usage.records[item.id]?.count == 1, "the app counts as used, as its hotkey always counted it")
+        #expect(model.usage.queries.isEmpty, "and no search is remembered, since none was typed for it")
+    }
+
+    @Test func withNoDefaultOnOfferAnAppsHotkeyIsFloes() {
+        #expect(!makeModel().features.actions.runFromHotkey(.app(app)), "with nothing chosen, it opens the app or hides it")
+        var choices = KindActions()
+        choices.defaults = [.quit]
+        #expect(!makeModel(choices).features.actions.runFromHotkey(.app(app)), "an app that isn't running has no Quit")
+    }
+
     @Test func aDefaultThatIsNotOnOfferLeavesReturnToFloe() {
         var choices = KindActions()
         choices.defaults = [.quit]
