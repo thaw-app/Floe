@@ -57,6 +57,25 @@ private final nonisolated class HeldCalculator: Sendable {
         #expect(changes == 1, "the answer for a query typed past is not shown")
     }
 
+    @Test func aQueryWithNoAnswerAfterOneWithNoAnswerChangesNothing() async {
+        let search = CalculatorSearch { $0.hasPrefix("1") ? CalculationPreview(result: "= \($0)") : nil }
+        var changes = 0
+        search.search(SearchContext(query: "saf")) { changes += 1 }
+        await search.settled()
+        search.search(SearchContext(query: "safa")) { changes += 1 }
+        await search.settled()
+        #expect(changes == 0, "no row before and none now: nothing to draw again")
+        search.search(SearchContext(query: "1+1")) { changes += 1 }
+        await search.settled()
+        #expect(changes == 1, "a row that appears is shown")
+        search.search(SearchContext(query: "1+12")) { changes += 1 }
+        await search.settled()
+        #expect(changes == 2, "a row that changes is shown")
+        search.search(SearchContext(query: "safari")) { changes += 1 }
+        await search.settled()
+        #expect(changes == 3, "a row that goes away is taken off")
+    }
+
     @Test func theRowStaysWhileTheNextQueryIsWorkedOutAndGoesWhenItHasNoAnswer() async {
         let search = CalculatorSearch { $0.hasPrefix("1") ? CalculationPreview(result: "= \($0)") : nil }
         search.search(SearchContext(query: "1+1")) {}
