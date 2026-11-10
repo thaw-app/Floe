@@ -122,6 +122,7 @@ extension ExtensionSession {
         }
     }
 
+    /// Every three seconds from here on, the host's memory is checked against its ceiling and the host is pinged.
     private func hostStarted(_ identifier: pid_t) {
         processID = identifier
         watchdog = Timer.scheduledOnMain(withTimeInterval: 3, repeats: true) { [weak self] in

@@ -53,6 +53,7 @@ final class CalculatorSearch {
         }
     }
 
+    /// Works out the wanted query, then the one typed meanwhile, until the newest has its answer.
     private func work() async {
         while let query = wanted, answer?.query != query {
             let preview = await evaluate(query)

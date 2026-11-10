@@ -36,6 +36,7 @@ import Combine
 
     private init() {}
 
+    /// Installs the key tap, or keeps trying while Accessibility is not granted.
     func start() {
         guard tap == nil else { return }
         attemptTap()
@@ -55,12 +56,15 @@ import Combine
             }
     }
 
+    /// Takes the key tap away and ends the retries, so no key of another app reaches Floe.
     func stop() {
         retryTimer?.invalidate()
         retryTimer = nil
         buffer = ""
         if let tap {
             CGEvent.tapEnable(tap: tap, enable: false)
+            // Listening now starts and stops with the snippets, and a tap only disabled would stay registered each time.
+            CFMachPortInvalidate(tap)
             self.tap = nil
         }
         if let runLoopSource {
@@ -94,10 +98,12 @@ import Combine
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
+    /// Tries again every ten seconds. The timer calls straight in, with no task of its own, so a try can't
+    /// run after `stop` has ended the timer.
     private func scheduleRetry() {
         guard retryTimer == nil else { return }
-        retryTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.attemptTap() }
+        retryTimer = Timer.scheduledOnMain(withTimeInterval: 10, repeats: true) { [weak self] in
+            self?.attemptTap()
         }
         // Lets the system fire this with its other timers.
         retryTimer?.tolerance = 2

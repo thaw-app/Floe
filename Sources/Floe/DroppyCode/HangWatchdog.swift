@@ -66,6 +66,7 @@ nonisolated enum HangWatchdog {
         ProcessInfo.processInfo.systemUptime
     }
 
+    /// Starts the watching thread, once however often it is called.
     static func start() {
         let shouldStart = state.withLock { state -> Bool in
             if state.started {

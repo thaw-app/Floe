@@ -145,6 +145,7 @@ final class ClipboardHistoryStore: ObservableObject {
 
     // MARK: Monitoring
 
+    /// Makes the watcher over the real pasteboard and has it follow whether copies are kept.
     private func startMonitoring() {
         let board = NSPasteboard.general
         let watcher = ClipboardWatcher(

@@ -29,6 +29,23 @@ import Testing
         #expect(!watcher.isWatching, "one stop ends it, however often it was started")
     }
 
+    @Test func aCopyMadeWhileStoppedIsNotReadOnceWatchingAgain() {
+        let watcher = makeWatcher()
+        watcher.start()
+        watcher.stop()
+        count = 2
+        readings = [copy("while stopped")]
+        watcher.start()
+        watcher.skipToNow()
+        _ = watcher.tick()
+        #expect(reads == 0, "what was copied while nothing watched is never read")
+        count = 3
+        readings = [copy("after")]
+        _ = watcher.tick()
+        #expect(delivered == ["after"])
+        watcher.stop()
+    }
+
     private func makeWatcher() -> ClipboardWatcher {
         ClipboardWatcher(
             changeCount: { self.count },

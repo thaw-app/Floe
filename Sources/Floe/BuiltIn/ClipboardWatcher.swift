@@ -60,6 +60,7 @@ final class ClipboardWatcher {
         !observers.isEmpty
     }
 
+    /// Starts looking, and pauses while the screens sleep. Starting twice watches once.
     func start() {
         guard observers.isEmpty else { return }
         let center = NSWorkspace.shared.notificationCenter
