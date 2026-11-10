@@ -89,8 +89,19 @@ extension LauncherModel {
     }
 
     /// Shows a question over whatever the panel shows, bringing the panel up for a command run by its hotkey.
+    /// Asked from an app's hotkey, such as Force Quit, it is answered after the hotkey is done: going ahead then
+    /// leaves the panel as the hotkey would, so a held command is not ended by the answer.
     func ask(_ question: PanelQuestion) {
-        self.question = question
+        var asked = question
+        if isRunningAppHotkey {
+            asked = PanelQuestion(title: question.title, detail: question.detail, button: question.button) { [weak self] in
+                let running = self?.isRunningAppHotkey ?? false
+                self?.isRunningAppHotkey = true
+                defer { self?.isRunningAppHotkey = running }
+                question.goAhead()
+            }
+        }
+        self.question = asked
         panelHost.showPanel()
     }
 
