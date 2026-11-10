@@ -173,7 +173,8 @@ struct ActionPanelCard: View {
     }
 }
 
-/// The caret of the panel's search line, blinking as a text field's does, and steady with Reduce Motion on.
+/// The caret of the panel's search line, in the colour of the panel's text, blinking as a text field's does, and steady with
+/// Reduce Motion on.
 private struct ActionPanelCaret: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -181,7 +182,7 @@ private struct ActionPanelCaret: View {
         TimelineView(.periodic(from: .now, by: 0.5)) { context in
             let shown = reduceMotion || Int(context.date.timeIntervalSinceReferenceDate * 2).isMultiple(of: 2)
             Rectangle()
-                .fill(Color.accentColor)
+                .fill(.primary)
                 .frame(width: 1.5, height: 15)
                 .opacity(shown ? 1 : 0)
         }
