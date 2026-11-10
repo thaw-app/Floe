@@ -5,27 +5,34 @@
         <language>en</language>
         <item>
             <title>0.4.0</title>
+            <pubDate>Tue, 10 Nov 2026 07:59:40 +0000</pubDate>
+            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-rc.2</link>
+            <sparkle:channel>beta</sparkle:channel>
+            <sparkle:version>10</sparkle:version>
+            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<p><strong>macOS 26 and later · Build 10</strong></p>
+<h3>Changed</h3>
+<ul>
+<li><strong>Extensions draw faster.</strong> Installed extensions now run on React's production build, which builds a list of several thousand rows in about half the time.</li>
+<li><strong>Floe does less in the background.</strong> It no longer listens to the keyboard when there are no snippets to expand, or checks the clipboard when its history is off.</li>
+<li><strong>Typing in the launcher does less work.</strong> Each key draws the results once, where it used to draw them twice, and rows that can't match are dropped sooner.</li>
+<li><strong>Settings does less while it is open.</strong> It looks for your commands once when it opens, the AI page asks the Keychain for your key once, and moving between pages no longer makes the launcher search again.</li>
+<li><strong>Tabs and pickers in Settings look different.</strong> On macOS 27 they are the system's own tabs control, whose glass selection follows a press and a drag. On macOS 26 the selection is drawn as a glass lens.</li>
+</ul>]]></description>
+            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.2/Floe_0.4.0-rc.2.zip" length="81249979" type="application/octet-stream" sparkle:edSignature="LBQlG8zJqEMLnahucxlJCRinE/YaZbGrAIIUSAj66aSy4xtpIhbQYsskTxyRNHHHX4cxBb3Qy9e5SbYeNbE4Aw=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.2/Floe10-9.delta" sparkle:deltaFrom="9" length="2238938" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="GKox5STEgFWV3Bkm3uCgnmj6Lt4Hypl4OG8dGFGuEl7I8r0/COFHvwAaV23E0Q5rLaxqTf3vgvoEY7tdpKAABg=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
+            <title>0.4.0</title>
             <pubDate>Sun, 08 Nov 2026 21:10:15 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-rc.1</link>
             <sparkle:channel>beta</sparkle:channel>
             <sparkle:version>9</sparkle:version>
             <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p><strong>macOS 26 and later · Build 9</strong></p>
-<h3>New</h3>
-<ul>
-<li><strong>Run your scripts on a result.</strong> Add a <code class="notranslate">@floe.subjects</code> line to a script command, such as <code class="notranslate"># @floe.subjects file, folder</code>, and it shows at the end of the Actions menu (⌘K) of apps, files, folders or links instead of in the search. In Settings › Commands › Actions it can be what Return does, have its own keys, or be left out of the menu. The script is told what it acts on in environment variables, such as <code class="notranslate">FLOE_PATH</code> and <code class="notranslate">FLOE_NAME</code>. <a href="docs/INTERFACES.md#actions-on-results">INTERFACES.md</a> lists them all.</li>
-<li><strong>Scripts can act on text.</strong> A script command with <code class="notranslate"># @floe.subjects text</code> is listed in the Actions menu (⌘K) of clipboard entries and snippets, and gets the text in <code class="notranslate">FLOE_TEXT</code>.</li>
-</ul>
-<h3>Changed</h3>
-<ul>
-<li><strong>Floe uses less memory until you search for an emoji.</strong> The emoji and symbol table is built the first time you type <code class="notranslate">:</code> and let go when Floe frees memory after you close it.</li>
-</ul>
-<h3>Fixed</h3>
-<ul>
-<li><strong>Large numbers are grouped the way your region writes them.</strong> With the Mac set to India, the calculator shows 10,00,002, not 1,000,002.</li>
-<li><strong>A negative answer no longer has a comma after its minus sign.</strong> <code class="notranslate">0K to °F</code> was drawn as -,459.67 °F.</li>
-</ul>]]></description>
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.1/Floe_0.4.0-rc.1.zip" length="81129389" type="application/octet-stream" sparkle:edSignature="hDB+N4SRi8a2lWtVr/bsC+Cr2HnqbRK3lJEBbaI+kYwWfiQn1+l/n7pScFnrdcMkCa/fHj/q5waptiKeWvRGBQ=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.1/Floe9-8.delta" sparkle:deltaFrom="8" length="1858018" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="0lewBifO8s8pvKN+eXBuvet9TWKamYVcNRSeiwh/K6lTFRr2wAeoRQh22UvCBt687JXUwvg6X23p/5SM0RNUAQ=="/>
@@ -42,19 +49,6 @@
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.3/Floe_0.4.0-beta.3.zip" length="81075726" type="application/octet-stream" sparkle:edSignature="YRYENTfQtPSU20gRlgB54UMmU1Wch6kKzIc0bAc1+wew2SeujPJUzGEnH8caWEHtDuO6Jl3V8Es6EzN9gx26CQ=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.3/Floe8-7.delta" sparkle:deltaFrom="7" length="2186414" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="4PNWmbbB5yr8GNLBjaem1Kjbq+5V3C37fIhirCpxZ0Sf62/TCIzPWtIC8Yf77+AOibGGAY26cfUR0LIxpwaVBw=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.4.0</title>
-            <pubDate>Thu, 05 Nov 2026 00:14:33 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-beta.2</link>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>7</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.2/Floe_0.4.0-beta.2.zip" length="80832202" type="application/octet-stream" sparkle:edSignature="Zx0Li+D0IyFYVoyCvRYURmkYSXTycx00GumrrP0iU3R734WbMmJzLUVMHmn5EIjiFEftZ3spVuo7bzHKM55TCQ=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-beta.2/Floe7-6.delta" sparkle:deltaFrom="6" length="2073774" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="tdB4QfMempGiFtV3JInNUf9PwwPSdgNgUMLy7QJ9o6qtkdYNO9ahsEnEIWsYKkb5e8HpPpSv9abUroVmyZSDCw=="/>
             </sparkle:deltas>
         </item>
         <item>
