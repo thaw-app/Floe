@@ -8,6 +8,7 @@
 import AppKit
 import ApplicationServices
 import Carbon
+import Combine
 
 /// Expands snippet keywords typed in other apps. Watches keystrokes with a
 /// listen-only event tap, then deletes the keyword and pastes the expansion.
@@ -22,6 +23,7 @@ import Carbon
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var retryTimer: Timer?
+    private var following: AnyCancellable?
     private var buffer = ""
 
     /// Keycodes that end a word rather than extend it.
@@ -34,17 +36,35 @@ import Carbon
 
     private init() {}
 
+    /// Installs the key tap, or keeps trying while Accessibility is not granted.
     func start() {
         guard tap == nil else { return }
         attemptTap()
     }
 
+    /// Listens while a snippet could expand, and stops when the last keyword goes or expansion is switched off.
+    func follow(_ store: SnippetStore) {
+        following = store.$snippets.combineLatest(store.$expansionEnabled)
+            .map { Snippet.canExpand($0, enabled: $1) }
+            .removeDuplicates()
+            .sink { [weak self] listens in
+                if listens {
+                    self?.start()
+                } else {
+                    self?.stop()
+                }
+            }
+    }
+
+    /// Takes the key tap away and ends the retries, so no key of another app reaches Floe.
     func stop() {
         retryTimer?.invalidate()
         retryTimer = nil
         buffer = ""
         if let tap {
             CGEvent.tapEnable(tap: tap, enable: false)
+            // Listening now starts and stops with the snippets, and a tap only disabled would stay registered each time.
+            CFMachPortInvalidate(tap)
             self.tap = nil
         }
         if let runLoopSource {
@@ -78,11 +98,15 @@ import Carbon
         CGEvent.tapEnable(tap: tap, enable: true)
     }
 
+    /// Tries again every ten seconds. The timer calls straight in, with no task of its own, so a try can't
+    /// run after `stop` has ended the timer.
     private func scheduleRetry() {
         guard retryTimer == nil else { return }
-        retryTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.attemptTap() }
+        retryTimer = Timer.scheduledOnMain(withTimeInterval: 10, repeats: true) { [weak self] in
+            self?.attemptTap()
         }
+        // Lets the system fire this with its other timers.
+        retryTimer?.tolerance = 2
     }
 
     /// Re-enables the tap after the system disables it for timeout or heavy input.

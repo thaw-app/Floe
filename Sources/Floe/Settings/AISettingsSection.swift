@@ -11,21 +11,21 @@ import ThawUI
 /// The AI page's section: what answers an extension's `AI.ask`.
 struct AISettingsSection: View {
     @ObservedObject var settings: AppSettings
-    @State private var apiKey: String
+    @StateObject private var draft: AIKeyDraft
     @State private var service: AIService
-    private let keys: AIKeys
 
     /// `storedKey` is the one saved for the address unless a snapshot passes its own.
     init(settings: AppSettings, storedKey: String? = nil, keys: AIKeys = .keychain) {
         self.settings = settings
-        self.keys = keys
-        _apiKey = State(initialValue: storedKey ?? keys.key(for: settings.aiBaseURL) ?? "")
+        // The autoclosure runs once for the page on screen, where a state's initial value would read the Keychain
+        // on every redraw of the window.
+        _draft = StateObject(wrappedValue: AIKeyDraft(address: settings.aiBaseURL, stored: storedKey, keys: keys))
         _service = State(initialValue: AIService.matching(settings.aiBaseURL))
     }
 
     /// The choice as it stands in the fields, with the key typed here and not the stored one.
     private var choice: AIAnswer.Choice {
-        AIAnswer.choice(source: settings.aiSource, baseURL: settings.aiBaseURL, model: settings.aiModel) { apiKey }
+        AIAnswer.choice(source: settings.aiSource, baseURL: settings.aiBaseURL, model: settings.aiModel) { draft.text }
     }
 
     var body: some View {
@@ -65,7 +65,7 @@ struct AISettingsSection: View {
                 }
                 // Each address has its own key, so another address shows its own or none.
                 .onChange(of: settings.aiBaseURL) { _, address in
-                    apiKey = keys.key(for: address) ?? ""
+                    draft.show(address: address)
                 }
                 if service == .other {
                     TextField("Address", text: $settings.aiBaseURL, prompt: Text(AIEndpoint.defaultBaseURL))
@@ -73,12 +73,12 @@ struct AISettingsSection: View {
                 TextField("Model", text: $settings.aiModel, prompt: Text("The model's name, as the API lists it"))
                 // A server on this Mac takes no key, so the field would only invite a wrong one.
                 if AIEndpoint.needsKey(AIEndpoint.chatURL(baseURL: settings.aiBaseURL)) {
-                    SecureField("API key", text: $apiKey, prompt: Text("Kept in the Keychain"))
-                        .onChange(of: apiKey) { _, key in
-                            keys.save(key, for: settings.aiBaseURL)
+                    SecureField("API key", text: $draft.text, prompt: Text("Kept in the Keychain"))
+                        .onChange(of: draft.text) { _, _ in
+                            draft.save(for: settings.aiBaseURL)
                         }
                 }
-                if let problem = AIEndpoint.problem(baseURL: settings.aiBaseURL, model: settings.aiModel, apiKey: apiKey) {
+                if let problem = AIEndpoint.problem(baseURL: settings.aiBaseURL, model: settings.aiModel, apiKey: draft.text) {
                     warning(problem)
                 }
             }

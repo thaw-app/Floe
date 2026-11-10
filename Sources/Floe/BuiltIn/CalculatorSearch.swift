@@ -53,6 +53,7 @@ final class CalculatorSearch {
         }
     }
 
+    /// Works out the wanted query, then the one typed meanwhile, until the newest has its answer.
     private func work() async {
         while let query = wanted, answer?.query != query {
             let preview = await evaluate(query)
@@ -60,8 +61,12 @@ final class CalculatorSearch {
             answer = (query, preview)
             // A query typed past while it was worked out is answered and dropped: the newest is asked next.
             guard query == wanted else { continue }
+            let hadRow = lastRow != nil
             lastRow = preview.map { CalculatorRow(expression: query, preview: $0) }
-            onChange()
+            // No row before and none now: the list on screen is already right, and telling it would draw it again.
+            if hadRow || lastRow != nil {
+                onChange()
+            }
         }
         task = nil
     }

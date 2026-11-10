@@ -44,6 +44,7 @@ export async function bundle(entry: string): Promise<string> {
 // Bun builds these names to its own modules whatever the extension installed, and calls no plugin for them, so the
 // finished bundle is pointed at Floe's stand-ins, which take the Node options Bun's ignore.
 const compatDir = path.join(import.meta.dir, "compat");
+const jsxDevRuntimePath = path.join(compatDir, "jsx-dev-runtime.ts");
 function useCompatModules(output: string) {
   const code = fs.readFileSync(output, "utf8");
   const pointed = code.replace(/(require\(|from\s*)"(node-fetch|undici|ws)"/g, (_match, lead: string, name: string) =>
@@ -89,6 +90,7 @@ export function fingerprint(entry: string): string {
     shimChanged: newestChange(path.join(import.meta.dir, "api")),
     compat: newestChange(compatDir),
     react: require.resolve("react"),
+    jsxDev: jsxDevRuntimePath,
     bun: Bun.version,
   });
 }
@@ -195,10 +197,12 @@ function buildUnchecked(entry: string, outdir: string, format: (typeof formats)[
         name: "raycast-shim",
         setup(build) {
           build.onResolve({ filter: /^@raycast\/api$/ }, () => ({ path: shimPath, external: true }));
-          build.onResolve({ filter: /^react(\/jsx-runtime|\/jsx-dev-runtime)?$/ }, (args) => ({
+          build.onResolve({ filter: /^react(\/jsx-runtime)?$/ }, (args) => ({
             path: require.resolve(args.path),
             external: true,
           }));
+          // React's production build has no jsxDEV, so the bundle asks Floe's module, which always has one.
+          build.onResolve({ filter: /^react\/jsx-dev-runtime$/ }, () => ({ path: jsxDevRuntimePath, external: true }));
           // An imported .wasm file is its compiled module, which is what extensions hand to WebAssembly.instantiate.
           // Bun would give the file's name. "?module" is the same import as other bundlers want it spelled.
           build.onResolve({ filter: /\.wasm\?module$/ }, (args) => ({

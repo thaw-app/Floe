@@ -108,9 +108,16 @@ enum Ranking {
         // A set, so the favorite check inside the loop is one hash lookup and not a walk of the list.
         let favoriteIDs = Set(favorites)
         return all.compactMap { item -> (RootItem, Double)? in
-            let scores = [score(query: query, title: item.title, alias: alias(item))] + item.keywords.map { keywordScore(query, $0) }
-            guard let match = scores.compactMap(\.self).max() else { return nil }
-            let boost = min(20, frecency(item.id) * 2) + (favoriteIDs.contains(item.id) ? 5 : 0)
+            var best = score(query: query, title: item.title, alias: alias(item))
+            for keyword in item.keywords {
+                if let found = keywordScore(query, keyword), found > best ?? Int.min {
+                    best = found
+                }
+            }
+            guard let match = best else { return nil }
+            // The id is built from the row each time it is asked for, so it is asked for once.
+            let id = item.id
+            let boost = min(20, frecency(id) * 2) + (favoriteIDs.contains(id) ? 5 : 0)
             return (item, Double(match) + boost)
         }
         // Equal scores keep the order they came in, which a plain sort does not promise.

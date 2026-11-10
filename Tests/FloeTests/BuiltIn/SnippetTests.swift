@@ -33,6 +33,13 @@ struct SnippetTests {
         #expect(Snippet.keywordProblem(";sig", id: sig.id, among: [sig]) == nil, "a snippet keeps its own keyword")
     }
 
+    @Test func keysAreListenedForOnlyWhileASnippetCouldExpand() {
+        #expect(Snippet.canExpand([sig], enabled: true))
+        #expect(!Snippet.canExpand([sig], enabled: false), "expansion is switched off")
+        #expect(!Snippet.canExpand([], enabled: true), "nothing to expand")
+        #expect(!Snippet.canExpand([Snippet(name: "No keyword", keyword: "", text: "x")], enabled: true), "a snippet without a keyword is only inserted from the launcher")
+    }
+
     @Test func theFirstLineSkipsBlankLines() {
         #expect(Snippet(name: "n", keyword: "kk", text: "\n  \nHi there\nmore").firstLine == "Hi there")
     }

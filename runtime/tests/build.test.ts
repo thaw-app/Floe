@@ -161,14 +161,16 @@ describe("fingerprint", () => {
 
 const commandSource = `
 import { List } from "@raycast/api";
+import { useMemo } from "react";
 import { label } from "./label";
 export default function Command() {
-  return <List><List.Item title={label} /></List>;
+  const title = useMemo(() => label, []);
+  return <List><List.Item title={title} /></List>;
 }
 `;
 
 describe("bundle", () => {
-  test("bundles a command so that @raycast/api is the shim and React is the host's copy", async () => {
+  test("bundles a command so that @raycast/api is the shim, React is the host's copy and JSX is built by Floe's module", async () => {
     const extDir = makeExtension({ "src/hello.tsx": commandSource, "src/label.ts": 'export const label = "from the bundle";' }, "hello");
     const output = await bundle(findEntry());
 
@@ -177,11 +179,23 @@ describe("bundle", () => {
     expect(code).toContain(JSON.stringify(shimPath));
     expect(code).toContain("from the bundle");
     expect(code).toContain(path.dirname(require.resolve("react")));
+    expect(code).toContain(path.join(import.meta.dir, "..", "compat", "jsx-dev-runtime.ts"));
+    expect(code).not.toContain("react/jsx-dev-runtime.js");
     expect(code).not.toContain(path.join(extDir, "node_modules"));
 
     const Command = (await import(output)).default;
     const tree = await showScreen(React.createElement(Command));
     expect(find(tree, "List.Item").props.title).toBe("from the bundle");
+  });
+
+  // React's production build exports jsxDEV as undefined, which would make every JSX call in a bundle throw.
+  test("Floe's jsx-dev-runtime has a working jsxDEV under NODE_ENV=production", () => {
+    const module = path.join(import.meta.dir, "..", "compat", "jsx-dev-runtime.ts");
+    const script = `const m = require(${JSON.stringify(module)}); const e = m.jsxDEV("x", { a: 1 }, "k"); console.log(typeof m.jsxDEV, e.type, e.key, typeof m.Fragment)`;
+    const run = Bun.spawnSync([process.execPath, "-e", script], { env: { ...process.env, NODE_ENV: "production" } });
+
+    expect(run.exitCode, run.stderr.toString()).toBe(0);
+    expect(run.stdout.toString().trim()).toBe("function x k symbol");
   });
 
   // Raycast builds each command into one file at the extension's root, so that is where an extension

@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import ThawUI
 
 /// Thaw's answers, as Thaw writes them. The first is the example in Thaw's docs/URI_SCHEMES.md, copied
 /// as it stands. Thaw's SharedAppearanceTests build their payloads from configurations and hold no JSON,

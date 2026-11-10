@@ -41,6 +41,9 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
     private let linkKey = LinkKey.fromStandardInput()
     private lazy var link = ProcessLink(role: .settings, gate: LinkGate(ownPid: getpid(), key: { [linkKey] in linkKey }, peerPid: { [launcherPid] in launcherPid }))
     private let startPage: SettingsPage?
+    /// When the launch scanned everything, so the activation that follows it at once does not scan again. An
+    /// activation that comes later, because the first was refused, scans as any other.
+    private var launchScan: ContinuousClock.Instant? = .now
     private var appWatcher: AppFolderWatcher?
     private var launcherWatch: DispatchSourceProcess?
     private var terminationWatch: DispatchSourceSignal?
@@ -189,6 +192,11 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
 
     /// Scripts and extensions are added in Finder too, so coming back to Settings looks again.
     func applicationDidBecomeActive(_: Notification) {
+        let sinceLaunchScan = launchScan.map { $0.duration(to: .now) }
+        launchScan = nil
+        if let sinceLaunchScan, sinceLaunchScan < .seconds(2) {
+            return
+        }
         catalog.reloadCommands()
         catalog.reloadScripts()
     }

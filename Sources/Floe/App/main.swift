@@ -117,7 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UpdatesManager.shared.performSetup()
         // Takes floe:// links: Thaw's answer about its appearance, and the browser's return once sign-in is back.
         IncomingURLRouter.shared.install()
-        TextExpander.shared.start()
+        TextExpander.shared.follow(SnippetStore.shared)
         settingsLink.start()
 
         if ProcessInfo.processInfo.environment["FLOE_RESIDENT_BENCH"] == nil {

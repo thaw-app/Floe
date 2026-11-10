@@ -19,6 +19,33 @@ import Testing
     /// Run inside a read, for an app that copies again while the watcher is reading.
     private var duringRead: () -> Void = {}
 
+    @Test func startingTwiceWatchesOnceAndStoppingEndsIt() {
+        let watcher = makeWatcher()
+        #expect(!watcher.isWatching)
+        watcher.start()
+        watcher.start()
+        #expect(watcher.isWatching)
+        watcher.stop()
+        #expect(!watcher.isWatching, "one stop ends it, however often it was started")
+    }
+
+    @Test func aCopyMadeWhileStoppedIsNotReadOnceWatchingAgain() {
+        let watcher = makeWatcher()
+        watcher.start()
+        watcher.stop()
+        count = 2
+        readings = [copy("while stopped")]
+        watcher.start()
+        watcher.skipToNow()
+        _ = watcher.tick()
+        #expect(reads == 0, "what was copied while nothing watched is never read")
+        count = 3
+        readings = [copy("after")]
+        _ = watcher.tick()
+        #expect(delivered == ["after"])
+        watcher.stop()
+    }
+
     private func makeWatcher() -> ClipboardWatcher {
         ClipboardWatcher(
             changeCount: { self.count },

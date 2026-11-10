@@ -103,9 +103,13 @@ final class LauncherSettingsLink {
         QuicklinkStore.shared.reload()
     }
 
-    /// Applies a validated Settings message, then has the search read it again.
+    /// Applies a validated Settings message, then has the search read it again when it could answer differently.
     private func handle(_ message: LinkMessage) {
-        defer { onChange?() }
+        defer {
+            if message.kind.changesSearch {
+                onChange?()
+            }
+        }
         switch message.kind {
         case .settingsChanged:
             settings.reload()

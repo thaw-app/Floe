@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 import Testing
+import ThawUI
 
 struct LauncherAppearanceTests {
     private static let side = 20

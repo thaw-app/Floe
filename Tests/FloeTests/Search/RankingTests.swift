@@ -27,6 +27,26 @@ struct FuzzyTests {
         #expect(Fuzzy.score(query, candidate) == nil)
     }
 
+    /// One of each kind of match and of each way to miss, on the plain path and on the one for other scripts.
+    @Test(arguments: [
+        ("sfr", "Safari", 27 as Int?, nil as Int?),
+        ("saf", "Safari", 97, 97),
+        ("set", "System Settings", 75, 75),
+        ("ss", "System Settings", 70, 70),
+        ("tivi", "Activity Monitor", 55, 55),
+        ("irafas", "Safari", nil, nil),
+        ("safarii", "Safari", nil, nil),
+        ("SAF", "safari", 97, 97),
+        ("saf", "SAFARI", 97, 97),
+        ("", "Safari", 94, 94),
+        ("caf", "Café", 99, 99),
+        ("é", "Café", 55, 55),
+    ])
+    func eachKindOfMatchHasItsScore(query: String, candidate: String, score: Int?, tierScore: Int?) {
+        #expect(Fuzzy.score(query, candidate) == score)
+        #expect(Fuzzy.tierScore(query, candidate) == tierScore)
+    }
+
     @Test func matchingIgnoresCase() {
         #expect(Fuzzy.score("SAF", "safari") == Fuzzy.score("saf", "Safari"))
     }

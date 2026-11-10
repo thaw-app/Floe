@@ -7,14 +7,7 @@
 
 import Foundation
 import SwiftUI
-
-/// The glass, tint, border and shadow the launcher panel draws.
-struct LauncherLook: Equatable {
-    var glass: LauncherGlass
-    var tint: LauncherTint
-    var border: LauncherBorder?
-    var hasShadow: Bool
-}
+import ThawUI
 
 /// The parts of the launcher's look, as the Appearance pane groups them.
 enum LauncherLookPart: Hashable {

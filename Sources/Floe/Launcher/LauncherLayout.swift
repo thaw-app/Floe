@@ -28,34 +28,6 @@ enum LauncherLayout: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-/// The heights of a panel drawn in two pieces: the search field's, the gap and the rest.
-/// They add up to the panel's own height, so separating the pieces never resizes the window.
-struct PanelPieceHeights: Equatable {
-    var field: CGFloat
-    var gap: CGFloat
-    /// The piece under the gap, as tall as it is once the panel is open.
-    var results: CGFloat
-    /// Collapsed, only the field's piece is drawn.
-    var isCollapsed = false
-
-    private var open: CGFloat {
-        field + gap + results
-    }
-
-    var total: CGFloat {
-        isCollapsed ? field : open
-    }
-
-    /// The share of the open panel's height each piece covers, for a fade that runs down both.
-    var fieldSpan: ClosedRange<CGFloat> {
-        0 ... field / open
-    }
-
-    var resultsSpan: ClosedRange<CGFloat> {
-        (field + gap) / open ... 1
-    }
-}
-
 /// What the panel is showing, reduced to the facts its size depends on.
 struct LauncherPanelState: Equatable {
     /// The menu bar item search or the search of the front app's menus.

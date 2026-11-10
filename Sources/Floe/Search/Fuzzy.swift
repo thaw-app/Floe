@@ -72,6 +72,8 @@ nonisolated extension Fuzzy {
         // A carriage return can join the next byte into one character, which would shift the offsets.
         let isPlain = { (byte: UInt8) in byte < 0x80 && byte != 0x0D }
         if query.utf8.allSatisfy(isPlain), candidate.utf8.allSatisfy(isPlain) {
+            // Most candidates lack the query's letters in order. They leave here, before either side is copied.
+            guard isSubsequence(query.utf8.lazy.map(\.asciiLowercased), of: candidate.utf8.lazy.map(\.asciiLowercased)) else { return nil }
             let needle = query.utf8.map(\.asciiLowercased)
             let text = candidate.utf8.map(\.asciiLowercased)
             return evaluate(needle, in: text, original: { Array(candidate.utf8) }, wantPositions: wantPositions, allowScattered: scattered)
@@ -104,13 +106,16 @@ nonisolated extension Fuzzy {
         return scattered(needle, in: text, boundaries: boundaries, wantPositions: wantPositions)
     }
 
-    private static func isSubsequence<Unit: FuzzyUnit>(_ needle: [Unit], of text: [Unit]) -> Bool {
-        guard needle.count <= text.count else { return false }
-        var matched = 0
-        for unit in text where matched < needle.count && unit == needle[matched] {
-            matched += 1
+    /// Whether the units of `needle` appear in `text` in that order. It takes sequences, so the plain path can ask
+    /// about lowercased bytes without copying either side.
+    private static func isSubsequence<Unit: Equatable>(_ needle: some Sequence<Unit>, of text: some Sequence<Unit>) -> Bool {
+        var wanted = needle.makeIterator()
+        guard var next = wanted.next() else { return true }
+        for unit in text where unit == next {
+            guard let following = wanted.next() else { return true }
+            next = following
         }
-        return matched == needle.count
+        return false
     }
 
     /// The four fixed tiers: prefix, word prefix, initials, substring.

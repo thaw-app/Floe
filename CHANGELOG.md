@@ -21,6 +21,18 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [0.4.0-rc.2] - 2026-11-09
+
+**macOS 26 and later · Build 10**
+
+### Changed
+
+- **Extensions draw faster.** Installed extensions now run on React's production build, which builds a list of several thousand rows in about half the time.
+- **Floe does less in the background.** It no longer listens to the keyboard when there are no snippets to expand, or checks the clipboard when its history is off.
+- **Typing in the launcher does less work.** Each key draws the results once, where it used to draw them twice, and rows that can't match are dropped sooner.
+- **Settings does less while it is open.** It looks for your commands once when it opens, the AI page asks the Keychain for your key once, and moving between pages no longer makes the launcher search again.
+- **Tabs and pickers in Settings look different.** On macOS 27 they are the system's own tabs control, whose glass selection follows a press and a drag. On macOS 26 the selection is drawn as a glass lens.
+
 ## [0.4.0-rc.1] - 2026-11-08
 
 **macOS 26 and later · Build 9**
