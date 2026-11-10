@@ -105,8 +105,17 @@ struct ActionPanelCard: View {
                     Image(systemName: "chevron.left").font(ThawType.caption).foregroundStyle(.secondary)
                     Text(submenuTitle).fontWeight(.medium)
                 }
-                Text(query.isEmpty ? String(localized: "Search actions…", bundle: .floe) : query)
-                    .foregroundStyle(query.isEmpty ? .tertiary : .primary)
+                // Typing reaches the panel through the key monitor, not a field, so the caret is drawn: before the
+                // placeholder, as an empty field has it, and after what was typed.
+                HStack(spacing: 1) {
+                    if query.isEmpty {
+                        ActionPanelCaret()
+                        Text(String(localized: "Search actions…", bundle: .floe)).foregroundStyle(.tertiary)
+                    } else {
+                        Text(query)
+                        ActionPanelCaret()
+                    }
+                }
                 Spacer()
             }
             .padding(.horizontal, ThawSpacing.row)
@@ -141,6 +150,7 @@ struct ActionPanelCard: View {
         .frame(width: Self.width)
         .thawGlass(.borderlessPanel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
         .padding(ThawSpacing.row)
+        .modifier(TakesTheSearchFieldsFocus())
     }
 
     private func row(_ entry: ActionPanelEntry, selected: Bool) -> some View {
@@ -160,5 +170,43 @@ struct ActionPanelCard: View {
             }
         }
         .modifier(RowBackground(selected: selected))
+    }
+}
+
+/// The caret of the panel's search line, blinking as a text field's does, and steady with Reduce Motion on.
+private struct ActionPanelCaret: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.5)) { context in
+            let shown = reduceMotion || Int(context.date.timeIntervalSinceReferenceDate * 2).isMultiple(of: 2)
+            Rectangle()
+                .fill(Color.accentColor)
+                .frame(width: 1.5, height: 15)
+                .opacity(shown ? 1 : 0)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// While the panel is open, the search field under it gives up its focus, so only the panel shows a caret, and has it
+/// back once the panel closes. Typing goes to the panel either way: the key monitor hands it over.
+private struct TakesTheSearchFieldsFocus: ViewModifier {
+    @State private var window: NSWindow?
+    @State private var focused: NSResponder?
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                guard let key = NSApp.keyWindow else { return }
+                window = key
+                focused = key.firstResponder
+                key.makeFirstResponder(nil)
+            }
+            .onDisappear {
+                // Only if nothing took the focus meanwhile, such as a view the panel's row opened.
+                guard let window, window.firstResponder === window || window.firstResponder == nil else { return }
+                window.makeFirstResponder(focused)
+            }
     }
 }
