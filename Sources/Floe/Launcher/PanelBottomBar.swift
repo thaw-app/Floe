@@ -8,20 +8,6 @@
 import SwiftUI
 import ThawUI
 
-/// The Thaw-style bar under a list: what is on the left, then the selected row's actions with their keys.
-struct PanelBottomBar<Content: View>: View {
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        HStack(spacing: ThawSpacing.row) {
-            content
-        }
-        .buttonStyle(SearchPanelButtonStyle())
-        .padding(.horizontal, ThawSpacing.inset)
-        .padding(.vertical, ThawSpacing.row)
-    }
-}
-
 /// The gear at the left of a bottom bar. It takes the style of the bar it sits in.
 struct OpenSettingsButton: View {
     let model: LauncherModel

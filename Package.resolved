@@ -1,5 +1,5 @@
 {
-  "originHash" : "b625a985d1f76d2efa047377898ed0b47f1b33dc564f51a32a6a139c1e9f4297",
+  "originHash" : "155f4cce26a1c5747a07cfdc2417bab14531e2c81a94bfaed97fe72a3eec5dce",
   "pins" : [
     {
       "identity" : "compactslider",
@@ -114,8 +114,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/thaw-app/ThawUI",
       "state" : {
-        "revision" : "205a9ea0631aa71f8dace0505970dcb6b2cff7d1",
-        "version" : "1.2.1"
+        "revision" : "f9dcca45c4daa339dda2613a3bfa2d5b2a52cf8a",
+        "version" : "1.4.0"
       }
     }
   ],
