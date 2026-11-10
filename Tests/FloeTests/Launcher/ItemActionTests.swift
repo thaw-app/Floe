@@ -73,37 +73,6 @@ struct ItemActionTests {
         #expect(listed.contains("Copy Path"))
     }
 
-    @Test func aMenuNestsChildrenAndDrawsSeparators() {
-        let menu = ActionsMenu.menu([
-            ItemAction(title: "Open With", symbol: "arrow.up.forward.app", children: [ItemAction(title: "Preview", symbol: "app")]),
-            nil,
-            ItemAction(title: "Copy Path", symbol: "doc.on.doc"),
-        ])
-        #expect(menu.items.map(\.title) == ["Open With", "", "Copy Path"])
-        #expect(menu.items[0].submenu?.items.map(\.title) == ["Preview"])
-        #expect(menu.items[1].isSeparatorItem)
-        #expect(menu.items[2].submenu == nil)
-    }
-
-    @Test func aRowsKeysAreDrawnBesideItInASubmenuToo() {
-        let menu = ActionsMenu.menu([
-            ItemAction(title: "Show in Finder", symbol: "folder", shortcut: KeyCombination(key: .returnKey, modifiers: .command)),
-            ItemAction(title: "Add to Favorites", symbol: "star", shortcut: KeyCombination(key: .f, modifiers: [.command, .shift])),
-            ItemAction(title: "More", symbol: "ellipsis", children: [ItemAction(title: "Quick Look", symbol: "eye", shortcut: KeyCombination(key: .y, modifiers: .command))]),
-            ItemAction(title: "Copy Name", symbol: "textformat"),
-            ItemAction(title: "Copy File", symbol: "doc.on.clipboard", shortcut: KeyCombination(key: .f5, modifiers: .command)),
-            ItemAction(title: "Move to Trash…", symbol: "trash", shortcut: KeyCombination(key: .keypad1, modifiers: .command)),
-        ])
-        #expect(menu.items[0].keyEquivalent == "\r", "Return is drawn as Return on any layout")
-        #expect(menu.items[0].keyEquivalentModifierMask == .command)
-        #expect(menu.items[1].keyEquivalent == KeyCode.f.keyEquivalent, "a letter is what the key types on this Mac")
-        #expect(menu.items[1].keyEquivalentModifierMask == [.command, .shift])
-        #expect(menu.items[2].submenu?.items.first?.keyEquivalent == KeyCode.y.keyEquivalent)
-        #expect(menu.items[3].keyEquivalent.isEmpty)
-        #expect(menu.items[4].keyEquivalent == String(utf16CodeUnits: [unichar(NSF5FunctionKey)], count: 1), "a function key is itself")
-        #expect(menu.items[5].keyEquivalentModifierMask == [.command, .numericPad], "a keypad key is the keypad's, not the main row's")
-    }
-
     @Test func rootActionsStartWithOpenAndEndWithTheFavoriteToggle() {
         let safari = AppEntry(name: "Safari", url: URL(fileURLWithPath: "/System/Applications/NotARealApp-\(UUID().uuidString).app"))
         let model = makeModel(apps: [safari])

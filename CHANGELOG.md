@@ -26,6 +26,8 @@ these four.
 ### Changed
 
 - **An app's hotkey runs its Primary Action.** The Primary Action you choose for apps in Settings › Actions is now also what an app's hotkey does, such as hiding the app or running one of your scripts on it. With none chosen, or one that can't run, such as Quit on an app that isn't running, the hotkey still opens the app, or hides it if it's in front ([#40](https://github.com/thaw-app/Floe/issues/40)).
+- **The Actions menu opens in the launcher.** ⌘K on an app, file, folder or link, in File Search, in menu bar search and in Ask AI shows the same panel an extension's ⌘K does, instead of a system menu. Type to search the actions, use the arrows and Return to run one, → and ← for submenus, and Esc to close it. Each action's keys still run it.
+- **Actions has a page of its own in Settings.** What Return does, which actions the Actions menu shows and the keys that run them were a tab of Commands, and are now Settings › Actions.
 
 ## [0.4.0-rc.2] - 2026-11-09
 

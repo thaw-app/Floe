@@ -169,6 +169,7 @@
 		5C55A27900A00117F2B90700 /* Quicklinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCD165E46D914A7ED79C3DE0 /* Quicklinks.swift */; };
 		5D2356005B214FA51E5A71A0 /* TabSearchSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D5F5C90069D40A3353B1435 /* TabSearchSource.swift */; };
 		5D2F7931BB6C94EE5A4859F2 /* AITool.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8B7D0D47E3C50C9CB1F9D0 /* AITool.swift */; };
+		5ED6B3D3214C8E5477D9FF2F /* ItemActionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6179219DBE06CE5920549ACB /* ItemActionPanel.swift */; };
 		5FFE0E4F7A13FC093C783690 /* SearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 475D8A766F49FF100BD34649 /* SearchProvider.swift */; };
 		602E606A00E216F429C5548A /* AppleShortcutSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F24BBC55159EA1F9633EAE /* AppleShortcutSearch.swift */; };
 		60E687EE61413628159E2CC4 /* AISettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873178EA70279DFA5A5FB656 /* AISettingsSection.swift */; };
@@ -314,6 +315,7 @@
 		B4022E41A6B70A45AEDD4A3B /* Browser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C94AC63D188A5B6B05B8A9 /* Browser.swift */; };
 		B43F3A4AC4BA7A6D1C7E8310 /* OpenWindows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97A5B790800A314D24197729 /* OpenWindows.swift */; };
 		B46FB365D377BDA4D17AEBAC /* Algorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 1F43772FB45D60218EFCAC8B /* Algorithms */; };
+		B497AC0F3CFEE8A9E93956AB /* ActionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4CC3CDC105499FA5A1ACAC7 /* ActionPanel.swift */; };
 		B4DF4A9E271F020F5004EDA3 /* ShellAliases.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F43BC73615163FC9EA2009B /* ShellAliases.swift */; };
 		B4E475F30B2F1B966F542327 /* AppearanceSettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4F5761AF75C9E1E6A5A4FF /* AppearanceSettingsPane.swift */; };
 		B60670B502F8FFBB4FDCBF3F /* DiagnosticsSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D930183FBABDD9AA57D1BD /* DiagnosticsSettingsSection.swift */; };
@@ -614,6 +616,7 @@
 		611669F5DA712196411BB8AD /* OAuthBroker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OAuthBroker.swift; sourceTree = "<group>"; };
 		612FC052C4830AD422547E50 /* AskAIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskAIView.swift; sourceTree = "<group>"; };
 		615C6D1FFFC788BD983EA13C /* ExtensionViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionViews.swift; sourceTree = "<group>"; };
+		6179219DBE06CE5920549ACB /* ItemActionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemActionPanel.swift; sourceTree = "<group>"; };
 		61946FF17AE6C83D103230B1 /* EventRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRows.swift; sourceTree = "<group>"; };
 		623CA29DFB01104AEC908B2C /* MenuItemSearchModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuItemSearchModel.swift; sourceTree = "<group>"; };
 		62CED5B91219A28FC90A5B73 /* MenuBarIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIcon.swift; sourceTree = "<group>"; };
@@ -795,6 +798,7 @@
 		D298878946A8F9FCE533B02B /* RaycastSignInNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaycastSignInNotice.swift; sourceTree = "<group>"; };
 		D4731FA61633C822F2A037E4 /* AppIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIconView.swift; sourceTree = "<group>"; };
 		D4C585799DE740F98865EF15 /* ClipboardCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCapture.swift; sourceTree = "<group>"; };
+		D4CC3CDC105499FA5A1ACAC7 /* ActionPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionPanel.swift; sourceTree = "<group>"; };
 		D4F04691E14C00EFDF762F28 /* IconThumbnails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconThumbnails.swift; sourceTree = "<group>"; };
 		D54900730524DDEA357356AE /* LoginEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginEnvironment.swift; sourceTree = "<group>"; };
 		D5FACCCFACAFD201DA7D19F3 /* ProcessSearchScopes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessSearchScopes.swift; sourceTree = "<group>"; };
@@ -1319,6 +1323,7 @@
 		83CCDC6B5F91D7EC138CC5F9 /* Launcher */ = {
 			isa = PBXGroup;
 			children = (
+				D4CC3CDC105499FA5A1ACAC7 /* ActionPanel.swift */,
 				D4731FA61633C822F2A037E4 /* AppIconView.swift */,
 				6B6BBB1126CC51B8A8530F41 /* BrewRows.swift */,
 				FB2BEB2F9AA1BBC21A580C5B /* Catalog.swift */,
@@ -1333,6 +1338,7 @@
 				607B21E253698186EC9FF541 /* IconSymbols.swift */,
 				D4F04691E14C00EFDF762F28 /* IconThumbnails.swift */,
 				07471C2EA57FA7FD58ABB95C /* IconView.swift */,
+				6179219DBE06CE5920549ACB /* ItemActionPanel.swift */,
 				6B395B312CE9AFB208F23F69 /* ItemActions.swift */,
 				256E2AB529436340BCA900F5 /* LauncherAppearance.swift */,
 				9C02FE7E764D3A44D8628A56 /* LauncherFeatures.swift */,
@@ -1697,6 +1703,7 @@
 				8BD4A191E29780ED9E926D80 /* ActionChoices.swift in Sources */,
 				2BE5F5B7768CC206615CC95D /* ActionKeys.swift in Sources */,
 				27EE037829A4B47BACF14DDE /* ActionOptions.swift in Sources */,
+				B497AC0F3CFEE8A9E93956AB /* ActionPanel.swift in Sources */,
 				4D95EC861E8E6C4733C74391 /* ActionsSearchEntries.swift in Sources */,
 				B3623FB037BED74B6AFD2E03 /* ActionsSettingsSection.swift in Sources */,
 				72598816A609A361840E7831 /* AlternativeActions.swift in Sources */,
@@ -1842,6 +1849,7 @@
 				7EDEBC2C1E4F97E1E88B84C9 /* IncomingLink.swift in Sources */,
 				3A1E1665F4CCCE6EA9CC5F64 /* IncomingURLRouter.swift in Sources */,
 				391349447472998780D63BFB /* IntentHandler.swift in Sources */,
+				5ED6B3D3214C8E5477D9FF2F /* ItemActionPanel.swift in Sources */,
 				A31CA4A5723901F2F47665C6 /* ItemActions.swift in Sources */,
 				F5C2DC1C6A98B377558A5033 /* JSONFile.swift in Sources */,
 				CB95D1A1C45DFF7DDFC766A8 /* Keychain.swift in Sources */,

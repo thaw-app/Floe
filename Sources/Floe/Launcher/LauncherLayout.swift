@@ -132,6 +132,15 @@ extension LauncherModel {
             return answer(question, with: event)
         }
         let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
+        if let panel = actionPanel.panel {
+            // Typing, the arrows, Return, Esc and ⌘K are the panel's. Other keys, such as a row's ⌘↵, close it and
+            // do what they do with it closed, as a menu's keys would.
+            let isPanelKey = flags.subtracting(.shift).isEmpty || (event.keyCode == 40 && flags == .command)
+            if isPanelKey, panel.handleActionPanelKey(event, flags) {
+                return true
+            }
+            panel.closePanel()
+        }
         if panelState.isCollapsed(in: layout), LauncherPanelState.isRowKey(event.keyCode, flags: flags) {
             return true
         }

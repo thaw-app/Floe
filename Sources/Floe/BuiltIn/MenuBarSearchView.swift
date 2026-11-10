@@ -22,6 +22,7 @@ struct MenuBarSearchView: View {
         } content: {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .actionPanel(launcher.actionPanel)
             bottomBar
         }
     }

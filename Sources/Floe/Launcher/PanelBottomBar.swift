@@ -30,7 +30,7 @@ struct OpenSettingsButton: View {
     }
 }
 
-/// The Actions button of a search. Its menu hangs off the button, so the button has to be reachable as an AppKit view.
+/// The Actions button of a search. While it is on screen, ⌘K and the button open the action panel on its rows.
 struct ActionsButton: View {
     let model: LauncherModel
     let actions: (LauncherModel) -> [ItemAction?]

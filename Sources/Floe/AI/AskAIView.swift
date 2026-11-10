@@ -37,6 +37,7 @@ struct AskAIView: View {
             ) { asking.ask() }
                 .equatable()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .actionPanel(launcher.actionPanel)
             bottomBar
         }
         // Something else took the panel: the request stops with the view.

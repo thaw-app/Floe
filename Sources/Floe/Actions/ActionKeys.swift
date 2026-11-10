@@ -157,30 +157,6 @@ struct ActionKeys: Equatable {
     }
 }
 
-extension KeyCombination {
-    /// What a menu item draws for these keys: Return and a function key as themselves on any layout, any other key
-    /// as what it types. A keypad key types a digit or a mark, and the keypad's modifier tells it from the main row's.
-    var menuKeyEquivalent: (key: String, modifiers: NSEvent.ModifierFlags) {
-        let modifiers = modifiers.nsEventFlags
-        if key == .returnKey {
-            return ("\r", modifiers)
-        }
-        if let position = Self.functionRow.firstIndex(of: key) {
-            return (String(utf16CodeUnits: [unichar(NSF1FunctionKey + position)], count: 1), modifiers)
-        }
-        return (key.keyEquivalent.lowercased(), Self.keypad.contains(key) ? modifiers.union(.numericPad) : modifiers)
-    }
-
-    private static let functionRow: [KeyCode] = [
-        .f1, .f2, .f3, .f4, .f5, .f6, .f7, .f8, .f9, .f10, .f11, .f12, .f13, .f14, .f15, .f16, .f17, .f18, .f19, .f20,
-    ]
-
-    private static let keypad: Set<KeyCode> = [
-        .keypad0, .keypad1, .keypad2, .keypad3, .keypad4, .keypad5, .keypad6, .keypad7, .keypad8, .keypad9,
-        .keypadDecimal, .keypadPlus, .keypadMinus, .keypadMultiply, .keypadDivide, .keypadEquals,
-    ]
-}
-
 /// What each key types on a keyboard layout: the one the Mac types with now, or a fixed one in a test. Floe names its
 /// letter keys by what they type, so ⌘Y is the key that types y on a German keyboard too, and ⌘Z stays Undo there.
 struct KeyLayout {
