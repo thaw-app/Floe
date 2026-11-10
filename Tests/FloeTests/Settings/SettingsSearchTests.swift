@@ -151,7 +151,7 @@ struct SearchIndexTests {
 
     @Test(arguments: [SettingsPage.general, .commands, .actions, .applications, .ai, .sync, .quicklinks, .fallbacks, .snippets, .extensionStore, .appearance, .privacy, .about])
     func everyPaneOfFloeCanBeFoundByName(pane: SettingsPage) {
-        #expect(SearchIndex.paneEntries.contains { $0.pane == pane })
+        #expect(SearchIndex.staticEntries.contains { $0.id.hasPrefix("pane.") && $0.pane == pane })
     }
 
     @Test func aboutHasThawsSymbolInTheSearchResults() {

@@ -200,20 +200,4 @@ extension SearchIndex {
             ).searchTerms
         ),
     ]
-
-    /// The Actions pane's controls.
-    static let actionsEntries: [SearchEntry] = [
-        SearchEntry(
-            id: "actions.actionChoices",
-            title: String(localized: "Actions on Results", bundle: .floe, comment: "The heading over the choices of what Return, the Actions menu and keys do on apps, files, folders and links."),
-            descriptionText: String(localized: "Choose what Return does on apps, files, folders and links, which actions their Actions menu shows, and keys that run an action.", bundle: .floe),
-            pane: .actions,
-            section: String(localized: "Actions on Results", bundle: .floe, comment: "The heading over the choices of what Return, the Actions menu and keys do on apps, files, folders and links."),
-            keywords: String(
-                localized: "return, enter, primary action, default action, actions menu, keys, keyboard shortcut, hide, show, apps, files, folders, links, open with, copy path, quick look",
-                bundle: .floe,
-                comment: "Words that find the Actions on Results setting in the settings search, separated by commas."
-            ).searchTerms
-        ),
-    ]
 }

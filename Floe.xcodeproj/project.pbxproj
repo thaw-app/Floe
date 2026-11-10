@@ -141,6 +141,7 @@
 		4A198B56D23C732C3A2F6798 /* Subprocess in Frameworks */ = {isa = PBXBuildFile; productRef = A5734F6D7F1BB261482C7608 /* Subprocess */; };
 		4A519750DEA69DB19A1ADCF0 /* NoteDeskModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C0CECF01978DB7DDA0FB1A1 /* NoteDeskModel.swift */; };
 		4D4FB99AD6D0D2F60B8AF7C5 /* Fuzzy.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC14F1E0566FC342201715D0 /* Fuzzy.swift */; };
+		4D95EC861E8E6C4733C74391 /* ActionsSearchEntries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12965E7AD7D62014CFBE87DA /* ActionsSearchEntries.swift */; };
 		4D97246D3977B8B852742EE9 /* HotReload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E2DD9407CEA946488F4FC2 /* HotReload.swift */; };
 		4E0D222D8B25ACF24D81A565 /* Calculator+Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C111C74FE8C998059BB71F9 /* Calculator+Result.swift */; };
 		4E1766F160310A9E2F6577A9 /* SetupFormModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8529561777F9EC462CCC310A /* SetupFormModel.swift */; };
@@ -467,6 +468,7 @@
 		10293FC6F3B888A56C80C673 /* RecentDocuments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentDocuments.swift; sourceTree = "<group>"; };
 		1228F1169E5862099F0424C5 /* WindowRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowRows.swift; sourceTree = "<group>"; };
 		12590EA11A0CFF4478B99322 /* SettingsMerge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsMerge.swift; sourceTree = "<group>"; };
+		12965E7AD7D62014CFBE87DA /* ActionsSearchEntries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionsSearchEntries.swift; sourceTree = "<group>"; };
 		12DB115D3714A1A3D1C7C3D6 /* SyncSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSettingsView.swift; sourceTree = "<group>"; };
 		13D930183FBABDD9AA57D1BD /* DiagnosticsSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticsSettingsSection.swift; sourceTree = "<group>"; };
 		14FFA50DDBDCCFF1EFF81911 /* Calculator+Query.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Calculator+Query.swift"; sourceTree = "<group>"; };
@@ -1180,6 +1182,7 @@
 		7AD6505665B9E4E21E6E4D51 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				12965E7AD7D62014CFBE87DA /* ActionsSearchEntries.swift */,
 				5B5C54BF5DCACD6EEAADD221 /* ActionsSettingsSection.swift */,
 				873178EA70279DFA5A5FB656 /* AISettingsSection.swift */,
 				EB4F5761AF75C9E1E6A5A4FF /* AppearanceSettingsPane.swift */,
@@ -1694,6 +1697,7 @@
 				8BD4A191E29780ED9E926D80 /* ActionChoices.swift in Sources */,
 				2BE5F5B7768CC206615CC95D /* ActionKeys.swift in Sources */,
 				27EE037829A4B47BACF14DDE /* ActionOptions.swift in Sources */,
+				4D95EC861E8E6C4733C74391 /* ActionsSearchEntries.swift in Sources */,
 				B3623FB037BED74B6AFD2E03 /* ActionsSettingsSection.swift in Sources */,
 				72598816A609A361840E7831 /* AlternativeActions.swift in Sources */,
 				F5D20A578065DC4CDB6908F5 /* AnswerRow.swift in Sources */,

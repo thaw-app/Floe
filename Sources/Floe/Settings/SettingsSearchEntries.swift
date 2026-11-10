@@ -10,7 +10,6 @@ import Foundation
 extension SearchPaneLabel {
     static let general = SearchPaneLabel(title: String(localized: "General", bundle: .floe, comment: "The name of a settings page."), symbol: "gearshape")
     static let commands = SearchPaneLabel(title: String(localized: "Commands", bundle: .floe, comment: "The name of a settings page."), symbol: "command")
-    static let actions = SearchPaneLabel(title: String(localized: "Actions", bundle: .floe, comment: "The name of a settings page: what Return, the Actions menu and keys do on apps, files, folders, links and text."), symbol: "return")
     static let applications = SearchPaneLabel(title: String(localized: "Applications", bundle: .floe, comment: "The name of a settings page."), symbol: "square.grid.2x2")
     static let ai = SearchPaneLabel(title: String(localized: "AI", bundle: .floe, comment: "The name of a settings page."), symbol: AskAI.symbol)
     static let sync = SearchPaneLabel(title: String(localized: "Sync", bundle: .floe, comment: "The name of a settings page."), symbol: "arrow.triangle.2.circlepath")
@@ -26,7 +25,6 @@ extension SearchPaneLabel {
 extension SearchPane {
     static let general = SearchPane(page: .general, label: .general)
     static let commands = SearchPane(page: .commands, label: .commands)
-    static let actions = SearchPane(page: .actions, label: .actions)
     static let applications = SearchPane(page: .applications, label: .applications)
     static let ai = SearchPane(page: .ai, label: .ai)
     static let sync = SearchPane(page: .sync, label: .sync)
@@ -198,17 +196,6 @@ extension SearchIndex {
                 localized: "commands, built-in, hotkey, alias, shell, script, menu bar, extensions, raycast",
                 bundle: .floe,
                 comment: "Words that find the Commands page in the settings search, separated by commas."
-            ).searchTerms
-        ),
-        SearchEntry(
-            id: "pane.actions",
-            title: String(localized: "Actions", bundle: .floe, comment: "The name of a settings page: what Return, the Actions menu and keys do on apps, files, folders, links and text."),
-            descriptionText: String(localized: "What Return does on apps, files, folders, links and text, which actions their Actions menu shows, and the keys that run them.", bundle: .floe),
-            pane: .actions,
-            keywords: String(
-                localized: "actions, actions menu, primary action, return, enter, keys, keyboard shortcut",
-                bundle: .floe,
-                comment: "Words that find the Actions page in the settings search, separated by commas."
             ).searchTerms
         ),
         SearchEntry(
