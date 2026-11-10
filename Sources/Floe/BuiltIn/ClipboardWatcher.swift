@@ -55,7 +55,13 @@ final class ClipboardWatcher {
         return CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: any)
     }
 
+    /// Whether the pasteboard is being looked at, which it is between `start` and `stop`.
+    var isWatching: Bool {
+        !observers.isEmpty
+    }
+
     func start() {
+        guard observers.isEmpty else { return }
         let center = NSWorkspace.shared.notificationCenter
         observers = [
             center.addMainObserver(forName: NSWorkspace.screensDidSleepNotification, object: nil) { [weak self] in self?.pause() },

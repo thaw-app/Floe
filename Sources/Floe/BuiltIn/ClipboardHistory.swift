@@ -153,19 +153,20 @@ final class ClipboardHistoryStore: ObservableObject {
             isRecording: { AppSettings.shared.recordsClipboardHistory },
             deliver: { [weak self] in self?.take($0) }
         )
-        watcher.start()
         self.watcher = watcher
-        // Copies still waiting when recording stops, or when another app takes the clipboard, are not kept. When it
-        // starts again, only what is copied from then on is read.
+        // The pasteboard is looked at only while copies are kept. Copies still waiting when recording stops, or when
+        // another app takes the clipboard, are not kept; when it starts again, only what is copied from then on is read.
         let settings = AppSettings.shared
         recordingObserver = settings.$clipboardHandler.combineLatest(settings.$clipboardHistoryEnabled)
             .map { ClipboardApps.records(handler: $0, historyEnabled: $1) }
             .removeDuplicates()
             .sink { [weak self] records in
                 if records {
+                    self?.watcher?.start()
                     self?.watcher?.skipToNow()
                 } else {
                     self?.dropPendingCopies()
+                    self?.watcher?.stop()
                 }
             }
     }
