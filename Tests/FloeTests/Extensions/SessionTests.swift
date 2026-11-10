@@ -844,6 +844,32 @@ struct ExtensionSessionTests {
         #expect(recorder.sentEvents("onAction").map { $0["id"] as? Int } == [13, 12, 11], "a bare ↵ is still the main action")
     }
 
+    /// The action panel's keys, as an extension's menu takes them: the arrows, → into a submenu and not into an
+    /// action, typing to search, and ⌘K to close.
+    @Test func theActionPanelsKeysDriveTheMenu() throws {
+        func key(_ code: UInt16, _ flags: NSEvent.ModifierFlags = [], _ characters: String = "") throws -> NSEvent {
+            try #require(NSEvent.keyEvent(
+                with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0, windowNumber: 0, context: nil,
+                characters: characters, charactersIgnoringModifiers: characters, isARepeat: false, keyCode: code
+            ))
+        }
+        render(planets)
+        session.selection = 1
+        session.actionMenuOpen = true
+        #expect(model.handleSessionKey(try key(124), [], session))
+        #expect(session.actionPath.isEmpty, "Show is an action, so → opens nothing")
+        #expect(session.panelSubmenuTitle == nil)
+        #expect(model.handleSessionKey(try key(125), [], session))
+        #expect(session.actionSelection == 1)
+        #expect(model.handleSessionKey(try key(124), [], session))
+        #expect(session.panelSubmenuTitle == "More")
+        #expect(model.handleSessionKey(try key(34, [], "i"), [], session))
+        #expect(session.actionQuery == "i" && session.panelQuery == "i")
+        #expect(session.panelEntries.map(\.title) == ["Inner"])
+        #expect(model.handleSessionKey(try key(40, .command, "k"), .command, session))
+        #expect(session.actionMenuOpen == false)
+    }
+
     @Test func returnWithAModifierRunsItsActionEvenWithTheMenuOpen() throws {
         renderPasswordActions()
         session.actionMenuOpen = true

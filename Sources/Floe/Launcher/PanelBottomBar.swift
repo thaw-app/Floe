@@ -40,7 +40,7 @@ struct ActionsButton: View {
             KeyCapView(text: "⌘")
             KeyCapView(text: "K")
         }
-        .background { ActionsAnchor(model: model, actions: actions) }
+        .background { ActionsRegistration(model: model, actions: actions) }
     }
 }
 

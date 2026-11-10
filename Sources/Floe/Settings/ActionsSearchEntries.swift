@@ -8,7 +8,7 @@
 import Foundation
 
 extension SearchPaneLabel {
-    static let actions = SearchPaneLabel(title: String(localized: "Actions", bundle: .floe, comment: "The name of a settings page: what Return, the Actions menu and keys do on apps, files, folders, links and text."), symbol: "return")
+    static let actions = SearchPaneLabel(title: String(localized: "Actions", bundle: .floe, comment: "The name of a settings page."), symbol: "return")
 }
 
 extension SearchPane {
@@ -20,8 +20,8 @@ extension SearchIndex {
     static let actionsEntries: [SearchEntry] = [
         SearchEntry(
             id: "pane.actions",
-            title: String(localized: "Actions", bundle: .floe, comment: "The name of a settings page: what Return, the Actions menu and keys do on apps, files, folders, links and text."),
-            descriptionText: String(localized: "What Return does on apps, files, folders, links and text, which actions their Actions menu shows, and the keys that run them.", bundle: .floe),
+            title: SearchPaneLabel.actions.title,
+            descriptionText: String(localized: "What Return, the Actions menu and keys do on results.", bundle: .floe),
             pane: .actions,
             keywords: String(
                 localized: "actions, actions menu, primary action, return, enter, keys, keyboard shortcut",

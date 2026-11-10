@@ -131,7 +131,7 @@ final class LauncherModel: ObservableObject {
     private var pendingReset: DispatchWorkItem?
     private(set) var isPanelShown = false
     /// Floe's own Actions menu, when ⌘K opened it on a view's rows.
-    let actionPanel = ActionPanelHost()
+    let actionPanel = ActionPanelPresenter()
     /// True while an app's hotkey runs the Primary Action for apps, and while a question it asked goes ahead. The
     /// panel holds what the user left in it, so a row that leaves only hides it, and closing keeps a held command as
     /// it always does.

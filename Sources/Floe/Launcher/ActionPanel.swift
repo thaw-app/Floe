@@ -89,13 +89,13 @@ struct ActionPanelCard: View {
 
     private static let width: CGFloat = 320
     /// Past this the actions scroll, and the one the arrows are on is kept in sight.
-    private static let listHeight: CGFloat = 300
+    private static let maxListHeight: CGFloat = 300
     private static let searchHeight: CGFloat = 30
 
     /// What the search line, the margins and the line under it leave of the room for the rows.
     private var listHeight: CGFloat {
         let chrome = Self.searchHeight + ThawSpacing.tight + 1 + 2 * ThawSpacing.compact + 2 * ThawSpacing.row
-        return max(0, min(Self.listHeight, room - chrome))
+        return max(0, min(Self.maxListHeight, room - chrome))
     }
 
     var body: some View {

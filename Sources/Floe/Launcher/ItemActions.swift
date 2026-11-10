@@ -95,7 +95,7 @@ struct ActionHost {
 
 /// Registers a view's Actions rows while the view is on screen: the model's `showActions`, run by ⌘K and the
 /// Actions button, opens Floe's action panel on them.
-struct ActionsAnchor: NSViewRepresentable {
+struct ActionsRegistration: NSViewRepresentable {
     let model: LauncherModel
     let actions: (LauncherModel) -> [ItemAction?]
 
