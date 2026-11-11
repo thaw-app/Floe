@@ -142,7 +142,9 @@ nonisolated enum ContactSearch {
 
 /// `contact ana`: the people in Contacts whose name matches. The address book is read off the main thread and kept for a minute.
 struct ContactSearchScope: SearchScope {
-    let keyword = "contact"
+    nonisolated static let word = "contact"
+
+    let keyword = Self.word
     let title = String(localized: "Contacts", bundle: .floe, comment: "A section title. Contacts are the people in Apple's Contacts app.")
     let emptyTitle = String(localized: "No contact matches", bundle: .floe)
     var book = ContactBook.system

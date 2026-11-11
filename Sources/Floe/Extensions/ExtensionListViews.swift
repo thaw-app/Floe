@@ -70,12 +70,7 @@ struct ListRows: View, Equatable {
                             }
                             ListRow(node: row.node, assetsPath: session.command.assetsPath, selected: row.id == selectedID, compact: compact, hasIconColumn: hasIconColumn)
                                 .equatable()
-                                .onTapGesture(count: 2) {
-                                    session.selection = index
-                                    if let action = session.actions.first {
-                                        session.run(action)
-                                    }
-                                }
+                                .onTapGesture(count: 2) { session.runFirstAction(at: index) }
                                 .onTapGesture { session.selection = index }
                         }
                         .id(row.id)

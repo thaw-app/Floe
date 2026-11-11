@@ -220,7 +220,7 @@ final class ShellRows {
             nil,
             ItemAction(title: String(localized: "Copy Command", bundle: .floe), symbol: "doc.on.doc") { [weak self] in
                 self?.environment.copy(command)
-                self?.host.showHUD(String(localized: "Copied \(command)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+                self?.host.showHUD(HUDText.copied(command))
             },
         ]
     }
@@ -254,7 +254,7 @@ final class ShellRows {
             },
             ItemAction(title: String(localized: "Copy Process ID", bundle: .floe), symbol: "number") { [weak self] in
                 self?.environment.copy(String(process.pid))
-                self?.host.showHUD(String(localized: "Copied \(String(process.pid))", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+                self?.host.showHUD(HUDText.copied(String(process.pid)))
             },
         ]
     }

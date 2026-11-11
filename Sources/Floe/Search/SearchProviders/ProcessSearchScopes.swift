@@ -32,10 +32,6 @@ struct PortSearchScope: SearchScope {
         Processes.port(in: context.trimmed).map(String.init)
     }
 
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
-    }
-
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         guard let port = Int(text) else { return nil }
         return .once { [running, listening] in

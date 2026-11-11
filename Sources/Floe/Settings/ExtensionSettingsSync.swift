@@ -22,7 +22,7 @@ final class ExtensionSettingsSync {
 
         static func file(_ url: URL) -> Storage {
             Storage(
-                load: { (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(Held.self, from: $0) } },
+                load: { JSONFile.read(Held.self, from: url) },
                 save: { JSONFile.write($0, to: url) }
             )
         }

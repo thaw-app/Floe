@@ -11,8 +11,8 @@ import fs from "node:fs";
 import path from "node:path";
 import React, { createContext, useContext, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { ctx, request, send, setPopHandler, setPopToRootHandler } from "../bridge";
-import { flushCaches } from "../cache";
-import { createLocalStorage, storagePersistence } from "../local-storage";
+import { cachePersistence, flushCaches } from "../cache";
+import { createLocalStorage } from "../local-storage";
 import { render as mount } from "../renderer";
 import { BrowserExtension } from "./browser";
 import { WindowManagement } from "./window-management";
@@ -123,7 +123,7 @@ const dropdown = (prefix: string) => {
     }, []);
     const onChange = (next: string) => {
       setValue(next);
-      if (props.storeValue) storagePersistence.write(dropdownStore(), JSON.stringify({ ...readJSON(dropdownStore()), [storeKey]: next }));
+      if (props.storeValue) cachePersistence.write(dropdownStore(), JSON.stringify({ ...readJSON(dropdownStore()), [storeKey]: next }));
       props.onChange?.(next);
     };
     return h(Host, { ...props, value: props.value ?? value, onChange });
@@ -569,10 +569,7 @@ export function openExtensionPreferences(): Promise<void> {
   send({ type: "openPreferences" });
   return done;
 }
-export function openCommandPreferences(): Promise<void> {
-  send({ type: "openPreferences" });
-  return done;
-}
+export const openCommandPreferences = openExtensionPreferences;
 
 // Environment
 
@@ -590,7 +587,7 @@ export const environment = {
   get isDevelopment() { return process.env.FLOE_DEVELOPMENT === "1"; },
   // What the app looked like when it started this command, which is when an extension picks its pictures.
   get appearance() { return process.env.FLOE_APPEARANCE === "light" ? "light" : "dark"; },
-  get theme() { return process.env.FLOE_APPEARANCE === "light" ? "light" : "dark"; },
+  get theme() { return this.appearance; },
   textSize: "medium",
   get launchType() { return ctx.launchType; },
   // The app sets FLOE_AI when AI.ask has something to answer it: an installed tool or a filled-in API.

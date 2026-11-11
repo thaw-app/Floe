@@ -82,6 +82,24 @@ extension SearchContext {
     func text(afterOrAlone keyword: String) -> String? {
         text(after: keyword) ?? (trimmed.lowercased() == keyword.lowercased() ? "" : nil)
     }
+
+    /// As text(after:), and empty for the keyword and a space: for a scope that lists everything once the space is typed.
+    func text(afterOrWithSpace keyword: String) -> String? {
+        text(after: keyword) ?? (trimmed.lowercased() == keyword && query.last?.isWhitespace == true ? "" : nil)
+    }
+
+    /// Every row for no text, else the rows ranked against it.
+    func ranked(_ rows: [RootItem], for text: String) -> [RootItem] {
+        guard !text.isEmpty else { return rows }
+        return Ranking.search(
+            rows,
+            query: text,
+            favorites: favorites,
+            alias: { RootSearch.alias(for: $0, aliases: aliases) },
+            frecency: frecency,
+            limit: rows.count
+        ).map(\.item)
+    }
 }
 
 /// What one provider adds to the root search for one query.

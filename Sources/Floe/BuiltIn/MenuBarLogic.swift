@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import Algorithms
 import Foundation
 
 /// Names and identifies menu bar items from what Accessibility reports about them.
@@ -64,7 +65,7 @@ final class MenuBarSearchRecents {
 
     /// Live items for the stored identifiers, in recency order; ones not in the menu bar now are skipped.
     func resolve<Item: Identifiable>(in items: [Item]) -> [Item] where Item.ID == String {
-        let byID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let byID = items.keyed(by: \.id) { _, first, _ in first }
         return identifiers.compactMap { byID[$0] }
     }
 }

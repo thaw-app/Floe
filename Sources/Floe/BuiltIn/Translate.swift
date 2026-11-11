@@ -177,10 +177,6 @@ struct TranslateSearchScope: SearchScope {
         context.text(afterOrAlone: keyword)
     }
 
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
-    }
-
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         let typed = text.isEmpty ? clipboard() ?? "" : text
         return .once(after: pause) { [engine] in

@@ -101,9 +101,7 @@ function randomString(length: number): string {
 }
 
 function base64url(bytes: Uint8Array): string {
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCodePoint(byte);
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+  return Buffer.from(bytes).toString("base64url");
 }
 
 async function s256Challenge(verifier: string): Promise<string> {

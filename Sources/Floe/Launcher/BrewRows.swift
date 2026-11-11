@@ -36,7 +36,7 @@ final class BrewRows {
         }
         actions.append(ItemAction(title: String(localized: "Copy Name", bundle: .floe, comment: "A button that copies the name of the selected thing."), symbol: "doc.on.doc") { [weak self] in
             self?.pasteboard.copy(package.name)
-            self?.host.showHUD(String(localized: "Copied \(package.name)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+            self?.host.showHUD(HUDText.copied(package.name))
         })
         return actions
     }

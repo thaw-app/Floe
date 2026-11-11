@@ -195,11 +195,11 @@ enum SSHHostActions {
             nil,
             ItemAction(title: String(localized: "Copy Host Name", bundle: .floe), symbol: "doc.on.doc") {
                 copy(host.copyableName)
-                actionHost.showHUD(String(localized: "Copied \(host.copyableName)", bundle: .floe, comment: "The placeholder is the text that was copied."))
+                actionHost.showHUD(HUDText.copied(host.copyableName))
             },
             ItemAction(title: String(localized: "Copy SSH Command", bundle: .floe), symbol: "terminal") {
                 copy(command)
-                actionHost.showHUD(String(localized: "Copied \(command)", bundle: .floe, comment: "The placeholder is the text that was copied."))
+                actionHost.showHUD(HUDText.copied(command))
             },
         ]
     }

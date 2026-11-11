@@ -35,30 +35,19 @@ struct AppleShortcutSearchProvider: SearchProvider {
 
 /// `shortcuts mail`: the shortcuts that match, and every shortcut for the keyword and a space alone.
 struct AppleShortcutSearchScope: SearchScope {
-    let keyword = "shortcuts"
+    nonisolated static let word = "shortcuts"
+
+    let keyword = Self.word
     let title = String(localized: "Shortcuts", bundle: .floe, comment: "A section title. Shortcuts are what the user makes in Apple's Shortcuts app.")
     let emptyTitle = String(localized: "No shortcuts match", bundle: .floe)
 
     /// With the switch off or no shortcuts the word is not a scope, so a search that starts with it stays an ordinary one.
     func text(in context: SearchContext) -> String? {
         guard !context.shortcuts.isEmpty else { return nil }
-        if let text = context.text(after: keyword) {
-            return text
-        }
-        let isKeywordAndSpace = context.trimmed.lowercased() == keyword && context.query.last?.isWhitespace == true
-        return isKeywordAndSpace ? "" : nil
+        return context.text(afterOrWithSpace: keyword)
     }
 
     func results(for text: String, context: SearchContext) -> [RootItem] {
-        let rows = context.shortcutRows
-        guard !text.isEmpty else { return rows }
-        return Ranking.search(
-            rows,
-            query: text,
-            favorites: context.favorites,
-            alias: { RootSearch.alias(for: $0, aliases: context.aliases) },
-            frecency: context.frecency,
-            limit: rows.count
-        ).map(\.item)
+        context.ranked(context.shortcutRows, for: text)
     }
 }

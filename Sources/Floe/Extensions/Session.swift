@@ -332,6 +332,14 @@ final class ExtensionSession: ObservableObject {
         }
     }
 
+    /// A double click: the row is selected, then Return's action runs.
+    func runFirstAction(at index: Int) {
+        selection = index
+        if let action = actions.first {
+            run(action)
+        }
+    }
+
     func run(_ action: Node) {
         actionMenuOpen = false
         if action.bool("isSubmit") {

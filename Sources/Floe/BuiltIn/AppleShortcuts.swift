@@ -115,8 +115,7 @@ nonisolated struct ShortcutsTool: Sendable {
 
     /// The last line that says something, cut to what a HUD can show.
     static func lastLine(_ text: String) -> String? {
-        let line = text.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }.last { !$0.isEmpty }
-        return line.map { $0.count > failureLimit ? $0.prefix(failureLimit) + "…" : $0 }
+        ScriptRunner.lastLine(text).map { $0.count > failureLimit ? $0.prefix(failureLimit) + "…" : $0 }
     }
 
     /// No timeout: a shortcut may wait for the user or work for minutes, and it is Shortcuts' to end.

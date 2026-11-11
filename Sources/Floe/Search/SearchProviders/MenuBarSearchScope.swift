@@ -13,7 +13,9 @@ final class MenuBarSearchScope: SearchScope {
     /// Typing a query rescans at most this often; the scan is one Accessibility round trip per app.
     static let scanLifetime: TimeInterval = 10
 
-    let keyword = "menu"
+    nonisolated static let word = "menu"
+
+    let keyword = MenuBarSearchScope.word
     let title = String(localized: "Menu Bar Items", bundle: .floe)
     let emptyTitle = String(localized: "No menu bar items match", bundle: .floe)
 

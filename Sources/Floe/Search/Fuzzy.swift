@@ -196,3 +196,22 @@ nonisolated extension Fuzzy {
         return (score, matched)
     }
 }
+
+/// The words typed, for a list that keeps the rows holding every one of them.
+nonisolated struct TypedWords {
+    private let words: [Substring]
+
+    init(_ text: String) {
+        words = text.lowercased().split(separator: " ")
+    }
+
+    var isEmpty: Bool {
+        words.isEmpty
+    }
+
+    /// True for no words at all.
+    func areAll(in text: String) -> Bool {
+        let haystack = text.lowercased()
+        return words.allSatisfy { haystack.contains($0) }
+    }
+}

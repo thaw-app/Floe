@@ -99,10 +99,6 @@ struct BrewSearchScope: SearchScope {
         context.text(afterOrAlone: keyword)
     }
 
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
-    }
-
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         .once { [read] in Homebrew.ranked(read(), query: text).prefix(Homebrew.rowLimit).map(RootItem.brew) }
     }

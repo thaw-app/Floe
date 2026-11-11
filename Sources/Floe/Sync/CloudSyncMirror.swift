@@ -48,11 +48,8 @@ struct CloudSyncFiles {
         let mirror = folder.appendingPathComponent("SyncMirror.json")
         let state = folder.appendingPathComponent("SyncState.json")
         return CloudSyncFiles(
-            loadMirror: { (try? Data(contentsOf: mirror)).flatMap { try? JSONDecoder().decode(SyncMirror.self, from: $0) } },
-            saveMirror: { value in
-                try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-                try? JSONEncoder().encode(value).write(to: mirror, options: .atomic)
-            },
+            loadMirror: { JSONFile.read(SyncMirror.self, from: mirror) },
+            saveMirror: { JSONFile.write($0, to: mirror) },
             loadState: { try? Data(contentsOf: state) },
             saveState: { data in
                 guard let data else {

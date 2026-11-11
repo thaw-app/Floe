@@ -65,15 +65,15 @@ nonisolated enum MenuBarExtras {
     private static func extras(of app: NSRunningApplication) -> [MenuBarExtra] {
         let application = AXUIElementCreateApplication(app.processIdentifier)
         AXUIElementSetMessagingTimeout(application, 0.25)
-        guard let bar: AXUIElement = value(application, "AXExtrasMenuBar"),
-              let items: [AXUIElement] = value(bar, kAXChildrenAttribute) else { return [] }
+        guard let bar: AXUIElement = OpenWindows.value(application, "AXExtrasMenuBar"),
+              let items: [AXUIElement] = OpenWindows.value(bar, kAXChildrenAttribute) else { return [] }
         let ownerName = app.localizedName ?? ""
         return items.enumerated().compactMap { index, item in
-            let identifier: String? = value(item, "AXIdentifier")
+            let identifier: String? = OpenWindows.value(item, "AXIdentifier")
             let label = MenuBarNaming.label(
-                title: value(item, kAXTitleAttribute),
-                description: value(item, kAXDescriptionAttribute),
-                help: value(item, kAXHelpAttribute)
+                title: OpenWindows.value(item, kAXTitleAttribute),
+                description: OpenWindows.value(item, kAXDescriptionAttribute),
+                help: OpenWindows.value(item, kAXHelpAttribute)
             )
             guard MenuBarNaming.isListed(identifier: identifier, label: label, ownerName: ownerName) else { return nil }
             let key = MenuBarNaming.identifier(
@@ -90,10 +90,10 @@ nonisolated enum MenuBarExtras {
     private static func frame(of element: AXUIElement) -> CGRect {
         var origin = CGPoint.zero
         var size = CGSize.zero
-        if let position: AXValue = value(element, kAXPositionAttribute) {
+        if let position: AXValue = OpenWindows.value(element, kAXPositionAttribute) {
             AXValueGetValue(position, .cgPoint, &origin)
         }
-        if let extent: AXValue = value(element, kAXSizeAttribute) {
+        if let extent: AXValue = OpenWindows.value(element, kAXSizeAttribute) {
             AXValueGetValue(extent, .cgSize, &size)
         }
         return CGRect(origin: origin, size: size)
@@ -103,11 +103,5 @@ nonisolated enum MenuBarExtras {
     @discardableResult
     static func open(_ extra: MenuBarExtra) -> Bool {
         AXUIElementPerformAction(extra.element, kAXPressAction as CFString) == .success
-    }
-
-    private static func value<T>(_ element: AXUIElement, _ attribute: String) -> T? {
-        var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success else { return nil }
-        return value as? T
     }
 }

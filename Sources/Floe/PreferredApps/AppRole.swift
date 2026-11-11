@@ -142,3 +142,10 @@ struct RoleApp: Hashable {
     let role: AppRole
     let app: ResolvedApp
 }
+
+extension [RoleApp] {
+    /// The app a role stands for; nil when the role has none on this Mac.
+    func app(for role: AppRole) -> ResolvedApp? {
+        first { $0.role == role }?.app
+    }
+}

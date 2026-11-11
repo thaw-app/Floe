@@ -14,7 +14,9 @@ final class TabSearchSource: SearchSource {
     static let listLifetime: TimeInterval = 5
 
     let id = SearchSourceInfo.tabs.id
-    let keyword = "tabs"
+    nonisolated static let word = "tabs"
+
+    let keyword = TabSearchSource.word
     let title = String(localized: "Browser Tabs", bundle: .floe)
     let emptyTitle = String(localized: "No open tabs match", bundle: .floe)
 

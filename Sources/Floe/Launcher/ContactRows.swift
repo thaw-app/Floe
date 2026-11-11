@@ -49,7 +49,7 @@ final class ContactRows {
 
     private func copyContactDetail(_ text: String) {
         NSPasteboard.general.copy(text)
-        host.showHUD(String(localized: "Copied \(text)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+        host.showHUD(HUDText.copied(text))
     }
 }
 

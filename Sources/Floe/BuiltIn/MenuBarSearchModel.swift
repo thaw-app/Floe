@@ -96,11 +96,6 @@ final class MenuBarSearchModel: ObservableObject {
             .map { MenuBarResult(extra: $0, section: nil) }
     }
 
-    /// The owning app's name, when it says something the item's name doesn't.
-    func ownerLine(for extra: MenuBarExtra) -> String? {
-        extra.ownerName.isEmpty || extra.ownerName == extra.name ? nil : extra.ownerName
-    }
-
     /// The name the user gave the item, else the one its app reports.
     func displayName(for extra: MenuBarExtra) -> String {
         MenuBarSearchScope.displayName(for: extra, names: settings.menuBarItemNames)
@@ -141,7 +136,7 @@ final class MenuBarSearchModel: ObservableObject {
             ItemAction(title: String(localized: "Copy Name", bundle: .floe), symbol: "doc.on.doc") { [weak self] in
                 guard let self else { return }
                 NSPasteboard.general.copy(displayName(for: extra))
-                host.showHUD(String(localized: "Copied \(displayName(for: extra))", bundle: .floe, comment: "The placeholder is the text that was copied."))
+                host.showHUD(HUDText.copied(displayName(for: extra)))
             },
         ]
         if settings.menuBarItemNames[extra.id] != nil {

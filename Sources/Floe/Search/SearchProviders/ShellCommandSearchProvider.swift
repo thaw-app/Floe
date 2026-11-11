@@ -20,7 +20,7 @@ struct ShellCommandSearchProvider: SearchProvider {
     func contribution(for context: SearchContext) -> SearchContribution {
         let shell = context.shell
         let prefix = shell.runs ? shell.prefix : nil
-        let terminal = context.preferredApps.first { $0.role == .terminal }?.app
+        let terminal = context.preferredApps.app(for: .terminal)
         let result: (ShellRow) -> RootResult = { RootResult(item: .shell($0, terminal: terminal), section: nil) }
         if let typed = ShellCommand.typed(in: context.query, prefix: prefix) {
             var rows = ShellCommand.command(in: context.query, prefix: prefix).map { [ShellRow(text: $0, origin: .typed)] } ?? []
@@ -39,7 +39,7 @@ struct ShellCommandSearchProvider: SearchProvider {
         let shell = context.shell
         guard shell.runs, shell.recognizes, ShellCommand.typed(in: context.query, prefix: shell.prefix) == nil,
               ShellCommand.reads(asACommand: context.trimmed, isProgram: isProgram) else { return nil }
-        let terminal = context.preferredApps.first { $0.role == .terminal }?.app
+        let terminal = context.preferredApps.app(for: .terminal)
         return .shell(ShellRow(text: context.trimmed, origin: .typed), terminal: terminal)
     }
 }

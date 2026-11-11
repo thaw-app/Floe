@@ -180,8 +180,8 @@ final nonisolated class FileIndexService: Sendable {
 
     /// What was saved with the index, when it is for the volume the folder is on now.
     private func stamp(for root: String) -> Stamp? {
-        guard let saved = environment.saved, let data = try? Data(contentsOf: Self.stampFile(for: saved)),
-              let stamp = try? JSONDecoder().decode(Stamp.self, from: data), stamp.volume == environment.volume(root)
+        guard let saved = environment.saved, let stamp = JSONFile.read(Stamp.self, from: Self.stampFile(for: saved)),
+              stamp.volume == environment.volume(root)
         else { return nil }
         return stamp
     }

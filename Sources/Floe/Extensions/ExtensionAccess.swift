@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import Algorithms
 import Foundation
 
 /// What an extension has been seen to reach, as its process reported it: a record, not a limit.
@@ -31,7 +32,7 @@ nonisolated struct ExtensionAccess: Codable, Equatable, Sendable {
             let fresh = (report[key] as? [String] ?? []).filter { !$0.isEmpty && !list.contains($0) }
             guard !fresh.isEmpty else { return }
             // An extension gone wrong must not fill the disk: the first of each kind are kept.
-            list = Array((list + fresh).sorted().prefix(Self.limit))
+            list = (list + fresh).min(count: Self.limit)
             changed = true
         }
         merge(&hosts, "hosts")

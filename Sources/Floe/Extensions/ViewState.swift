@@ -46,12 +46,11 @@ enum ViewState {
                 rows.append(Row(node: child, sectionTitle: nil))
             }
         }
-        let tokens = searchText.lowercased().split(separator: " ")
-        guard filtersLocally(view), !tokens.isEmpty else { return rows }
+        let words = TypedWords(searchText)
+        guard filtersLocally(view), !words.isEmpty else { return rows }
         return rows.filter { row in
             let keywords = (row.node.props["keywords"] as? [String] ?? []).joined(separator: " ")
-            let haystack = "\(row.node.string("title") ?? "") \(row.node.string("subtitle") ?? "") \(keywords)".lowercased()
-            return tokens.allSatisfy { haystack.contains($0) }
+            return words.areAll(in: "\(row.node.string("title") ?? "") \(row.node.string("subtitle") ?? "") \(keywords)")
         }
     }
 

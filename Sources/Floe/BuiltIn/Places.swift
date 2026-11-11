@@ -62,10 +62,6 @@ struct PlaceSearchScope: SearchScope {
     var finder = Places.Finder.apple
     var pause = Duration.milliseconds(400)
 
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
-    }
-
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         .once(after: pause) { [finder] in await finder.find(text).map(RootItem.place) }
     }

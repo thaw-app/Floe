@@ -1360,7 +1360,7 @@
       "comment" : "Said after something was copied.\nShown briefly after something was put on the clipboard."
     },
     "Copied %@" : {
-      "comment" : "Shown briefly after copying. The placeholder is what was copied, such as a file name.\nThe placeholder is the text that was copied."
+      "comment" : "Shown briefly after copying. The placeholder is what was copied, such as a file name."
     },
     "Copied Address" : {
 

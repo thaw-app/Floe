@@ -24,7 +24,7 @@ final class EmojiRows {
     func copy(_ entry: EmojiResult) {
         recordUse(entry.id)
         pasteboard.copy(entry.character)
-        host.showHUD(String(localized: "Copied \(entry.character)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+        host.showHUD(HUDText.copied(entry.character))
     }
 
     /// Pastes an emoji into the app in front: onto the clipboard plus Command-V once the panel is gone,

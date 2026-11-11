@@ -27,9 +27,7 @@ extension ExtensionStore {
         let url = Paths.extensions
             .appendingPathComponent(name, isDirectory: true)
             .appendingPathComponent(recordFileName)
-        guard let data = try? Data(contentsOf: url),
-              let record = try? JSONDecoder().decode(Record.self, from: data) else { return nil }
-        return record.commit
+        return JSONFile.read(Record.self, from: url)?.commit
     }
 
     static func fetchExtensionCopy(name: String) async throws -> FetchedExtension {
@@ -87,10 +85,7 @@ extension ExtensionStore {
         if movedAside {
             try? fileManager.removeItem(at: backup)
         }
-        let record = Record(name: name, commit: commit, installedAt: Date())
-        if let data = try? JSONEncoder().encode(record) {
-            try? data.write(to: destination.appendingPathComponent(recordFileName), options: .atomic)
-        }
+        JSONFile.write(Record(name: name, commit: commit, installedAt: Date()), to: destination.appendingPathComponent(recordFileName))
     }
 
     private static func gitExecutable() -> String {

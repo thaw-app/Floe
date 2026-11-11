@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import Algorithms
 import AppKit
 import FloeRust
 import Foundation
@@ -50,7 +51,7 @@ nonisolated extension Calculator {
     }
 
     private static func withoutTrailingZeros(_ digits: some StringProtocol) -> String {
-        String(digits.reversed().drop(while: { $0 == "0" }).reversed())
+        String(digits.trimmingSuffix { $0 == "0" })
     }
 
     /// Significant digits rounded to `precision` and written as a mantissa with a power of ten.

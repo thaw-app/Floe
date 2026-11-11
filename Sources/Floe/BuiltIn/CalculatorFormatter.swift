@@ -184,9 +184,13 @@ nonisolated enum CalculatorFormatter {
     }
 
     /// Determines if a query specifies a target base (e.g. `to binary` -> 2, `to hex` -> 16, `to octal` -> 8, `to base 16` -> 16).
+    private static let targetBasePattern = try? NSRegularExpression(
+        pattern: #"(?:\b(?:to|in|as|into)\s+)(?:base\s+([0-9]+)|(binary|bin|hexadecimal|hex|octal|oct|decimal|dec))\b"#,
+        options: .caseInsensitive
+    )
+
     static func targetBase(from query: String) -> Int? {
-        let pattern = #"(?:\b(?:to|in|as|into)\s+)(?:base\s+([0-9]+)|(binary|bin|hexadecimal|hex|octal|oct|decimal|dec))\b"#
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else { return nil }
+        guard let regex = targetBasePattern else { return nil }
         let ns = query as NSString
         guard let match = regex.matches(in: query, range: NSRange(location: 0, length: ns.length)).last else {
             return nil

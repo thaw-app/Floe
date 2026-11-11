@@ -171,7 +171,7 @@ final class LauncherFeatures {
         menuItems.openSearch = { model?.openMenuItemSearch() }
         brew.host = host
         brew.runInTerminal = { [shell] command in
-            let terminal = model?.resolvedApps.apps.first { $0.role == .terminal }?.app
+            let terminal = model?.resolvedApps.apps.app(for: .terminal)
             shell.runShellCommand(command, terminal: terminal, inTerminal: true)
         }
         sound.host = host
