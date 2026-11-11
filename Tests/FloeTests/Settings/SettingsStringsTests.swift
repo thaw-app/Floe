@@ -60,7 +60,8 @@ struct SettingsStringsTests {
             "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "privacy.diagnosticLogging",
             "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.floatingNoteHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.definitionKeyword", "commands.thawSupport",
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
-            "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands", "commands.actionChoices",
+            "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",
+            "pane.actions", "actions.actionChoices",
             "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol",
         ])
     }

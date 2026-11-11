@@ -9,8 +9,7 @@ import AppKit
 import SwiftUI
 import ThawUI
 
-/// Where commands come from and how each is reached: Floe's own, the shell, scripts, the menu bar and extensions,
-/// and what Return, the Actions menu and keys do on apps, files, folders and links.
+/// Where commands come from and how each is reached: Floe's own, the shell, scripts, the menu bar and extensions.
 struct CommandsSettingsView: View {
     @ObservedObject var catalog: CatalogStore
     @ObservedObject var settings: AppSettings
@@ -41,7 +40,6 @@ struct CommandsSettingsView: View {
             case .extensions: extensionsSection
             case .scripts: scriptsSection
             case .menuBar: MenuBarCommandsSettingsSection(catalog: catalog, settings: settings)
-            case .actions: ActionsSettingsSection(settings: settings, scripts: catalog.allScripts)
             }
         }
         .formStyle(.grouped)
@@ -112,20 +110,18 @@ struct CommandsSettingsView: View {
     }
 }
 
-/// The Commands page's tabs: Floe's own, extensions, script commands, what runs in the menu bar, and actions on results.
+/// The Commands page's tabs: Floe's own, extensions, script commands and what runs in the menu bar.
 nonisolated enum CommandsTab: SettingsTab {
     case builtIn
     case extensions
     case scripts
     case menuBar
-    case actions
 
     init?(entry id: String) {
         switch id {
         case "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime": self = .extensions
         case "commands.scriptsFolder": self = .scripts
         case "commands.menuBarCommands": self = .menuBar
-        case "commands.actionChoices": self = .actions
         case _ where id.hasPrefix("commands."): self = .builtIn
         default: return nil
         }
@@ -137,7 +133,6 @@ nonisolated enum CommandsTab: SettingsTab {
         case .extensions: "Extensions"
         case .scripts: "Scripts"
         case .menuBar: "Menu Bar"
-        case .actions: "Actions"
         }
     }
 
@@ -147,7 +142,6 @@ nonisolated enum CommandsTab: SettingsTab {
         case .extensions: "puzzlepiece.extension"
         case .scripts: "terminal"
         case .menuBar: "menubar.rectangle"
-        case .actions: "return"
         }
     }
 }

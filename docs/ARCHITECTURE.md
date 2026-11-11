@@ -44,12 +44,13 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     options, the update rules and the generated credits. Also the launcher's side of Settings: the process handle
     (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the launcher does with them.
   - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
-    and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the Actions menus, the catalog
+    and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the action panel an extension's ⌘K and Floe's own Actions menu share
+    (`ActionPanel.swift`, with Floe's rows in `ItemActionPanel.swift`), the catalog
     of apps and commands with its scans (`Catalog.swift`, which also holds `Paths`), and Markdown.
   - `Actions`: the keys and the user's choices for a result's Actions menu, by kind of result (app, file, folder or
     link). Floe's own keys for its rows (`ActionKeys.swift`, with `SubjectKind` and `KeyLayout`), the choices for one
     kind and the rules they follow (`ActionChoices.swift`), what the launcher asks for Return, the menu and the keys
-    (`AlternativeActions.swift`), what the Actions tab in Settings lists and writes (`ActionOptions.swift`), and the
+    (`AlternativeActions.swift`), what the Actions page in Settings lists and writes (`ActionOptions.swift`), and the
     user's script commands as rows of the menu, with what they are told about the result (`ScriptActions.swift`).
   - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
   - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
@@ -69,7 +70,8 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     conversation with no earlier turns.
   - `Extensions`: a running command (`Session.swift` and its extensions), what it asks the app for
     (`HostRequest.swift`), the manifest, the store, menu bar commands, the background scheduler, OAuth, hot reload,
-    and the views an extension's forms and errors are drawn with.
+    and the views an extension's forms and errors are drawn with, `ActionMenu`, its ⌘K, among them, which draws
+    the shared action panel.
   - `Settings`: the settings model (`Settings.swift`), its window, pages and sections, settings search entries,
     import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process. It lists
     commands, scripts and apps from a `CatalogStore` (in `Launcher`) of its own, as the launcher does.

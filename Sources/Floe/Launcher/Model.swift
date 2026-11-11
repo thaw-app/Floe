@@ -130,6 +130,8 @@ final class LauncherModel: ObservableObject {
     private var didAutorun = false
     private var pendingReset: DispatchWorkItem?
     private(set) var isPanelShown = false
+    /// Floe's own Actions menu, when ⌘K opened it on a view's rows.
+    let actionPanel = ActionPanelPresenter()
     /// True while an app's hotkey runs the Primary Action for apps, and while a question it asked goes ahead. The
     /// panel holds what the user left in it, so a row that leaves only hides it, and closing keeps a held command as
     /// it always does.
@@ -249,8 +251,9 @@ final class LauncherModel: ObservableObject {
     /// The panel closed. The open command survives for the configured delay, so reopening resumes it.
     func panelDidHide() {
         isPanelShown = false
-        // Closing the panel is no answer to go ahead on.
+        // Closing the panel is no answer to go ahead on, and closes its Actions menu as a click outside a menu does.
         question = nil
+        actionPanel.close()
         pendingReset?.cancel()
         let delay = settings.popToRootDelay
         guard delay > 0, runner.session != nil || setup != nil else {
@@ -288,6 +291,7 @@ final class LauncherModel: ObservableObject {
         closeNoteDesk()
         closeAskAI()
         recalledQuery = nil
+        actionPanel.close()
         query = ""
     }
 }

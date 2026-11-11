@@ -157,17 +157,20 @@ struct RootView: View {
         PanelSections(showsContent: !isCollapsed) {
             SearchBar(placeholder: String(localized: "Search apps and commands…", bundle: .floe), text: $model.query, focusToken: model.focusToken, isLoading: model.catalog.isLoading || model.isAwaitingResults, isRefused: refusal.isShown) { EmptyView() }
         } content: {
-            if results.isEmpty, !model.catalog.isLoading, !model.isAwaitingResults {
-                ThawEmptyState(
-                    systemImage: "magnifyingglass",
-                    title: .verbatim(model.activeScope?.scope.emptyTitle ?? String(localized: "Nothing matches", bundle: .floe)),
-                    caption: model.activeScope == nil ? "Try part of an app's or a command's name, or an alias." : nil
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                RootResultList(model: model, results: results)
-                    .equatable()
+            Group {
+                if results.isEmpty, !model.catalog.isLoading, !model.isAwaitingResults {
+                    ThawEmptyState(
+                        systemImage: "magnifyingglass",
+                        title: .verbatim(model.activeScope?.scope.emptyTitle ?? String(localized: "Nothing matches", bundle: .floe)),
+                        caption: model.activeScope == nil ? "Try part of an app's or a command's name, or an alias." : nil
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    RootResultList(model: model, results: results)
+                        .equatable()
+                }
             }
+            .actionPanel(model.actionPanel)
             bottomBar(results: results)
         }
     }

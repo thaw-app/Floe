@@ -224,73 +224,67 @@ struct DropdownView: View, Equatable {
     }
 }
 
+/// An extension's ⌘K, drawn by the action panel Floe's own rows use too.
 struct ActionMenu: View {
     @ObservedObject var session: ExtensionSession
 
-    private static let width: CGFloat = 320
-    /// Past this the actions scroll, and the one the arrows are on is kept in sight.
-    private static let listHeight: CGFloat = 300
-    private static let searchHeight: CGFloat = 30
-
     var body: some View {
-        let entries = session.menuEntries
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: ThawSpacing.compact) {
-                if let submenu = session.actionPath.last {
-                    Image(systemName: "chevron.left").font(ThawType.caption).foregroundStyle(.secondary)
-                    Text(submenu.string("title") ?? String(localized: "Submenu", bundle: .floe, comment: "Stands in for a submenu's title when the extension gave none.")).fontWeight(.medium)
-                }
-                Text(session.actionQuery.isEmpty ? String(localized: "Search actions…", bundle: .floe) : session.actionQuery)
-                    .foregroundStyle(session.actionQuery.isEmpty ? .tertiary : .primary)
-                Spacer()
-            }
-            .padding(.horizontal, ThawSpacing.row)
-            .frame(height: Self.searchHeight)
-            Divider().padding(.bottom, ThawSpacing.tight)
-            ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
-                            if let section = entry.section, !section.isEmpty, index == 0 || entries[index - 1].section != section {
-                                ListSectionHeading(title: section, isFirst: index == 0)
-                            }
-                            row(entry, selected: index == session.actionSelection)
-                                .onTapGesture { session.activateMenuEntry(at: index) }
-                                .id(index)
-                        }
-                        if entries.isEmpty {
-                            Text("No matching actions").foregroundStyle(.secondary).padding(ThawSpacing.row)
-                        }
-                    }
-                }
-                .frame(maxHeight: Self.listHeight)
-                .fixedSize(horizontal: false, vertical: true)
-                .scrollEdgeEffectStyle(.soft, for: .top)
-                .onChange(of: session.actionSelection) { proxy.scrollTo(session.actionSelection) }
-            }
+        ActionPanelCard(
+            entries: session.panelEntries,
+            query: session.panelQuery,
+            submenuTitle: session.panelSubmenuTitle,
+            selection: session.panelSelection
+        ) { session.activateMenuEntry(at: $0) }
+    }
+}
+
+/// The extension's ActionPanel, as the action panel lists and drives it.
+extension ExtensionSession: ActionPanelDriver {
+    var panelEntries: [ActionPanelEntry] {
+        menuEntries.map { entry in
+            let action = entry.node
+            return ActionPanelEntry(
+                id: entry.id,
+                title: action.string("title") ?? String(localized: "Action", bundle: .floe, comment: "Stands in for an action's title when the extension gave none."),
+                icon: .icon(action.props["icon"], assetsPath: command.assetsPath),
+                section: entry.section,
+                keys: Shortcuts.label(action.props["shortcut"]).map(ActionPanelEntry.Keys.label),
+                isSubmenu: entry.isSubmenu,
+                isDestructive: action.props["style"] as? String == "destructive"
+            )
         }
-        .font(ThawType.body)
-        .padding(ThawSpacing.compact)
-        .frame(width: Self.width)
-        .thawGlass(.borderlessPanel, in: RoundedRectangle(cornerRadius: ThawRadius.card, style: .continuous))
-        .padding(ThawSpacing.row)
     }
 
-    private func row(_ entry: MenuEntry, selected: Bool) -> some View {
-        let action = entry.node
-        return HStack(spacing: ThawSpacing.base) {
-            ListRowIcon(source: .icon(action.props["icon"], assetsPath: session.command.assetsPath))
-            Text(action.string("title") ?? String(localized: "Action", bundle: .floe, comment: "Stands in for an action's title when the extension gave none."))
-                .foregroundStyle(action.props["style"] as? String == "destructive" ? Color.red : Color.primary)
-                .lineLimit(1)
-            Spacer()
-            if let label = Shortcuts.label(action.props["shortcut"]) {
-                KeyCap(label)
-            }
-            if entry.isSubmenu {
-                Image(systemName: "chevron.right").font(ThawType.caption).foregroundStyle(.secondary)
-            }
+    var panelQuery: String {
+        get { actionQuery }
+        set { actionQuery = newValue }
+    }
+
+    var panelSelection: Int {
+        get { actionSelection }
+        set { actionSelection = newValue }
+    }
+
+    var panelSubmenuTitle: String? {
+        actionPath.last.map { $0.string("title") ?? String(localized: "Submenu", bundle: .floe, comment: "Stands in for a submenu's title when the extension gave none.") }
+    }
+
+    func activatePanelEntry(at index: Int) {
+        activateMenuEntry(at: index)
+    }
+
+    func openPanelSubmenu(at index: Int) {
+        let entries = menuEntries
+        if entries.indices.contains(index), entries[index].isSubmenu {
+            openSubmenu(entries[index].node)
         }
-        .modifier(RowBackground(selected: selected))
+    }
+
+    func stepBackInPanel() {
+        closeSubmenuOrMenu()
+    }
+
+    func closePanel() {
+        actionMenuOpen = false
     }
 }

@@ -284,6 +284,9 @@
     "%@, on this Mac" : {
       "comment" : "The placeholder is the address of a server such as localhost:8080."
     },
+    "%@, submenu" : {
+      "comment" : "Said by VoiceOver for a row of the Actions menu that opens a submenu. The placeholder is the row's title."
+    },
     "%@: %@" : {
       "comment" : "The first placeholder says what failed, the second is the reason.",
       "localizations" : {
@@ -530,7 +533,7 @@
     "@floe.subjects names no kind of result. Use app, file, folder or url." : {
       "comment" : "The word that starts with @floe and the four kinds are typed into a script as they are."
     },
-    "@raycast.argument%lld is required, but a script with @floe.subjects runs from the Actions menu, where nothing is typed. Add \"optional\": true." : {
+    "@raycast.argument%lld is required, but a script with @floe.subjects runs from the Actions menu, where no argument can be given. Add \"optional\": true." : {
       "comment" : "The words that start with @raycast and @floe and the text in quotes are typed into a script as they are, and the placeholder is the number of the argument."
     },
     "@raycast.argument%lld isn't valid JSON with a placeholder, e.g. {\"type\": \"text\", \"placeholder\": \"Name\"}." : {
@@ -666,7 +669,7 @@
       "comment" : "Stands in for an action's title when the extension gave none."
     },
     "Actions" : {
-
+      "comment" : "The name of a settings page."
     },
     "Actions Menu" : {
 
@@ -1251,7 +1254,7 @@
     "Click a menu bar item" : {
 
     },
-    "Click an app to give it an alias or a hotkey. A hotkey runs the Primary Action chosen for apps in Settings › Commands › Actions. With none chosen, or one that can't run, it opens the app, or hides it if it's already in front." : {
+    "Click an app to give it an alias or a hotkey. A hotkey runs the Primary Action chosen for apps in Settings › Actions. With none chosen, or one that can't run, it opens the app, or hides it if it's already in front." : {
 
     },
     "Clipboard" : {
@@ -4996,6 +4999,9 @@
     "What It Has Reached" : {
 
     },
+    "What Return, the Actions menu and keys do on results." : {
+
+    },
     "What answers Ask AI and extensions." : {
 
     },
@@ -5103,6 +5109,9 @@
     },
     "accounts, guest user" : {
       "comment" : "Words that find the Users & Groups pane of System Settings, separated by commas."
+    },
+    "actions, actions menu, primary action, return, enter, keys, keyboard shortcut" : {
+      "comment" : "Words that find the Actions page in the settings search, separated by commas."
     },
     "add to note" : {
       "comment" : "A search keyword for the row that adds text to a note. Lowercase."

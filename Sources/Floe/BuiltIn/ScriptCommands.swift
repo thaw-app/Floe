@@ -57,7 +57,7 @@ nonisolated enum ScriptParseError: Error, LocalizedError, Sendable, Hashable {
         case .noSubjects:
             String(localized: "@floe.subjects names no kind of result. Use app, file, folder or url.", bundle: .floe, comment: "The word that starts with @floe and the four kinds are typed into a script as they are.")
         case let .actionNeedsArgument(index):
-            String(localized: "@raycast.argument\(index) is required, but a script with @floe.subjects runs from the Actions menu, where nothing is typed. Add \"optional\": true.", bundle: .floe, comment: "The words that start with @raycast and @floe and the text in quotes are typed into a script as they are, and the placeholder is the number of the argument.")
+            String(localized: "@raycast.argument\(index) is required, but a script with @floe.subjects runs from the Actions menu, where no argument can be given. Add \"optional\": true.", bundle: .floe, comment: "The words that start with @raycast and @floe and the text in quotes are typed into a script as they are, and the placeholder is the number of the argument.")
         }
     }
 }
@@ -157,7 +157,7 @@ nonisolated struct ScriptCommand: Identifiable, Sendable, Hashable {
     }
 
     /// The kinds of result a `@floe.subjects` line names. A script that acts on results is run from the Actions menu,
-    /// where nothing is typed, so it cannot need an argument.
+    /// where no argument can be given, so it cannot need one.
     private static func actionSubjects(_ line: String?, firstRequired: Int?) -> Result<Set<SubjectKind>, ScriptParseError> {
         guard let line else { return .success([]) }
         return SubjectKind.list(line).flatMap { kinds in

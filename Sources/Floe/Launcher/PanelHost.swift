@@ -19,7 +19,7 @@ struct PanelHost {
     var openSettings: (SettingsPage?) -> Void = { _ in
         // No settings window.
     }
-    /// Pops the Actions menu of the search that is on screen: root, files or menu bar items.
+    /// Opens or closes the Actions menu of the search that is on screen: root, files, menu bar items or Ask AI.
     var showActions: () -> Void = { /* no panel */ }
     /// Opens the floating note's window, or brings it forward. Set only where the panel is drawn.
     var showFloatingNote: () -> Void = { /* no window */ }

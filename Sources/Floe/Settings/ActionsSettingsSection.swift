@@ -8,7 +8,7 @@
 import SwiftUI
 import ThawUI
 
-/// The Commands page's Actions tab: for each kind of result, what Return does, and for each of Floe's rows of its
+/// The Actions page: for each kind of result, what Return does, and for each of Floe's rows of its
 /// Actions menu and each of the user's scripts that acts on the kind, keys that run it and whether the menu shows it.
 /// What is offered and what is refused is decided in ActionOptions.swift.
 struct ActionsSettingsSection: View {

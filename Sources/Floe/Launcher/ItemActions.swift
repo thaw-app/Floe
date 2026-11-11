@@ -93,31 +93,9 @@ struct ActionHost {
     var quickLook: (URL) -> Void = { QuickLookPresenter.shared.show($0) }
 }
 
-enum ActionsMenu {
-    static func menu(_ actions: [ItemAction?]) -> NSMenu {
-        let menu = NSMenu()
-        for action in actions {
-            guard let action else {
-                menu.addItem(.separator())
-                continue
-            }
-            let item = ClosureMenuItem(title: action.title) { action.run() }
-            item.image = action.icon ?? NSImage(systemSymbolName: action.symbol, accessibilityDescription: nil)
-            if let keys = action.shortcut {
-                (item.keyEquivalent, item.keyEquivalentModifierMask) = keys.menuKeyEquivalent
-            }
-            if !action.children.isEmpty {
-                item.submenu = Self.menu(action.children)
-            }
-            menu.addItem(item)
-        }
-        return menu
-    }
-}
-
-/// An empty AppKit view behind an Actions button, for NSMenu.popUp to position against. While it
-/// is on screen, the model's `showActions` pops this view's menu.
-struct ActionsAnchor: NSViewRepresentable {
+/// Registers a view's Actions rows while the view is on screen: the model's `showActions`, run by ⌘K and the
+/// Actions button, opens Floe's action panel on them.
+struct ActionsRegistration: NSViewRepresentable {
     let model: LauncherModel
     let actions: (LauncherModel) -> [ItemAction?]
 
@@ -133,13 +111,8 @@ struct ActionsAnchor: NSViewRepresentable {
 
     private func register(_ view: NSView) {
         model.panelHost.showActions = { [weak view, weak model, actions] in
-            guard let view, let model else { return }
-            let list = actions(model)
-            guard !list.isEmpty else { return }
-            // The panel would read the menu's tracking as losing focus and close under it.
-            _ = ModalGuard.run {
-                ActionsMenu.menu(list).popUp(positioning: nil, at: NSPoint(x: 0, y: view.bounds.maxY + 4), in: view)
-            }
+            guard view != nil, let model else { return }
+            model.actionPanel.toggle(actions(model))
         }
     }
 }

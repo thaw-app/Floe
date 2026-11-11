@@ -45,6 +45,7 @@ struct SettingsView: View {
         return switch selection.page {
         case .general: SearchPaneLabel.general.title
         case .commands: SearchPaneLabel.commands.title
+        case .actions: SearchPaneLabel.actions.title
         case .applications: SearchPaneLabel.applications.title
         case .ai: SearchPaneLabel.ai.title
         case .sync: SearchPaneLabel.sync.title
@@ -76,6 +77,11 @@ struct SettingsView: View {
             GeneralSettingsView(settings: settings, updates: stores.updates, showWelcome: stores.showWelcome)
         case .commands:
             CommandsSettingsView(catalog: catalog, settings: settings)
+        case .actions:
+            Form {
+                ActionsSettingsSection(settings: settings, scripts: catalog.allScripts)
+            }
+            .formStyle(.grouped)
         case .applications:
             ApplicationSettingsView(catalog: catalog, settings: settings)
         case .ai:

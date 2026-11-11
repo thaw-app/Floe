@@ -174,7 +174,7 @@ extension LauncherModel {
         if !flags.isEmpty, runDeclaredShortcut(event, flags, session) {
             return true
         }
-        if session.actionMenuOpen, handleActionMenuKey(event, flags, session) {
+        if session.actionMenuOpen, session.handleActionPanelKey(event, flags) {
             return true
         }
         if let delta = Shortcuts.navigationDelta(event.keyCode) {
@@ -232,36 +232,6 @@ extension LauncherModel {
     private func runDeclaredShortcut(_ event: NSEvent, _ flags: NSEvent.ModifierFlags, _ session: ExtensionSession) -> Bool {
         guard !flags.isEmpty, let action = session.actions.first(where: { Shortcuts.matches($0.props["shortcut"], key: Shortcuts.pressed(event), flags: flags) }) else { return false }
         session.run(action)
-        return true
-    }
-
-    /// While the action menu is open, typing searches it, ↵ runs or opens a submenu, ← and Esc step back.
-    private func handleActionMenuKey(_ event: NSEvent, _ flags: NSEvent.ModifierFlags, _ session: ExtensionSession) -> Bool {
-        if let delta = Shortcuts.navigationDelta(event.keyCode) {
-            session.moveSelection(by: delta)
-            return true
-        }
-        switch event.keyCode {
-        case 36, 76: session.activateMenuEntry(at: session.actionSelection)
-        case 53, 123: session.closeSubmenuOrMenu()
-        case 124:
-            let entries = session.menuEntries
-            if entries.indices.contains(session.actionSelection), entries[session.actionSelection].isSubmenu {
-                session.openSubmenu(entries[session.actionSelection].node)
-            }
-        case 40 where flags == .command: session.actionMenuOpen = false
-        case 51: if !session.actionQuery.isEmpty {
-                session.actionQuery.removeLast()
-            }
-        default:
-            // Plain typing (Shift allowed) filters; anything with ⌘, ⌃ or ⌥ falls through to shortcuts.
-            guard flags.subtracting(.shift).isEmpty, let characters = event.characters,
-                  !characters.isEmpty, characters.unicodeScalars.allSatisfy({ !CharacterSet.controlCharacters.contains($0) })
-            else {
-                return false
-            }
-            session.actionQuery += characters
-        }
         return true
     }
 }

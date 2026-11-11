@@ -21,7 +21,7 @@ struct ModeHost {
     var refocus: () -> Void = { /* no field */ }
     /// Leaves the mode for the root search.
     var close: () -> Void = { /* no root search */ }
-    /// Pops the Actions menu of the view on screen.
+    /// Opens or closes the Actions menu of the view on screen.
     var showActions: () -> Void = { /* no menu */ }
     /// Puts text into the app the user came from, as a snippet is pasted.
     var paste: (String) -> Void = { _ in
