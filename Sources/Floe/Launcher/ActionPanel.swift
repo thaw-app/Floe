@@ -224,7 +224,7 @@ private struct ActionPanelCaret: View {
 
 /// While the panel is open, the search field under it gives up its focus, so only the panel shows a caret, and has it
 /// back once the panel closes. Typing goes to the panel either way: the key monitor hands it over.
-private struct TakesTheSearchFieldsFocus: ViewModifier {
+struct TakesTheSearchFieldsFocus: ViewModifier {
     @State private var window: NSWindow?
     @State private var focused: NSResponder?
 
@@ -233,7 +233,7 @@ private struct TakesTheSearchFieldsFocus: ViewModifier {
             .onAppear {
                 guard let key = NSApp.keyWindow else { return }
                 window = key
-                focused = key.firstResponder
+                focused = Self.focusOwner(of: key.firstResponder)
                 key.makeFirstResponder(nil)
             }
             .onDisappear {
@@ -241,5 +241,15 @@ private struct TakesTheSearchFieldsFocus: ViewModifier {
                 guard let window, window.firstResponder === window || window.firstResponder == nil else { return }
                 window.makeFirstResponder(focused)
             }
+    }
+
+    /// What has the focus: for a text field, the field itself. Its typing is done by the window's shared field
+    /// editor, which forgets the field once the focus leaves, so focusing that editor again would leave nothing
+    /// editing.
+    static func focusOwner(of responder: NSResponder?) -> NSResponder? {
+        guard let editor = responder as? NSTextView, editor.isFieldEditor, let field = editor.delegate as? NSResponder else {
+            return responder
+        }
+        return field
     }
 }

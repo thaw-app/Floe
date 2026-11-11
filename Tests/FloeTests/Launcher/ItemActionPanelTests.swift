@@ -238,4 +238,17 @@ struct ItemActionPanelTests {
         #expect(presenter.panel == nil, "the rows were that view's: another view would draw or take keys over them")
         withExtendedLifetime(closed) {}
     }
+
+    @Test func theSearchFieldEditsAgainOnceThePanelGivesItsFocusBack() {
+        let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 200, height: 40), styleMask: [.titled], backing: .buffered, defer: false)
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+        window.contentView?.addSubview(field)
+        #expect(window.makeFirstResponder(field))
+        let owner = TakesTheSearchFieldsFocus.focusOwner(of: window.firstResponder)
+        #expect(owner === field, "the field, not the shared editor that types for it")
+        window.makeFirstResponder(nil)
+        window.makeFirstResponder(owner)
+        #expect(field.currentEditor() != nil, "typing reaches the search field again")
+        #expect(TakesTheSearchFieldsFocus.focusOwner(of: window) === window, "anything else is kept as it is")
+    }
 }
