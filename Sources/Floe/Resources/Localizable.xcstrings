@@ -1251,7 +1251,7 @@
     "Click a menu bar item" : {
 
     },
-    "Click an app to give it an alias or a hotkey. A hotkey opens the app, or hides it if it's already in front." : {
+    "Click an app to give it an alias or a hotkey. A hotkey runs the Primary Action chosen for apps in Settings › Commands › Actions. With none chosen, or one that can't run, it opens the app, or hides it if it's already in front." : {
 
     },
     "Clipboard" : {
@@ -3628,10 +3628,13 @@
     "Resumed %@" : {
       "comment" : "The placeholder is a checkpoint's name."
     },
+    "Return and an app's hotkey run it. Where it can't run, such as Quit on an app that isn't running, Return opens the app, and its hotkey opens it, or hides it if it's in front." : {
+
+    },
     "Return opens Language & Region, where Translation Languages downloads it." : {
       "comment" : "Language & Region and Translation Languages are named as System Settings names them."
     },
-    "Return runs it. Where it can't, such as Quit on an app that isn't running, Return opens the result instead." : {
+    "Return runs it. Where it can't, Return opens the result instead." : {
 
     },
     "Return to root search" : {

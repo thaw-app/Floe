@@ -51,9 +51,15 @@ extension LauncherModel {
         }
     }
 
-    /// Opens an app, or hides it if it's already in front, like a per-app hotkey in Thaw.
-    func toggleApp(_ app: AppEntry) {
+    /// An app's hotkey runs what Return on apps does, when the user chose it and it is on offer. Otherwise it opens
+    /// the app, or hides it if it's already in front, like a per-app hotkey in Thaw.
+    func runAppHotkey(_ app: AppEntry) {
         usage.recordUse(of: RootItem.app(app).id)
+        isRunningAppHotkey = true
+        defer { isRunningAppHotkey = false }
+        if features.actions.runFromHotkey(.app(app)) {
+            return
+        }
         if let running = NSWorkspace.shared.frontmostApplication, running.bundleURL?.standardizedFileURL == app.url.standardizedFileURL {
             running.hide()
         } else {

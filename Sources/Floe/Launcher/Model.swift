@@ -130,6 +130,10 @@ final class LauncherModel: ObservableObject {
     private var didAutorun = false
     private var pendingReset: DispatchWorkItem?
     private(set) var isPanelShown = false
+    /// True while an app's hotkey runs the Primary Action for apps, and while a question it asked goes ahead. The
+    /// panel holds what the user left in it, so a row that leaves only hides it, and closing keeps a held command as
+    /// it always does.
+    var isRunningAppHotkey = false
     /// Construction never scans: `startCatalogLoading()` fills the catalog after subscribers are wired.
     init(
         scanner: any CatalogScanning = CatalogLoader(),

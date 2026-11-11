@@ -37,8 +37,9 @@ final class AlternativeActions {
         var hotkeys: () -> Set<KeyCombination> = { [] }
         /// The user's script commands, those that act on results among them.
         var scripts: () -> [ScriptCommand] = { [] }
-        /// Runs a script on the result it acts on.
-        var runScript: (ScriptCommand, ActionSubject) -> Void = { _, _ in
+        /// Runs a script on the result it acts on. `fromHotkey` is true when an app's hotkey ran it, pressed with no
+        /// search typed for it.
+        var runScript: (ScriptCommand, ActionSubject, _ fromHotkey: Bool) -> Void = { _, _, _ in
             // Set by LauncherFeatures.
         }
     }
@@ -58,6 +59,18 @@ final class AlternativeActions {
         guard flags.isEmpty, let action = primary(for: item) else { return false }
         host.used(item)
         action.run()
+        return true
+    }
+
+    /// An app's hotkey, pressed anywhere: what Return on the app does, when a default applies to it. False leaves the
+    /// hotkey to Floe. A script runs as from the Actions menu, but is told no search, as none was typed for it.
+    func runFromHotkey(_ item: RootItem) -> Bool {
+        guard let action = primary(for: item) else { return false }
+        if let kind = kind(of: item), let script = scripts(on: kind).first(where: { $0.actionID == action.id }), let subject = ActionSubject.of(item, kind: kind) {
+            host.runScript(script, subject, true)
+        } else {
+            action.run()
+        }
         return true
     }
 
@@ -95,7 +108,7 @@ final class AlternativeActions {
         guard !scripts.isEmpty, let kind, let subject = ActionSubject.of(item, kind: kind) else { return keys.keyed(own) }
         let scriptRows = scripts.map { script -> ItemAction? in
             ItemAction(title: script.title, symbol: "terminal", id: script.actionID) { [host] in
-                host.runScript(script, subject)
+                host.runScript(script, subject, false)
             }
         }
         return keys.keyed(own + [nil] + scriptRows)

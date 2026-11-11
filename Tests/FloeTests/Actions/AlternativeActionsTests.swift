@@ -21,7 +21,8 @@ struct AlternativeActionsTests {
         if let choices {
             settings.actionChoices = [SubjectKind.app.rawValue: choices]
         }
-        return LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [app], commands: []))
+        // A store of its own: the shared one keeps the uses and searches of earlier runs.
+        return LauncherModel(settings: settings, usage: UsageStore(defaults: MemoryDefaults()), snapshot: CatalogSnapshot(apps: [app], commands: []))
     }
 
     private func titles(_ rows: [ItemAction?]) -> [String] {
@@ -64,6 +65,46 @@ struct AlternativeActionsTests {
         choices.defaults = [.toggleFavorite]
         let model = makeModel(choices)
         #expect(!model.features.actions.open(.app(app), flags: .command))
+    }
+
+    /// An app's hotkey is pressed anywhere, with no search typed for it: it runs what Return on apps does.
+    @Test func anAppsHotkeyRunsTheDefaultChosenForApps() {
+        var choices = KindActions()
+        choices.defaults = [.toggleFavorite]
+        let model = makeModel(choices)
+        let item = RootItem.app(app)
+        model.query = "left in the closed panel"
+
+        model.runAppHotkey(app)
+
+        #expect(model.settings.favorites == [item.id])
+        #expect(model.usage.records[item.id]?.count == 1, "the app counts as used, as its hotkey always counted it")
+        #expect(model.usage.queries.isEmpty, "and no search is remembered, since none was typed for it")
+    }
+
+    /// Force Quit and Move to Trash ask in the panel and go ahead once the hotkey is done. Going ahead leaves the
+    /// panel as the hotkey would, not reset.
+    @Test func aQuestionAnAppsHotkeyAskedLeavesThePanelAsItWas() throws {
+        let model = makeModel()
+        model.query = "left in the closed panel"
+        model.isRunningAppHotkey = true
+        model.ask(PanelQuestion(title: "Force Quit?", detail: "", button: "Force Quit") { model.leave() })
+        model.isRunningAppHotkey = false
+
+        model.answer(try #require(model.question), yes: true)
+
+        #expect(model.query == "left in the closed panel")
+        #expect(!model.isRunningAppHotkey, "and the hotkey's context ends with the answer")
+        model.query = "typed"
+        model.leave()
+        #expect(model.query.isEmpty, "leaving from the search still resets it")
+    }
+
+    @Test func withNoDefaultOnOfferAnAppsHotkeyIsFloes() {
+        #expect(!makeModel().features.actions.runFromHotkey(.app(app)), "with nothing chosen, it opens the app or hides it")
+        var choices = KindActions()
+        choices.defaults = [.quit]
+        #expect(!makeModel(choices).features.actions.runFromHotkey(.app(app)), "an app that isn't running has no Quit")
     }
 
     @Test func aDefaultThatIsNotOnOfferLeavesReturnToFloe() {
