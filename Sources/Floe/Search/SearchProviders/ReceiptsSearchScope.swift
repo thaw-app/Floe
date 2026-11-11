@@ -11,7 +11,9 @@ import Foundation
 struct ReceiptsSearchScope: SearchScope {
     static let limit = 50
 
-    let keyword = "receipts"
+    nonisolated static let word = "receipts"
+
+    let keyword = Self.word
     let title = String(localized: "Receipts", bundle: .floe)
     let emptyTitle = String(localized: "No receipts yet", bundle: .floe)
     var receipts: @Sendable () -> [Receipt] = { ReceiptStore.shared.all }
@@ -22,9 +24,9 @@ struct ReceiptsSearchScope: SearchScope {
     }
 
     func results(for text: String, context _: SearchContext) -> [RootItem] {
-        let words = text.lowercased().split(separator: " ")
+        let words = TypedWords(text)
         return receipts()
-            .filter { receipt in words.allSatisfy { "\(receipt.title) \(receipt.detail)".lowercased().contains($0) } }
+            .filter { words.areAll(in: "\($0.title) \($0.detail)") }
             .prefix(Self.limit).map(RootItem.receipt)
     }
 }

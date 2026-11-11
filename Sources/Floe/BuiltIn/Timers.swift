@@ -183,7 +183,9 @@ struct TimerSearchProvider: SearchProvider {
 
 /// `timers`: the countdowns that are running, the one that ends first on top.
 struct TimersSearchScope: SearchScope {
-    let keyword = "timers"
+    nonisolated static let word = "timers"
+
+    let keyword = Self.word
     let title = String(localized: "Timers", bundle: .floe)
     let emptyTitle = String(localized: "No timer is running", bundle: .floe)
 
@@ -193,9 +195,9 @@ struct TimersSearchScope: SearchScope {
     }
 
     func results(for text: String, context: SearchContext) -> [RootItem] {
-        let words = text.lowercased().split(separator: " ")
+        let words = TypedWords(text)
         return context.timers
-            .filter { timer in words.allSatisfy { timer.name.lowercased().contains($0) } }
+            .filter { words.areAll(in: $0.name) }
             .sorted { $0.ends < $1.ends }
             .map { RootItem.timer(.running($0)) }
     }

@@ -230,7 +230,7 @@ struct ClipboardHistoryView: View {
     }
 
     static func dayGroups(_ entries: [ClipboardEntry], calendar: Calendar = .current) -> [DayGroup] {
-        Dictionary(grouping: entries) { calendar.startOfDay(for: $0.date) }
+        entries.grouped { calendar.startOfDay(for: $0.date) }
             .sorted { $0.key > $1.key }
             .map { day, entries in
                 let title = if calendar.isDateInToday(day) {

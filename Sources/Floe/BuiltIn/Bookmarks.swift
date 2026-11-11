@@ -79,10 +79,6 @@ struct BookmarkSearchScope: SearchScope {
     let emptyTitle = String(localized: "No bookmark matches", bundle: .floe)
     var read: @Sendable () -> [WebBookmark] = { Bookmarks.read() }
 
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
-    }
-
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         .once { [read] in Self.ranked(read(), query: text).prefix(Bookmarks.rowLimit).map(RootItem.bookmark) }
     }

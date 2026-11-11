@@ -81,7 +81,7 @@ struct SyncJournalStorage {
 
     static func file(_ url: URL) -> SyncJournalStorage {
         SyncJournalStorage(
-            load: { (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(SyncJournal.self, from: $0) } },
+            load: { JSONFile.read(SyncJournal.self, from: url) },
             save: { JSONFile.write($0, to: url) }
         )
     }

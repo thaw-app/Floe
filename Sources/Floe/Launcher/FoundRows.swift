@@ -41,7 +41,7 @@ final class FoundRows {
     /// What the dictionary says about the word goes to the clipboard.
     private func copy(_ definition: WordDefinition) {
         pasteboard.copy(definition.text)
-        host.showHUD(String(localized: "Copied \(definition.word)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+        host.showHUD(HUDText.copied(definition.word))
         host.leave()
     }
 
@@ -53,7 +53,7 @@ final class FoundRows {
             return
         }
         pasteboard.copy(result)
-        host.showHUD(String(localized: "Copied \(result)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+        host.showHUD(HUDText.copied(result))
         host.leave()
     }
 }

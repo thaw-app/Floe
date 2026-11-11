@@ -11,7 +11,9 @@ import Foundation
 /// `files invoice`: the files Spotlight or Floe's own index finds, listed as they come in.
 /// Only the main thread touches it; the end of a stream hops back there before it does.
 final class FileSearchScope: SearchScope {
-    let keyword = "files"
+    nonisolated static let word = "files"
+
+    let keyword = FileSearchScope.word
     let title = String(localized: "Files", bundle: .floe)
     let emptyTitle = String(localized: "No files match", bundle: .floe)
 
@@ -24,10 +26,6 @@ final class FileSearchScope: SearchScope {
 
     init(index: FileIndexService = .shared) {
         self.index = index
-    }
-
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
     }
 
     func updates(for text: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {

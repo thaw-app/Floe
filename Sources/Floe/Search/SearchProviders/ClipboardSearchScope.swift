@@ -12,7 +12,9 @@ struct ClipboardSearchScope: SearchScope {
     /// The history is long; the scope shows the first screens of it.
     static let limit = 50
 
-    let keyword = "clipboard"
+    nonisolated static let word = "clipboard"
+
+    let keyword = Self.word
     let title = String(localized: "Clipboard History", bundle: .floe)
     let emptyTitle = String(localized: "No clipboard entries match", bundle: .floe)
     /// The history is read through this, so a test can stand in for the user's own.
@@ -24,10 +26,9 @@ struct ClipboardSearchScope: SearchScope {
 
     /// Entries whose text, files or source app contain every word of the query, pins first, then newest first.
     static func matching(_ entries: [ClipboardEntry], query: String) -> [ClipboardEntry] {
-        let tokens = query.lowercased().split(separator: " ")
-        let matching = tokens.isEmpty ? entries : entries.filter { entry in
-            let haystack = "\(entry.title) \(entry.text ?? "") \((entry.filePaths ?? []).joined(separator: " ")) \(entry.sourceApp ?? "")".lowercased()
-            return tokens.allSatisfy { haystack.contains($0) }
+        let words = TypedWords(query)
+        let matching = words.isEmpty ? entries : entries.filter { entry in
+            words.areAll(in: "\(entry.title) \(entry.text ?? "") \((entry.filePaths ?? []).joined(separator: " ")) \(entry.sourceApp ?? "")")
         }
         return matching.sorted { lhs, rhs in
             if lhs.pinned != rhs.pinned {

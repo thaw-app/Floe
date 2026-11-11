@@ -81,7 +81,7 @@ enum Ranking {
     /// `searchOnly` items are too many to list: they show here only as a favorite or a suggestion.
     static func browse(_ all: [RootItem], searchOnly: [RootItem] = [], favorites: [String], frecency: (String) -> Double) -> [RootResult] {
         let known = all + searchOnly
-        let byID = Dictionary(known.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let byID = known.keyed(by: \.id) { _, first, _ in first }
         let favoriteItems = favorites.compactMap { byID[$0] }
         let favoriteIDs = Set(favoriteItems.map(\.id))
         // Equally used items keep the order they came in, which a plain sort does not promise.

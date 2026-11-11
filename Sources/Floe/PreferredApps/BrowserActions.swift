@@ -43,8 +43,7 @@ enum LinkActions {
     /// The other browsers on this Mac, for one link; nil when there are none.
     static func openWith(_ url: URL, menu: BrowserMenu, host: ActionHost, opener: LinkOpener) -> ItemAction? {
         let rows = menu.others.prefix(12).map { browser in
-            let icon = NSWorkspace.shared.icon(forFile: browser.url.path)
-            icon.size = NSSize(width: 16, height: 16)
+            let icon = NSWorkspace.shared.smallIcon(forFile: browser.url.path)
             return ItemAction(title: browser.title, symbol: "app", icon: icon, id: .openWith(browser.url)) {
                 opener.open(url, browser.url)
                 host.dismiss()

@@ -288,6 +288,11 @@ final nonisolated class SecretVault: Sendable {
     @discardableResult
     func turnOff() -> Bool {
         guard isOn else { return true }
+        return copyBackAndStop()
+    }
+
+    /// Gives this Mac its own copies and switches sync off. False, and nothing switched, when a copy could not be made.
+    private func copyBackAndStop() -> Bool {
         let failure = copyBack()
         guard failure == errSecSuccess else {
             defaults.set(Int(failure), forKey: Self.failureKey)
@@ -302,14 +307,7 @@ final nonisolated class SecretVault: Sendable {
     /// Works with sync off too, for a Mac that left them behind.
     @discardableResult
     func removeEverywhere() -> Bool {
-        guard isAvailable else { return false }
-        let failure = copyBack()
-        guard failure == errSecSuccess else {
-            defaults.set(Int(failure), forKey: Self.failureKey)
-            return false
-        }
-        defaults.set(false, forKey: Self.onKey)
-        defaults.removeObject(forKey: Self.failureKey)
+        guard isAvailable, copyBackAndStop() else { return false }
         for entry in shared() {
             keychain.delete(service: Self.service, account: entry.account, synchronizable: true)
         }

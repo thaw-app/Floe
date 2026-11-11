@@ -65,7 +65,7 @@ struct NotesAppPicker: View {
                             Label {
                                 Text(folder.title)
                             } icon: {
-                                Image(nsImage: NotesAppPicker.icon(forFile: folder.path))
+                                Image(nsImage: NSWorkspace.shared.smallIcon(forFile: folder.path))
                             }
                         }
                     }
@@ -86,17 +86,11 @@ extension NotesAppPicker {
     /// and a symbol for the two choices that are no app.
     static func icon(for app: NotesApp) -> NSImage {
         if let bundleID = app.bundleID, let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
-            return icon(forFile: url.path)
+            return NSWorkspace.shared.smallIcon(forFile: url.path)
         }
         let image = NSImage(systemSymbolName: app.symbol, accessibilityDescription: nil) ?? NSImage()
         image.size = NSSize(width: 16, height: 16)
         return image
-    }
-
-    static func icon(forFile path: String) -> NSImage {
-        let icon = NSWorkspace.shared.icon(forFile: path)
-        icon.size = NSSize(width: 16, height: 16)
-        return icon
     }
 
     private func chooseFolder() {
@@ -164,9 +158,6 @@ struct PreferredAppPicker: View {
     }
 
     static func icon(for option: AppOption) -> NSImage? {
-        guard let url = option.url else { return nil }
-        let icon = NSWorkspace.shared.icon(forFile: url.path)
-        icon.size = NSSize(width: 16, height: 16)
-        return icon
+        option.url.map { NSWorkspace.shared.smallIcon(forFile: $0.path) }
     }
 }

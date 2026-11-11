@@ -87,7 +87,7 @@ final class SnippetStore: ObservableObject {
     /// Reads the file again, after another process saved it. Nothing is written back.
     func reload() {
         isLoading = true
-        if let data = try? Data(contentsOf: file), let saved = try? JSONDecoder().decode(Saved.self, from: data) {
+        if let saved = JSONFile.read(Saved.self, from: file) {
             snippets = saved.snippets
             expansionEnabled = saved.expansionEnabled
         }

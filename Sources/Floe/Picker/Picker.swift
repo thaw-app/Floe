@@ -12,20 +12,23 @@ struct PickItem: Identifiable, Equatable {
     /// Zero-based position among every line of the input, blank ones included.
     let index: Int
     let text: String
+    /// A line with tabs is a row with columns: the first is its title.
+    let title: String
+    /// The columns after the first, shown beside the title. Nil for a line without a tab.
+    let detail: String?
 
     var id: Int {
         index
     }
 
-    /// A line with tabs is a row with columns: the first is its title.
-    var title: String {
-        text.split(separator: "\t", maxSplits: 1, omittingEmptySubsequences: false).first.map(String.init) ?? text
-    }
-
-    /// The columns after the first, shown beside the title. Nil for a line without a tab.
-    var detail: String? {
-        let columns = text.split(separator: "\t", omittingEmptySubsequences: false).dropFirst().filter { !$0.isEmpty }
-        return columns.isEmpty ? nil : columns.joined(separator: "  ")
+    /// The line is split here once: a search reads the title and the detail of every item on every keystroke.
+    init(index: Int, text: String) {
+        self.index = index
+        self.text = text
+        let columns = text.split(separator: "\t", omittingEmptySubsequences: false)
+        title = columns.first.map(String.init) ?? text
+        let rest = columns.dropFirst().filter { !$0.isEmpty }
+        detail = rest.isEmpty ? nil : rest.joined(separator: "  ")
     }
 }
 

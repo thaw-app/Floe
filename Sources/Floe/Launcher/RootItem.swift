@@ -280,18 +280,9 @@ enum RootItem: Identifiable {
     /// Key for aliases and hotkeys; commands keep their historical "extension/command" key.
     var settingsKey: String? {
         switch self {
-        case .app, .sshHost, .shortcut: id
+        case .app, .sshHost, .shortcut, .snippet, .system, .menuBarSearch, .menuItemSearch, .emojiSearch, .clipboardHistory, .clipboardApp, .fileSearch, .noteDesk, .floatingNote: id
         case let .command(command): command.id
         case let .script(script): script.id
-        case .menuBarSearch: Self.menuBarSearchKey
-        case .menuItemSearch: Self.menuItemSearchKey
-        case .emojiSearch: Self.emojiSearchKey
-        case .clipboardHistory, .clipboardApp: Self.clipboardHistoryKey
-        case .fileSearch: Self.fileSearchKey
-        case .noteDesk: Self.noteDeskKey
-        case .floatingNote: Self.floatingNoteKey
-        case let .system(command): "system:\(command.rawValue)"
-        case .snippet: id
         case let .focus(request, _): request == .toggle ? id : nil
         case .settings, .extensionStore, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event, .fallbackCommand: nil
         case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .definition, .answer, .menuItem, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: nil
@@ -356,12 +347,5 @@ extension RootItem {
             return .extensionStore
         }
         return nil
-    }
-
-    var isCalculator: Bool {
-        if case .calculator = self {
-            return true
-        }
-        return false
     }
 }

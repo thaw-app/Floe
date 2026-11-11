@@ -15,4 +15,11 @@ extension NSWorkspace {
             // Nothing to wait for: the open was asked for, and the answer changes nothing here.
         }
     }
+
+    /// A file's or an app's icon at the size a menu row draws it.
+    func smallIcon(forFile path: String) -> NSImage {
+        let icon = icon(forFile: path)
+        icon.size = NSSize(width: 16, height: 16)
+        return icon
+    }
 }

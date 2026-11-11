@@ -98,9 +98,12 @@ nonisolated enum ReminderDate {
         words.contains(#/\d{1,2}:\d{2}|\d\s*(am|pm)\b|\bat\s+\d|\b(noon|midday|midnight|tonight|morning|afternoon|evening|minutes?|hours?)\b/#.ignoresCase())
     }
 
+    /// Made once: the drafts ask on every keystroke.
+    private static let dateDetector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
+
     /// The first date the system's detector finds. It reads from the clock, not from a `now` handed to it.
     static func detected(in text: String) -> Found? {
-        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue) else { return nil }
+        guard let detector = dateDetector else { return nil }
         return detector.matches(in: text, range: NSRange(text.startIndex..., in: text)).lazy.compactMap { match in
             guard let date = match.date, let range = Range(match.range, in: text) else { return nil }
             return Found(range: range, date: date)

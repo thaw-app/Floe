@@ -251,10 +251,12 @@ describe("what is sent", () => {
     const tree = await showScreen(h(Roster));
     const app = new App();
     renders().slice(start).forEach((message) => app.apply(message));
+    // Each step renders once, and the next must not begin before that render is in: a busy machine can take
+    // longer than the quiet period, and a render that arrives after references are switched is sent differently.
     const follow = async (id: number, prop: string, ...args: unknown[]) => {
       const before = renders().length;
       dispatchEvent(id, prop, args);
-      await settle();
+      await settle(before);
       renders().slice(before).forEach((message) => app.apply(message));
     };
     const list = () => find(app.tree!, "List").id;

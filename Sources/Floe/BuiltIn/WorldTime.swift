@@ -22,6 +22,13 @@ nonisolated enum WorldTime {
         "bangalore": "Asia/Kolkata", "osaka": "Asia/Tokyo", "kyoto": "Asia/Tokyo", "abu dhabi": "Asia/Dubai", "tel aviv": "Asia/Jerusalem",
     ]
 
+    /// Every zone's city, read from its identifier: "America/New_York" is New York. Made once, since the keyword asks on every keystroke.
+    private static let cities: [(city: String, lowercased: String, identifier: String)] = TimeZone.knownTimeZoneIdentifiers.compactMap { identifier in
+        guard let last = identifier.split(separator: "/").last else { return nil }
+        let city = last.replacingOccurrences(of: "_", with: " ")
+        return (city, city.lowercased(), identifier)
+    }
+
     /// The zone a place name stands for, with the name to show. A city of the time zone database, one of the
     /// aliases, or an abbreviation such as UTC or PST.
     static func zone(named name: String) -> (zone: TimeZone, place: String)? {
@@ -30,12 +37,8 @@ nonisolated enum WorldTime {
         if let identifier = aliases[wanted], let zone = TimeZone(identifier: identifier) {
             return (zone, wanted.count <= 4 ? wanted.uppercased() : wanted.capitalized)
         }
-        let cities = TimeZone.knownTimeZoneIdentifiers.compactMap { identifier -> (city: String, identifier: String)? in
-            guard let last = identifier.split(separator: "/").last else { return nil }
-            return (last.replacingOccurrences(of: "_", with: " "), identifier)
-        }
-        let match = cities.first { $0.city.lowercased() == wanted }
-            ?? cities.filter { $0.city.lowercased().hasPrefix(wanted) && wanted.count >= 3 }.min { $0.city.count < $1.city.count }
+        let match = cities.first { $0.lowercased == wanted }
+            ?? cities.filter { $0.lowercased.hasPrefix(wanted) && wanted.count >= 3 }.min { $0.city.count < $1.city.count }
         if let match, let zone = TimeZone(identifier: match.identifier) {
             return (zone, match.city)
         }

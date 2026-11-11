@@ -134,7 +134,7 @@ nonisolated extension AppEntry {
         identifier: (URL) -> String? = { Bundle(url: $0)?.bundleIdentifier },
         folderName: (URL) -> String = { FileManager.default.displayName(atPath: $0.deletingLastPathComponent().path) }
     ) -> [AppEntry] {
-        let byName = Dictionary(grouping: found, by: \.name)
+        let byName = found.grouped(by: \.name)
         var seen = Set<String>()
         return found.flatMap { app -> [AppEntry] in
             guard seen.insert(app.name).inserted, let named = byName[app.name] else { return [] }

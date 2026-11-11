@@ -70,11 +70,7 @@ enum PreferenceStore {
                 stored[key] = value
             }
         }
-        try? FileManager.default.createDirectory(at: directory(for: extensionName), withIntermediateDirectories: true)
-        if let data = try? JSONSerialization.data(withJSONObject: stored) {
-            try? data.write(to: file(for: extensionName))
-        }
-        onSaved()
+        store(stored, for: extensionName)
     }
 
     /// Every extension's plain stored values, for a settings export.
@@ -92,9 +88,12 @@ enum PreferenceStore {
     /// A name no extension could have, such as one with a slash, is skipped, so nothing lands outside Floe's data folder.
     static func merge(_ values: [String: Any], extensionName: String) {
         guard ExtensionCommand.isUsableName(extensionName) else { return }
-        let merged = storedValues(extensionName).merging(values) { _, imported in imported }
+        store(storedValues(extensionName).merging(values) { _, imported in imported }, for: extensionName)
+    }
+
+    private static func store(_ values: [String: Any], for extensionName: String) {
         try? FileManager.default.createDirectory(at: directory(for: extensionName), withIntermediateDirectories: true)
-        if let data = try? JSONSerialization.data(withJSONObject: merged) {
+        if let data = try? JSONSerialization.data(withJSONObject: values) {
             try? data.write(to: file(for: extensionName))
         }
         onSaved()
@@ -123,7 +122,9 @@ enum PreferenceStore {
     }
 
     static func missingRequired(for command: ExtensionCommand) -> [FieldSpec] {
-        PreferenceResolver.missingRequired(command.preferences, values: resolvedValues(for: command))
+        // With nothing required there is nothing to read: no file, no Keychain, no list of apps.
+        guard command.preferences.contains(where: \.required) else { return [] }
+        return PreferenceResolver.missingRequired(command.preferences, values: resolvedValues(for: command))
     }
 }
 

@@ -52,12 +52,7 @@ struct GridRows: View, Equatable {
     private func tile(_ row: Row, at index: Int, in section: GridLayout.Section) -> some View {
         GridTile(node: row.node, assetsPath: session.command.assetsPath, selected: row.id == selectedID, aspectRatio: section.aspectRatio, fills: section.fills, inset: section.inset)
             .equatable()
-            .onTapGesture(count: 2) {
-                session.selection = index
-                if let action = session.actions.first {
-                    session.run(action)
-                }
-            }
+            .onTapGesture(count: 2) { session.runFirstAction(at: index) }
             .onTapGesture { session.selection = index }
             .id(row.id)
             .onAppear {

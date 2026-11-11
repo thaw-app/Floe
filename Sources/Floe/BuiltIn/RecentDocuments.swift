@@ -67,10 +67,6 @@ struct RecentDocumentsScope: SearchScope {
     var recentlyUsed: @Sendable () -> [RecentDocuments.Used] = { RecentDocuments.recentlyUsed() }
     var opener: @Sendable (URL) -> URL? = { NSWorkspace.shared.urlForApplication(toOpen: $0) }
 
-    func results(for _: String, context _: SearchContext) -> [RootItem] {
-        []
-    }
-
     /// Spotlight is asked off the main thread; nothing is asked when the text names no app.
     func updates(for text: String, context: SearchContext) -> AsyncStream<[RootItem]>? {
         guard let app = RecentDocuments.app(named: text, in: context.apps) else { return nil }

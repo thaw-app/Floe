@@ -5,11 +5,12 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import Algorithms
 import AppKit
 
 extension LauncherModel {
     func ownerReturnTitle(for item: RootItem) -> String? {
-        features.rowOwners.lazy.compactMap { $0.returnTitle(for: item) }.first
+        features.rowOwners.firstNonNil { $0.returnTitle(for: item) }
     }
 
     func openByOwner(_ item: RootItem, flags: NSEvent.ModifierFlags = []) -> Bool {
@@ -17,7 +18,7 @@ extension LauncherModel {
     }
 
     func ownerActions(for item: RootItem) -> [ItemAction?]? {
-        features.rowOwners.lazy.compactMap { $0.actions(for: item) }.first
+        features.rowOwners.firstNonNil { $0.actions(for: item) }
     }
 
     func ownerHandlesKey(_ keyCode: UInt16, flags: NSEvent.ModifierFlags, on item: RootItem) -> Bool {

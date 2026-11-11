@@ -111,7 +111,7 @@ nonisolated enum ScreenTools {
             case .pickColor:
                 guard let hex = await pickColor().flatMap(hex) else { return }
                 NSPasteboard.general.copy(hex)
-                say(String(localized: "Copied \(hex)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+                say(HUDText.copied(hex))
             case .copyText:
                 guard CGPreflightScreenCaptureAccess() else {
                     CGRequestScreenCaptureAccess()

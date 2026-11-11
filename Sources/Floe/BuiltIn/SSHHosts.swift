@@ -79,8 +79,8 @@ nonisolated enum SSHConfig {
             let applying = blocks.filter { applies($0.patterns, to: alias) }
             return SSHHost(
                 alias: alias,
-                hostName: applying.lazy.compactMap(\.hostName).first?.replacingOccurrences(of: "%h", with: alias),
-                user: applying.lazy.compactMap(\.user).first
+                hostName: applying.firstNonNil(\.hostName)?.replacingOccurrences(of: "%h", with: alias),
+                user: applying.firstNonNil(\.user)
             )
         }
     }

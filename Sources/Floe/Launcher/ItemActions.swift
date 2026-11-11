@@ -174,6 +174,13 @@ extension NSPasteboard {
     }
 }
 
+/// What the HUD says, where many rows say the same thing.
+nonisolated enum HUDText {
+    static func copied(_ what: String) -> String {
+        String(localized: "Copied \(what)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name.")
+    }
+}
+
 // MARK: - Files
 
 /// What Floe can do with a file on disk, an application's bundle included.
@@ -213,12 +220,12 @@ enum FileActions {
             },
             ItemAction(title: String(localized: "Copy Name", bundle: .floe), symbol: "textformat", id: .copyName) {
                 NSPasteboard.general.copy(name)
-                host.showHUD(String(localized: "Copied \(name)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+                host.showHUD(HUDText.copied(name))
             },
             ItemAction(title: String(localized: "Copy File", bundle: .floe), symbol: "doc.on.clipboard", id: .copyFile) {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.writeObjects([url as NSURL])
-                host.showHUD(String(localized: "Copied \(name)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+                host.showHUD(HUDText.copied(name))
             },
         ]
         return includesFile ? copies : Array(copies.dropLast())
@@ -231,8 +238,7 @@ enum FileActions {
         let apps = orderedApps(workspace.urlsForApplications(toOpen: url), preferred: preferred)
         guard !apps.isEmpty else { return nil }
         let rows = apps.prefix(12).map { app in
-            let icon = workspace.icon(forFile: app.path)
-            icon.size = NSSize(width: 16, height: 16)
+            let icon = workspace.smallIcon(forFile: app.path)
             let name = FileManager.default.displayName(atPath: app.path).replacingOccurrences(of: ".app", with: "")
             return ItemAction(title: app == preferred ? String(localized: "\(name) (default)", bundle: .floe, comment: "A row in the Open With menu. The placeholder is the name of the app that opens this kind of file by default.") : name, symbol: "app", icon: icon, id: .openWith(app)) {
                 workspace.open([url], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration())
@@ -296,7 +302,7 @@ enum AppActions {
         if let identifier = Bundle(url: app.url)?.bundleIdentifier {
             actions.append(ItemAction(title: String(localized: "Copy Bundle Identifier", bundle: .floe), symbol: "number", id: .copyBundleIdentifier) {
                 NSPasteboard.general.copy(identifier)
-                host.showHUD(String(localized: "Copied \(identifier)", bundle: .floe, comment: "Shown briefly after copying. The placeholder is what was copied, such as a file name."))
+                host.showHUD(HUDText.copied(identifier))
             })
         }
         // A running app is quit first: the Trash refuses a bundle that is in use.

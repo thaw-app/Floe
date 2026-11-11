@@ -272,9 +272,8 @@ final class ExtensionStore: ObservableObject {
     /// Writes the commit an installed extension is at into its record, keeping the day it was installed.
     static func record(commit: String, for name: String, in extensions: URL = Paths.extensions) {
         let file = extensions.appendingPathComponent(name, isDirectory: true).appendingPathComponent(recordFileName)
-        guard let data = try? Data(contentsOf: file), let old = try? JSONDecoder().decode(Record.self, from: data),
-              let updated = try? JSONEncoder().encode(Record(name: old.name, commit: commit, installedAt: old.installedAt)) else { return }
-        try? updated.write(to: file, options: .atomic)
+        guard let old = JSONFile.read(Record.self, from: file) else { return }
+        JSONFile.write(Record(name: old.name, commit: commit, installedAt: old.installedAt), to: file)
     }
 
     /// The newest commit that changed the extension's folder: what an install records and what an update check

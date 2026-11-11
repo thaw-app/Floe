@@ -28,6 +28,11 @@ extension SearchScope {
         context.text(after: keyword)
     }
 
+    /// For a scope whose rows all take time to find.
+    func results(for _: String, context _: SearchContext) -> [RootItem] {
+        []
+    }
+
     func updates(for _: String, context _: SearchContext) -> AsyncStream<[RootItem]>? {
         nil
     }

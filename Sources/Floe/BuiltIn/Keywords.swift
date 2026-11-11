@@ -39,7 +39,7 @@ extension KeywordHint {
         KeywordHint(keyword: ReminderDraft.keyword, example: "remind call mom tomorrow at 5pm", detail: String(localized: "Add a reminder", bundle: .floe)),
         KeywordHint(keyword: EventDraft.keyword, example: "event lunch with Ana Thursday noon", detail: String(localized: "Add a calendar event", bundle: .floe)),
         KeywordHint(keyword: TimerDraft.keyword, example: "timer 10 minutes tea", detail: String(localized: "Start a countdown", bundle: .floe)),
-        KeywordHint(keyword: "timers", example: "timers", detail: String(localized: "List the timers that are running", bundle: .floe)),
+        KeywordHint(keyword: TimersSearchScope.word, example: "timers", detail: String(localized: "List the timers that are running", bundle: .floe)),
         KeywordHint(keyword: FocusRequest.keyword, example: "focus 1 hour", detail: String(localized: "Turn a Focus on for a while", bundle: .floe, comment: "Focus is the macOS feature that silences notifications.")),
         KeywordHint(keyword: NoteAction.new.keyword, example: "note buy milk", detail: String(localized: "Make a note", bundle: .floe), need: .notes),
         KeywordHint(keyword: NoteAction.append.keyword, example: "append call the bank", detail: String(localized: "Add a line to a note", bundle: .floe), need: .notes),
@@ -47,20 +47,20 @@ extension KeywordHint {
         KeywordHint(keyword: NoteAction.log.keyword, example: "log shipped the build", detail: String(localized: "Add a line with the time to today’s note", bundle: .floe), need: .notes),
         KeywordHint(keyword: OutgoingDraft.Kind.mail.keyword, example: "mail toni@example.com the build is ready", detail: String(localized: "Open an email draft", bundle: .floe)),
         KeywordHint(keyword: OutgoingDraft.Kind.message.keyword, example: "message +15551234567 running late", detail: String(localized: "Open a message draft", bundle: .floe)),
-        KeywordHint(keyword: "contact", example: "contact ana", detail: String(localized: "Find a person in Contacts", bundle: .floe, comment: "Contacts is the name of Apple's app.")),
+        KeywordHint(keyword: ContactSearchScope.word, example: "contact ana", detail: String(localized: "Find a person in Contacts", bundle: .floe, comment: "Contacts is the name of Apple's app.")),
         KeywordHint(keyword: Checkpoint.keyword, example: "pause website redesign: fix the nav next", detail: String(localized: "Save a checkpoint of your files and tabs", bundle: .floe)),
-        KeywordHint(keyword: "receipts", example: "receipts", detail: String(localized: "See what Floe did, and undo it", bundle: .floe)),
-        KeywordHint(keyword: "files", example: "files invoice", detail: String(localized: "Find files by name", bundle: .floe), need: .source(SearchSourceInfo.files.id)),
-        KeywordHint(keyword: "clipboard", example: "clipboard meeting", detail: String(localized: "Search what you copied", bundle: .floe), need: .ownClipboard),
-        KeywordHint(keyword: "menu", example: "menu wifi", detail: String(localized: "Click a menu bar item", bundle: .floe)),
-        KeywordHint(keyword: "tabs", example: "tabs invoice", detail: String(localized: "Switch to an open browser tab", bundle: .floe), need: .source(SearchSourceInfo.tabs.id)),
+        KeywordHint(keyword: ReceiptsSearchScope.word, example: "receipts", detail: String(localized: "See what Floe did, and undo it", bundle: .floe)),
+        KeywordHint(keyword: FileSearchScope.word, example: "files invoice", detail: String(localized: "Find files by name", bundle: .floe), need: .source(SearchSourceInfo.files.id)),
+        KeywordHint(keyword: ClipboardSearchScope.word, example: "clipboard meeting", detail: String(localized: "Search what you copied", bundle: .floe), need: .ownClipboard),
+        KeywordHint(keyword: MenuBarSearchScope.word, example: "menu wifi", detail: String(localized: "Click a menu bar item", bundle: .floe)),
+        KeywordHint(keyword: TabSearchSource.word, example: "tabs invoice", detail: String(localized: "Switch to an open browser tab", bundle: .floe), need: .source(SearchSourceInfo.tabs.id)),
         KeywordHint(keyword: OpenWindows.keyword, example: "windows invoice", detail: String(localized: "Switch to an open window", bundle: .floe)),
         KeywordHint(keyword: MenuItems.keyword, example: "menus export", detail: String(localized: "Choose a command from the menus of the app in front", bundle: .floe)),
         KeywordHint(keyword: Bookmarks.keyword, example: "bookmarks invoice", detail: String(localized: "Open a bookmark of Chrome, Brave, Edge, Arc, Vivaldi, Dia or Helium", bundle: .floe, comment: "The names are browsers.")),
         KeywordHint(keyword: Homebrew.keyword, example: "brew ripgrep", detail: String(localized: "Install or upgrade a Homebrew package in your terminal", bundle: .floe, comment: "Homebrew is the name of a package manager.")),
         KeywordHint(keyword: RecentDocuments.keyword, example: "recent preview", detail: String(localized: "List the recently used files an application opens", bundle: .floe)),
-        KeywordHint(keyword: "ssh", example: "ssh web", detail: String(localized: "Connect to an SSH host", bundle: .floe), need: .sshHosts),
-        KeywordHint(keyword: "shortcuts", example: "shortcuts mail", detail: String(localized: "Run one of your Shortcuts", bundle: .floe, comment: "Shortcuts are what the user makes in Apple's Shortcuts app."), need: .shortcuts),
+        KeywordHint(keyword: SSHSearchScope.word, example: "ssh web", detail: String(localized: "Connect to an SSH host", bundle: .floe), need: .sshHosts),
+        KeywordHint(keyword: AppleShortcutSearchScope.word, example: "shortcuts mail", detail: String(localized: "Run one of your Shortcuts", bundle: .floe, comment: "Shortcuts are what the user makes in Apple's Shortcuts app."), need: .shortcuts),
         KeywordHint(keyword: Processes.keyword, example: "kill safari", detail: String(localized: "Quit a running process", bundle: .floe)),
         KeywordHint(keyword: Processes.portKeyword, example: "port 3000", detail: String(localized: "See what is listening on a port", bundle: .floe)),
         KeywordHint(keyword: WordDefinition.keyword, example: "define tide", detail: String(localized: "Look a word up in the dictionary", bundle: .floe)),
@@ -104,11 +104,8 @@ extension KeywordHint {
 
     /// The hints that hold every word typed, in the keyword, the example or what it does.
     static func matching(_ text: String, in hints: [KeywordHint]) -> [KeywordHint] {
-        let words = text.lowercased().split(separator: " ")
-        return hints.filter { hint in
-            let haystack = "\(hint.keyword) \(hint.example) \(hint.detail)".lowercased()
-            return words.allSatisfy { haystack.contains($0) }
-        }
+        let words = TypedWords(text)
+        return hints.filter { words.areAll(in: "\($0.keyword) \($0.example) \($0.detail)") }
     }
 }
 

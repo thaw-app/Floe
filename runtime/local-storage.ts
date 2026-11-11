@@ -26,13 +26,6 @@ const usage = [
 
 /// The file operations, replaceable so a test can count them or make one fail.
 export const storagePersistence = {
-    /// Written beside the file and renamed over it, so a kill mid-write keeps the previous complete file.
-    /// The name carries the pid: two processes of one extension must not share a temporary file.
-    write(file: string, content: string) {
-        const temporary = `${file}.${process.pid}.tmp`;
-        fs.writeFileSync(temporary, content);
-        fs.renameSync(temporary, file);
-    },
     /// The database of an extension's storage. Replaceable so a test can hold one or break one.
     open(file: string): Database {
         return new Database(file);
