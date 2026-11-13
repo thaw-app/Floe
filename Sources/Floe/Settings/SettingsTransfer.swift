@@ -68,12 +68,13 @@ enum SettingsTransfer {
     }
 
     /// Imported settings with this Mac's consent in place of the file's. A file can come from anyone, so it never
-    /// lends a sign-in, switches on a search source, the file index, iCloud sync or running shell commands, allows a
-    /// download, or loosens the promise to keep AI on this Mac, which it may only tighten. A file that is not settings is
-    /// handed on as it is, to be refused.
+    /// lends a sign-in, hands an extension the shell environment, switches on a search source, the file index, iCloud
+    /// sync or running shell commands, allows a download, or loosens the promise to keep AI on this Mac, which it may
+    /// only tighten. A file that is not settings is handed on as it is, to be refused.
     static func keepingConsent(_ file: Data, of here: AppSettings) -> Data {
         guard var theirs = (try? JSONSerialization.jsonObject(with: file)) as? [String: Any] else { return file }
         theirs["lentSignIns"] = here.lentSignIns.sorted()
+        theirs["shellEnvironmentExtensions"] = here.shellEnvironmentExtensions.sorted()
         theirs["searchSources"] = here.searchSources.sorted()
         theirs["indexesFileNames"] = here.indexesFileNames
         theirs["fetchesExchangeRates"] = here.fetchesExchangeRates

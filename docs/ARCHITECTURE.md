@@ -120,8 +120,9 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
   Spotlight use (`FloeIntents.swift`). The views they draw through are in the ThawUI package.
 - `Sources/Floe/DroppyCode`: code ported from Droppy Code. Each file keeps Droppy Code's copyright and credit line
   and says what Floe changed; `LICENSES` holds its license and third-party notices.
-  - `LoginEnvironment.swift` reads the login shell's environment, which extensions start with, and `Shell.swift` runs
-    a tool with a timeout.
+  - `LoginEnvironment.swift` reads the login shell's environment, which script commands and the AI tools start with,
+    and `Shell.swift` runs a tool with a timeout. An extension gets only the part of it that
+    `Extensions/ExtensionEnvironment.swift` lists, unless its page in Settings passes it everything.
   - `AI.ask` is answered by a one-shot run of a command line tool (`TextGeneration.swift`: `claude`, `codex`,
     `opencode` or `pi`, each with no tools of its own) or by a streamed request to an OpenAI-compatible API
     (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice and the request an

@@ -827,6 +827,9 @@
     "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension." : {
 
     },
+    "An extension, and every program it starts, gets only the variables tools need from your shell, such as PATH and HOME, so a token your shell exports stays out. You can pass an extension everything on its page." : {
+
+    },
     "Angle" : {
       "comment" : "The direction of a gradient, in degrees."
     },
@@ -3229,6 +3232,9 @@
         }
       }
     },
+    "Pass on everything your shell exports" : {
+
+    },
     "Password" : {
       "comment" : "The kind of a result, shown beside its title. Here a password Floe made up."
     },
@@ -3997,6 +4003,9 @@
     "Shell commands" : {
       "comment" : "A tile of the welcome tour."
     },
+    "Shell environment" : {
+
+    },
     "Shell history" : {
 
     },
@@ -4579,6 +4588,9 @@
 
     },
     "This cannot be undone: the note may have been edited since Floe added the line." : {
+
+    },
+    "This extension gets only the variables tools need from your shell, such as PATH and HOME. With this on, it and every program it starts get everything your shell exports, tokens and keys included. A command picks up the change the next time it starts." : {
 
     },
     "This extension uses the sign-in of the %@ on this Mac." : {

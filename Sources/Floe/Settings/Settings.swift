@@ -124,6 +124,8 @@ final class AppSettings: ObservableObject {
     @Published var recordsExtensionAccess = true
     /// The extensions lent a sign-in from this Mac, each as "extension/provider".
     @Published var lentSignIns: Set<String> = []
+    /// The extensions handed the whole login shell environment, by extension name. The others get `ExtensionEnvironment`'s list.
+    @Published var shellEnvironmentExtensions: Set<String> = []
     @Published var shell = ShellSettings()
     /// Whether the calculator may download the European Central Bank's exchange rates. Off until the user says so.
     @Published var fetchesExchangeRates = false
@@ -197,6 +199,7 @@ final class AppSettings: ObservableObject {
         var keepsReceipts: Bool?
         var recordsExtensionAccess: Bool?
         var lentSignIns: Set<String>?
+        var shellEnvironmentExtensions: Set<String>?
         var shell: ShellSettings?
         var fetchesExchangeRates: Bool?
         var focusShortcut: String?
@@ -331,6 +334,7 @@ final class AppSettings: ObservableObject {
         keepsReceipts = stored.keepsReceipts ?? true
         recordsExtensionAccess = stored.recordsExtensionAccess ?? true
         lentSignIns = stored.lentSignIns ?? []
+        shellEnvironmentExtensions = stored.shellEnvironmentExtensions ?? []
         shell = stored.shell ?? ShellSettings()
         fetchesExchangeRates = stored.fetchesExchangeRates ?? false
         focusShortcut = stored.focusShortcut ?? ""
@@ -426,6 +430,7 @@ final class AppSettings: ObservableObject {
             keepsReceipts: keepsReceipts,
             recordsExtensionAccess: recordsExtensionAccess,
             lentSignIns: lentSignIns,
+            shellEnvironmentExtensions: shellEnvironmentExtensions,
             shell: shell,
             fetchesExchangeRates: fetchesExchangeRates,
             focusShortcut: focusShortcut,

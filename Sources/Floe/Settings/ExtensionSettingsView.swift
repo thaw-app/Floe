@@ -42,6 +42,10 @@ struct ExtensionSettingsView: View {
                             Text("This extension uses the sign-in of the \(provider.toolName) on this Mac.", comment: "The placeholder is the name of a command line tool, such as GitHub CLI.")
                         }
                     }
+                    Toggle(isOn: passesShellEnvironment(first.extensionName)) {
+                        Text("Pass on everything your shell exports")
+                        Text("This extension gets only the variables tools need from your shell, such as PATH and HOME. With this on, it and every program it starts get everything your shell exports, tokens and keys included. A command picks up the change the next time it starts.")
+                    }
                 }
                 ThawSection("Commands") {
                     ForEach(commands) { command in
@@ -112,6 +116,19 @@ extension ExtensionSettingsView {
                     settings.disabledExtensions.remove(name)
                 } else {
                     settings.disabledExtensions.insert(name)
+                }
+            }
+        )
+    }
+
+    private func passesShellEnvironment(_ name: String) -> Binding<Bool> {
+        Binding(
+            get: { settings.shellEnvironmentExtensions.contains(name) },
+            set: { passes in
+                if passes {
+                    settings.shellEnvironmentExtensions.insert(name)
+                } else {
+                    settings.shellEnvironmentExtensions.remove(name)
                 }
             }
         )

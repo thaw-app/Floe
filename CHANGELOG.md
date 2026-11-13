@@ -25,6 +25,7 @@ these four.
 
 ### Changed
 
+- **Extensions no longer get everything your shell exports.** An extension, and every program it starts, now gets only the variables tools need from your shell, such as `PATH`, `HOME` and your language, so an API token exported in your `.zshrc` stays out of it. An extension that took a token from your shell won't find it anymore: switch on "Pass on everything your shell exports" on that extension's page in Settings to give it everything, as before. Script commands and shell commands still get your whole shell environment.
 - **An app's hotkey runs its Primary Action.** The Primary Action you choose for apps in Settings › Actions is now also what an app's hotkey does, such as hiding the app or running one of your scripts on it. With none chosen, or one that can't run, such as Quit on an app that isn't running, the hotkey still opens the app, or hides it if it's in front ([#40](https://github.com/thaw-app/Floe/issues/40)).
 - **The Actions menu opens in the launcher.** ⌘K on a result, in the main search, File Search, menu bar search and Ask AI, shows the same panel an extension's ⌘K does, instead of a system menu. Type to search the actions, use the arrows and Return to run one, → and ← for submenus, and Esc to close it. Each action's keys still run it.
 - **Actions has a page of its own in Settings.** What Return does, which actions the Actions menu shows and the keys that run them were a tab of Commands, and are now Settings › Actions.

@@ -70,7 +70,7 @@ extension ExtensionSession {
         }
     }
 
-    /// The login shell's environment, not the app's own: launched from Finder, the app has a PATH
+    /// Built from the login shell's environment, not the app's own: launched from Finder, the app has a PATH
     /// without brew, git or node, and extensions run those.
     private func hostEnvironment() -> Environment {
         var grants: HostGrants = []
@@ -82,6 +82,7 @@ extension ExtensionSession {
         }
         let variables = Self.hostVariables(
             LoginEnvironment.current,
+            passesShellEnvironment: passesShellEnvironment(command.extensionName),
             preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
             grants: grants,
             launch: (launchType, launchContext, fallbackText),

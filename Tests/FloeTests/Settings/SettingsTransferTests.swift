@@ -51,6 +51,7 @@ struct SettingsImportTests {
     private func generousFile() throws -> Data {
         let file = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
         file.lentSignIns = ["stealer/github"]
+        file.shellEnvironmentExtensions = ["stealer"]
         file.searchSources = ["files", "tabs"]
         file.indexesFileNames = true
         file.fetchesExchangeRates = true
@@ -72,6 +73,7 @@ struct SettingsImportTests {
         try here.importJSON(generousFile())
 
         #expect(here.lentSignIns == ["mine/gitlab"])
+        #expect(here.shellEnvironmentExtensions.isEmpty, "a file never hands an extension the shell's tokens")
         #expect(here.searchSources == ["files"])
         #expect(!here.indexesFileNames)
         #expect(!here.fetchesExchangeRates)

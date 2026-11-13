@@ -53,6 +53,8 @@ final class ExtensionSession: ObservableObject {
     var accessStore = ExtensionAccessStore.shared
     /// Whether the record is kept, as Settings has it now. Tests answer for themselves.
     var recordsAccess: () -> Bool = { AppSettings.shared.recordsExtensionAccess }
+    /// Whether the user handed this extension the whole shell environment, as Settings has it now.
+    var passesShellEnvironment: (String) -> Bool = { AppSettings.shared.shellEnvironmentExtensions.contains($0) }
     let arguments: [String: Any]
     let launchType: String
     /// What `launchCommand` handed on, which the command reads as `launchContext`.

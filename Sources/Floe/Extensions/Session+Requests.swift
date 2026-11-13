@@ -175,10 +175,11 @@ extension ExtensionSession {
         static let windows = HostGrants(rawValue: 1 << 1)
     }
 
-    /// What the host starts with: the login shell's environment, the command's preferences, what it may use,
-    /// whether what the extension reaches is recorded, and the app's appearance.
+    /// What the host starts with: the login shell's environment as `ExtensionEnvironment` limits it, the command's
+    /// preferences, what it may use, whether what the extension reaches is recorded, and the app's appearance.
     static func hostVariables(
         _ base: [String: String],
+        passesShellEnvironment: Bool = false,
         preferences: Data?,
         grants: HostGrants,
         launch: (type: String, context: [String: Any]?, fallbackText: String?) = ("userInitiated", nil, nil),
@@ -186,7 +187,7 @@ extension ExtensionSession {
         isDevelopment: Bool = false,
         isDark: Bool? = nil
     ) -> [String: String] {
-        var variables = base
+        var variables = ExtensionEnvironment.handedOn(base, passesShellEnvironment: passesShellEnvironment)
         // React picks its build from this. An extension being worked on keeps the development build and its
         // warnings, and a value the shell already holds is left as it is.
         if !isDevelopment, variables["NODE_ENV"] == nil {
