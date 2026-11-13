@@ -69,4 +69,14 @@ struct DropdownMenuTests {
         pick(built.menu, at: 3)
         #expect(picked == ["gr"])
     }
+
+    @Test func aFormDropdownGroupsItsItemsUnderTheirSectionTitles() {
+        let groups = DropdownMenu.groups([
+            .item(title: "All", value: "all"), .heading("Regions"), .item(title: "Greece", value: "gr"), .heading("Empty"),
+            .heading("Indexes"), .item(title: "Chaos Index", value: "chaos"),
+        ])
+        #expect(groups.map(\.title) == [nil, "Regions", "Empty", "Indexes"])
+        #expect(groups.map { $0.items.map(\.value) } == [["all"], ["gr"], [], ["chaos"]])
+        #expect(DropdownMenu.groups([.heading("Only")]).map(\.title) == ["Only"], "no untitled group when nothing comes before the first heading")
+    }
 }

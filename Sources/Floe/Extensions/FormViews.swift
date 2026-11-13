@@ -145,9 +145,14 @@ struct FormBody: View {
     private func pickerField(_ node: Node) -> some View {
         switch node.type {
         case "Form.Dropdown":
-            let items = node.descendants(ofType: "Dropdown.Item")
             Picker(title(node), selection: text(node)) {
-                ForEach(items) { item in Text(item.string("title") ?? "").tag(item.props["value"] as? String ?? "") }
+                ForEach(Array(DropdownMenu.groups(DropdownMenu.entries(for: node)).enumerated()), id: \.offset) { _, group in
+                    if let heading = group.title {
+                        Section(heading) { dropdownItems(group) }
+                    } else {
+                        dropdownItems(group)
+                    }
+                }
             }
         case "Form.TagPicker":
             tagPicker(node)
@@ -160,6 +165,10 @@ struct FormBody: View {
         default:
             EmptyView()
         }
+    }
+
+    private func dropdownItems(_ group: DropdownMenu.Group) -> some View {
+        ForEach(Array(group.items.enumerated()), id: \.offset) { _, item in Text(item.title).tag(item.value) }
     }
 
     private func date(_ node: Node) -> Binding<Date> {

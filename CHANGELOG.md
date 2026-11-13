@@ -31,6 +31,7 @@ these four.
 - **Extensions' light and dark colors show.** A color an extension gives one value for light mode and another for dark mode is now drawn, and changes when your Mac switches appearance while the command is open. Before, it was left out.
 - **A section's subtitle shows in an extension's list.** It sits beside the section's title, as it already did in a grid.
 - **An extension's confirmation shows its icon.** When an extension asks you to confirm something and gives the question an icon, the icon now shows above the question.
+- **A dropdown in an extension's form shows its section titles.** Its choices are grouped under their titles, as in a list's dropdown.
 
 ## [0.4.0-rc.2] - 2026-11-09
 

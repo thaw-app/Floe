@@ -27,6 +27,24 @@ enum DropdownMenu {
         }
     }
 
+    /// Items under one heading, or under none when they come before the first.
+    struct Group {
+        let title: String?
+        var items: [(title: String, value: String)] = []
+    }
+
+    /// The entries as a form picker's sections.
+    static nonisolated func groups(_ entries: [Entry]) -> [Group] {
+        var groups = [Group(title: nil)]
+        for entry in entries {
+            switch entry {
+            case let .heading(title): groups.append(Group(title: title))
+            case let .item(title, value): groups[groups.count - 1].items.append((title, value))
+            }
+        }
+        return groups.filter { $0.title != nil || !$0.items.isEmpty }
+    }
+
     /// The title of the chosen item, for the button that opens the menu.
     static nonisolated func title(of value: String?, in entries: [Entry]) -> String? {
         for case let .item(title, itemValue) in entries where itemValue == value {
