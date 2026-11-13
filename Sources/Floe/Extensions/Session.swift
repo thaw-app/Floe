@@ -37,6 +37,13 @@ struct AlertState: Equatable {
     let primaryTitle: String
     let isDestructive: Bool
     let dismissTitle: String
+    /// Raycast's `icon`, drawn as any other icon. Left out of the comparison: each alert is a request of its own.
+    var icon: Any?
+
+    static func == (lhs: AlertState, rhs: AlertState) -> Bool {
+        lhs.id == rhs.id && lhs.title == rhs.title && lhs.message == rhs.message && lhs.primaryTitle == rhs.primaryTitle
+            && lhs.isDestructive == rhs.isDestructive && lhs.dismissTitle == rhs.dismissTitle
+    }
 }
 
 /// One running extension command: a Bun process speaking NDJSON over stdin/stdout.

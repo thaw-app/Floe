@@ -178,6 +178,13 @@ describe("confirmAlert", () => {
     expect(calls).toEqual(["dismissed"]);
   });
 
+  test("sends the alert's icon to the app", async () => {
+    const asked = api.confirmAlert({ title: "Empty the trash?", icon: { source: api.Icon.Trash, tintColor: api.Color.Red } });
+    expect(sent("request")[0].params.icon).toEqual({ source: "icon:Trash", tintColor: "color:Red" });
+    handleReply({ id: sent("request")[0].id, result: false });
+    expect(await asked).toBe(false);
+  });
+
   test("uses OK and Cancel when no actions are given", async () => {
     const asked = api.confirmAlert({ title: "Sure?" });
     expect(sent("request")[0].params).toMatchObject({ primaryTitle: "OK", primaryStyle: "default", dismissTitle: "Cancel" });

@@ -30,6 +30,7 @@ these four.
 - **Actions has a page of its own in Settings.** What Return does, which actions the Actions menu shows and the keys that run them were a tab of Commands, and are now Settings › Actions.
 - **Extensions' light and dark colors show.** A color an extension gives one value for light mode and another for dark mode is now drawn, and changes when your Mac switches appearance while the command is open. Before, it was left out.
 - **A section's subtitle shows in an extension's list.** It sits beside the section's title, as it already did in a grid.
+- **An extension's confirmation shows its icon.** When an extension asks you to confirm something and gives the question an icon, the icon now shows above the question.
 
 ## [0.4.0-rc.2] - 2026-11-09
 

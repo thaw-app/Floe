@@ -30,7 +30,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | --- | --- | --- |
 | `showToast`, `Toast` | Supported | |
 | `showHUD` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
-| `confirmAlert` | Partial | `icon` is not shown. |
+| `confirmAlert` | Supported | |
 | `closeMainWindow` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
 | `popToRoot` | Partial | `clearSearchBar` is ignored. |
 | `clearSearchBar` | Partial | `forceScrollToTop` is ignored. |

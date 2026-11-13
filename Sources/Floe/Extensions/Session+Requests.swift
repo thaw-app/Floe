@@ -138,7 +138,8 @@ extension ExtensionSession {
             message: params["message"] as? String,
             primaryTitle: params["primaryTitle"] as? String ?? String(localized: "OK", bundle: .floe),
             isDestructive: (params["primaryStyle"] as? String) == "destructive",
-            dismissTitle: params["dismissTitle"] as? String ?? String(localized: "Cancel", bundle: .floe)
+            dismissTitle: params["dismissTitle"] as? String ?? String(localized: "Cancel", bundle: .floe),
+            icon: params["icon"]
         )
     }
 

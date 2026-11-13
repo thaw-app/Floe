@@ -416,7 +416,7 @@ export async function confirmAlert(options: Props) {
     return true;
   }
   const confirmed = await request("alert.confirm", {
-    title: options.title, message: options.message,
+    title: options.title, message: options.message, icon: options.icon,
     primaryTitle, primaryStyle: options.primaryAction?.style ?? "default", dismissTitle,
   });
   const result = confirmed === true;

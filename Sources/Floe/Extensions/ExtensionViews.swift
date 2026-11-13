@@ -147,7 +147,9 @@ struct ConfirmAlertOverlay: View {
             message: alert.message,
             primaryTitle: alert.primaryTitle,
             dismissTitle: alert.dismissTitle,
-            isDestructive: alert.isDestructive
+            isDestructive: alert.isDestructive,
+            icon: alert.icon,
+            assetsPath: session.command.assetsPath
         ) { session.resolveAlert($0) }
     }
 }
@@ -159,6 +161,8 @@ struct PanelQuestionCard: View {
     let primaryTitle: String
     let dismissTitle: String
     let isDestructive: Bool
+    var icon: Any?
+    var assetsPath = ""
     let answer: (Bool) -> Void
     @FocusState private var confirmFocused: Bool
 
@@ -166,6 +170,9 @@ struct PanelQuestionCard: View {
         ZStack {
             Color.black.opacity(0.15)
             VStack(alignment: .leading, spacing: ThawSpacing.row) {
+                if let icon {
+                    IconView(value: icon, assetsPath: assetsPath, size: 32)
+                }
                 Text(title)
                     .font(ThawType.heading)
                 if let message, !message.isEmpty {
