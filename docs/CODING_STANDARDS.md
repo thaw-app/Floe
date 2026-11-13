@@ -64,7 +64,9 @@ This covers documentation, the changelog, pull request descriptions and the text
 ## Formatting and lint
 
 Floe uses [SwiftLint](https://github.com/realm/SwiftLint) and [SwiftFormat](https://github.com/nicklockwood/SwiftFormat)
-with Thaw's rules, in `.swiftlint.yml` and `.swiftformat`. CI runs SwiftLint in strict mode. Before a commit:
+with Thaw's rules, in `.swiftlint.yml` and `.swiftformat`. CI runs SwiftLint in strict mode and checks formatting
+with `swiftformat --lint .`. Use the SwiftFormat version in `.swiftformat-version`, now 0.64.6: other versions format
+differently, and CI fails on the difference. Before a commit:
 
     swiftformat .
     swiftlint lint --strict
