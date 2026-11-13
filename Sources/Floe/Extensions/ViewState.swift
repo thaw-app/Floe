@@ -67,6 +67,14 @@ enum ViewState {
         return !view.handlers.contains("onSearchTextChange")
     }
 
+    /// The heading above a list row that starts a section with a title or a subtitle. Sections are told apart by
+    /// their node, so two in a row with the same title each get one, as a Grid's sections do.
+    static func sectionHeading(at index: Int, in rows: [Row]) -> (title: String, detail: String?)? {
+        let row = rows[index]
+        guard index == 0 || rows[index - 1].sectionID != row.sectionID, row.sectionTitle != nil || row.sectionSubtitle != nil else { return nil }
+        return (row.sectionTitle ?? "", row.sectionSubtitle)
+    }
+
     static func selectedRow(_ rows: [Row], selection: Int) -> Row? {
         rows.isEmpty ? nil : rows[max(0, min(selection, rows.count - 1))]
     }

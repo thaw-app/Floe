@@ -62,6 +62,20 @@ struct ListStateTests {
         #expect(rows[0] != Row(node: rows[0].node, sectionTitle: "Rocky", sectionID: rows[0].sectionID), "a changed subtitle draws the heading again")
     }
 
+    @Test func eachSectionWithATitleOrASubtitleStartsWithAHeading() {
+        let root = list(children: [
+            Fixture.item("Loose", id: 1),
+            Fixture.node("List.Section", id: 10, props: ["title": "Planets", "subtitle": "Rocky"], children: [Fixture.item("Mercury", id: 2), Fixture.item("Venus", id: 3)]),
+            Fixture.node("List.Section", id: 11, props: ["title": "Planets", "subtitle": "Giants"], children: [Fixture.item("Jupiter", id: 4)]),
+            Fixture.node("List.Section", id: 12, props: ["subtitle": "No title"], children: [Fixture.item("Pluto", id: 5)]),
+            Fixture.node("List.Section", id: 13, children: [Fixture.item("Plain", id: 6)]),
+        ])
+        let rows = ViewState.rows(of: ViewState.view(in: root), searchText: "")
+        let headings = rows.indices.map { ViewState.sectionHeading(at: $0, in: rows) }
+        #expect(headings.map { $0?.title } == [nil, "Planets", nil, "Planets", "", nil], "the same title twice is two sections")
+        #expect(headings.map { $0?.detail } == [nil, "Rocky", nil, "Giants", "No title", nil], "a subtitle shows without a title")
+    }
+
     @Test func gridItemsAreRowsToo() {
         let root = Fixture.root(Fixture.node("Grid", children: [
             Fixture.node("Grid.Section", props: ["title": "Icons"], children: [Fixture.node("Grid.Item", id: 9, props: ["title": "Star"])]),
