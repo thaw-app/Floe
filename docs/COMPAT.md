@@ -85,7 +85,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | --- | --- | --- |
 | `Icon` | Partial | Drawn as SF Symbols. An icon with no close symbol shows a dashed square. |
 | `Image` | Partial | `fallback` is ignored, and the only mask drawn is the circle. |
-| `Color` | Partial | Raycast's named colors and hex values work. Dynamic colors (`{ light, dark }`) are ignored. |
+| `Color` | Partial | Raycast's named colors, hex values and dynamic colors (`{ light, dark }`) work, and a dynamic color follows a change of appearance. `adjustContrast` is ignored. |
 | `Keyboard.Shortcut`, `Keyboard.Shortcut.Common` | Supported | |
 | API 1.x names and `render()` | Supported | |
 
