@@ -97,6 +97,7 @@ struct PrivacySettingsPane: View {
                 Text("Record what extensions reach")
                 Text("Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them.")
             }
+            row("Shell environment", String(localized: "An extension, and every program it starts, gets only the variables tools need from your shell, such as PATH and HOME, so a token your shell exports stays out. You can pass an extension everything on its page.", bundle: .floe))
             row("GitHub and GitLab sign-in", String(localized: "An extension that signs in to GitHub or GitLab can use the GitHub or GitLab CLI’s sign-in on this Mac. Floe asks once per extension.", bundle: .floe))
         }
         ThawSection("Reminders and Events") {
