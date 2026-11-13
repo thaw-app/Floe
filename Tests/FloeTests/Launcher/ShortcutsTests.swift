@@ -99,4 +99,15 @@ struct ShortcutsTests {
         #expect(Shortcuts.label(["modifiers": ["alt", "unknown"], "key": "k"]) == "⌥K")
         #expect(Shortcuts.label(["key": "r"]) == "R")
     }
+
+    @Test func menuKeyEquivalentsUseAppKitsCharacters() {
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd", "shift"], "key": "C"]) == .init(key: "c", flags: [.command, .shift]))
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["opt"], "key": "return"]) == .init(key: "\r", flags: .option))
+        #expect(Shortcuts.keyEquivalent(["modifiers": [], "key": "arrowUp"])?.key == String(utf16CodeUnits: [UInt16(NSUpArrowFunctionKey)], count: 1))
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["ctrl"], "key": "deleteForward"])?.key == String(utf16CodeUnits: [UInt16(NSDeleteFunctionKey)], count: 1))
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"], "key": "backspace"])?.key == "\u{8}")
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"], "key": "f13"]) == nil, "a name AppKit has no character for")
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"]]) == nil)
+        #expect(Shortcuts.keyEquivalent(nil) == nil)
+    }
 }

@@ -181,6 +181,10 @@ final class MenuBarMenu: NSMenu {
         if old?.icon != wanted.icon {
             setImage(of: item, to: wanted.icon)
         }
+        if old?.shortcut != wanted.shortcut {
+            item.keyEquivalent = wanted.shortcut?.key ?? ""
+            item.keyEquivalentModifierMask = wanted.shortcut?.flags ?? []
+        }
         if old?.role != wanted.role {
             setRole(of: item, to: wanted.role)
         }

@@ -78,6 +78,7 @@ struct MenuBarMenuItem: Equatable {
     var subtitle: String?
     var toolTip: String?
     var icon: MenuBarIcon?
+    var shortcut: Shortcuts.KeyEquivalent?
 
     static let separator = MenuBarMenuItem(key: .separator, role: .separator)
 
@@ -117,7 +118,8 @@ struct MenuBarMenuItem: Equatable {
                     title: node.string("title") ?? "",
                     subtitle: node.string("subtitle"),
                     toolTip: node.string("tooltip"),
-                    icon: icon(node.props["icon"])
+                    icon: icon(node.props["icon"]),
+                    shortcut: Shortcuts.keyEquivalent(node.props["shortcut"])
                 ))
             case "MenuBarExtra.Separator":
                 items.append(.separator)

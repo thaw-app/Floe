@@ -16,7 +16,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | `Detail` | Supported | |
 | `Form` | Partial | `enableDrafts`, `storeValue` on fields, `onFocus`, `onBlur` and a field ref's `focus()` do nothing. `Form.LinkAccessory` is not shown. |
 | Form fields | Partial | `Form.DatePicker` ignores `min` and `max`. `Form.Dropdown` shows no item icons. `info` shows only on `Form.TextField`. |
-| `MenuBarExtra` | Partial | An item's `shortcut` and `alternate` are not shown. |
+| `MenuBarExtra` | Partial | An item's `alternate` is not shown. |
 | `ActionPanel`, sections and submenus | Supported | |
 | `Action`, `Action.Style` | Supported | |
 | `Action.OpenInBrowser`, `Open`, `OpenWith`, `CopyToClipboard`, `Paste`, `Push`, `ShowInFinder`, `SubmitForm`, `ToggleQuickLook`, `PickDate`, `CreateSnippet`, `CreateQuicklink` | Supported | |

@@ -69,6 +69,31 @@ enum Shortcuts {
         return flags == Self.flags(shortcut["modifiers"] as? [String] ?? []) && Self.canonical(key) == pressed.map(Self.canonical)
     }
 
+    /// A shortcut as an AppKit menu item takes it, which the menu draws at the end of the row.
+    struct KeyEquivalent: Equatable {
+        let key: String
+        let flags: NSEvent.ModifierFlags
+    }
+
+    /// What AppKit draws for Raycast's named keys, by their canonical name.
+    private static let menuKeys: [String: String] = [
+        "enter": "\r", "tab": "\t", "space": " ", "backspace": "\u{8}", "delete": "\u{8}", "escape": "\u{1b}",
+        "deleteforward": function(NSDeleteFunctionKey), "up": function(NSUpArrowFunctionKey), "down": function(NSDownArrowFunctionKey),
+        "left": function(NSLeftArrowFunctionKey), "right": function(NSRightArrowFunctionKey), "home": function(NSHomeFunctionKey),
+        "end": function(NSEndFunctionKey), "pageup": function(NSPageUpFunctionKey), "pagedown": function(NSPageDownFunctionKey),
+    ]
+
+    private static func function(_ key: Int) -> String {
+        String(Character(UnicodeScalar(UInt16(key)) ?? " "))
+    }
+
+    /// The `{ modifiers, key }` shortcut as a menu item's key equivalent; a key AppKit has no character for gives none.
+    static func keyEquivalent(_ shortcut: Any?) -> KeyEquivalent? {
+        guard let shortcut = shortcut as? [String: Any], let key = shortcut["key"] as? String else { return nil }
+        let character = menuKeys[canonical(key)] ?? (key.count == 1 ? key.lowercased() : nil)
+        return character.map { KeyEquivalent(key: $0, flags: flags(shortcut["modifiers"] as? [String] ?? [])) }
+    }
+
     /// The shortcut as shown beside an action, such as ⌘⇧C.
     static func label(_ shortcut: Any?) -> String? {
         guard let shortcut = shortcut as? [String: Any], let key = shortcut["key"] as? String else { return nil }

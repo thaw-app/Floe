@@ -249,7 +249,7 @@ struct MenuBarPresenterTests {
 
     @Test func rowsCarryWhatTheExtensionGaveThem() throws {
         presenter.show(root: MenuBarFixture.root(title: "1", [
-            Fixture.node("MenuBarExtra.Item", id: 10, props: ["title": "Open", "subtitle": "Now", "tooltip": "Opens it", "icon": "🔥"], handlers: ["onAction"]),
+            Fixture.node("MenuBarExtra.Item", id: 10, props: ["title": "Open", "subtitle": "Now", "tooltip": "Opens it", "icon": "🔥", "shortcut": ["modifiers": ["cmd"], "key": "o"]], handlers: ["onAction"]),
             MenuBarFixture.item("Idle", id: 11, handlers: []),
             Fixture.node("MenuBarExtra.Section", id: 20, props: ["title": "Recent"], children: [MenuBarFixture.item("One", id: 21)]),
         ]))
@@ -261,6 +261,8 @@ struct MenuBarPresenterTests {
         let first = try #require(presenter.menu.item(at: 0))
         #expect(first.subtitle == "Now")
         #expect(first.toolTip == "Opens it")
+        #expect(first.keyEquivalent == "o")
+        #expect(first.keyEquivalentModifierMask == .command)
         #expect(first.isEnabled)
         try click(first)
         try click(#require(presenter.menu.item(at: 4)))
@@ -268,6 +270,7 @@ struct MenuBarPresenterTests {
 
         let idle = try #require(presenter.menu.item(at: 1))
         #expect(!idle.isEnabled)
+        #expect(idle.keyEquivalent.isEmpty)
         #expect(idle.action == nil)
         #expect(presenter.menu.item(at: 3)?.isSectionHeader == true)
     }
