@@ -76,9 +76,10 @@ enum Shortcuts {
     }
 
     /// What AppKit draws for Raycast's named keys, by their canonical name. A menu takes Backspace as 0x08 and
-    /// Forward Delete as 0x7F, which are not the characters a key-down event carries for them.
+    /// Forward Delete as 0x7F, which are not the characters a key-down event carries for them. "delete" is
+    /// Forward Delete here as it is in `namedKeys`, so a shortcut means the same key in a menu and in the panel.
     private static let menuKeys: [String: String] = [
-        "enter": "\r", "tab": "\t", "space": " ", "backspace": "\u{8}", "delete": "\u{8}", "escape": "\u{1b}",
+        "enter": "\r", "tab": "\t", "space": " ", "backspace": "\u{8}", "delete": "\u{7f}", "escape": "\u{1b}",
         "deleteforward": "\u{7f}", "up": function(NSUpArrowFunctionKey), "down": function(NSDownArrowFunctionKey),
         "left": function(NSLeftArrowFunctionKey), "right": function(NSRightArrowFunctionKey), "home": function(NSHomeFunctionKey),
         "end": function(NSEndFunctionKey), "pageup": function(NSPageUpFunctionKey), "pagedown": function(NSPageDownFunctionKey),

@@ -106,6 +106,7 @@ struct ShortcutsTests {
         #expect(Shortcuts.keyEquivalent(["modifiers": [], "key": "arrowUp"])?.key == String(utf16CodeUnits: [UInt16(NSUpArrowFunctionKey)], count: 1))
         #expect(Shortcuts.keyEquivalent(["modifiers": ["ctrl"], "key": "deleteForward"])?.key == "\u{7f}")
         #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"], "key": "backspace"])?.key == "\u{8}")
+        #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"], "key": "delete"])?.key == "\u{7f}", "key code 117, as when it is pressed")
         #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"], "key": "f13"]) == nil, "a name AppKit has no character for")
         #expect(Shortcuts.keyEquivalent(["modifiers": ["cmd"]]) == nil)
         #expect(Shortcuts.keyEquivalent(nil) == nil)
