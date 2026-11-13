@@ -245,6 +245,52 @@ struct MenuBarPresenterTests {
         #expect(submenu.items.map(\.title) == ["New"])
     }
 
+    // MARK: Shortcuts
+
+    /// A key pressed as AppKit hands it to the menu. A match is sent through the app, which the test has to make.
+    private func press(_ key: String, _ flags: NSEvent.ModifierFlags = .command) throws -> Bool {
+        _ = NSApplication.shared
+        let event = try #require(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0, windowNumber: 0, context: nil,
+            characters: key, charactersIgnoringModifiers: key, isARepeat: false, keyCode: 0
+        ))
+        return presenter.menu.performKeyEquivalent(with: event)
+    }
+
+    private func shortcutRoot(_ rows: [(title: String, id: Int, key: String)], inSubmenu: Bool = false) -> Node? {
+        let items = rows.map { Fixture.node("MenuBarExtra.Item", id: $0.id, props: ["title": $0.title, "shortcut": ["modifiers": ["cmd"], "key": $0.key]], handlers: ["onAction"]) }
+        return MenuBarFixture.root(title: "1", inSubmenu ? [Fixture.node("MenuBarExtra.Submenu", id: 30, props: ["title": "More"], children: items)] : items)
+    }
+
+    @Test func aShortcutFiresItsRowWhileTheMenuIsOpen() throws {
+        var fired: [Int] = []
+        presenter.onAction = { fired.append($0) }
+        presenter.show(root: shortcutRoot([("Open", 10, "o"), ("Copy", 11, "c")]))
+        open(presenter.menu)
+        #expect(try press("c"))
+        #expect(try !press("x"), "a key no row has")
+        #expect(try !press("c", [.command, .option]), "the same key with other modifiers")
+        #expect(fired == [11])
+    }
+
+    @Test func aShortcutInASubmenuNotYetOpenedFiresItsCurrentRow() throws {
+        var fired: [Int] = []
+        presenter.onAction = { fired.append($0) }
+        presenter.show(root: shortcutRoot([("Old", 31, "t")], inSubmenu: true))
+        open(presenter.menu)
+        #expect(try press("t"))
+        presenter.show(root: shortcutRoot([("New", 32, "t")], inSubmenu: true))
+        #expect(try press("t"))
+        #expect(fired == [31, 32], "the submenu's rows are brought up to date before the search")
+    }
+
+    @Test func aClosedMenuIsNotBuiltToLookForAShortcut() throws {
+        presenter.show(root: shortcutRoot([("Open", 10, "o")]))
+        let builds = presenter.menuBuilds
+        #expect(try !press("o"))
+        #expect(presenter.menuBuilds == builds)
+    }
+
     // MARK: What a row does
 
     @Test func rowsCarryWhatTheExtensionGaveThem() throws {
