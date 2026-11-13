@@ -61,15 +61,18 @@ final class ShellRows {
         var showHUD: (String) -> Void = { _ in
             // Set by LauncherFeatures.
         }
+
         /// Keeps the search for later, hides the panel and goes back to the root search.
         var leave: () -> Void = { /* set by LauncherFeatures */ }
         var record: (Receipt) -> Void = { _ in
             // Set by LauncherFeatures.
         }
+
         /// Puts text in the search field, to run or to go on typing from.
         var setQuery: (String) -> Void = { _ in
             // Set by LauncherFeatures.
         }
+
         /// Reads the rows again: a process that was ended is gone.
         var refresh: () -> Void = { /* set by LauncherFeatures */ }
         /// A command was saved as a script command.

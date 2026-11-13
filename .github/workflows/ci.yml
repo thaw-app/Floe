@@ -30,18 +30,19 @@ jobs:
         id: filter
         uses: thaw-app/org-ci/actions/detect-code-changes@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
         with:
-          patterns: '(\.swift$|(^|/)Package\.resolved$|^Floe\.xcodeproj/|^project\.yml$|^Resources/|^Vendor/|^runtime/|^extensions/|^scripts/|^sonar-project\.properties$|^\.swiftlint|^\.swiftformat$|^\.github/workflows/ci\.yml$)'
+          patterns: '(\.swift$|(^|/)Package\.resolved$|^Floe\.xcodeproj/|^project\.yml$|^Resources/|^Vendor/|^runtime/|^extensions/|^scripts/|^sonar-project\.properties$|^\.swiftlint|^\.swiftformat|^\.github/workflows/ci\.yml$)'
 
   lint:
     needs: changes
     if: github.repository == 'thaw-app/Floe'
     runs-on: ubuntu-latest
-    # SwiftLint at the pinned version, built in thaw-app/org-ci.
+    # SwiftLint and SwiftFormat at the pinned versions, built in thaw-app/org-ci. This image's
+    # SwiftFormat is the version in .swiftformat-version.
     container: ghcr.io/thaw-app/ci-tools@sha256:07c1c43ba437572bb8326e1a84be4a5046d62e65d635ada2279c6eeffd9d3142
     steps:
       - name: Skip lint (no code changes)
         if: needs.changes.outputs.code != 'true'
-        run: echo "No code-related paths changed; skipping SwiftLint."
+        run: echo "No code-related paths changed; skipping SwiftLint and SwiftFormat."
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: needs.changes.outputs.code == 'true'
@@ -51,6 +52,10 @@ jobs:
       - name: Run SwiftLint
         if: needs.changes.outputs.code == 'true'
         run: swiftlint --strict
+
+      - name: Check formatting
+        if: needs.changes.outputs.code == 'true'
+        run: swiftformat --lint .
 
   # ThawUI declares swift-tools-version 6.4, so the build needs Xcode 27;
   # there is no Xcode 26 job as in Thaw.

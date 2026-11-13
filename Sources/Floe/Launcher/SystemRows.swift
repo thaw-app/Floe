@@ -14,6 +14,7 @@ final class SystemRows {
     var controlMusic: (MusicCommand) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     /// How a host's connection is opened. Tests replace it, so they open nothing.
     var sshConnector = SSHConnector.system
 

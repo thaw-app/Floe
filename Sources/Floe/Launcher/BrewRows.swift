@@ -14,6 +14,7 @@ final class BrewRows {
     var runInTerminal: (String) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     /// Where a name is copied to. Tests replace it, so they leave the clipboard alone.
     var pasteboard = NSPasteboard.general
     static func title(for verb: Homebrew.Verb) -> String {

@@ -15,10 +15,12 @@ struct PanelHost {
     var showHUD: (String) -> Void = { _ in
         // No HUD.
     }
+
     /// Opens the settings window, on a page when one is named.
     var openSettings: (SettingsPage?) -> Void = { _ in
         // No settings window.
     }
+
     /// Opens or closes the Actions menu of the search that is on screen: root, files, menu bar items or Ask AI.
     var showActions: () -> Void = { /* no panel */ }
     /// Opens the floating note's window, or brings it forward. Set only where the panel is drawn.

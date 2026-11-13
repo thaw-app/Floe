@@ -36,8 +36,7 @@ final class RunningTimers {
     func remove(_ id: UUID) -> RunningTimer? {
         guard let index = all.firstIndex(where: { $0.id == id }) else { return nil }
         waits.removeValue(forKey: id)?()
-        let removed = all.remove(at: index)
-        return removed
+        return all.remove(at: index)
     }
 }
 

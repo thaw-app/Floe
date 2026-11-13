@@ -23,6 +23,7 @@ final class CatalogStore: ObservableObject {
     @Published private(set) var allScripts: [ScriptCommand] = [] {
         didSet { scriptsChanges &+= 1 }
     }
+
     /// Goes up each time the scripts change, so a cache can tell they did without comparing them.
     private(set) var scriptsChanges = 0
     /// The scripts searched for by their titles, which hotkeys and links can run.
@@ -34,6 +35,7 @@ final class CatalogStore: ObservableObject {
     var actionScripts: [ScriptCommand] {
         allScripts.filter { !$0.subjects.isEmpty }
     }
+
     /// Files in the Scripts folder that failed to parse, for the settings pane.
     @Published private(set) var scriptFailures: [ScriptFailure] = []
     /// True until apps, commands and scripts have each been scanned once, and while one of them is scanned again,
