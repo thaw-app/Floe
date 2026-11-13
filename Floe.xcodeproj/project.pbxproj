@@ -171,6 +171,7 @@
 		5D2F7931BB6C94EE5A4859F2 /* AITool.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8B7D0D47E3C50C9CB1F9D0 /* AITool.swift */; };
 		5ED6B3D3214C8E5477D9FF2F /* ItemActionPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6179219DBE06CE5920549ACB /* ItemActionPanel.swift */; };
 		5FFE0E4F7A13FC093C783690 /* SearchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 475D8A766F49FF100BD34649 /* SearchProvider.swift */; };
+		601C534436F71C878461D9ED /* ExtensionEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B734849166D36BE722EC3A51 /* ExtensionEnvironment.swift */; };
 		602E606A00E216F429C5548A /* AppleShortcutSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F24BBC55159EA1F9633EAE /* AppleShortcutSearch.swift */; };
 		60E687EE61413628159E2CC4 /* AISettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873178EA70279DFA5A5FB656 /* AISettingsSection.swift */; };
 		60FE0B79D7BF23B80E9E658F /* AskAIModel+Panel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F94F4CB7297C9286F2C8A2D /* AskAIModel+Panel.swift */; };
@@ -752,6 +753,7 @@
 		B4E100E7CC5D879F30DB26F5 /* EmojiRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiRows.swift; sourceTree = "<group>"; };
 		B5F79E7C261FEF649D619BE4 /* release.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = release.sh; sourceTree = "<group>"; };
 		B62548A2DF57C84EDBCBCC0A /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		B734849166D36BE722EC3A51 /* ExtensionEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionEnvironment.swift; sourceTree = "<group>"; };
 		B7DAD4E1431B73E8BF3D6DF1 /* check-resident-budget.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "check-resident-budget.py"; sourceTree = "<group>"; };
 		B8BEB17B69D9ECF2DA775BBF /* SearchViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViews.swift; sourceTree = "<group>"; };
 		BA3272ED81F830F1F9F8AFB0 /* FloeAboutPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloeAboutPane.swift; sourceTree = "<group>"; };
@@ -1266,6 +1268,7 @@
 				CC2033FDF332D4135EDF2DEF /* ErrorView.swift */,
 				49F344E4E1A683D2886D89AA /* ExtensionAccess.swift */,
 				1D702951911A2EC642275F11 /* ExtensionCreations.swift */,
+				B734849166D36BE722EC3A51 /* ExtensionEnvironment.swift */,
 				2C4442F500A2A3DC833EFC90 /* ExtensionGridViews.swift */,
 				A8AEDEB267607D5474C20D6F /* ExtensionListViews.swift */,
 				707E686E00003A43CD0F9C14 /* ExtensionRunner.swift */,
@@ -1801,6 +1804,7 @@
 				C600E49CB6098283C630DA71 /* ExtensionAccess.swift in Sources */,
 				747084900218D005E77A5CA3 /* ExtensionAccessSection.swift in Sources */,
 				2E3353459AA22721CAEE0E6E /* ExtensionCreations.swift in Sources */,
+				601C534436F71C878461D9ED /* ExtensionEnvironment.swift in Sources */,
 				B7B185E1018C8A72B8A9D6F9 /* ExtensionGridViews.swift in Sources */,
 				F79ECEE81B269EF3999DF3DA /* ExtensionListViews.swift in Sources */,
 				DA961FACB1C6D738B8FC46EC /* ExtensionRunner.swift in Sources */,

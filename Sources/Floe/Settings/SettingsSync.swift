@@ -87,6 +87,7 @@ enum SettingsSync {
         "focusShortcut": "names a Shortcut that exists on this Mac",
         "fetchesExchangeRates": "consent to a download, given on this Mac",
         "lentSignIns": "sign-ins lent to extensions on this Mac",
+        "shellEnvironmentExtensions": "hands an extension this Mac's shell environment, tokens included, so it is decided on each Mac",
         "aiSource": "what answers depends on what is installed and signed in here",
         "aiBaseURL": "goes with a key in this Mac's Keychain",
         "aiModel": "goes with the AI source of this Mac",
