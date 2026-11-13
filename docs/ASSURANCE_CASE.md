@@ -72,7 +72,7 @@ Out of scope: physical access to an unlocked Mac, bugs in macOS, and compromise 
 | --- | --- | --- |
 | Other apps to Floe | `floe://`, `raycast://` and `com.raycast:` links | `IncomingLink` accepts known schemes and hosts only, and is fuzzed. A sign-in's return must carry the state of a waiting sign-in, used once, within ten minutes. Thaw's answer must carry the random id of the request that is out, used once, within five seconds |
 | Launcher to Settings process | Distributed notifications | Each message is signed with a key made for that settings process and handed over a pipe, and numbers must count up, so a copied or forged message is dropped |
-| Floe to an extension | NDJSON over stdin and stdout | A record of what the extension reached, shown in Settings. This is a record and not a limit |
+| Floe to an extension | NDJSON over stdin and stdout, and the process's environment | A record of what the extension reached, shown in Settings. This is a record and not a limit. Of your shell's environment the process gets only the variables `ExtensionEnvironment` lists, unless you pass it everything on its page, and the host takes the command's preferences out of the environment before the command runs |
 | Store to your Mac | Extension source from `raycast/extensions` over HTTPS | You choose what to install. Dependencies install with scripts off (`bun install --ignore-scripts`) |
 | Floe to AI services | Prompts and keys | A key goes only to the address it was saved for, and only over HTTPS or to a server on this Mac |
 | Floe to the network | Update feed and downloads | HTTPS, and Sparkle's EdDSA key in `SUPublicEDKey`. App Transport Security allows plain HTTP only to local addresses, for local model servers. Floe's own code opens no listening socket |
@@ -85,7 +85,7 @@ These are the Saltzer and Schroeder principles.
 | Principle | How Floe applies it |
 | --- | --- |
 | Economy of mechanism | One link router, and one small file that decides what a link is |
-| Fail-safe defaults | An unknown link does nothing. Sync, search sources and iCloud passwords are off until you choose them. Extensions install with scripts off |
+| Fail-safe defaults | An unknown link does nothing. Sync, search sources and iCloud passwords are off until you choose them. Extensions install with scripts off, and get only a listed part of your shell's environment |
 | Complete mediation | Every link and every process message is checked when it arrives |
 | Open design | The code is AGPL-3.0, and the security policy and this document are public |
 | Separation of privilege | Release signing runs only in the `prod` environment, separate from pull request CI. Settings runs as its own process |
@@ -113,7 +113,10 @@ CodeQL, SonarCloud and SwiftLint run in CI. A nightly fuzz run with AddressSanit
    An extension can read your files, reach the network, start programs and run scripts in your browser's tabs through
    the BrowserExtension API. Floe records what it sees, which a hostile extension could avoid. Floe also doesn't disclaim
    responsibility for its child processes, so macOS may treat an extension's request as Floe's and apply the permissions
-   you gave Floe.
+   you gave Floe. An extension starts with a short list of your shell's variables, so a token your shell exports is
+   not handed to it unasked. That limits what Floe passes on and is not a sandbox: an extension can still start a
+   login shell, or read `~/.zshrc` or any other file a token is kept in. An extension you pass the whole environment
+   to on its page gets every variable, as before.
 2. **Store extensions aren't pinned.** They come from the current `raycast/extensions` tree, so Floe relies on GitHub's
    HTTPS and that repository's review. Floe doesn't check a signature on them.
 3. **Bun runs with loosened code signing.** To run JavaScript, the bundled Bun has JIT and unsigned executable memory
@@ -138,6 +141,7 @@ CodeQL, SonarCloud and SwiftLint run in CI. A nightly fuzz run with AddressSanit
 | Link routing | `Sources/Floe/App/IncomingLink.swift`, `Sources/Floe/App/IncomingURLRouter.swift`, `.github/workflows/fuzz.yml` |
 | Sign-in and token rules | `Sources/Floe/Extensions/OAuthBroker.swift` |
 | Process messages | `Sources/Floe/App/ProcessLink.swift` |
+| What an extension gets of the shell's environment | `Sources/Floe/Extensions/ExtensionEnvironment.swift`, `takePreferences` in `runtime/bridge.ts` |
 | AI key rules | `Sources/Floe/AI/AISources.swift`, `AIEndpoint` in `Sources/Floe/Extensions/HostRequest.swift` |
 | Update and release authenticity | [Verifying releases](VERIFYING_RELEASES.md), `.github/workflows/release.yml` |
 | Architecture | [Architecture](ARCHITECTURE.md) |
@@ -149,3 +153,4 @@ CodeQL, SonarCloud and SwiftLint run in CI. A nightly fuzz run with AddressSanit
 | Date | Note |
 | --- | --- |
 | 2026-10-30 | First version, for the OpenSSF Best Practices `assurance_case` and `security_review` criteria |
+| 2026-11-13 | Extensions get a listed part of the shell's environment |
