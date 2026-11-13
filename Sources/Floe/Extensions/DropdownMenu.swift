@@ -12,19 +12,29 @@ import AppKit
 enum DropdownMenu {
     enum Entry: Equatable {
         case heading(String)
+        /// What follows is under no heading: an untitled section, or items after a section.
+        case untitled
         case item(title: String, value: String)
     }
 
     /// The dropdown's items in order, each section under its title.
     static nonisolated func entries(for node: Node) -> [Entry] {
-        node.children.flatMap { child -> [Entry] in
+        var entries: [Entry] = []
+        var leavesSection = false
+        for child in node.children {
             if child.type.hasSuffix("Dropdown.Section") {
-                let heading = child.string("title").map { [Entry.heading($0)] } ?? []
-                return heading + entries(for: child)
+                entries.append(child.string("title").map(Entry.heading) ?? .untitled)
+                entries += self.entries(for: child)
+                leavesSection = true
+            } else if child.type.hasSuffix("Dropdown.Item") {
+                if leavesSection {
+                    entries.append(.untitled)
+                    leavesSection = false
+                }
+                entries.append(.item(title: child.string("title") ?? "", value: child.props["value"] as? String ?? ""))
             }
-            guard child.type.hasSuffix("Dropdown.Item") else { return [] }
-            return [.item(title: child.string("title") ?? "", value: child.props["value"] as? String ?? "")]
         }
+        return entries
     }
 
     /// Items under one heading, or under none when they come before the first.
@@ -39,6 +49,7 @@ enum DropdownMenu {
         for entry in entries {
             switch entry {
             case let .heading(title): groups.append(Group(title: title))
+            case .untitled: groups.append(Group(title: nil))
             case let .item(title, value): groups[groups.count - 1].items.append((title, value))
             }
         }
@@ -65,6 +76,10 @@ enum DropdownMenu {
                     menu.addItem(.separator())
                 }
                 menu.addItem(.sectionHeader(title: title))
+            case .untitled:
+                if let last = menu.items.last, !last.isSeparatorItem {
+                    menu.addItem(.separator())
+                }
             case let .item(title, value):
                 let item = NSMenuItem(title: title, action: #selector(Target.picked(_:)), keyEquivalent: "")
                 item.target = target
