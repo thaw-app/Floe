@@ -15,6 +15,7 @@ final class FoundRows {
     var typeQuery: (String) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     var showOutput: (_ title: String, _ text: String) -> Void = { _, _ in
         // Set by LauncherFeatures.
     }

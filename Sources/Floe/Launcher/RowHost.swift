@@ -13,6 +13,7 @@ struct RowHost {
     var showHUD: (String) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     var hidePanel: () -> Void = { /* set by LauncherFeatures */ }
     /// Hides the panel and goes back to the root search.
     var leave: () -> Void = { /* set by LauncherFeatures */ }
@@ -20,10 +21,12 @@ struct RowHost {
     var reach: (URL?) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     /// Keeps a receipt of something Floe did, unless the user switched that off.
     var record: (Receipt) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     /// Reads the rows again, letting go of the scope on screen so its rows are read afresh.
     var rescan: () -> Void = { /* set by LauncherFeatures */ }
 }

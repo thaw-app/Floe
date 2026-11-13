@@ -6,8 +6,8 @@
 //  Licensed under the GNU GPLv3
 
 import AppKit
-import FloeRust
 @testable import Floe
+import FloeRust
 import Foundation
 import SwiftUI
 import Testing

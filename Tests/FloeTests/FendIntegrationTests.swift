@@ -5,8 +5,8 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU GPLv3
 
-import FloeRust
 @testable import Floe
+import FloeRust
 import Foundation
 import Testing
 
