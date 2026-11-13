@@ -19,6 +19,7 @@ final class ExtensionRunner: ObservableObject {
         var showHUD: (String) -> Void = { _ in
             // Set by the launcher's model.
         }
+
         /// The search field takes the keys again: the command's view is gone.
         var refocus: () -> Void = { /* set by the launcher's model */ }
         /// Whether the panel is on screen, so a toast is drawn in the command's footer rather than said as a HUD.
@@ -29,18 +30,22 @@ final class ExtensionRunner: ObservableObject {
         var beginSetup: (SetupRequest) -> Void = { _ in
             // Set by the launcher's model.
         }
+
         /// Running a menu-bar command is choosing whether it has a status item.
         var toggleMenuBar: (ExtensionCommand) -> Void = { _ in
             // Set by the launcher's model.
         }
+
         /// Opens a link or a file, in a named app when there is one.
         var open: (_ target: String, _ application: String?) -> Void = { _, _ in
             // Set by the launcher's model.
         }
+
         /// Opens the command's settings, or asks for the one preference a sign-in needs.
         var showPreferences: ([String: Any], ExtensionSession) -> Void = { _, _ in
             // Set by the launcher's model.
         }
+
         /// The extension's manifest changed on disk.
         var manifestChanged: () -> Void = { /* set by the launcher's model */ }
         /// Floe's clipboard history, newest first, which the command reads older copies from.
@@ -183,7 +188,8 @@ final class ExtensionRunner: ObservableObject {
 
     /// The app's answers, with `Clipboard.read`'s older copies taken from Floe's history.
     static func answer(withHistory history: @escaping @MainActor @Sendable () -> [ClipboardEntry])
-        -> @concurrent @Sendable (HostRequest, @Sendable (String) async -> Void) async throws -> Any {
+        -> @concurrent @Sendable (HostRequest, @Sendable (String) async -> Void) async throws -> Any
+    {
         { request, emit in
             guard case let .clipboardRead(offset) = request, offset > 0 else {
                 return try await HostRequest.answer(request, emit: emit)

@@ -16,11 +16,13 @@ final class ScriptRows {
     var recordUse: (String) -> Void = { _ in
         // Set by LauncherFeatures.
     }
+
     /// Asks before a script that declares it needs confirming runs.
     var confirms: (ScriptCommand) -> Bool = { ScriptRows.confirmRun(of: $0) }
     var runScript: @Sendable (ScriptCommand, [String], [String: String]) async throws -> ShellResult = {
         try await ScriptRunner.run($0, arguments: $1, environment: $2)
     }
+
     var showOutput: (_ title: String, _ output: String) -> Void = { ScriptOutputWindow.show(title: $0, output: $1) }
 
     /// Runs a script searched for, with the given argv. A script that acts on results runs only on one, from

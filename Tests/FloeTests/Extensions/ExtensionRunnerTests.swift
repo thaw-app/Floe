@@ -5,8 +5,8 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-@testable import Floe
 import AppKit
+@testable import Floe
 import Testing
 
 /// The runner on its own, with a host that records what it was asked: no launcher and no Bun process.

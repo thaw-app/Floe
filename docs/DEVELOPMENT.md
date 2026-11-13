@@ -138,7 +138,7 @@ measured file with a suite beside it.
     ./Tests/Fuzzing/.build/release/FuzzIncomingLink Tests/Fuzzing/Corpus/IncomingLink
 
 `.github/workflows/ci.yml` runs on every pull request and on pushes to `development` and `main`. When code-related paths
-changed, `lint` runs SwiftLint and `build` builds the app, then runs the selftest, the memory budget, the signing script
+changed, `lint` runs SwiftLint and checks formatting with SwiftFormat, and `build` builds the app, then runs the selftest, the memory budget, the signing script
 tests and the Swift and runtime suites with coverage. A change to other paths skips those steps and still reports both
 checks. `development` requires them to pass before a merge.
 
