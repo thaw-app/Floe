@@ -31,7 +31,7 @@ struct DropdownMenuTests {
         let entries = DropdownMenu.entries(for: node)
         #expect(entries == [
             .item(title: "All", value: "all"), .heading("Regions"), .item(title: "Greece", value: "gr"), .item(title: "Texas", value: "tx"),
-            .item(title: "Chaos Index", value: "chaos"),
+            .untitled, .item(title: "Chaos Index", value: "chaos"),
         ])
         #expect(DropdownMenu.title(of: "tx", in: entries) == "Texas")
         #expect(DropdownMenu.title(of: "missing", in: entries) == nil)
@@ -68,5 +68,41 @@ struct DropdownMenuTests {
         #expect(built.menu.items[2].action == nil, "a heading does nothing")
         pick(built.menu, at: 3)
         #expect(picked == ["gr"])
+    }
+
+    @Test func aFormDropdownGroupsItsItemsUnderTheirSectionTitles() {
+        let groups = DropdownMenu.groups([
+            .item(title: "All", value: "all"), .heading("Regions"), .item(title: "Greece", value: "gr"), .heading("Empty"),
+            .heading("Indexes"), .item(title: "Chaos Index", value: "chaos"),
+        ])
+        #expect(groups.map(\.title) == [nil, "Regions", "Empty", "Indexes"])
+        #expect(groups.map { $0.items.map(\.value) } == [["all"], ["gr"], [], ["chaos"]])
+        #expect(DropdownMenu.groups([.heading("Only")]).map(\.title) == ["Only"], "no untitled group when nothing comes before the first heading")
+    }
+
+    @Test func itemsAfterATitledSectionAreNotUnderItsTitle() throws {
+        let node = try dropdown([
+            ["type": "Dropdown.Section", "id": 2, "props": ["title": "Regions"], "children": [item("Greece", "gr")]],
+            item("Loose", "loose"),
+            ["type": "Dropdown.Section", "id": 3, "props": ["title": "Indexes"], "children": [item("Chaos Index", "chaos")]],
+            ["type": "Dropdown.Section", "id": 4, "props": [:], "children": [item("Untitled", "untitled")]],
+        ])
+        let entries = DropdownMenu.entries(for: node)
+        let groups = DropdownMenu.groups(entries)
+        #expect(groups.map(\.title) == ["Regions", nil, "Indexes", nil])
+        #expect(groups.map { $0.items.map(\.value) } == [["gr"], ["loose"], ["chaos"], ["untitled"]])
+
+        let menu = DropdownMenu.menu(entries, current: nil) { _ in }.menu
+        #expect(menu.items.map { $0.isSeparatorItem ? "-" : $0.title } == ["Regions", "Greece", "-", "Loose", "-", "Indexes", "Chaos Index", "-", "Untitled"])
+    }
+
+    @Test func anUntitledSectionFirstAddsNoSeparator() throws {
+        let node = try dropdown([
+            ["type": "Dropdown.Section", "id": 2, "props": [:], "children": [item("First", "first")]],
+            ["type": "Dropdown.Section", "id": 3, "props": [:], "children": [item("Second", "second")]],
+        ])
+        let entries = DropdownMenu.entries(for: node)
+        #expect(DropdownMenu.groups(entries).map { $0.items.map(\.value) } == [["first"], ["second"]])
+        #expect(DropdownMenu.menu(entries, current: nil) { _ in }.menu.items.map { $0.isSeparatorItem ? "-" : $0.title } == ["First", "-", "Second"])
     }
 }

@@ -8,15 +8,15 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 
 | API | Status | Notes |
 | --- | --- | --- |
-| `List` | Partial | A controlled `searchText` and `throttle` are ignored. The list's own filtering matches each typed word as text in the title, subtitle or keywords. Section subtitles are not shown. |
+| `List` | Partial | A controlled `searchText` and `throttle` are ignored. The list's own filtering matches each typed word as text in the title, subtitle or keywords. |
 | `List.Item`, `List.Item.Detail`, `List.Section` | Supported | |
 | `List.EmptyView` | Partial | Its icon is not shown. |
 | `List.Dropdown`, `Grid.Dropdown` | Supported | |
 | `Grid` | Partial | As `List`. |
 | `Detail` | Supported | |
 | `Form` | Partial | `enableDrafts`, `storeValue` on fields, `onFocus`, `onBlur` and a field ref's `focus()` do nothing. `Form.LinkAccessory` is not shown. |
-| Form fields | Partial | `Form.DatePicker` ignores `min` and `max`. `Form.Dropdown` shows no section titles or item icons. `info` shows only on `Form.TextField`. |
-| `MenuBarExtra` | Partial | An item's `shortcut` and `alternate` are not shown. |
+| Form fields | Partial | `Form.DatePicker` ignores `min` and `max`. `Form.Dropdown` shows no item icons. `info` shows only on `Form.TextField`. |
+| `MenuBarExtra` | Partial | An item's `alternate` is not shown. |
 | `ActionPanel`, sections and submenus | Supported | |
 | `Action`, `Action.Style` | Supported | |
 | `Action.OpenInBrowser`, `Open`, `OpenWith`, `CopyToClipboard`, `Paste`, `Push`, `ShowInFinder`, `SubmitForm`, `ToggleQuickLook`, `PickDate`, `CreateSnippet`, `CreateQuicklink` | Supported | |
@@ -30,7 +30,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | --- | --- | --- |
 | `showToast`, `Toast` | Supported | |
 | `showHUD` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
-| `confirmAlert` | Partial | `icon` is not shown. |
+| `confirmAlert` | Supported | |
 | `closeMainWindow` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
 | `popToRoot` | Partial | `clearSearchBar` is ignored. |
 | `clearSearchBar` | Partial | `forceScrollToTop` is ignored. |
@@ -85,7 +85,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | --- | --- | --- |
 | `Icon` | Partial | Drawn as SF Symbols. An icon with no close symbol shows a dashed square. |
 | `Image` | Partial | `fallback` is ignored, and the only mask drawn is the circle. |
-| `Color` | Partial | Raycast's named colors and hex values work. Dynamic colors (`{ light, dark }`) are ignored. |
+| `Color` | Partial | Raycast's named colors, hex values and dynamic colors (`{ light, dark }`) work, and a dynamic color follows a change of appearance. `adjustContrast` is ignored. |
 | `Keyboard.Shortcut`, `Keyboard.Shortcut.Common` | Supported | |
 | API 1.x names and `render()` | Supported | |
 

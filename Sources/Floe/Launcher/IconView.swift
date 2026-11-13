@@ -11,22 +11,32 @@ import Synchronization
 
 enum Palette {
     static func color(_ value: Any?) -> Color? {
-        guard let string = value as? String else { return nil }
+        if let dynamic = value as? [String: Any] {
+            guard let light = color(dynamic["light"]), let dark = color(dynamic["dark"]) else { return nil }
+            return appearing(light: light, dark: dark)
+        }
+        return (value as? String).flatMap(color(named:))
+    }
+
+    private static let named: [String: Color] = [
+        "Red": .red, "Orange": .orange, "Yellow": .yellow, "Green": .green, "Blue": .blue, "Purple": .purple,
+        "Magenta": .pink, "PrimaryText": .primary, "SecondaryText": .secondary,
+    ]
+
+    /// A hex value or one of Raycast's named colors.
+    private static func color(named string: String) -> Color? {
         if string.hasPrefix("#"), let hex = UInt32(string.dropFirst().prefix(6), radix: 16) {
             return Color(red: Double(hex >> 16 & 0xFF) / 255, green: Double(hex >> 8 & 0xFF) / 255, blue: Double(hex & 0xFF) / 255)
         }
-        switch string.replacingOccurrences(of: "color:", with: "") {
-        case "Red": return .red
-        case "Orange": return .orange
-        case "Yellow": return .yellow
-        case "Green": return .green
-        case "Blue": return .blue
-        case "Purple": return .purple
-        case "Magenta": return .pink
-        case "PrimaryText": return .primary
-        case "SecondaryText": return .secondary
-        default: return nil
-        }
+        return named[string.replacingOccurrences(of: "color:", with: "")]
+    }
+
+    /// Raycast's `{ light, dark }`, chosen each time the color is drawn, so it follows a change of appearance
+    /// while the command is open. AppKit may ask from any thread, so the choice is made outside the main actor.
+    private static nonisolated func appearing(light: Color, dark: Color) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            NSColor(appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light)
+        })
     }
 }
 

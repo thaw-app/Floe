@@ -12,7 +12,7 @@ import path from "node:path";
 import React from "react";
 import * as api from "../api/index";
 import { isLent } from "../api/oauth";
-import { ctx, handleReply, handleReplyChunk } from "../bridge";
+import { ctx, handleReply, handleReplyChunk, takePreferences } from "../bridge";
 import { createLocalStorage } from "../local-storage";
 import { installRuntime, resetStage, sent } from "./support";
 import { render } from "../renderer";
@@ -25,14 +25,11 @@ function stubSpawnSync(stdout: string) {
   return { commands: () => spy.mock.calls.map(([command]) => command as unknown as string[]) };
 }
 
-let savedPreferences: string | undefined;
 beforeEach(() => {
-  savedPreferences = process.env.FLOE_PREFERENCES;
-  delete process.env.FLOE_PREFERENCES;
+  ctx.preferences = undefined;
 });
 afterEach(() => {
   mock.restore();
-  if (savedPreferences !== undefined) process.env.FLOE_PREFERENCES = savedPreferences;
 });
 
 describe("toasts and HUD", () => {
@@ -176,6 +173,13 @@ describe("confirmAlert", () => {
     handleReply({ id: sent("request")[0].id, result: false });
     expect(await asked).toBe(false);
     expect(calls).toEqual(["dismissed"]);
+  });
+
+  test("sends the alert's icon to the app", async () => {
+    const asked = api.confirmAlert({ title: "Empty the trash?", icon: { source: api.Icon.Trash, tintColor: api.Color.Red } });
+    expect(sent("request")[0].params.icon).toEqual({ source: "icon:Trash", tintColor: "color:Red" });
+    handleReply({ id: sent("request")[0].id, result: false });
+    expect(await asked).toBe(false);
   });
 
   test("uses OK and Cancel when no actions are given", async () => {
@@ -485,7 +489,22 @@ describe("getPreferenceValues", () => {
 
   test("uses what the app passes in the environment, ignoring the manifest", () => {
     process.env.FLOE_PREFERENCES = JSON.stringify({ greeting: "Hi", token: "secret" });
+    takePreferences();
     expect(api.getPreferenceValues()).toEqual({ greeting: "Hi", token: "secret" });
+  });
+
+  test("what the app passed leaves the environment, so a program the command starts does not inherit it", () => {
+    process.env.FLOE_PREFERENCES = JSON.stringify({ token: "secret" });
+    takePreferences();
+    expect(process.env.FLOE_PREFERENCES).toBeUndefined();
+    expect(Bun.spawnSync(["/usr/bin/env"]).stdout.toString()).not.toContain("FLOE_PREFERENCES");
+    expect(api.getPreferenceValues()).toEqual({ token: "secret" });
+  });
+
+  test("taking the preferences again without the app clears what was passed before", () => {
+    ctx.preferences = JSON.stringify({ greeting: "Hi" });
+    takePreferences();
+    expect(api.getPreferenceValues()).toEqual({ greeting: "Hello", shout: false, limit: 10 });
   });
 
   test("without the app, falls back to the defaults of the extension and the running command", () => {
@@ -504,7 +523,7 @@ describe("getPreferenceValues", () => {
 
   test("the deprecated preferences object reads the same values lazily", () => {
     expect(api.preferences.greeting).toEqual({ value: "Hello" });
-    process.env.FLOE_PREFERENCES = JSON.stringify({ greeting: "Hi" });
+    ctx.preferences = JSON.stringify({ greeting: "Hi" });
     expect(api.preferences.greeting.value).toBe("Hi");
     expect(api.preferences.missing).toEqual({ value: undefined });
   });

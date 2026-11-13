@@ -95,6 +95,7 @@ nonisolated struct Row: Identifiable, Equatable {
     let sectionTitle: String?
     /// The section the item is in, by its node; a Grid lays each one out in columns of its own.
     var sectionID: Int?
+    var sectionSubtitle: String?
     var id: Int {
         node.id
     }
@@ -102,5 +103,6 @@ nonisolated struct Row: Identifiable, Equatable {
     /// The same item as the host last sent it, under the same section.
     static func == (lhs: Row, rhs: Row) -> Bool {
         lhs.node.revision == rhs.node.revision && lhs.sectionTitle == rhs.sectionTitle && lhs.sectionID == rhs.sectionID
+            && lhs.sectionSubtitle == rhs.sectionSubtitle
     }
 }

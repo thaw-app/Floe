@@ -231,6 +231,15 @@ struct ExtensionSessionTests {
         #expect(recorder.sent.first?["result"] as? Bool == true)
     }
 
+    @Test func aConfirmRequestKeepsItsIcon() {
+        apply(["type": "request", "id": 21, "method": "alert.confirm", "params": ["title": "Delete?", "icon": ["source": "icon:Trash", "tintColor": "color:Red"]]])
+        let icon = session.alert?.icon as? [String: Any]
+        #expect(icon?["source"] as? String == "icon:Trash")
+        #expect(icon?["tintColor"] as? String == "color:Red")
+        apply(["type": "request", "id": 22, "method": "alert.confirm", "params": ["title": "Plain"]])
+        #expect(session.alert?.icon == nil)
+    }
+
     @Test func aNewAlertReplacesTheOldOneAnsweringItFalse() {
         apply(["type": "request", "id": 21, "method": "alert.confirm", "params": ["title": "First"]])
         apply(["type": "request", "id": 22, "method": "alert.confirm", "params": ["title": "Second"]])

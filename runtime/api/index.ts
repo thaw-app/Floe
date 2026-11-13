@@ -416,7 +416,7 @@ export async function confirmAlert(options: Props) {
     return true;
   }
   const confirmed = await request("alert.confirm", {
-    title: options.title, message: options.message,
+    title: options.title, message: options.message, icon: options.icon,
     primaryTitle, primaryStyle: options.primaryAction?.style ?? "default", dismissTitle,
   });
   const result = confirmed === true;
@@ -559,7 +559,7 @@ export { Cache } from "../cache";
 
 export function getPreferenceValues<T = Props>(): T {
   // The app resolves defaults, stored values and Keychain secrets and passes the result in.
-  if (process.env.FLOE_PREFERENCES) return JSON.parse(process.env.FLOE_PREFERENCES) as T;
+  if (ctx.preferences) return JSON.parse(ctx.preferences) as T;
   const command = ctx.manifest.commands?.find((candidate) => candidate.name === ctx.commandName);
   const declared = [...(ctx.manifest.preferences ?? []), ...(command?.preferences ?? [])];
   const defaults = Object.fromEntries(declared.filter((pref) => pref.default !== undefined).map((pref) => [pref.name, pref.default]));

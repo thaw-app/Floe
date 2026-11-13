@@ -60,7 +60,7 @@ struct MenuBarContentTests {
 
     @Test func aRootMapsToRowsEndingWithTheRemoveEntry() {
         let menu = items(root(["title": "3"], [
-            Fixture.node("MenuBarExtra.Item", id: 10, props: ["title": "Open", "subtitle": "Now", "tooltip": "Opens it", "icon": "icon:Star"], handlers: ["onAction"]),
+            Fixture.node("MenuBarExtra.Item", id: 10, props: ["title": "Open", "subtitle": "Now", "tooltip": "Opens it", "icon": "icon:Star", "shortcut": ["modifiers": ["cmd", "shift"], "key": "o"]], handlers: ["onAction"]),
             Fixture.node("MenuBarExtra.Item", id: 11, props: ["title": "Idle"]),
             Fixture.node("MenuBarExtra.Separator", id: 12),
             Fixture.node("MenuBarExtra.Section", id: 20, props: ["title": "Recent"], children: [
@@ -78,7 +78,7 @@ struct MenuBarContentTests {
             MenuBarMenuItem(key: .item(32), role: .action(node: 32), title: "Two"),
         ]
         #expect(menu == [
-            MenuBarMenuItem(key: .item(10), role: .action(node: 10), title: "Open", subtitle: "Now", toolTip: "Opens it", icon: .symbol("star")),
+            MenuBarMenuItem(key: .item(10), role: .action(node: 10), title: "Open", subtitle: "Now", toolTip: "Opens it", icon: .symbol("star"), shortcut: .init(key: "o", flags: [.command, .shift])),
             MenuBarMenuItem(key: .item(11), role: .disabled, title: "Idle"),
             .separator,
             .separator,

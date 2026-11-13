@@ -181,6 +181,10 @@ final class MenuBarMenu: NSMenu {
         if old?.icon != wanted.icon {
             setImage(of: item, to: wanted.icon)
         }
+        if old?.shortcut != wanted.shortcut {
+            item.keyEquivalent = wanted.shortcut?.key ?? ""
+            item.keyEquivalentModifierMask = wanted.shortcut?.flags ?? []
+        }
         if old?.role != wanted.role {
             setRole(of: item, to: wanted.role)
         }
@@ -282,9 +286,15 @@ final class MenuBarMenu: NSMenu {
         (menu as? MenuBarMenu)?.isOpen = false
     }
 
-    /// No row has a key equivalent, and saying so keeps AppKit from filling the menu to look for one.
-    func menuHasKeyEquivalent(_: NSMenu, for _: NSEvent, target _: AutoreleasingUnsafeMutablePointer<AnyObject?>, action _: UnsafeMutablePointer<Selector?>) -> Bool {
-        false
+    /// AppKit asks this before it looks through a menu's rows for a shortcut. While the command's menu is open, a
+    /// submenu not opened yet is given its rows first, so the shortcut finds the row it is drawn on; the answer is
+    /// always no, so AppKit then searches the rows itself and sends the row's own action. A closed menu is left as
+    /// it is, so a key pressed elsewhere does not build it.
+    func menuHasKeyEquivalent(_ menu: NSMenu, for _: NSEvent, target _: AutoreleasingUnsafeMutablePointer<AnyObject?>, action _: UnsafeMutablePointer<Selector?>) -> Bool {
+        if self.menu.isOpen {
+            menuNeedsUpdate(menu)
+        }
+        return false
     }
 
     @objc private func fire(_ sender: NSMenuItem) {
