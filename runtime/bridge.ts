@@ -28,9 +28,18 @@ export const ctx = {
   // environment.supportPath, the extension's alone.
   supportPath: "",
   manifest: { name: "" } as Manifest,
+  // The command's preferences as the app resolved them, as JSON, or nothing when the host runs without the app.
+  preferences: undefined as string | undefined,
   // The sign-in that failed last, which says why a render that kept waiting on it gave up.
   signInFailure: undefined as { error: Error; at: number } | undefined,
 };
+
+// Moves the preferences the app passed out of the environment. They hold the command's Keychain values, and a
+// program the command starts inherits the environment.
+export function takePreferences(): void {
+  ctx.preferences = process.env.FLOE_PREFERENCES || undefined;
+  delete process.env.FLOE_PREFERENCES;
+}
 
 type Sink = (line: string) => void;
 let reserved: typeof process.stdout.write | undefined;
