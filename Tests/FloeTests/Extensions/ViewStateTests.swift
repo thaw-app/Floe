@@ -52,6 +52,16 @@ struct ListStateTests {
         #expect(rows.map(\.sectionTitle) == [nil, "Rocky", "Rocky", nil])
     }
 
+    @Test func rowsKeepTheirSectionsSubtitle() {
+        let root = list(children: [
+            Fixture.node("List.Section", props: ["title": "Rocky", "subtitle": "2 planets"], children: [Fixture.item("Mercury", id: 2)]),
+            Fixture.node("List.Section", props: ["title": "Giants"], children: [Fixture.item("Jupiter", id: 5)]),
+        ])
+        let rows = ViewState.rows(of: ViewState.view(in: root), searchText: "")
+        #expect(rows.map(\.sectionSubtitle) == ["2 planets", nil])
+        #expect(rows[0] != Row(node: rows[0].node, sectionTitle: "Rocky", sectionID: rows[0].sectionID), "a changed subtitle draws the heading again")
+    }
+
     @Test func gridItemsAreRowsToo() {
         let root = Fixture.root(Fixture.node("Grid", children: [
             Fixture.node("Grid.Section", props: ["title": "Icons"], children: [Fixture.node("Grid.Item", id: 9, props: ["title": "Star"])]),

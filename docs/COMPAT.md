@@ -8,7 +8,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 
 | API | Status | Notes |
 | --- | --- | --- |
-| `List` | Partial | A controlled `searchText` and `throttle` are ignored. The list's own filtering matches each typed word as text in the title, subtitle or keywords. Section subtitles are not shown. |
+| `List` | Partial | A controlled `searchText` and `throttle` are ignored. The list's own filtering matches each typed word as text in the title, subtitle or keywords. |
 | `List.Item`, `List.Item.Detail`, `List.Section` | Supported | |
 | `List.EmptyView` | Partial | Its icon is not shown. |
 | `List.Dropdown`, `Grid.Dropdown` | Supported | |

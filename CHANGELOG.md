@@ -29,6 +29,7 @@ these four.
 - **The Actions menu opens in the launcher.** ⌘K on a result, in the main search, File Search, menu bar search and Ask AI, shows the same panel an extension's ⌘K does, instead of a system menu. Type to search the actions, use the arrows and Return to run one, → and ← for submenus, and Esc to close it. Each action's keys still run it.
 - **Actions has a page of its own in Settings.** What Return does, which actions the Actions menu shows and the keys that run them were a tab of Commands, and are now Settings › Actions.
 - **Extensions' light and dark colors show.** A color an extension gives one value for light mode and another for dark mode is now drawn, and changes when your Mac switches appearance while the command is open. Before, it was left out.
+- **A section's subtitle shows in an extension's list.** It sits beside the section's title, as it already did in a grid.
 
 ## [0.4.0-rc.2] - 2026-11-09
 

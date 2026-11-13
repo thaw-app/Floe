@@ -66,7 +66,7 @@ struct ListRows: View, Equatable {
                         // One view per row, title included: a lazy stack walks the whole list when rows vary in count.
                         VStack(alignment: .leading, spacing: 0) {
                             if let title = row.sectionTitle, index == 0 || rows[index - 1].sectionTitle != title {
-                                ListSectionHeading(title: title, isFirst: index == 0)
+                                ListSectionHeading(title: title, isFirst: index == 0, detail: row.sectionSubtitle)
                             }
                             ListRow(node: row.node, assetsPath: session.command.assetsPath, selected: row.id == selectedID, compact: compact, hasIconColumn: hasIconColumn)
                                 .equatable()
