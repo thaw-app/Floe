@@ -11,8 +11,16 @@ import path from "node:path";
 export type TreeNode = { id: number; type: string; props: Record<string, any>; handlers?: string[]; children?: TreeNode[] };
 export type HostMessage = { type: string; tree?: TreeNode; [key: string]: any };
 
-export function startHost(extensionDir: string, command: string, stderr: "inherit" | "pipe" | "ignore") {
-  return Bun.spawn(["bun", "--no-install", path.join(import.meta.dir, "host.ts"), extensionDir, command], { stdin: "pipe", stdout: "pipe", stderr });
+// Started as the app starts it: its secrets are the first line of its input.
+export function startHost(extensionDir: string, command: string, stderr: "inherit" | "pipe" | "ignore", secrets: Record<string, unknown> = {}) {
+  const proc = Bun.spawn(["bun", "--no-install", path.join(import.meta.dir, "host.ts"), extensionDir, command], {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr,
+    env: { ...process.env, FLOE_SECRETS: "input" },
+  });
+  sendToHost(proc, { type: "secrets", ...secrets });
+  return proc;
 }
 
 export function sendToHost(proc: ReturnType<typeof startHost>, message: Record<string, unknown>) {

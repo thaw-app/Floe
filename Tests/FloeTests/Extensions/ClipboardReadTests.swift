@@ -16,7 +16,7 @@ struct ClipboardReadTests {
     }
 
     @Test func anOlderCopyComesFromTheHistoryNewestFirst() {
-        let directory = URL(fileURLWithPath: "/tmp/clips")
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("floe-clips-\(UUID().uuidString)")
         func entry(_ kind: ClipboardEntry.Kind, text: String? = nil, files: [String]? = nil, image: String? = nil) -> ClipboardEntry {
             ClipboardEntry(id: UUID(), kind: kind, text: text, filePaths: files, imageFile: image, date: Date(), pinned: false)
         }
@@ -26,7 +26,7 @@ struct ClipboardReadTests {
         ]
         #expect(PasteboardContent.copy(offset: 1, in: entries, directory: directory) == ["text": "https://example.com"])
         #expect(PasteboardContent.copy(offset: 2, in: entries, directory: directory) == ["text": "/a.txt", "file": "/a.txt"])
-        #expect(PasteboardContent.copy(offset: 3, in: entries, directory: directory) == ["text": "", "file": "/tmp/clips/shot.png"])
+        #expect(PasteboardContent.copy(offset: 3, in: entries, directory: directory) == ["text": ""], "an image is handed on as a readable copy, and this one's file is not there")
         #expect(PasteboardContent.copy(offset: 5, in: entries, directory: directory) == ["text": "5"])
         #expect(PasteboardContent.copy(offset: 6, in: entries, directory: directory) == ["text": ""], "Raycast goes back five at most")
         #expect(PasteboardContent.copy(offset: 1, in: [], directory: directory) == ["text": ""], "no history, an empty slot")

@@ -175,12 +175,24 @@ extension ExtensionSession {
         static let windows = HostGrants(rawValue: 1 << 1)
     }
 
+    /// The host's first line of input: the command's preferences, with their Keychain values, and the storage key.
+    /// They never go in the environment, which another program running as the user can read with ps.
+    static func secretsLine(preferences: Data?, storage: StorageKey.Access) -> [UInt8] {
+        var message: [String: Any] = ["type": "secrets"]
+        message["preferences"] = preferences.flatMap { String(bytes: $0, encoding: .utf8) }
+        if case let .key(key) = storage {
+            message["storageKey"] = key
+        }
+        message["storageLocked"] = storage == .unavailable
+        let data = (try? JSONSerialization.data(withJSONObject: message)) ?? Data(#"{"type":"secrets"}"#.utf8)
+        return Array(data) + [0x0A]
+    }
+
     /// What the host starts with: the login shell's environment as `ExtensionEnvironment` limits it, the command's
     /// preferences, what it may use, whether what the extension reaches is recorded, and the app's appearance.
     static func hostVariables(
         _ base: [String: String],
         passesShellEnvironment: Bool = false,
-        preferences: Data?,
         grants: HostGrants,
         launch: (type: String, context: [String: Any]?, fallbackText: String?) = ("userInitiated", nil, nil),
         recordsAccess: Bool = true,
@@ -193,10 +205,9 @@ extension ExtensionSession {
         if !isDevelopment, variables["NODE_ENV"] == nil {
             variables["NODE_ENV"] = "production"
         }
-        // Preferences go through the environment so the host has them before the command's first line runs.
-        if let preferences {
-            variables["FLOE_PREFERENCES"] = String(bytes: preferences, encoding: .utf8)
-        }
+        // The passwords and the storage key come on the host's input: see secretsLine.
+        variables["FLOE_SECRETS"] = "input"
+        variables["FLOE_PREFERENCES"] = nil
         variables["FLOE_AI"] = grants.contains(.ai) ? "1" : nil
         variables["FLOE_WINDOWS"] = grants.contains(.windows) ? "1" : nil
         variables["FLOE_OAUTH"] = OAuthBroker.isParked ? nil : "1"

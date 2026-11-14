@@ -43,7 +43,7 @@ extension ClipboardHistoryStore {
     /// A file the history names, read only when it is a plain file right inside the clipboard folder. The names
     /// come from history.json, which anyone who can write the folder can edit, so a link or a path that leaves the
     /// folder is not followed.
-    static nonisolated func storedFile(_ name: String, in directory: URL) -> Data? {
+    static nonisolated func storedFile(_ name: String, in directory: URL, seal: ClipboardSeal = .app) -> Data? {
         guard !name.isEmpty, !name.contains("/"), name != ".", name != ".." else { return nil }
         let folder = open(directory.path, O_RDONLY | O_DIRECTORY | O_CLOEXEC)
         guard folder >= 0 else { return nil }
@@ -53,7 +53,7 @@ extension ClipboardHistoryStore {
         let handle = FileHandle(fileDescriptor: file, closeOnDealloc: true)
         var status = stat()
         guard fstat(file, &status) == 0, status.st_mode & S_IFMT == S_IFREG else { return nil }
-        return try? handle.readToEnd() ?? Data()
+        return (try? handle.readToEnd() ?? Data()).flatMap { seal.open($0, name: name) }
     }
 
     private static func mark(_ board: NSPasteboard, as entry: ClipboardEntry) -> Bool {

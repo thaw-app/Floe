@@ -21,6 +21,9 @@ nonisolated protocol KeychainAccess: Sendable {
     func read(service: String, account: String, synchronizable: Bool) -> String?
     @discardableResult
     func write(_ value: String, service: String, account: String, synchronizable: Bool) -> OSStatus
+    /// Adds a local item and never replaces one: errSecDuplicateItem when it is there already.
+    @discardableResult
+    func add(_ value: String, service: String, account: String) -> OSStatus
     @discardableResult
     func delete(service: String, account: String, synchronizable: Bool) -> OSStatus
     func list(service: String, synchronizable: Bool) -> [KeychainEntry]
@@ -57,6 +60,13 @@ nonisolated struct SystemKeychain: KeychainAccess {
         item[kSecValueData as String] = data
         // A local secret (OAuth tokens among them) stays on this device; one that syncs cannot be device-only.
         item[kSecAttrAccessible as String] = synchronizable ? kSecAttrAccessibleWhenUnlocked : kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        return SecItemAdd(item as CFDictionary, nil)
+    }
+
+    @discardableResult
+    func add(_ value: String, service: String, account: String) -> OSStatus {
+        var item = query(service, account, false)
+        item[kSecValueData as String] = Data(value.utf8)
         return SecItemAdd(item as CFDictionary, nil)
     }
 
@@ -129,6 +139,16 @@ final nonisolated class MemoryKeychain: KeychainAccess {
                 return failure
             }
             $0.items[Key(service: service, account: account, synchronizable: synchronizable)] = (value, $0.time)
+            return errSecSuccess
+        }
+    }
+
+    @discardableResult
+    func add(_ value: String, service: String, account: String) -> OSStatus {
+        state.withLock {
+            let key = Key(service: service, account: account, synchronizable: false)
+            guard $0.items[key] == nil else { return errSecDuplicateItem }
+            $0.items[key] = (value, $0.time)
             return errSecSuccess
         }
     }

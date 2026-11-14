@@ -52,7 +52,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 
 | API | Status | Notes |
 | --- | --- | --- |
-| `LocalStorage` | Supported | |
+| `LocalStorage` | Supported | Each value is encrypted with AES-256-GCM under a key Floe keeps in the login keychain, as Raycast encrypts its own. |
 | `Cache` | Supported | |
 | `getPreferenceValues`, every preference type | Supported | |
 | `openExtensionPreferences` | Supported | |

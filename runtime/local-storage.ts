@@ -1,6 +1,7 @@
 // An extension's LocalStorage: one SQLite database in its support folder, shared by every process of the extension.
+// With the storage key from the app each value is sealed, as Raycast keeps its LocalStorage encrypted.
 import { Database } from "bun:sqlite";
-import { randomInt } from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes, randomInt } from "node:crypto";
 import fs from "node:fs";
 
 type Items = Record<string, any>;
@@ -23,6 +24,55 @@ const usage = [
     `CREATE TRIGGER IF NOT EXISTS items_changed AFTER UPDATE ON items BEGIN UPDATE usage SET bytes = bytes + ${size("new")} - (${size("old")}); END`,
     `CREATE TRIGGER IF NOT EXISTS items_removed AFTER DELETE ON items BEGIN UPDATE usage SET keys = keys - 1, bytes = bytes - (${size("old")}); END`,
 ];
+
+// A sealed value: this prefix, then the IV, the tag and the AES-256-GCM ciphertext of its JSON, in base64. No JSON
+// value starts with a letter s, so a plain value from before is never taken for one.
+const sealedPrefix = "sealed1:";
+
+/// The item's key is bound in, so a sealed value moved to another key does not open there.
+function seal(itemKey: string, json: string, key: Buffer): string {
+    const iv = randomBytes(12);
+    const cipher = createCipheriv("aes-256-gcm", key, iv);
+    cipher.setAAD(Buffer.from(itemKey, "utf8"));
+    const body = Buffer.concat([cipher.update(json, "utf8"), cipher.final()]);
+    return sealedPrefix + Buffer.concat([iv, cipher.getAuthTag(), body]).toString("base64");
+}
+
+/// The JSON a stored value holds. Undefined for one sealed under another key, or damaged: it reads as missing.
+function unseal(itemKey: string, stored: string, key: Buffer | undefined): string | undefined {
+    if (!stored.startsWith(sealedPrefix)) return stored;
+    if (!key) return undefined;
+    try {
+        const bytes = Buffer.from(stored.slice(sealedPrefix.length), "base64");
+        const decipher = createDecipheriv("aes-256-gcm", key, bytes.subarray(0, 12));
+        decipher.setAAD(Buffer.from(itemKey, "utf8"));
+        decipher.setAuthTag(bytes.subarray(12, 28));
+        return Buffer.concat([decipher.update(bytes.subarray(28)), decipher.final()]).toString("utf8");
+    } catch {
+        return undefined;
+    }
+}
+
+/// Seals what an older Floe stored plainly. Secure delete overwrites the plain text's pages from here on, and
+/// a vacuum rewrites the file, so text deleted before then is gone too.
+async function sealPlainRows(database: Database, key: Buffer) {
+    database.run("PRAGMA secure_delete = ON");
+    const update = database.prepare("UPDATE items SET value = ? WHERE key = ? AND value = ?");
+    const sealed = await patiently(() =>
+        database.transaction(() => {
+            const plain = database.query(`SELECT key, value FROM items WHERE value NOT LIKE '${sealedPrefix}%'`).all() as { key: string; value: string }[];
+            for (const row of plain) update.run(seal(row.key, row.value, key), row.key, row.value);
+            return plain.length;
+        })(),
+    );
+    // user_version 1 marks a file that was vacuumed once sealed. Checked on its own, since text deleted before
+    // may be there with no plain row left, and a vacuum cut short by a quit is done at the next opening.
+    const { user_version: version } = database.query("PRAGMA user_version").get() as { user_version: number };
+    if (sealed > 0 || version < 1) {
+        await patiently(() => database.run("VACUUM"));
+        database.run("PRAGMA user_version = 1");
+    }
+}
 
 /// The file operations, replaceable so a test can count them or make one fail.
 export const storagePersistence = {
@@ -66,9 +116,13 @@ function tables(database: Database) {
     database.transaction(() => [itemsTable, migrationTable, ...usage].forEach((statement) => database.run(statement)))();
 }
 
-/// Refuses a write that would take the storage past a ceiling, before anything is written.
-function checkRoom(database: Database, key: string, value: string) {
-    const valueBytes = Buffer.byteLength(value);
+/// What a plain value of this many bytes takes once sealed: the prefix, then base64 of IV, tag and ciphertext.
+const sealedBytes = (bytes: number) => sealedPrefix.length + 4 * Math.ceil((bytes + 28) / 3);
+
+/// Refuses a write that would take the storage past a ceiling, before anything is written. A value is measured
+/// as plain JSON, and the whole as stored, against a ceiling grown by what sealing adds.
+function checkRoom(database: Database, key: string, plain: string, value: string, sealed: boolean) {
+    const valueBytes = Buffer.byteLength(plain);
     if (valueBytes > storageLimits.valueBytes) {
         throw new Error(`LocalStorage could not save "${key}": the value is ${megabytes(valueBytes)}, and one value may take ${megabytes(storageLimits.valueBytes)}.`);
     }
@@ -77,9 +131,12 @@ function checkRoom(database: Database, key: string, value: string) {
     if (!old && now.keys >= storageLimits.keys) {
         throw new Error(`LocalStorage could not save "${key}": it holds ${storageLimits.keys} keys, as many as it may.`);
     }
-    const bytes = now.bytes - (old?.bytes ?? 0) + Buffer.byteLength(key) + valueBytes;
-    if (bytes > storageLimits.totalBytes) {
-        throw new Error(`LocalStorage could not save "${key}": everything stored would take ${megabytes(bytes)}, and it may take ${megabytes(storageLimits.totalBytes)}.`);
+    const bytes = now.bytes - (old?.bytes ?? 0) + Buffer.byteLength(key) + Buffer.byteLength(value);
+    const rows = now.keys + (old ? 0 : 1);
+    // Sealing adds a third, and to every value its prefix, IV, tag and padding.
+    const ceiling = sealed ? Math.ceil((storageLimits.totalBytes * 4) / 3) + rows * (sealedBytes(0) + 4) : storageLimits.totalBytes;
+    if (bytes > ceiling) {
+        throw new Error(`LocalStorage could not save "${key}": everything stored would take ${megabytes(bytes)}, and it may take ${megabytes(ceiling)}.`);
     }
 }
 
@@ -133,7 +190,12 @@ async function migrate(database: Database, file: string) {
     fs.rmSync(former, { force: true });
 }
 
-export function createLocalStorage(file: () => string) {
+/// Without a key, as in tests and a Floe that has none, values are stored as plain JSON. A locked storage is one
+/// whose key Floe could not read: it saves nothing, so nothing sealed is replaced and nothing is written plainly.
+export function createLocalStorage(file: () => string, storageKey: () => Buffer | undefined = () => undefined, locked: () => boolean = () => false) {
+    const refuseWhenLocked = () => {
+        if (locked()) throw new Error("LocalStorage can't save: Floe couldn't read the key it is encrypted with from your keychain.");
+    };
     // One connection for as long as this storage lives, so what another process saved is seen here,
     // and what is saved here is seen by it: each statement is one whole transaction of its own.
     // The one opening is shared, so calls that meet before it is done wait for the same database.
@@ -145,7 +207,10 @@ export function createLocalStorage(file: () => string) {
         if (!opening) {
             opening = (async () => {
                 const db = await settle(storagePersistence.open(target), target);
-                await migrate(db, target);
+                // A locked storage leaves the file from before alone: moved in, it would be stored plainly.
+                if (!locked()) await migrate(db, target);
+                const key = storageKey();
+                if (key) await sealPlainRows(db, key);
                 return db;
             })();
             opening.catch(() => openings.delete(target));
@@ -158,30 +223,42 @@ export function createLocalStorage(file: () => string) {
         async getItem<T = string>(key: string): Promise<T | undefined> {
             const read = await patiently(async () => {
                 const row = (await database()).query("SELECT value FROM items WHERE key = ?").get(key) as { value: string } | null | undefined;
-                return row == null ? undefined : (JSON.parse(row.value) as T);
+                const json = row == null ? undefined : unseal(key, row.value, storageKey());
+                return json === undefined ? undefined : (JSON.parse(json) as T);
             });
             return read;
         },
         async setItem(key: string, value: unknown): Promise<void> {
-            const json = JSON.stringify(value);
+            refuseWhenLocked();
+            const sealing = storageKey();
+            const plain = JSON.stringify(value);
+            const json = plain !== undefined && sealing ? seal(key, plain, sealing) : plain;
             // An upsert, not INSERT OR REPLACE: a replacement deletes without running the delete trigger.
             await patiently(async () => {
                 const db = await database();
                 db.transaction(() => {
                     // JSON has no undefined: that write fails on the table's NOT NULL, as it always did.
-                    if (json !== undefined) checkRoom(db, key, json);
+                    if (json !== undefined && plain !== undefined) checkRoom(db, key, plain, json, sealing !== undefined);
                     db.query("INSERT INTO items (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value").run(key, json);
                 })();
             });
         },
         async removeItem(key: string): Promise<void> {
+            refuseWhenLocked();
             await patiently(async () => (await database()).query("DELETE FROM items WHERE key = ?").run(key));
         },
         async allItems<T = Items>(): Promise<T> {
             const rows = await patiently(async () => (await database()).query("SELECT key, value FROM items").all() as { key: string; value: string }[]);
-            return Object.fromEntries(rows.map(({ key, value }) => [key, JSON.parse(value)])) as T;
+            const key = storageKey();
+            return Object.fromEntries(
+                rows.flatMap(({ key: itemKey, value }) => {
+                    const json = unseal(itemKey, value, key);
+                    return json === undefined ? [] : [[itemKey, JSON.parse(json)]];
+                }),
+            ) as T;
         },
         async clear(): Promise<void> {
+            refuseWhenLocked();
             await patiently(async () => (await database()).run("DELETE FROM items"));
         },
     };

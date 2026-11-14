@@ -20,8 +20,20 @@ nonisolated struct ClipboardFiles: Sendable {
     var write: @Sendable (_ data: Data, _ name: String, _ atomically: Bool) throws -> Void
     var remove: @Sendable (_ name: String) -> Void
 
-    /// The real folder: private to the user, 0700 with 0600 files, and left out of Time Machine.
-    static func onDisk(_ directory: URL) -> ClipboardFiles {
+    /// The real folder: private to the user, 0700 with 0600 files, left out of Time Machine, and sealed with the
+    /// storage key. Files from before are sealed the first time the folder loads.
+    static func onDisk(_ directory: URL, seal provide: @autoclosure @escaping @Sendable () -> ClipboardSeal = .app) -> ClipboardFiles {
+        // The seal is settled once, when the folder loads. One that loaded locked stays locked until the next
+        // launch, so a key found later cannot write over a history that was never read.
+        let settled = Mutex<ClipboardSeal?>(nil)
+        @Sendable func seal() -> ClipboardSeal {
+            settled.withLock { current in
+                if let current { return current }
+                let made = provide()
+                current = made
+                return made
+            }
+        }
         @Sendable func ensureDirectory() {
             try? FileManager.default.createDirectory(
                 at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700]
@@ -33,21 +45,35 @@ nonisolated struct ClipboardFiles: Sendable {
             directory: directory,
             sizes: {
                 ensureDirectory()
+                sealPlainFiles(in: directory, with: seal())
                 let items = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.fileSizeKey])) ?? []
                 return Dictionary(
                     items.map { ($0.lastPathComponent, (try? $0.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) },
                     uniquingKeysWith: { first, _ in first }
                 )
             },
-            read: { try? Data(contentsOf: directory.appendingPathComponent($0)) },
+            read: { name in (try? Data(contentsOf: directory.appendingPathComponent(name))).flatMap { seal().open($0, name: name) } },
             write: { data, name, atomically in
                 ensureDirectory()
                 let url = directory.appendingPathComponent(name)
-                try data.write(to: url, options: atomically ? .atomic : [])
+                try seal().seal(data, name: name).write(to: url, options: atomically ? .atomic : [])
                 try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
             },
             remove: { try? FileManager.default.removeItem(at: directory.appendingPathComponent($0)) }
         )
+    }
+
+    private static func sealPlainFiles(in directory: URL, with seal: ClipboardSeal) {
+        guard seal.key != nil else { return }
+        for url in (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isRegularFileKey])) ?? [] {
+            // A link would be followed, and what it points at sealed into the folder as a file of its own.
+            guard (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
+                  let data = try? Data(contentsOf: url), !seal.isSealed(data),
+                  let sealed = try? seal.seal(data, name: url.lastPathComponent),
+                  (try? sealed.write(to: url, options: .atomic)) != nil
+            else { continue }
+            PrivateStorage.restrict(url, to: 0o600)
+        }
     }
 }
 

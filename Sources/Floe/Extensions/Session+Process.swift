@@ -24,6 +24,8 @@ extension ExtensionSession {
         options.teardownSequence = [.gracefulShutDown(allowedDurationToNextStep: .seconds(1))]
         // Messages sent before the host is up wait here until its stdin opens.
         let (outgoing, messages) = AsyncStream<[UInt8]>.makeStream()
+        // The host reads its secrets before anything else, so they go first.
+        messages.yield(hostSecrets())
         transport = { message in
             guard let data = try? JSONSerialization.data(withJSONObject: message) else { return }
             messages.yield(Array(data) + [0x0A])
@@ -70,6 +72,13 @@ extension ExtensionSession {
         }
     }
 
+    private func hostSecrets() -> [UInt8] {
+        Self.secretsLine(
+            preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
+            storage: StorageKey.forApp()
+        )
+    }
+
     /// Built from the login shell's environment, not the app's own: launched from Finder, the app has a PATH
     /// without brew, git or node, and extensions run those.
     private func hostEnvironment() -> Environment {
@@ -83,7 +92,6 @@ extension ExtensionSession {
         let variables = Self.hostVariables(
             LoginEnvironment.current,
             passesShellEnvironment: passesShellEnvironment(command.extensionName),
-            preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
             grants: grants,
             launch: (launchType, launchContext, fallbackText),
             recordsAccess: recordsAccess(),
