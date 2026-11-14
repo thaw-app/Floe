@@ -69,17 +69,50 @@ extension LauncherModel {
             panelHost.hidePanel()
             panelHost.openSettings(item.settingsPage)
         case let .quicklink(link, queryText, _, _):
-            if let destination = url(for: link, query: queryText) {
-                openLink(destination)
-            }
-            panelHost.hidePanel()
-            reset()
+            openQuicklink(link, query: queryText)
         case let .finderSelection(role, app):
             openFinderSelection(in: role, app: app)
         case let .snippet(snippet):
             runner.paste(text: SnippetStore.shared.expanded(snippet))
         default:
             break
+        }
+    }
+
+    private func openQuicklink(_ link: Quicklink, query: String) {
+        guard link.fillsOnOpening else {
+            if let destination = url(for: link, query: query) {
+                openLink(destination, app: link.openWith)
+            }
+            panelHost.hidePanel()
+            reset()
+            return
+        }
+        // The panel goes first, so a Command-C borrowed for the selection reaches the app behind it.
+        panelHost.hidePanel()
+        reset()
+        Task { await openFilled(link, query: query) }
+    }
+
+    /// Opens a link with its {selection} and {clipboard} read now. Without a selection to fill it opens nothing and says why.
+    func openFilled(_ link: Quicklink, query: String) async {
+        var fills = QuicklinkFills()
+        if link.url.contains("{clipboard}") {
+            fills.clipboard = quicklinkFills.clipboard()
+        }
+        if link.url.contains("{selection}") {
+            do {
+                fills.selection = try await quicklinkFills.selection()
+            } catch SelectionError.accessibilityOff {
+                panelHost.showHUD(SelectionError.accessibilityOff.localizedDescription)
+                return
+            } catch {
+                panelHost.showHUD(String(localized: "No text is selected.", bundle: .floe, comment: "A quicklink that fills in the selected text found none."))
+                return
+            }
+        }
+        if let destination = url(for: link, query: query, fills: fills) {
+            openLink(destination, app: link.openWith)
         }
     }
 }

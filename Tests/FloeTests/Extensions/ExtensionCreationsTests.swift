@@ -51,4 +51,17 @@ struct ExtensionCreationsTests {
         #expect(refusal { try ExtensionCreations.quicklink(["name": "Page", "link": "example.com", "keyword": "page"], in: store) } != nil)
         #expect(store.links.count == before + 1)
     }
+
+    @Test func aQuicklinksAppIsKeptWhenThisMacHasIt() throws {
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let store = QuicklinkStore(file: folder.appendingPathComponent("quicklinks.json"))
+        let arc = AppChoice(bundleIdentifier: "company.thebrowser.Browser", path: "/Applications/Arc.app")
+        let apps: (String) -> AppChoice? = { $0 == "/Applications/Arc.app" ? arc : nil }
+
+        try ExtensionCreations.quicklink(["name": "Repo", "link": "https://github.com", "keyword": "repo", "application": "/Applications/Arc.app"], in: store, apps: apps)
+        #expect(store.links.last?.openWith == arc)
+        try ExtensionCreations.quicklink(["name": "Other", "link": "https://other.example", "keyword": "other", "application": "Gone"], in: store, apps: apps)
+        #expect(store.links.last?.openWith == nil)
+    }
 }

@@ -93,7 +93,10 @@ enum Browsers {
         PreferredApps.app(for: .browser, choice: choice, installed: installed)
     }
 
-    static func destination(for url: URL, choice: AppChoice?, installed: AppLookup) -> LinkDestination {
+    static func destination(for url: URL, app: AppChoice? = nil, choice: AppChoice?, installed: AppLookup) -> LinkDestination {
+        if let own = PreferredApps.chosenApp(app, installed: installed) {
+            return .browser(own)
+        }
         guard isWebLink(url), let choice else { return .system }
         if let app = PreferredApps.chosenApp(choice, installed: installed) {
             return .browser(app)
@@ -103,8 +106,9 @@ enum Browsers {
 
     /// Opens a link where the role says. Answers the line to show when the chosen browser was
     /// missing: the link has opened all the same, so nothing is lost by a browser being removed.
-    static func open(_ url: URL, choice: AppChoice?, installed: AppLookup, opener: LinkOpener) -> String? {
-        switch destination(for: url, choice: choice, installed: installed) {
+    /// `app` is the link's own app, such as a quicklink's: any link opens there while it is installed.
+    static func open(_ url: URL, app: AppChoice? = nil, choice: AppChoice?, installed: AppLookup, opener: LinkOpener) -> String? {
+        switch destination(for: url, app: app, choice: choice, installed: installed) {
         case .system:
             opener.open(url, nil)
             return nil

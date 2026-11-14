@@ -70,9 +70,10 @@ extension LauncherModel {
         browserMenu.openTitle
     }
 
-    /// Opens a link of the user's: a web page in the role's browser, anything else through the system.
-    func openLink(_ url: URL) {
-        if let message = Browsers.open(url, choice: settings.browserApp, installed: resolvedApps.lookup, opener: linkOpener) {
+    /// Opens a link of the user's: in its own app while that is installed, else a web page in the role's browser,
+    /// anything else through the system.
+    func openLink(_ url: URL, app: AppChoice? = nil) {
+        if let message = Browsers.open(url, app: app, choice: settings.browserApp, installed: resolvedApps.lookup, opener: linkOpener) {
             panelHost.showHUD(message)
         }
     }
@@ -91,7 +92,8 @@ extension LauncherModel {
             let openWith = LinkActions.openWith(bookmark.url, menu: browserMenu, host: host, opener: linkOpener)
             return [openWith, LinkActions.copyAddress(bookmark.url, host: host)].compactMap(\.self)
         case let .quicklink(link, queryText, _, _):
-            guard let destination = url(for: link, query: queryText), Browsers.isWebLink(destination) else { return [] }
+            // The selection and the clipboard are read as a link opens, not while the Actions menu is drawn.
+            guard !link.fillsOnOpening, let destination = url(for: link, query: queryText), Browsers.isWebLink(destination) else { return [] }
             return [LinkActions.openWith(destination, menu: browserMenu, host: host, opener: linkOpener)].compactMap(\.self)
         default:
             return []

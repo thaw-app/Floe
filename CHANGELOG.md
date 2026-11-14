@@ -23,6 +23,12 @@ these four.
 
 ## [Unreleased]
 
+### New
+
+- **Import your Raycast quicklinks.** Settings › Quicklinks › Import from Raycast… reads the file from Raycast's Export Quicklinks command, or a whole backup from Export Settings & Data with its passphrase. Each link gets a keyword made from its name, which you can change, and links Floe already has are left out. A link that needs more than one search term, or a placeholder Floe can't fill such as `{date}`, is listed as not imported. The welcome window has the same import ([#74](https://github.com/thaw-app/Floe/issues/74)).
+- **Quicklinks can fill in the selected text and the clipboard.** Write `{selection}` or `{clipboard}` in a quicklink's address, as in Raycast. The selection is read from the app you were in, which needs Accessibility access, and with nothing selected the link doesn't open. Raycast quicklinks that use them now import too ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- **A quicklink can open in an app of its own.** Choose one under Open with when you edit a quicklink, such as a second browser for work links, or Finder for a folder. Imported links keep the app they had in Raycast when it's on this Mac, and so does a quicklink an extension creates with Create Quicklink.
+
 ### Changed
 
 - **Extensions no longer get everything your shell exports.** An extension, and every program it starts, now gets only the variables tools need from your shell, such as `PATH`, `HOME` and your language, so an API token exported in your `.zshrc` stays out of it. An extension that took a token from your shell won't find it anymore: switch on "Pass on everything your shell exports" on that extension's page in Settings to give it everything, as before. Script commands and shell commands still get your whole shell environment.

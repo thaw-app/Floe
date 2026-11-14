@@ -138,7 +138,7 @@ struct SearchIndexTests {
             case .ai: #expect(entry.paneLabel == .ai)
             case .sync: #expect(entry.paneLabel == .sync)
             case .appearance: #expect(entry.paneLabel == .appearance)
-            case .quicklinks: #expect(entry.paneLabel == .quicklinks)
+            case .quicklinks, .raycastImport: #expect(entry.paneLabel == .quicklinks)
             case .fallbacks: #expect(entry.paneLabel == .fallbacks)
             case .snippets: #expect(entry.paneLabel == .snippets)
             case .extensionStore: #expect(entry.paneLabel == .extensionStore)
