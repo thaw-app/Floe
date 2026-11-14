@@ -333,6 +333,10 @@ final nonisolated class ReceiptStore: Sendable {
 
     init(file: URL = Paths.support.appendingPathComponent("Receipts.json")) {
         self.file = file
+        // A file an older version wrote is protected now, not at its next write.
+        if FileManager.default.fileExists(atPath: file.path) {
+            protect()
+        }
     }
 
     var all: [Receipt] {
@@ -357,8 +361,15 @@ final nonisolated class ReceiptStore: Sendable {
         try? FileManager.default.removeItem(at: file)
     }
 
+    /// Receipts name the commands the user ran, which may hold a token: private, and left out of Time Machine.
     private func write(_ receipts: [Receipt]) {
-        JSONFile.write(receipts, to: file)
+        guard JSONFile.write(receipts, to: file) else { return }
+        protect()
+    }
+
+    private func protect() {
+        PrivateStorage.restrict(file, to: 0o600)
+        PrivateStorage.excludeFromBackups(file)
     }
 
     /// Moves something to the Trash and answers with the receipt that can put it back.

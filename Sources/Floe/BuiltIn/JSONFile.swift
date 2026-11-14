@@ -22,6 +22,21 @@ nonisolated enum JSONFile {
     }
 }
 
+/// Files and folders that hold what the user copied or ran.
+nonisolated enum PrivateStorage {
+    static func restrict(_ url: URL, to permissions: Int) {
+        try? FileManager.default.setAttributes([.posixPermissions: permissions], ofItemAtPath: url.path)
+    }
+
+    /// Time Machine skips it. A file replaced by an atomic write loses the mark, so mark it after each write.
+    static func excludeFromBackups(_ url: URL) {
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        var url = url
+        try? url.setResourceValues(values)
+    }
+}
+
 /// Text made safe to sit inside a link.
 nonisolated enum LinkText {
     private static let unreserved = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")

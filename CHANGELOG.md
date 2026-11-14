@@ -21,6 +21,12 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### Fixed
+
+- **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
+
 ## [0.4.0-rc.3] - 2026-11-13
 
 **macOS 26 and later · Build 11**
