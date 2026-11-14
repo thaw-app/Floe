@@ -563,7 +563,11 @@ function readJSON(file: string): Record<string, any> {
   }
 }
 // The implementation lives in local-storage.ts; the file is the extension's, shared by all of its commands.
-export const LocalStorage = createLocalStorage(() => path.join(ctx.dataPath, "local-storage.sqlite"));
+export const LocalStorage = createLocalStorage(
+  () => path.join(ctx.dataPath, "local-storage.sqlite"),
+  () => ctx.storageKey,
+  () => ctx.storageLocked,
+);
 
 // The bounded implementation lives in cache.ts; this re-export keeps the API surface stable.
 export { Cache } from "../cache";

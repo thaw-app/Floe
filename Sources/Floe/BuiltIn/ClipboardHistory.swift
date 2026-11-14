@@ -294,6 +294,7 @@ final class ClipboardHistoryStore: ObservableObject {
     /// Removes everything not pinned; pins survive Clear. Copies still being processed are dropped too.
     func clear() {
         dropPendingCopies()
+        PasteboardContent.removeReadableCopies()
         // Nothing is written before the load, or an empty list would replace the saved one.
         clearsWhenLoaded = !isLoaded
         if isLoaded {

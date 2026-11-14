@@ -12,7 +12,7 @@ import path from "node:path";
 import React from "react";
 import * as api from "../api/index";
 import { isLent } from "../api/oauth";
-import { ctx, handleReply, handleReplyChunk, takePreferences } from "../bridge";
+import { ctx, handleReply, handleReplyChunk, takeSecrets } from "../bridge";
 import { createLocalStorage } from "../local-storage";
 import { installRuntime, resetStage, sent } from "./support";
 import { render } from "../renderer";
@@ -487,24 +487,64 @@ describe("getPreferenceValues", () => {
     fs.rmSync(preferencesFile(), { force: true });
   });
 
-  test("uses what the app passes in the environment, ignoring the manifest", () => {
-    process.env.FLOE_PREFERENCES = JSON.stringify({ greeting: "Hi", token: "secret" });
-    takePreferences();
+  /// What the app writes as the host's first line of input.
+  const fromApp = (secrets: Record<string, unknown>) => {
+    process.env.FLOE_SECRETS = "input";
+    takeSecrets(() => JSON.stringify({ type: "secrets", ...secrets }));
+  };
+
+  test("uses what the app passes on the host's input, ignoring the manifest", () => {
+    fromApp({ preferences: JSON.stringify({ greeting: "Hi", token: "secret" }) });
     expect(api.getPreferenceValues()).toEqual({ greeting: "Hi", token: "secret" });
   });
 
-  test("what the app passed leaves the environment, so a program the command starts does not inherit it", () => {
-    process.env.FLOE_PREFERENCES = JSON.stringify({ token: "secret" });
-    takePreferences();
-    expect(process.env.FLOE_PREFERENCES).toBeUndefined();
-    expect(Bun.spawnSync(["/usr/bin/env"]).stdout.toString()).not.toContain("FLOE_PREFERENCES");
+  test("nothing secret is read from or left in the environment, where another program could read it", () => {
+    process.env.FLOE_PREFERENCES = JSON.stringify({ token: "from the environment" });
+    fromApp({ preferences: JSON.stringify({ token: "secret" }), storageKey: Buffer.alloc(32, 1).toString("base64") });
     expect(api.getPreferenceValues()).toEqual({ token: "secret" });
+    expect(process.env.FLOE_SECRETS).toBeUndefined();
+    expect(ctx.storageKey?.length).toBe(32);
+    delete process.env.FLOE_PREFERENCES;
   });
 
-  test("taking the preferences again without the app clears what was passed before", () => {
+  test("only a 32-byte storage key is taken, and a key the app could not read locks the storage", () => {
+    fromApp({ storageKey: Buffer.alloc(16, 1).toString("base64") });
+    expect(ctx.storageKey).toBeUndefined();
+    expect(ctx.storageLocked).toBe(false);
+    fromApp({ storageLocked: true });
+    expect(ctx.storageLocked).toBe(true);
+  });
+
+  test("a secrets line that does not read locks the storage, so nothing is written plainly", () => {
+    process.env.FLOE_SECRETS = "input";
+    takeSecrets(() => "{cut off");
+    expect(ctx.storageLocked).toBe(true);
+    expect(ctx.storageKey).toBeUndefined();
+  });
+
+  test("taking the secrets again without the app clears what was passed before", () => {
     ctx.preferences = JSON.stringify({ greeting: "Hi" });
-    takePreferences();
+    ctx.storageKey = Buffer.alloc(32, 1);
+    takeSecrets(() => {
+      throw new Error("without the app nothing is read from the input");
+    });
+    expect(ctx.storageKey).toBeUndefined();
     expect(api.getPreferenceValues()).toEqual({ greeting: "Hello", shout: false, limit: 10 });
+  });
+
+  test("the host reads only its first line, so the messages after it arrive whole", () => {
+    const script = `
+      import { ctx, takeSecrets } from ${JSON.stringify(path.join(import.meta.dir, "../bridge.ts"))};
+      takeSecrets();
+      let rest = "";
+      process.stdin.on("data", (chunk) => (rest += chunk));
+      process.stdin.on("end", () => console.log(JSON.stringify({ preferences: ctx.preferences, rest })));
+    `;
+    const child = Bun.spawnSync(["bun", "-e", script], {
+      env: { ...process.env, FLOE_SECRETS: "input" },
+      stdin: Buffer.from(JSON.stringify({ type: "secrets", preferences: "{\"token\":\"secret\"}" }) + "\n" + '{"type":"ping"}\n'),
+    });
+    expect(JSON.parse(child.stdout.toString())).toEqual({ preferences: '{"token":"secret"}', rest: '{"type":"ping"}\n' });
   });
 
   test("without the app, falls back to the defaults of the extension and the running command", () => {

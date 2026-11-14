@@ -254,7 +254,7 @@ enum PasteboardContent {
 
     /// The copy `offset` places back in the history, newest first, as `read` answers. Raycast goes back
     /// at most five; past that, or past the history's end, the text is empty, as Raycast's empty slot is.
-    static func copy(offset: Int, in entries: [ClipboardEntry], directory: URL) -> [String: String] {
+    static func copy(offset: Int, in entries: [ClipboardEntry], directory: URL, seal: ClipboardSeal = .app) -> [String: String] {
         guard offset <= 5, entries.indices.contains(offset) else { return ["text": ""] }
         let entry = entries[offset]
         switch entry.kind {
@@ -264,9 +264,46 @@ enum PasteboardContent {
             guard let first = entry.filePaths?.first else { return ["text": ""] }
             return ["text": first, "file": first]
         case .image:
-            guard let name = entry.imageFile else { return ["text": ""] }
-            return ["text": "", "file": directory.appendingPathComponent(name).path]
+            guard let name = entry.imageFile, let file = readableCopy(of: name, in: directory, seal: seal) else { return ["text": ""] }
+            return ["text": "", "file": file.path]
         }
+    }
+}
+
+extension PasteboardContent {
+    private static var readableFolder: URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("Floe Clipboard")
+    }
+
+    /// The image as a plain file an extension can open: the stored one is sealed. The six latest are kept, as many
+    /// as Raycast reads back, in a folder of the user's own in the temporary directory, which Time Machine skips.
+    static func readableCopy(of name: String, in directory: URL, seal: ClipboardSeal) -> URL? {
+        guard let data = ClipboardHistoryStore.storedFile(name, in: directory, seal: seal) else { return nil }
+        keepLatestReadableCopies(5)
+        let folder = readableFolder
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        let file = folder.appendingPathComponent(name)
+        guard (try? data.write(to: file, options: .atomic)) != nil else { return nil }
+        PrivateStorage.restrict(file, to: 0o600)
+        return file
+    }
+
+    private static func keepLatestReadableCopies(_ count: Int) {
+        let keys: Set<URLResourceKey> = [.contentModificationDateKey]
+        let copies = (try? FileManager.default.contentsOfDirectory(at: readableFolder, includingPropertiesForKeys: Array(keys))) ?? []
+        let newestFirst = copies.sorted {
+            let first = (try? $0.resourceValues(forKeys: keys).contentModificationDate) ?? .distantPast
+            let second = (try? $1.resourceValues(forKeys: keys).contentModificationDate) ?? .distantPast
+            return first > second
+        }
+        for copy in newestFirst.dropFirst(count) {
+            try? FileManager.default.removeItem(at: copy)
+        }
+    }
+
+    /// Clearing the history takes the readable copies with it.
+    static func removeReadableCopies() {
+        try? FileManager.default.removeItem(at: readableFolder)
     }
 }
 

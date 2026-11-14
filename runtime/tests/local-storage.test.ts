@@ -21,6 +21,19 @@ afterEach(() => {
     fs.rmSync(folder, { recursive: true, force: true });
 });
 
+/// The rows as they are on disk, unread, the way another program running as the user would see them.
+const raw = () => {
+    const database = new Database(file, { readonly: true });
+    try {
+        return Object.fromEntries((database.prepare("select key, value from items").all() as { key: string; value: string }[]).map(({ key, value }) => [key, value]));
+    } finally {
+        database.close();
+    }
+};
+
+const key = Buffer.alloc(32, 7);
+const otherKey = Buffer.alloc(32, 9);
+
 /// What is stored, read by a connection of its own the way another process would read it.
 const onDisk = () => {
     const database = new Database(file, { readonly: true });
@@ -267,5 +280,106 @@ describe("LocalStorage ceilings", () => {
         await expect(second.setItem("b", "x".repeat(600))).rejects.toThrow("everything stored would take");
         await first.removeItem("a");
         await second.setItem("b", "x".repeat(600));
+    });
+});
+
+describe("LocalStorage sealed with the storage key", () => {
+    test("a value is unreadable on disk and reads back whole", async () => {
+        const storage = createLocalStorage(() => file, () => key);
+        await storage.setItem("token", "secret-abc");
+        await storage.setItem("count", 3);
+        expect(await storage.getItem("token")).toBe("secret-abc");
+        expect(await storage.allItems()).toEqual({ token: "secret-abc", count: 3 });
+        const stored = raw();
+        expect(Object.keys(stored).sort()).toEqual(["count", "token"]);
+        expect(stored.token).not.toContain("secret-abc");
+        expect(stored.count).not.toBe("3");
+    });
+
+    test("plain rows from before are sealed when the storage opens", async () => {
+        await createLocalStorage(() => file).setItem("token", "secret-abc");
+        expect(raw().token).toBe(JSON.stringify("secret-abc"));
+        const storage = createLocalStorage(() => file, () => key);
+        expect(await storage.getItem("token")).toBe("secret-abc");
+        expect(raw().token).not.toContain("secret-abc");
+    });
+
+    test("a file from before the database is sealed as it loads", async () => {
+        fs.writeFileSync(path.join(folder, "local-storage.json"), JSON.stringify({ token: "secret-abc" }));
+        const storage = createLocalStorage(() => file, () => key);
+        expect(await storage.getItem("token")).toBe("secret-abc");
+        expect(raw().token).not.toContain("secret-abc");
+    });
+
+    test("a value sealed under another key reads as missing", async () => {
+        await createLocalStorage(() => file, () => otherKey).setItem("token", "secret-abc");
+        const storage = createLocalStorage(() => file, () => key);
+        expect(await storage.getItem("token")).toBeUndefined();
+        expect(await storage.allItems()).toEqual({});
+        await storage.setItem("token", "new");
+        expect(await storage.getItem("token")).toBe("new");
+    });
+});
+
+describe("LocalStorage when Floe could not read its key", () => {
+    test("nothing is saved, so nothing sealed is replaced or written plainly, and plain values still read", async () => {
+        await createLocalStorage(() => file, () => key).setItem("token", "secret-abc");
+        await createLocalStorage(() => file).setItem("plain", "kept");
+        const before = raw();
+        const storage = createLocalStorage(() => file, () => undefined, () => true);
+        expect(await storage.getItem("plain")).toBe("kept");
+        expect(await storage.getItem("token")).toBeUndefined();
+        await expect(storage.setItem("token", "new")).rejects.toThrow(/key/);
+        await expect(storage.removeItem("token")).rejects.toThrow(/key/);
+        await expect(storage.clear()).rejects.toThrow(/key/);
+        expect(raw()).toEqual(before);
+    });
+
+    test("a file from before the database is left alone, so nothing plain goes into it", async () => {
+        const former = path.join(folder, "local-storage.json");
+        fs.writeFileSync(former, JSON.stringify({ token: "secret-abc" }));
+        const storage = createLocalStorage(() => file, () => undefined, () => true);
+        expect(await storage.getItem("token")).toBeUndefined();
+        expect(fs.existsSync(former)).toBe(true);
+        expect(raw()).toEqual({});
+    });
+});
+
+describe("LocalStorage limits when sealed", () => {
+    test("a sealed value is held to the limits a plain one is", async () => {
+        storageLimits.valueBytes = 1000;
+        storageLimits.totalBytes = 3000;
+        const storage = createLocalStorage(() => file, () => key);
+        const value = "x".repeat(900);
+        await storage.setItem("a", value);
+        await storage.setItem("b", value);
+        await storage.setItem("c", value);
+        expect(Object.keys(await storage.allItems()).sort()).toEqual(["a", "b", "c"]);
+        await expect(storage.setItem("d", value)).rejects.toThrow(/may take/);
+        await expect(storage.setItem("e", "x".repeat(1001))).rejects.toThrow(/one value may take/);
+    });
+
+    test("each sealed value's own overhead is allowed for", async () => {
+        storageLimits.totalBytes = 3000;
+        const storage = createLocalStorage(() => file, () => key);
+        for (const name of ["a", "b", "c"]) await storage.setItem(name, "x".repeat(996));
+        expect(Object.keys(await storage.allItems()).sort()).toEqual(["a", "b", "c"]);
+    });
+
+    test("plain text an older Floe deleted is not left in the file once it is sealed", async () => {
+        const plain = createLocalStorage(() => file);
+        await plain.setItem("old", "forgotten-marker-7c1f ".repeat(2000));
+        await plain.setItem("kept", "value");
+        await plain.removeItem("old");
+        await createLocalStorage(() => file, () => key).getItem("kept");
+        expect(fs.readFileSync(file).includes("forgotten-marker-7c1f")).toBe(false);
+    });
+
+    test("text deleted before is cleared even when no plain row is left to seal", async () => {
+        const plain = createLocalStorage(() => file);
+        await plain.setItem("old", "forgotten-marker-9d2e ".repeat(2000));
+        await plain.removeItem("old");
+        await createLocalStorage(() => file, () => key).getItem("anything");
+        expect(fs.readFileSync(file).includes("forgotten-marker-9d2e")).toBe(false);
     });
 });
