@@ -35,6 +35,11 @@ these four.
 - **A dropdown in an extension's form shows its section titles.** Its choices are grouped under their titles, as in a list's dropdown.
 - **Menu bar commands show their keyboard shortcuts.** An item in a menu bar command's menu shows the shortcut the extension gave it, and pressing it while the menu is open picks the item.
 
+### Fixed
+
+- **What's New opens at the version you have.** It showed the newest release's notes even when you hadn't installed that release yet.
+- **Buttons and tabs in Settings line up.** Buttons side by side are the same height, the separators in About are inset like the rest of Settings, and switching tabs no longer keeps memory it doesn't need.
+
 ## [0.4.0-rc.2] - 2026-11-09
 
 **macOS 26 and later · Build 10**
