@@ -333,7 +333,7 @@ final nonisolated class ReceiptStore: Sendable {
 
     init(file: URL = Paths.support.appendingPathComponent("Receipts.json")) {
         self.file = file
-        // A file an older version wrote is protected now, not at its next write.
+        // Protects a file an older version wrote as soon as the store opens.
         if FileManager.default.fileExists(atPath: file.path) {
             protect()
         }

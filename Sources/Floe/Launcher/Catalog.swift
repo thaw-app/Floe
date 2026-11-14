@@ -62,7 +62,7 @@ nonisolated enum Paths {
             try? fileManager.moveItem(at: support.appendingPathComponent("extensions"), to: data)
         }
         try? fileManager.createDirectory(at: data, withIntermediateDirectories: true)
-        // Extensions keep tokens in their storage, as Raycast's encrypted one lets them. It stays backed up.
+        // Extensions may keep tokens here. The folder stays in backups so their data comes back with a restore.
         PrivateStorage.restrict(data, to: 0o700)
         try? fileManager.createDirectory(at: extensions, withIntermediateDirectories: true)
         try? fileManager.createDirectory(at: scripts, withIntermediateDirectories: true)
