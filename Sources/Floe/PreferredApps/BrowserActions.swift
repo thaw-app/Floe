@@ -94,7 +94,10 @@ extension LauncherModel {
         case let .quicklink(link, queryText, _, _):
             // The selection and the clipboard are read as a link opens, not while the Actions menu is drawn.
             guard !link.fillsOnOpening, let destination = url(for: link, query: queryText), Browsers.isWebLink(destination) else { return [] }
-            return [LinkActions.openWith(destination, menu: browserMenu, host: host, opener: linkOpener)].compactMap(\.self)
+            // The link's own browser, while it is installed, is the one Return opens and Open With leaves out.
+            let own = PreferredApps.chosenApp(link.openWith, installed: resolvedApps.lookup) == nil ? nil : link.openWith
+            let menu = own.map { BrowserMenu(choice: $0, installed: resolvedApps.lookup) } ?? browserMenu
+            return [LinkActions.openWith(destination, menu: menu, host: host, opener: linkOpener)].compactMap(\.self)
         default:
             return []
         }

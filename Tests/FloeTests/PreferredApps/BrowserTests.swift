@@ -341,6 +341,16 @@ struct BrowserTests {
 
     // MARK: The Actions menu
 
+    @Test func aQuicklinkWithItsOwnBrowserOffersTheOthersIncludingTheChosenOne() {
+        let model = makeModel()
+        settings.browserApp = Fake.zenChoice
+        let arcChoice = AppChoice(bundleIdentifier: "company.thebrowser.Browser", path: Fake.arc.path)
+        let repo = Quicklink(name: "Repo", keyword: "repo", url: "https://github.com/{query}", openWith: arcChoice)
+        let actions = model.rootActions(for: .quicklink(repo, queryText: "thaw-app", fallback: false, keywordSearch: true))
+        let openWith = actions.compactMap(\.self).first { $0.id == .openWith }
+        #expect(openWith?.children.map(\.title) == ["Safari (default)", "Zen"])
+    }
+
     @Test func aWebAddressOffersItsBrowserThenTheOthersThenCopyAddress() throws {
         let model = makeModel()
         let row = try RootItem.webAddress(#require(WebAddress(typed: "github.com/thaw-app")))

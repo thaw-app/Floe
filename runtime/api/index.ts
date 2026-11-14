@@ -245,7 +245,7 @@ function OpenWithSubmenu(props: Props) {
 }
 
 // As in Raycast, a snippet or a quicklink is kept only once the user confirms the form the extension filled in.
-// `extra` goes with what the user typed, for what the form shows but does not let them change.
+// extra goes with what the user typed, for what the form shows but does not let them change.
 function keepForm(method: string, title: string, kept: string, fields: unknown[], extra: Props = {}) {
   const { pop } = useNavigation();
   const keep = async (values: Props) => {

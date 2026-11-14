@@ -37,7 +37,7 @@ enum ExtensionCreations {
         store.upsert(snippet)
     }
 
-    /// `apps` finds the app the extension named for the link; one that is not on this Mac leaves the link without one.
+    /// apps finds the app the extension named for the link; one that is not on this Mac leaves the link without one.
     static func quicklink(_ params: [String: Any], in store: QuicklinkStore, apps: (String) -> AppChoice? = { InstalledApps.choice(named: $0) }) throws {
         let application = text(params["application"])
         let link = Quicklink(

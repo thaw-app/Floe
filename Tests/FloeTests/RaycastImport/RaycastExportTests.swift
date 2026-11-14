@@ -45,9 +45,9 @@ struct RaycastExportTests {
         """
         let file = try RaycastBackup.make(payload: payload, passphrase: "correct horse")
 
-        #expect(RaycastExport.read(file, passphrase: nil) == .needsPassphrase)
-        #expect(RaycastExport.read(file, passphrase: "wrong") == .wrongPassphrase)
-        #expect(RaycastExport.read(file, passphrase: "correct horse") == .quicklinks([
+        #expect(RaycastExport.read(file, passphrase: nil, cost: RaycastBackup.cost) == .needsPassphrase)
+        #expect(RaycastExport.read(file, passphrase: "wrong", cost: RaycastBackup.cost) == .wrongPassphrase)
+        #expect(RaycastExport.read(file, passphrase: "correct horse", cost: RaycastBackup.cost) == .quicklinks([
             RaycastQuicklink(name: "Docs", link: "https://docs.example/?q={Query}", openWith: "/Applications/Safari.app", iconName: "book-16"),
             RaycastQuicklink(name: "Repo", link: "https://github.com", openWith: "/Applications/Arc.app"),
             RaycastQuicklink(name: "Plain", link: "https://plain.example"),
@@ -56,7 +56,7 @@ struct RaycastExportTests {
 
     @Test func aBackupWithoutQuicklinksHasNoneToGive() throws {
         let file = try RaycastBackup.make(payload: #"{"snippets": [{ "title": "Sign-off", "text": "Best" }]}"#, passphrase: "pass")
-        #expect(RaycastExport.read(file, passphrase: "pass") == .quicklinks([]))
+        #expect(RaycastExport.read(file, passphrase: "pass", cost: RaycastBackup.cost) == .quicklinks([]))
     }
 
     @Test func aBackupFromAnotherRaycastVersionIsNotRead() throws {

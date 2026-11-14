@@ -80,27 +80,22 @@ nonisolated enum SelectedText {
         return nil
     }
 
-    /// Borrows the pasteboard with Command-C, then restores it only when nothing else changed it.
-    @concurrent
-    static func copiedSelectedText() async throws -> String {
-        let pasteboard = NSPasteboard.general
+    /// Borrows the pasteboard with Command-C, then restores it only when nothing else changed it. Only text the
+    /// copy put there counts: what was on the clipboard before may be a password, and is no selection.
+    static func copiedSelectedText(from pasteboard: NSPasteboard = .general, copy: () -> Void = simulateCommandC) async throws -> String {
         let saved = SavedPasteboard.capture(pasteboard)
         let before = pasteboard.changeCount
-        simulateCommandC()
-        var copied: String?
-        for _ in 0 ..< 10 {
+        copy()
+        for _ in 0 ..< 10 where pasteboard.changeCount == before {
             try? await Task.sleep(for: .milliseconds(50))
-            if pasteboard.changeCount != before {
-                copied = pasteboard.string(forType: .string)
-                break
-            }
         }
         let afterCopy = pasteboard.changeCount
-        let text = (copied ?? pasteboard.string(forType: .string) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let copied = afterCopy == before ? nil : pasteboard.string(forType: .string)
         // Only restore when the pasteboard still holds what Command-C put there.
-        if pasteboard.changeCount == afterCopy {
+        if afterCopy != before, pasteboard.changeCount == afterCopy {
             saved.restore(to: pasteboard)
         }
+        let text = (copied ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { throw SelectionError.noSelectedText }
         return text
     }

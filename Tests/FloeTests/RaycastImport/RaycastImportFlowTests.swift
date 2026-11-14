@@ -20,7 +20,7 @@ final class RaycastImportFlowTests {
         try? FileManager.default.removeItem(at: folder)
     }
 
-    /// `readings` answers each read in turn, and `passphrases` each time the flow asks for one.
+    /// readings answers each read in turn, and passphrases each time the flow asks for one.
     private func environment(file: URL? = URL(fileURLWithPath: "/tmp/export.json"), readings: [RaycastExport.Reading], passphrases: [String?] = []) -> RaycastImportFlow.Environment {
         var readings = readings
         var passphrases = passphrases
@@ -73,6 +73,18 @@ final class RaycastImportFlowTests {
         #expect(store.links == before)
         #expect(told.isEmpty)
         #expect(asked == [false])
+    }
+
+    @Test func leavingThePageWhileTheFileIsReadStopsTheImport() async {
+        let before = store.links
+        var environment = environment(readings: [])
+        environment.read = { _, _ in
+            withUnsafeCurrentTask { $0?.cancel() }
+            return .quicklinks([RaycastQuicklink(name: "Docs", link: "https://docs.example")])
+        }
+        await RaycastImportFlow.run(into: store, environment: environment)
+        #expect(store.links == before)
+        #expect(told.isEmpty)
     }
 
     @Test func aFileThatIsNotAnExportIsSaidToBeOne() async {

@@ -62,7 +62,7 @@ struct SettingsStringsTests {
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
             "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",
             "pane.actions", "actions.actionChoices",
-            "quicklinks.list", "quicklinks.new", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol",
+            "quicklinks.list", "quicklinks.new", "quicklinks.import", "quicklinks.openWith", "quicklinks.name", "quicklinks.keyword", "quicklinks.url", "quicklinks.symbol",
         ])
     }
 

@@ -43,15 +43,18 @@ struct QuicklinkImportTests {
             RaycastQuicklink(name: "Two", link: "https://two.example/{argument}/{argument}"),
             RaycastQuicklink(name: "Earlier", link: "https://p.example/?q={clipboard offset=1}"),
             RaycastQuicklink(name: "Today", link: "https://d.example/{date format=\"yyyy-MM-dd\"}"),
-            RaycastQuicklink(name: "Same", link: "https://s.example/{argument name=\"q\"}?again={argument name=\"q\" default=\"x\"}"),
+            RaycastQuicklink(name: "Same", link: "https://s.example/{argument name=\"q\"}?again={argument name=\"q\"}"),
+            RaycastQuicklink(name: "Named", link: "https://n.example/?q={argument name=\"find default=x\"}"),
+            RaycastQuicklink(name: "Optional", link: "https://o.example/?q={argument default=\"news\"}"),
         ])
         #expect(result.skipped == [
             .init(name: "Translate", reason: .severalArguments),
             .init(name: "Two", reason: .severalArguments),
             .init(name: "Earlier", reason: .placeholder("clipboard offset=1")),
             .init(name: "Today", reason: .placeholder("date")),
+            .init(name: "Optional", reason: .placeholder("argument default")),
         ])
-        #expect(result.added.map(\.url) == ["https://s.example/{query}?again={query}"])
+        #expect(result.added.map(\.url) == ["https://s.example/{query}?again={query}", "https://n.example/?q={query}"])
     }
 
     @Test func theSelectionAndTheClipboardAreKeptForFloeToFill() {
@@ -94,6 +97,11 @@ struct QuicklinkImportTests {
         ])
         #expect(result.added.map(\.url) == ["file:///Users/me/Notes/{query}.md", "file:///tmp/{query}"])
         #expect(result.added.map(\.symbol) == ["magnifyingglass", "magnifyingglass"])
+    }
+
+    @Test func anAddressThatEscapesItsBracesKeepsThem() {
+        let result = plan([RaycastQuicklink(name: "Template", link: "https://t.example/?q=%7Bquery%7D")])
+        #expect(result.added.map(\.url) == ["https://t.example/?q=%7Bquery%7D"])
     }
 
     @Test func aNameWithoutLettersStillGetsAKeyword() {

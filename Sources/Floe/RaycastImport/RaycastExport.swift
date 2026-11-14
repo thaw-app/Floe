@@ -34,10 +34,14 @@ nonisolated enum RaycastExport {
         case notAnExport
     }
 
+    /// The scrypt cost N that Raycast derives a backup's key with.
+    static let raycastCost = 16384
+
     /// Reads a quicklinks export, or a Raycast 2 backup with its passphrase. A backup runs scrypt first: call it off the main actor.
-    static func read(_ file: Data, passphrase: String?) -> Reading {
+    /// Tests pass a lower cost, since Raycast's takes seconds in a debug build.
+    static func read(_ file: Data, passphrase: String?, cost: Int = raycastCost) -> Reading {
         if file.starts(with: Backup.signature) {
-            return readBackup(file, passphrase: passphrase)
+            return readBackup(file, passphrase: passphrase, cost: cost)
         }
         guard let entries = try? JSONSerialization.jsonObject(with: file) as? [[String: Any]],
               entries.contains(where: { $0["link"] is String })
@@ -47,7 +51,7 @@ nonisolated enum RaycastExport {
         return .quicklinks(quicklinks(in: entries, apps: nil))
     }
 
-    /// The `.rayconfig` of Raycast 2: a signature, the length of a gzipped JSON header that holds the IV and salt,
+    /// The .rayconfig of Raycast 2: a signature, the length of a gzipped JSON header that holds the IV and salt,
     /// that header, then the gzipped payload sealed with AES-256-GCM under a scrypt key, and the 16-byte tag.
     private enum Backup {
         static let signature = Data("RAYCFG3\n".utf8)
@@ -57,7 +61,7 @@ nonisolated enum RaycastExport {
         static let tagLength = 16
     }
 
-    private static func readBackup(_ file: Data, passphrase: String?) -> Reading {
+    private static func readBackup(_ file: Data, passphrase: String?, cost: Int) -> Reading {
         let bytes = [UInt8](file)
         let lengthStart = Backup.signature.count
         guard bytes.count >= lengthStart + 4 else { return .notAnExport }
@@ -76,7 +80,7 @@ nonisolated enum RaycastExport {
         }
         guard let passphrase, !passphrase.isEmpty else { return .needsPassphrase }
         let tagStart = bytes.count - Backup.tagLength
-        guard let key = try? Scrypt.derive(password: Data(passphrase.utf8), salt: salt, cost: 16384, blockSize: 8, parallelism: 1, length: 32),
+        guard let key = try? Scrypt.derive(password: Data(passphrase.utf8), salt: salt, cost: cost, blockSize: 8, parallelism: 1, length: 32),
               let box = try? AES.GCM.SealedBox(nonce: AES.GCM.Nonce(data: iv), ciphertext: bytes[payloadStart ..< tagStart], tag: bytes[tagStart...]),
               let sealed = try? AES.GCM.open(box, using: SymmetricKey(data: key))
         else {

@@ -5490,6 +5490,9 @@
     "iCloud sync and settings files." : {
 
     },
+    "import, raycast, rayconfig, export, backup, migrate" : {
+      "comment" : "Words that find Import from Raycast in the settings search, separated by commas."
+    },
     "keyboard shortcuts, input sources, dictation, text replacements" : {
       "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
     },
@@ -5564,6 +5567,9 @@
     },
     "ocr, text from screen, read text, screenshot text, qr, scan, barcode" : {
       "comment" : "Words that find the Copy Text from Screen command, separated by commas."
+    },
+    "open with, app, browser, application" : {
+      "comment" : "Words that find the Open with setting of a quicklink in the settings search, separated by commas."
     },
     "opencode stopped before finishing." : {
       "comment" : "The word opencode is the name of a command and stays as written."

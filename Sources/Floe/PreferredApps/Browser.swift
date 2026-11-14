@@ -106,7 +106,7 @@ enum Browsers {
 
     /// Opens a link where the role says. Answers the line to show when the chosen browser was
     /// missing: the link has opened all the same, so nothing is lost by a browser being removed.
-    /// `app` is the link's own app, such as a quicklink's: any link opens there while it is installed.
+    /// app is the link's own app, such as a quicklink's: any link opens there while it is installed.
     static func open(_ url: URL, app: AppChoice? = nil, choice: AppChoice?, installed: AppLookup, opener: LinkOpener) -> String? {
         switch destination(for: url, app: app, choice: choice, installed: installed) {
         case .system:

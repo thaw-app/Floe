@@ -9,7 +9,9 @@
 import Foundation
 import Testing
 
-/// The test vectors in RFC 7914, section 12. OpenSSL's `kdf SCRYPT` gives the same keys.
+/// The test vectors in RFC 7914, section 12. OpenSSL's kdf SCRYPT gives the same keys. Serialized, so the
+/// slow ones hold one test thread at a time and the timing tests elsewhere keep theirs.
+@Suite(.serialized)
 struct ScryptTests {
     @Test func anEmptyPasswordAndSaltGiveTheRFCKey() throws {
         let key = try Scrypt.derive(password: Data(), salt: Data(), cost: 16, blockSize: 1, parallelism: 1, length: 64)

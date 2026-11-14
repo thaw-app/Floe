@@ -15,7 +15,7 @@ nonisolated enum Scrypt {
         case invalidParameters
     }
 
-    /// The key for `password` and `salt`. `cost` is N, a power of two above 1; `blockSize` is r; `parallelism` is p.
+    /// The key for password and salt. cost is N, a power of two above 1; blockSize is r; parallelism is p.
     static func derive(password: Data, salt: Data, cost: Int, blockSize: Int, parallelism: Int, length: Int) throws -> Data {
         guard cost > 1, cost & (cost - 1) == 0, blockSize > 0, parallelism > 0, length > 0 else {
             throw Failure.invalidParameters
@@ -43,7 +43,7 @@ nonisolated enum Scrypt {
         return output.prefix(length)
     }
 
-    /// ROMix: fills `cost` copies of the block, then reads them back in an order that depends on the block.
+    /// ROMix: fills cost copies of the block, then reads them back in an order that depends on the block.
     private static func mix(_ block: Data, cost: Int, blockSize: Int) -> Data {
         let words = 32 * blockSize
         let x = UnsafeMutableBufferPointer<UInt32>.allocate(capacity: words)
@@ -77,7 +77,7 @@ nonisolated enum Scrypt {
         return output
     }
 
-    /// BlockMix with Salsa20/8, writing the even 64-byte pieces before the odd ones, then back into `block`.
+    /// BlockMix with Salsa20/8, writing the even 64-byte pieces before the odd ones, then back into block.
     private static func blockMix(_ block: UnsafeMutableBufferPointer<UInt32>, scratch: UnsafeMutableBufferPointer<UInt32>, blockSize: Int) {
         var state = Salsa(block, at: (2 * blockSize - 1) * 16)
         for piece in 0 ..< 2 * blockSize {

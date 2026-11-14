@@ -10,7 +10,7 @@ import Foundation
 import zlib
 
 nonisolated enum Gzip {
-    /// The bytes inside a gzip stream, or nil when it is not one or would grow past `limit`.
+    /// The bytes inside a gzip stream, or nil when it is not one or would grow past limit.
     static func decompress(_ data: Data, limit: Int) -> Data? {
         guard !data.isEmpty else { return nil }
         var stream = z_stream()

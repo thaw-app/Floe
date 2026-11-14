@@ -12,7 +12,7 @@ import Foundation
 enum QuicklinkImport {
     /// What the import needs from the Mac.
     struct Apps {
-        /// The home folder, for a link to `~/…`.
+        /// The home folder, for a link to ~/….
         var home: URL
         /// The app a Raycast link names, by its name or path, when it is installed.
         var app: (String) -> AppChoice?
@@ -34,7 +34,7 @@ enum QuicklinkImport {
         case alreadyThere
         /// Floe fills one piece of typed text, and the link asks for more.
         case severalArguments
-        /// A Raycast placeholder Floe has no value for, such as `date`.
+        /// A Raycast placeholder Floe has no value for, such as date.
         case placeholder(String)
         /// Neither an address with a scheme nor a path.
         case notALink
@@ -76,12 +76,18 @@ enum QuicklinkImport {
 
     private static let placeholderPattern = #/\{([A-Za-z][\w-]*)([^}]*)\}/#
 
-    /// Why Floe can't fill a placeholder, or nil when it can. An argument may have a name and a default; the
-    /// selection and the clipboard take no options, such as an earlier copy's `offset`.
+    /// Why Floe can't fill a placeholder, or nil when it can. An argument may have a name but no default; the
+    /// selection and the clipboard take no options, such as an earlier copy's offset.
     private static func problem(with word: String, options: String, modifiers: [String]) -> Reason? {
         switch word {
         case "argument", "query":
-            modifiers.isEmpty ? nil : .placeholder(([word] + modifiers).joined(separator: " | "))
+            // A quoted value, such as the name, may hold the same letters.
+            if options.replacing(#/"[^"]*"/#, with: "\"\"").contains(#/(^|\s)default\s*=/#) {
+                // Floe's {query} has no value of its own to fall back on when nothing is typed.
+                .placeholder("\(word) default")
+            } else {
+                modifiers.isEmpty ? nil : .placeholder(([word] + modifiers).joined(separator: " | "))
+            }
         case "selection", "clipboard":
             options.isEmpty && modifiers.isEmpty ? nil : .placeholder(([options.isEmpty ? word : "\(word) \(options)"] + modifiers).joined(separator: " | "))
         default:
@@ -89,8 +95,8 @@ enum QuicklinkImport {
         }
     }
 
-    /// Raycast's `{argument …}` and `{query}` become Floe's `{query}`: one name used twice is one argument, each unnamed
-    /// one its own. `{selection}` and `{clipboard}` stay, read when the link opens.
+    /// Raycast's {argument …} and {query} become Floe's {query}: one name used twice is one argument, each unnamed
+    /// one its own. {selection} and {clipboard} stay, read when the link opens.
     private static func floeURL(_ link: String, home: URL) -> Result<String, Reason> {
         var arguments = Set<String>()
         for match in link.matches(of: placeholderPattern) {
@@ -113,16 +119,17 @@ enum QuicklinkImport {
             return word == "selection" || word == "clipboard" ? "{\(word)}" : "{query}"
         }
         if url.hasPrefix("~/") || url == "~" {
-            url = home.appending(path: String(url.dropFirst(2)), directoryHint: .notDirectory).absoluteString
+            url = fileLink(home.appending(path: String(url.dropFirst(2)), directoryHint: .notDirectory))
         } else if url.hasPrefix("/") {
-            url = URL(filePath: url, directoryHint: .notDirectory).absoluteString
-        }
-        // A file URL escapes the braces, and Floe fills its placeholders only as they are written.
-        for word in ["query", "selection", "clipboard"] {
-            url = url.replacing("%7B\(word)%7D", with: "{\(word)}")
+            url = fileLink(URL(filePath: url, directoryHint: .notDirectory))
         }
         guard let scheme = URL(string: url)?.scheme, !scheme.isEmpty else { return .failure(.notALink) }
         return .success(url)
+    }
+
+    /// A file URL escapes the braces, and Floe fills its placeholders only as they are written.
+    private static func fileLink(_ file: URL) -> String {
+        ["query", "selection", "clipboard"].reduce(file.absoluteString) { $0.replacing("%7B\($1)%7D", with: "{\($1)}") }
     }
 
     /// Raycast's icons that have a symbol to match, by their name without the size.
@@ -138,7 +145,7 @@ enum QuicklinkImport {
         return name.flatMap { symbols[$0] } ?? (url.contains("{query}") ? "magnifyingglass" : "link")
     }
 
-    /// The first letter of each word, or the one word whole; `link` for a name with neither letters nor digits.
+    /// The first letter of each word, or the one word whole; link for a name with neither letters nor digits.
     private static func keyword(for name: String) -> String {
         let words = name.lowercased().split { !$0.isLetter && !$0.isNumber }
         return words.count > 1 ? String(words.compactMap(\.first)) : words.first.map(String.init) ?? "link"

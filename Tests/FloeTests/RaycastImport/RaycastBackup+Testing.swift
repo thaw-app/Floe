@@ -10,15 +10,18 @@ import CryptoKit
 import Foundation
 import zlib
 
-/// Builds a `.rayconfig` the way Raycast 2 writes one, so no real backup is ever kept as a fixture.
+/// Builds a .rayconfig the way Raycast 2 writes one, so no real backup is ever kept as a fixture.
 enum RaycastBackup {
     static let iv = Data((0 ..< 16).map { UInt8($0) })
     static let salt = Data((16 ..< 32).map { UInt8($0) })
 
-    static func make(payload: String, passphrase: String, schemaVersion: Int = 3) throws -> Data {
+    /// A scrypt cost low enough for a debug build. RaycastExport.read is given the same one.
+    static let cost = 16
+
+    static func make(payload: String, passphrase: String, schemaVersion: Int = 3, cost: Int = cost) throws -> Data {
         let header = #"{"schemaVersion":\#(schemaVersion),"encryption":{"iv":"\#(iv.hexadecimal)","salt":"\#(salt.hexadecimal)"}}"#
         let compressedHeader = gzip(Data(header.utf8))
-        let key = try Scrypt.derive(password: Data(passphrase.utf8), salt: salt, cost: 16384, blockSize: 8, parallelism: 1, length: 32)
+        let key = try Scrypt.derive(password: Data(passphrase.utf8), salt: salt, cost: cost, blockSize: 8, parallelism: 1, length: 32)
         let box = try AES.GCM.seal(gzip(Data(payload.utf8)), using: SymmetricKey(data: key), nonce: AES.GCM.Nonce(data: iv))
         var file = Data("RAYCFG3\n".utf8)
         withUnsafeBytes(of: UInt32(compressedHeader.count).littleEndian) { file.append(contentsOf: $0) }

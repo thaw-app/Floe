@@ -303,6 +303,15 @@ struct SearchModelTests {
         #expect(model.resultCount == model.displayedGroups.reduce(0) { $0 + $1.entries.count })
     }
 
+    @Test func theRaycastImportAndAQuicklinksAppAreFound() throws {
+        let model = SearchModel()
+        model.searchText = "import raycast"
+        let quicklinks = try #require(model.displayedGroups.first { $0.pane == .quicklinks })
+        #expect(quicklinks.entries.map(\.title).contains("Import from Raycast…"))
+        model.searchText = "open with"
+        #expect(model.displayedGroups.first { $0.pane == .quicklinks }?.entries.map(\.title).contains("Open with") == true)
+    }
+
     @Test func extensionsAreFoundOnlyOnceTheirCommandsAreSet() throws {
         let model = SearchModel()
         model.searchText = "convert units"

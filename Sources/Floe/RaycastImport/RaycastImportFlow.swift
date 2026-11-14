@@ -14,7 +14,7 @@ enum RaycastImportFlow {
     struct Environment {
         /// The chosen file; nil when the user cancelled.
         var chooseFile: () -> URL?
-        /// The passphrase, asked `again` after a wrong one; nil when the user cancelled.
+        /// The passphrase, asked again after a wrong one; nil when the user cancelled.
         var askPassphrase: (_ again: Bool) -> String?
         /// Reads the file and what is in it; a file that cannot be read is not an export.
         var read: (URL, String?) async -> RaycastExport.Reading
@@ -26,7 +26,10 @@ enum RaycastImportFlow {
         guard let file = environment.chooseFile() else { return }
         var passphrase: String?
         while true {
-            switch await environment.read(file, passphrase) {
+            let reading = await environment.read(file, passphrase)
+            // Leaving the page cancels the import: a slow read then ends without a prompt or a change.
+            guard !Task.isCancelled else { return }
+            switch reading {
             case .needsPassphrase, .wrongPassphrase where passphrase == nil:
                 guard let typed = environment.askPassphrase(false) else { return }
                 passphrase = typed
