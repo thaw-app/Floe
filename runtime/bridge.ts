@@ -7,6 +7,7 @@
 
 // NDJSON bridge between the Bun extension host and the Swift app.
 // stdout carries protocol messages only; console output is redirected to stderr by host.ts.
+import fs from "node:fs";
 
 export type Manifest = {
   name: string;
@@ -30,15 +31,52 @@ export const ctx = {
   manifest: { name: "" } as Manifest,
   // The command's preferences as the app resolved them, as JSON, or nothing when the host runs without the app.
   preferences: undefined as string | undefined,
+  // The key LocalStorage seals its values with, from the app's Keychain, or nothing when the host runs without the app.
+  storageKey: undefined as Buffer | undefined,
+  // True when the app could not read that key: LocalStorage then saves nothing.
+  storageLocked: false,
   // The sign-in that failed last, which says why a render that kept waiting on it gave up.
   signInFailure: undefined as { error: Error; at: number } | undefined,
 };
 
-// Moves the preferences the app passed out of the environment. They hold the command's Keychain values, and a
-// program the command starts inherits the environment.
-export function takePreferences(): void {
-  ctx.preferences = process.env.FLOE_PREFERENCES || undefined;
-  delete process.env.FLOE_PREFERENCES;
+// The command's Keychain values and the storage key come as the first line of the host's input, never in the
+// environment: another program running as the same user can read a process's starting environment with ps.
+// FLOE_SECRETS=input says the line is there; without it, as when the host runs without the app, there is none.
+export function takeSecrets(readLine: () => string = () => firstLine(0)): void {
+  const onInput = process.env.FLOE_SECRETS === "input";
+  delete process.env.FLOE_SECRETS;
+  let secrets: { preferences?: unknown; storageKey?: unknown; storageLocked?: unknown } = {};
+  if (onInput) {
+    try {
+      secrets = JSON.parse(readLine());
+    } catch {
+      // Secrets that were sent but did not arrive lock the storage rather than leave it plain.
+      secrets = { storageLocked: true };
+    }
+  }
+  ctx.preferences = typeof secrets.preferences === "string" ? secrets.preferences : undefined;
+  const key = Buffer.from(typeof secrets.storageKey === "string" ? secrets.storageKey : "", "base64");
+  ctx.storageKey = key.length === 32 ? key : undefined;
+  ctx.storageLocked = secrets.storageLocked === true;
+}
+
+// One byte at a time, so nothing after the line is taken from the messages that follow it.
+function firstLine(descriptor: number): string {
+  const bytes: number[] = [];
+  const byte = Buffer.alloc(1);
+  for (;;) {
+    let read: number;
+    try {
+      read = fs.readSync(descriptor, byte, 0, 1, null);
+    } catch (error) {
+      // A non-blocking pipe with nothing in it yet: wait a moment and read again.
+      if ((error as { code?: string }).code !== "EAGAIN") throw error;
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2);
+      continue;
+    }
+    if (read === 0 || byte[0] === 0x0a) return Buffer.from(bytes).toString("utf8");
+    bytes.push(byte[0]);
+  }
 }
 
 type Sink = (line: string) => void;
