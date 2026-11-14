@@ -141,6 +141,9 @@
     "%@ needs these before it can run. Change them later in Floe Settings." : {
       "comment" : "The placeholder is the name of an extension or one of its commands."
     },
+    "%@ opens in your default app: its app isn't on this Mac." : {
+      "comment" : "The placeholder is the name of a quicklink."
+    },
     "%@ ran into an error" : {
       "comment" : "The placeholder is the name of a command."
     },
@@ -1200,10 +1203,16 @@
     "Choose Icon…" : {
 
     },
+    "Choose a Raycast quicklinks export or a .rayconfig backup." : {
+
+    },
     "Choose a clipboard app in Settings" : {
 
     },
     "Choose a command from the menus of the app in front" : {
+
+    },
+    "Choose a file from Raycast's Export Quicklinks, or a backup from Export Settings & Data." : {
 
     },
     "Choose a folder for your notes" : {
@@ -1588,6 +1597,9 @@
     "Default" : {
       "comment" : "A skin tone for emoji: the yellow one, with no tone."
     },
+    "Default App" : {
+      "comment" : "Beside Open with: the quicklink opens as any link of its kind does."
+    },
     "Default Browser" : {
 
     },
@@ -1813,6 +1825,9 @@
     "Enter a name." : {
 
     },
+    "Enter the backup's passphrase" : {
+
+    },
     "Enter the snippet's text." : {
 
     },
@@ -1998,6 +2013,9 @@
     "Floe can't answer that request." : {
 
     },
+    "Floe can't fill {%@}." : {
+      "comment" : "Why a quicklink was left out of an import. The placeholder is a Raycast placeholder such as clipboard."
+    },
     "Floe can't sign in to %@ in the browser yet. %@ works with this instead. Change it later in Floe Settings." : {
       "comment" : "Under a field that takes a token. The first placeholder is a service, the second an extension's name.",
       "localizations" : {
@@ -2011,6 +2029,9 @@
     },
     "Floe collects no analytics or usage data. What you open, and how often, stays in a file on this Mac. The network calls it makes are listed under Network." : {
 
+    },
+    "Floe fills in one search term, and this link asks for several." : {
+      "comment" : "Why a quicklink was left out of an import."
     },
     "Floe has no sign-in of its own yet. For now the browser returns through raycast.com, and some extensions get their token from Raycast’s servers. This is temporary and may stop working. Floe’s own sign-in service is planned to replace it." : {
 
@@ -2282,8 +2303,40 @@
     "Immediately" : {
       "comment" : "A choice for when something happens: with no delay."
     },
+    "Import" : {
+      "comment" : "The button that imports quicklinks from a Raycast backup."
+    },
+    "Import Raycast Quicklinks…" : {
+
+    },
+    "Import from Raycast…" : {
+
+    },
     "Important" : {
       "comment" : "The heading of an important note in the release notes."
+    },
+    "Imported %lld quicklinks" : {
+      "comment" : "The placeholder is a number of quicklinks.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Imported %lld quicklink"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Imported %lld quicklinks"
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "Import…" : {
 
@@ -2889,6 +2942,9 @@
     "No place matches" : {
 
     },
+    "No quicklinks imported" : {
+
+    },
     "No quicklinks yet." : {
 
     },
@@ -2937,6 +2993,9 @@
     "No sound output" : {
 
     },
+    "No text is selected." : {
+      "comment" : "A quicklink that fills in the selected text found none."
+    },
     "No text was found there" : {
 
     },
@@ -2984,6 +3043,9 @@
     },
     "Not connected. Floe only passes on host names made of letters, digits, dots, hyphens and underscores." : {
 
+    },
+    "Not imported:" : {
+      "comment" : "Above a list of quicklinks that were left out of an import."
     },
     "Not released yet" : {
 
@@ -3186,6 +3248,9 @@
 
     },
     "Open the launcher from an app to search its menus." : {
+
+    },
+    "Open with" : {
 
     },
     "Opening What’s New from About reads Floe’s changelog from GitHub and keeps the last copy." : {
@@ -4335,6 +4400,9 @@
     "That keyword is already used." : {
 
     },
+    "That passphrase didn't open the backup" : {
+
+    },
     "That picture could not be used." : {
 
     },
@@ -4532,6 +4600,9 @@
     "The open source launcher for macOS" : {
 
     },
+    "The passphrase Raycast showed when it exported the backup. It's used once and not saved." : {
+
+    },
     "The record is switched off. Settings › Privacy turns it on." : {
 
     },
@@ -4604,6 +4675,9 @@
     },
     "This is already %@" : {
       "comment" : "The placeholder is the name of a language."
+    },
+    "This isn't a Raycast export" : {
+
     },
     "This note is too large to show here, or is not text." : {
 
@@ -4905,6 +4979,9 @@
     "Uppercase" : {
       "comment" : "The kind of a result, shown beside its title."
     },
+    "Use Default" : {
+
+    },
     "Use Its Own Icon" : {
 
     },
@@ -4914,7 +4991,7 @@
     "Use for Sound Output" : {
       "comment" : "A button that makes the selected device the one sound plays through."
     },
-    "Use {query} where the search text goes." : {
+    "Use {query} where the search text goes, {selection} for the selected text and {clipboard} for the copied text." : {
 
     },
     "Used for emoji in search results that come in skin tones." : {
@@ -5154,6 +5231,9 @@
     },
     "alerts, banners" : {
       "comment" : "Words that find the Notifications pane of System Settings, separated by commas."
+    },
+    "already in Floe." : {
+      "comment" : "Why a quicklink was left out of an import."
     },
     "appearance, glass, tint, colour, color, gradient, border, shadow, theme, style" : {
       "comment" : "Words that find the Appearance page in the settings search, separated by commas."
@@ -5410,6 +5490,9 @@
     "iCloud sync and settings files." : {
 
     },
+    "import, raycast, rayconfig, export, backup, migrate" : {
+      "comment" : "Words that find Import from Raycast in the settings search, separated by commas."
+    },
     "keyboard shortcuts, input sources, dictation, text replacements" : {
       "comment" : "Words that find the Keyboard pane of System Settings, separated by commas."
     },
@@ -5470,6 +5553,9 @@
     "next song, skip, skip song, music, spotify" : {
       "comment" : "Words that find the Next Track command, separated by commas."
     },
+    "not a web address or a path." : {
+      "comment" : "Why a quicklink was left out of an import."
+    },
     "not set" : {
       "comment" : "Read aloud for an app picker with no app chosen."
     },
@@ -5481,6 +5567,9 @@
     },
     "ocr, text from screen, read text, screenshot text, qr, scan, barcode" : {
       "comment" : "Words that find the Copy Text from Screen command, separated by commas."
+    },
+    "open with, app, browser, application" : {
+      "comment" : "Words that find the Open with setting of a quicklink in the settings search, separated by commas."
     },
     "opencode stopped before finishing." : {
       "comment" : "The word opencode is the name of a command and stays as written."

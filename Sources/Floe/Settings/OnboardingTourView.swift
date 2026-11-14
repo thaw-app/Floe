@@ -14,6 +14,8 @@ struct OnboardingTourView: View {
 
     let continueTitle: String
     var onContinue: () -> Void
+    /// Opens Settings and starts Import from Raycast.
+    var importFromRaycast: () -> Void
 
     @State private var appeared = false
 
@@ -49,6 +51,8 @@ struct OnboardingTourView: View {
                     .font(ThawType.caption)
                     .foregroundStyle(ThawInk.supporting)
                 Spacer()
+                Button("Import Raycast Quicklinks…", action: importFromRaycast)
+                    .buttonStyle(.settingsGlass)
                 Button(action: onContinue) {
                     Text(verbatim: continueTitle)
                         .font(ThawType.heading)

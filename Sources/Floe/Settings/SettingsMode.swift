@@ -107,6 +107,7 @@ final class SettingsAppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in self?.endIfDue() }
             .store(in: &cancellables)
         onboarding.onClose = { [weak self] in self?.endIfDue() }
+        onboarding.importFromRaycast = { [weak self] in self?.window.show(page: .raycastImport) }
         ReadingWindow.onClose = { [weak self] in self?.endIfDue() }
         NSAppleEventManager.shared().setEventHandler(
             self,

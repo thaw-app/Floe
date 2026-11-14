@@ -37,8 +37,15 @@ enum ExtensionCreations {
         store.upsert(snippet)
     }
 
-    static func quicklink(_ params: [String: Any], in store: QuicklinkStore) throws {
-        let link = Quicklink(name: text(params["name"]), keyword: text(params["keyword"]), url: url(text(params["link"])))
+    /// apps finds the app the extension named for the link; one that is not on this Mac leaves the link without one.
+    static func quicklink(_ params: [String: Any], in store: QuicklinkStore, apps: (String) -> AppChoice? = { InstalledApps.choice(named: $0) }) throws {
+        let application = text(params["application"])
+        let link = Quicklink(
+            name: text(params["name"]),
+            keyword: text(params["keyword"]),
+            url: url(text(params["link"])),
+            openWith: application.isEmpty ? nil : apps(application)
+        )
         if let problem = store.problem(with: link) {
             throw RequestRefusal(errorDescription: problem)
         }

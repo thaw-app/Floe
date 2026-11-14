@@ -21,19 +21,34 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.4.0-rc.3] - 2026-11-13
+
+**macOS 26 and later · Build 11**
+
+### New
+
+- **Import your Raycast quicklinks** from Settings › Quicklinks or the welcome window. Floe reads a Quicklinks export or a full Raycast backup, gives each link a keyword, and lists any it couldn't bring over ([#74](https://github.com/thaw-app/Floe/issues/74)).
+- **Quicklinks can use `{selection}` and `{clipboard}`**, as in Raycast. The selection needs Accessibility access ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- **A quicklink can open in an app of its own**, such as a second browser for work links. Choose it under Open with.
 
 ### Changed
 
-- **Extensions no longer get everything your shell exports.** An extension, and every program it starts, now gets only the variables tools need from your shell, such as `PATH`, `HOME` and your language, so an API token exported in your `.zshrc` stays out of it. An extension that took a token from your shell won't find it anymore: switch on "Pass on everything your shell exports" on that extension's page in Settings to give it everything, as before. Script commands and shell commands still get your whole shell environment.
-- **An app's hotkey runs its Primary Action.** The Primary Action you choose for apps in Settings › Actions is now also what an app's hotkey does, such as hiding the app or running one of your scripts on it. With none chosen, or one that can't run, such as Quit on an app that isn't running, the hotkey still opens the app, or hides it if it's in front ([#40](https://github.com/thaw-app/Floe/issues/40)).
-- **The Actions menu opens in the launcher.** ⌘K on a result, in the main search, File Search, menu bar search and Ask AI, shows the same panel an extension's ⌘K does, instead of a system menu. Type to search the actions, use the arrows and Return to run one, → and ← for submenus, and Esc to close it. Each action's keys still run it.
-- **Actions has a page of its own in Settings.** What Return does, which actions the Actions menu shows and the keys that run them were a tab of Commands, and are now Settings › Actions.
-- **Extensions' light and dark colors show.** A color an extension gives one value for light mode and another for dark mode is now drawn, and changes when your Mac switches appearance while the command is open. Before, it was left out.
-- **A section's subtitle shows in an extension's list.** It sits beside the section's title, as it already did in a grid.
-- **An extension's confirmation shows its icon.** When an extension asks you to confirm something and gives the question an icon, the icon now shows above the question.
-- **A dropdown in an extension's form shows its section titles.** Its choices are grouped under their titles, as in a list's dropdown.
-- **Menu bar commands show their keyboard shortcuts.** An item in a menu bar command's menu shows the shortcut the extension gave it, and pressing it while the menu is open picks the item.
+- **Extensions no longer get your whole shell environment**, only what tools need, such as `PATH` and `HOME`. If an extension relied on a token from your `.zshrc`, turn on "Pass on everything your shell exports" on its page in Settings.
+- **An app's hotkey runs its Primary Action**, set in Settings › Actions ([#40](https://github.com/thaw-app/Floe/issues/40)).
+- **⌘K opens the Actions menu inside the launcher**, with a search field, as it does in extensions.
+- **Actions has its own page in Settings.**
+- **Extensions show more of their interface:** light and dark colors, section subtitles in lists, icons on confirmations, sections in form dropdowns, and shortcuts in menu bar commands.
+
+### Fixed
+
+- **What's New opens at the version you have**, not the newest release.
+- **Buttons and tabs in Settings line up**, and switching tabs no longer leaks memory.
+
+### Contributors
+
+- @KingMob asked for the Raycast quicklinks import ([#74](https://github.com/thaw-app/Floe/issues/74)).
+- @nuTTeLLo asked for acting on the selected text ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- @MintCollector made app hotkeys run the Primary Action and brought the Actions menu into the launcher ([#81](https://github.com/thaw-app/Floe/pull/81), [#82](https://github.com/thaw-app/Floe/pull/82)).
 
 ## [0.4.0-rc.2] - 2026-11-09
 

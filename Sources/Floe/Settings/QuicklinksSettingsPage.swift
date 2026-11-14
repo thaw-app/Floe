@@ -11,6 +11,8 @@ import ThawUI
 
 struct QuicklinksSettingsPage: View {
     @ObservedObject var store: QuicklinkStore
+    /// Set from outside, as the welcome window does, to start Import from Raycast.
+    @Binding var importsFromRaycast: Bool
     @State private var draft = Quicklink(name: "", keyword: "", url: "https://")
     @State private var editingID: UUID?
     @State private var showingEditor = false
@@ -41,11 +43,19 @@ struct QuicklinksSettingsPage: View {
                             .buttonStyle(.settingsGlass)
                     }
                 }
-                Button("New Quicklink") { add() }
-                    .buttonStyle(.settingsGlass)
+                HStack {
+                    Button("New Quicklink") { add() }
+                    Button("Import from Raycast…") { importsFromRaycast = true }
+                }
+                .buttonStyle(.settingsGlass)
             })
         }
         .formStyle(.grouped)
+        .task(id: importsFromRaycast) {
+            guard importsFromRaycast else { return }
+            await RaycastImportFlow.run(into: store, environment: .live)
+            importsFromRaycast = false
+        }
         .sheet(isPresented: $showingEditor) {
             editor
         }
@@ -74,9 +84,21 @@ struct QuicklinksSettingsPage: View {
                 TextField("Keyword", text: $draft.keyword)
                 TextField("URL", text: $draft.url)
                 TextField("Symbol", text: $draft.symbol, prompt: Text("SF Symbol name"))
+                LabeledContent("Open with") {
+                    HStack {
+                        Text(verbatim: draft.openWith.map { ResolvedApp(url: URL(fileURLWithPath: $0.path)).name }
+                            ?? String(localized: "Default App", bundle: .floe, comment: "Beside Open with: the quicklink opens as any link of its kind does."))
+                            .foregroundStyle(ThawInk.supporting)
+                        Button("Choose…") { chooseApp() }
+                        if draft.openWith != nil {
+                            Button("Use Default") { draft.openWith = nil }
+                        }
+                    }
+                    .buttonStyle(.settingsGlass)
+                }
             } footer: {
                 VStack(alignment: .leading, spacing: ThawSpacing.tight) {
-                    Text("Use {query} where the search text goes.")
+                    Text("Use {query} where the search text goes, {selection} for the selected text and {clipboard} for the copied text.")
                     if let problem = shownProblem {
                         Text(problem).foregroundStyle(.red)
                     }
@@ -133,6 +155,11 @@ struct QuicklinksSettingsPage: View {
         draft = link
         editingID = link.id
         showingEditor = true
+    }
+
+    private func chooseApp() {
+        guard let path = ModalGuard.chooseApp() else { return }
+        draft.openWith = PreferredApps.choice(forAppAt: URL(fileURLWithPath: path), installed: .system)
     }
 
     private func save() {

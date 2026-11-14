@@ -28,17 +28,27 @@ struct ThawOnboardingView: View {
     private let permissions: AppPermissions
     private let isReplay: Bool
     private let startsAtAccess: Bool
+    private let importFromRaycast: () -> Void
     private let onFinish: () -> Void
 
     /// - Parameters:
     ///   - isReplay: The user reopened the flow from Settings, so its last button closes it instead of opening Floe.
     ///   - startsAtAccess: Shows the access step alone, for a grant that went missing after the welcome was seen.
+    ///   - importFromRaycast: Opens Settings and starts Import from Raycast, for the tour's button.
     ///   - onFinish: Called once when the user finishes or skips the flow.
-    init(settings: AppSettings, permissions: AppPermissions, isReplay: Bool = false, startsAtAccess: Bool = false, onFinish: @escaping () -> Void) {
+    init(
+        settings: AppSettings,
+        permissions: AppPermissions,
+        isReplay: Bool = false,
+        startsAtAccess: Bool = false,
+        importFromRaycast: @escaping () -> Void,
+        onFinish: @escaping () -> Void
+    ) {
         self.settings = settings
         self.permissions = permissions
         self.isReplay = isReplay
         self.startsAtAccess = startsAtAccess
+        self.importFromRaycast = importFromRaycast
         _step = State(initialValue: startsAtAccess ? .access : .welcome)
         self.onFinish = onFinish
     }
@@ -64,7 +74,7 @@ struct ThawOnboardingView: View {
                 OnboardingWelcomeView(onContinue: advance, onSkip: onFinish)
                     .transition(.opacity)
             case .tour:
-                OnboardingTourView(settings: settings, continueTitle: String(localized: "Continue", bundle: .floe, comment: "The button that goes to the next step of the welcome window."), onContinue: advance)
+                OnboardingTourView(settings: settings, continueTitle: String(localized: "Continue", bundle: .floe, comment: "The button that goes to the next step of the welcome window."), onContinue: advance, importFromRaycast: importFromRaycast)
                     .transition(.opacity)
             case .access:
                 ThawPermissionsView(permissions: permissions, finishTitle: finishTitle, onContinue: advance)

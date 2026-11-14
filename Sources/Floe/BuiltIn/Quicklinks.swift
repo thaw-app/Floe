@@ -6,31 +6,67 @@
 //  Licensed under the GNU AGPLv3
 //
 
+import AppKit
 import Combine
-import Foundation
 
 struct Quicklink: Codable, Identifiable, Equatable {
     var id: UUID
     var name: String
     var keyword: String
-    /// May contain {query}, replaced with the percent-encoded search text.
+    /// May contain {query}, replaced with the percent-encoded search text, and {selection} and {clipboard}, read when it opens.
     var url: String
     /// Whether the link was a fallback before the Fallbacks page: it seeds the order until the user chooses one there.
     var isFallback: Bool
     var symbol: String
+    /// The app the link opens in, whatever its kind; nil opens it as any link of its kind opens.
+    var openWith: AppChoice?
 
-    init(id: UUID = UUID(), name: String, keyword: String, url: String, isFallback: Bool = false, symbol: String = "magnifyingglass") {
+    init(
+        id: UUID = UUID(),
+        name: String,
+        keyword: String,
+        url: String,
+        isFallback: Bool = false,
+        symbol: String = "magnifyingglass",
+        openWith: AppChoice? = nil
+    ) {
         self.id = id
         self.name = name
         self.keyword = keyword
         self.url = url
         self.isFallback = isFallback
         self.symbol = symbol
+        self.openWith = openWith
     }
 
     /// Whether the link is a search, with text to type after its keyword, and not one page to open.
     var takesQuery: Bool {
         url.contains("{query}")
+    }
+
+    /// Whether the link reads the selection or the clipboard when it opens.
+    var fillsOnOpening: Bool {
+        url.contains("{selection}") || url.contains("{clipboard}")
+    }
+}
+
+/// What a link's {selection} and {clipboard} hold as it opens.
+struct QuicklinkFills: Equatable {
+    var selection = ""
+    var clipboard = ""
+}
+
+/// Where a link's {selection} and {clipboard} are read from.
+struct QuicklinkFillReader {
+    var selection: () async throws -> String
+    var clipboard: () -> String
+
+    static var system: QuicklinkFillReader {
+        QuicklinkFillReader(selection: selectedText, clipboard: { NSPasteboard.general.string(forType: .string) ?? "" })
+    }
+
+    private static func selectedText() async throws -> String {
+        try await SelectedText.current()
     }
 }
 
@@ -174,19 +210,21 @@ final class QuicklinkStore: ObservableObject {
     }
 }
 
-/// Replaces {query} in the link's URL with the percent-encoded query text.
-/// Links without the placeholder open as-is.
-func url(for link: Quicklink, query: String) -> URL? {
-    guard link.url.contains("{query}") else { return URL(string: link.url) }
-    let parts = link.url.components(separatedBy: "{query}")
-    var text = parts[0]
-    for part in parts.dropFirst() {
+/// Replaces {query}, {selection} and {clipboard} in the link's URL with their percent-encoded text.
+/// Links without them open as-is.
+func url(for link: Quicklink, query: String, fills: QuicklinkFills = QuicklinkFills()) -> URL? {
+    let values = ["query": query, "selection": fills.selection, "clipboard": fills.clipboard]
+    var text = ""
+    var rest = link.url[...]
+    while let match = rest.firstMatch(of: #/\{(query|selection|clipboard)\}/#) {
+        text += rest[..<match.range.lowerBound]
         // In the query or the fragment the text is one value, so it cannot add a field such as `&bcc=`.
         // In the path it may name a path, like owner/repo, but never end the path. In the host it keeps no slash,
         // which would end the host there and put the text's own one in its place.
         let inQuery = text.unicodeScalars.contains { $0 == "?" || $0 == "#" }
         let inPath = text.range(of: "://").map { text[$0.upperBound...].contains("/") } ?? true
-        text += LinkText.escaped(query, keeping: inQuery || !inPath ? "" : "/") + part
+        text += LinkText.escaped(values[String(match.output.1)] ?? "", keeping: inQuery || !inPath ? "" : "/")
+        rest = rest[match.range.upperBound...]
     }
-    return URL(string: text)
+    return URL(string: text + rest)
 }
