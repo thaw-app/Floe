@@ -130,6 +130,10 @@ final class LauncherModel: ObservableObject {
     var recalledQuery: Int?
     private var didAutorun = false
     private var pendingReset: DispatchWorkItem?
+    /// What the command that closed the panel asked for the open command; read by the hide that follows.
+    private var closingPopToRoot = PopToRoot.default
+    /// The reset is held for a suspended command, with no timer to end it.
+    private var isHeldUntilShown = false
     private(set) var isPanelShown = false
     /// Floe's own Actions menu, when ⌘K opened it on a view's rows.
     let actionPanel = ActionPanelPresenter()
@@ -256,14 +260,47 @@ final class LauncherModel: ObservableObject {
         question = nil
         actionPanel.close()
         pendingReset?.cancel()
-        let delay = settings.popToRootDelay
-        guard delay > 0, runner.session != nil || setup != nil else {
+        let asked = closingPopToRoot
+        closingPopToRoot = .default
+        let delay = asked == .immediate ? 0 : settings.popToRootDelay
+        guard delay > 0 || asked == .suspended, runner.session != nil || setup != nil else {
             reset()
             return
         }
         let work = DispatchWorkItem { [weak self] in self?.reset() }
         pendingReset = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delay), execute: work)
+        isHeldUntilShown = asked == .suspended
+        // Suspended waits as long as the prompt takes: the reset is held, not scheduled, until the panel shows.
+        if !isHeldUntilShown {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delay), execute: work)
+        }
+    }
+
+    /// What closeMainWindow asked for the open command. A panel already hidden has had its hide, so its timer changes here.
+    func popToRoot(_ asked: PopToRoot) {
+        guard !isPanelShown else {
+            closingPopToRoot = asked
+            return
+        }
+        switch asked {
+        case .default:
+            break
+        case .immediate:
+            reset()
+        case .suspended where pendingReset != nil:
+            pendingReset?.cancel()
+            pendingReset = DispatchWorkItem { [weak self] in self?.reset() }
+            isHeldUntilShown = true
+        case .suspended:
+            break
+        }
+    }
+
+    /// A held command that ends while hidden has nothing to come back to, so the held reset runs now.
+    func commandEnded() {
+        if isHeldUntilShown, !isPanelShown {
+            reset()
+        }
     }
 
     /// Whether the panel is hidden with its command kept for the user to come back to.
@@ -276,12 +313,14 @@ final class LauncherModel: ObservableObject {
         isPanelShown = true
         pendingReset?.cancel()
         pendingReset = nil
+        isHeldUntilShown = false
     }
 
     /// Back to the root search, ending any open command.
     func reset() {
         pendingReset?.cancel()
         pendingReset = nil
+        isHeldUntilShown = false
         runner.endOpenCommand()
         setup = nil
         isSearchingMenuBar = false

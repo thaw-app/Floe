@@ -444,10 +444,11 @@ export async function confirmAlert(options: Props) {
 // Window and system
 
 export const PopToRootType = { Default: "default", Immediate: "immediate", Suspended: "suspended" };
-export function closeMainWindow(_options?: Props): Promise<void> {
+export function closeMainWindow(options?: Props): Promise<void> {
   // A background run is killed as soon as the app reads "close".
   flushCaches();
-  send({ type: "close" });
+  const popToRootType = options?.popToRootType;
+  send(popToRootType ? { type: "close", popToRootType } : { type: "close" });
   return done;
 }
 export function popToRoot(_options?: Props): Promise<void> {

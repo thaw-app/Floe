@@ -27,6 +27,7 @@ these four.
 
 - **Clipboard history and what extensions keep in their storage are encrypted**, with a key kept in your keychain, so another app can't read what you copied or a token an extension saved. What was there before is encrypted the next time Floe or the extension opens it.
 - **Extension passwords can't be read by other apps while a command runs.** Floe used to hand them to the extension in a way any program running as you could see.
+- **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it. ([#91](https://github.com/thaw-app/Floe/issues/91))
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
 
 ## [0.4.0-rc.3] - 2026-11-13

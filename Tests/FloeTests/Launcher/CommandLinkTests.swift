@@ -84,6 +84,60 @@ struct CommandLinkTests {
         #expect(try opened.urls == [#require(URL(string: target))])
     }
 
+    /// 1Password closes the window for its approval prompt and then opens raycast:// to come back.
+    @Test(arguments: ["raycast://", "raycast:", "RAYCAST://"])
+    func raycastsOwnAddressBringsTheLauncherBack(target: String) {
+        var shown = 0
+        model.panelHost.showPanel = { shown += 1 }
+        #expect(ran(opening: target) == nil)
+        #expect(shown == 1)
+        #expect(opened.urls.isEmpty, "Raycast, if it is installed, stays closed")
+    }
+
+    /// 1Password's command outlives the pop-to-root delay, even an immediate one, while its prompt waits.
+    @Test func aSuspendedCommandWaitsForTheLauncherHoweverLong() {
+        settings.popToRootDelay = 0
+        _ = ran(opening: "raycast://extensions/someone/sample/planets")
+        model.panelWillShow()
+        model.popToRoot(.suspended)
+        model.panelDidHide()
+        #expect(model.setup != nil && model.isWaitingToResume)
+        model.panelWillShow()
+        model.panelDidHide()
+        #expect(model.setup == nil, "the next close follows the setting again")
+    }
+
+    @Test func aKeptCommandThatEndsWhileHiddenLeavesAFreshSearch() throws {
+        model.runner.startsHost = { _ in }
+        model.runner.run(Fixture.command("hello"))
+        let session = try #require(model.runner.session)
+        model.query = "pass"
+        model.panelWillShow()
+        model.popToRoot(.suspended)
+        model.panelDidHide()
+        model.runner.handle(["type": "exit"], from: session)
+        #expect(!model.isWaitingToResume)
+        #expect(model.query.isEmpty, "nothing is left to come back to")
+    }
+
+    @Test func anImmediateCloseEndsTheCommandWhateverTheSetting() {
+        _ = ran(opening: "raycast://extensions/someone/sample/planets")
+        model.panelWillShow()
+        model.popToRoot(.immediate)
+        model.panelDidHide()
+        #expect(model.setup == nil)
+    }
+
+    @Test func aCommandAlreadyHiddenIsKeptWhenItAsksAfterwards() async throws {
+        settings.popToRootDelay = 1
+        _ = ran(opening: "raycast://extensions/someone/sample/planets")
+        model.panelWillShow()
+        model.panelDidHide()
+        model.popToRoot(.suspended)
+        try await Task.sleep(for: .seconds(1.5))
+        #expect(model.setup != nil && model.isWaitingToResume, "the timer the click elsewhere started no longer ends it")
+    }
+
     @Test func aLinkRunsACommandOnlyForTheOwnerItsExtensionNames() {
         var owned = Self.planets
         owned.owner = "someone"

@@ -9,6 +9,11 @@ import AppKit
 import ApplicationServices
 import Combine
 
+/// Raycast's PopToRootType: default follows the setting, immediate ends the command, suspended keeps it until the launcher shows.
+enum PopToRoot: String {
+    case `default`, immediate, suspended
+}
+
 /// The extension command the panel runs: starting it, what it asks the app to do, running it again and ending it.
 /// It is handed what it needs from the panel as a Host, and knows nothing of the launcher.
 final class ExtensionRunner: ObservableObject {
@@ -16,12 +21,19 @@ final class ExtensionRunner: ObservableObject {
     struct Host {
         var showPanel: () -> Void = { /* set by the launcher's model */ }
         var hidePanel: () -> Void = { /* set by the launcher's model */ }
+        /// What the hide that follows does with the open command, as closeMainWindow asked.
+        var popToRootOnHide: (PopToRoot) -> Void = { _ in
+            // Set by the launcher's model.
+        }
+
         var showHUD: (String) -> Void = { _ in
             // Set by the launcher's model.
         }
 
         /// The search field takes the keys again: the command's view is gone.
         var refocus: () -> Void = { /* set by the launcher's model */ }
+        /// The command on screen ended, by itself or replaced.
+        var commandEnded: () -> Void = { /* set by the launcher's model */ }
         /// Whether the panel is on screen, so a toast is drawn in the command's footer rather than said as a HUD.
         var isPanelShown: () -> Bool = { false }
         /// Whether the panel is hidden with the command kept for the user to come back to.
@@ -116,6 +128,7 @@ final class ExtensionRunner: ObservableObject {
             reloading?.session.stop()
             reloading = nil
             host.refocus()
+            host.commandEnded()
         }
     }
 
@@ -213,7 +226,7 @@ final class ExtensionRunner: ObservableObject {
             end(session)
             host.showHUD(String(localized: "\(session.command.title) failed", bundle: .floe, comment: "The placeholder is the name of a command."))
         case "close":
-            host.hidePanel()
+            close(message, from: session)
         case "hud":
             host.showHUD(message["title"] as? String ?? "")
             host.hidePanel()
@@ -229,6 +242,14 @@ final class ExtensionRunner: ObservableObject {
         default:
             showToastWithoutFooter(message, of: session)
         }
+    }
+
+    private func close(_ message: [String: Any], from session: ExtensionSession) {
+        // A command being replaced has no say over the one taking its place.
+        if self.session === session {
+            host.popToRootOnHide(PopToRoot(rawValue: message["popToRootType"] as? String ?? "") ?? .default)
+        }
+        host.hidePanel()
     }
 
     /// Handles open, copy, paste and hud from sessions the panel doesn't own (menu-bar extras,

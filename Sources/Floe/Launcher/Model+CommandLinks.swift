@@ -35,8 +35,14 @@ struct CommandLink {
 }
 
 extension LauncherModel {
-    /// Runs the command a link names when it is installed and enabled. Any other link is left to the system.
+    /// Runs the command a link names when it is installed and enabled, and shows the launcher for raycast:// alone. Any
+    /// other link is left to the system.
     func runCommandLink(_ url: URL) -> Bool {
+        // An extension that closed the window for a prompt, as 1Password does, opens raycast:// to bring it back.
+        if url.scheme?.lowercased() == "raycast", (url.host() ?? "").isEmpty, url.path.isEmpty {
+            panelHost.showPanel()
+            return true
+        }
         guard let link = CommandLink(url),
               let command = commands.first(where: { link.names($0) })
         else { return false }
