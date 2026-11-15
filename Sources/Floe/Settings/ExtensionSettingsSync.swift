@@ -14,6 +14,9 @@ final class ExtensionSettingsSync {
     struct Held: Codable, Equatable {
         var records: [String: String] = [:]
         var pending: Set<String> = []
+        /// The synced keys this Mac held at its last pass, by extension, to tell a value cleared here from one it never
+        /// had. Optional, so a file written before it was kept still loads.
+        var sent: [String: Set<String>]?
     }
 
     struct Storage {
@@ -34,9 +37,11 @@ final class ExtensionSettingsSync {
         var includes: () -> Bool
         /// The commands of the extensions installed here, whose manifests say which preferences exist.
         var commands: () -> [ExtensionCommand]
-        var stored: (_ extensionName: String) -> [String: Any]
-        /// Writes the named values over the stored ones, the way an edit in Settings does.
-        var merge: (_ values: [String: Any], _ extensionName: String) -> Void
+        /// Nil when there is no file that could be read: nothing is known, so nothing is cleared.
+        var stored: (_ extensionName: String) -> [String: Any]?
+        /// Writes the named values over the stored ones, the way an edit in Settings does. A null removes its key.
+        /// False when nothing was written.
+        var merge: (_ values: [String: Any], _ extensionName: String) -> Bool
     }
 
     /// One record per extension and not per preference: iCloud's store takes 1,024 keys in all.
@@ -122,6 +127,11 @@ final class ExtensionSettingsSync {
         values.filter { entry in fields[entry.key].map { accepts(entry.value, for: $0) } ?? false }
     }
 
+    /// What a record asks to write here: its syncable values, and a null for each field it says was cleared.
+    static func incoming(_ record: [String: Any], fields: [String: FieldSpec]) -> [String: Any] {
+        syncable(record, fields: fields).merging(record.filter { fields[$0.key] != nil && $0.value is NSNull }) { value, _ in value }
+    }
+
     private static func object(_ text: String) -> [String: Any]? {
         try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any]
     }
@@ -134,28 +144,61 @@ final class ExtensionSettingsSync {
             let installed = Self.fields(of: access.commands())
             // An older Floe may have sent a credential. With no manifest here to read a title from, the key's name decides.
             for (name, text) in next.records where installed[name] == nil {
-                guard let values = Self.object(text) else { continue }
-                let kept = values.filter { !Self.looksSecret(String($0.key.split(separator: "/").last ?? "")) }
-                if kept.count < values.count, let text = SettingsSync.text(kept) {
-                    next.records[name] = text
+                if let kept = Self.withoutSecrets(text) {
+                    next.records[name] = kept
                 }
             }
             for (name, fields) in installed {
-                var values = Self.syncable(access.stored(name), fields: fields)
-                if next.pending.remove(name) != nil, let waiting = next.records[name].flatMap(Self.object) {
-                    let incoming = Self.syncable(waiting, fields: fields)
-                    if !incoming.isEmpty {
-                        access.merge(incoming, name)
-                        values.merge(incoming) { _, theirs in theirs }
-                    }
-                }
-                if !values.isEmpty, let text = SettingsSync.text(values) {
-                    next.records[name] = text
-                }
+                record(name, fields: fields, into: &next)
             }
             keep(next)
         }
         return Dictionary(uniqueKeysWithValues: held.records.map { (Self.prefix + $0.key, $0.value) })
+    }
+
+    /// The record without keys named like a credential, or nil when it has none.
+    private static func withoutSecrets(_ text: String) -> String? {
+        guard let values = object(text) else { return nil }
+        let kept = values.filter { !looksSecret(String($0.key.split(separator: "/").last ?? "")) }
+        return kept.count < values.count ? SettingsSync.text(kept) : nil
+    }
+
+    /// Applies a record waiting for this extension, then rebuilds its record from what is stored here.
+    private func record(_ name: String, fields: [String: FieldSpec], into next: inout Held) {
+        let stored = access.stored(name)
+        var values = Self.syncable(stored ?? [:], fields: fields)
+        if next.pending.remove(name) != nil, let waiting = next.records[name].flatMap(Self.object) {
+            let incoming = Self.incoming(waiting, fields: fields)
+            if !incoming.isEmpty {
+                guard access.merge(incoming, name) else {
+                    // Tried again on the next pass, and the record stays as it came.
+                    next.pending.insert(name)
+                    return
+                }
+                // The nulls stay in the record, so a clearing this Mac passes on is not lost when nothing is stored here.
+                values = values.merging(incoming) { _, theirs in theirs }
+            }
+        }
+        guard stored != nil else {
+            if !values.isEmpty, let text = SettingsSync.text(values) {
+                next.records[name] = text
+            }
+            return
+        }
+        let here = Set(values.filter { !($0.value is NSNull) }.keys)
+        // The whole record wins, so a removal is said inside it as a null. A key left out is not a removal:
+        // an older version of the extension or of Floe never clears what it does not know.
+        let previous = next.records[name].flatMap(Self.object) ?? [:]
+        let cleared = (next.sent?[name] ?? []).union(previous.filter { $0.value is NSNull }.keys)
+        for key in cleared where fields[key] != nil && !here.contains(key) {
+            values[key] = NSNull()
+        }
+        if !values.isEmpty || next.records[name] != nil, let text = SettingsSync.text(values) {
+            next.records[name] = text
+        }
+        var sent = next.sent ?? [:]
+        sent[name] = here
+        next.sent = sent
     }
 
     /// Takes in other Macs' records and answers with the ones that are not records. A removal elsewhere
@@ -173,11 +216,13 @@ final class ExtensionSettingsSync {
             }
             next.records[name] = text
             if let fields = installed[name] {
-                let incoming = Self.syncable(values, fields: fields)
-                if !incoming.isEmpty {
-                    access.merge(incoming, name)
+                let incoming = Self.incoming(values, fields: fields)
+                // A record that could not be written here waits, as for an extension not installed yet.
+                if incoming.isEmpty || access.merge(incoming, name) {
+                    next.pending.remove(name)
+                } else {
+                    next.pending.insert(name)
                 }
-                next.pending.remove(name)
             } else {
                 next.pending.insert(name)
             }
@@ -201,6 +246,14 @@ final class ExtensionSettingsSync {
 extension ExtensionSettingsSync.Access {
     /// The preferences as `PreferenceStore` keeps them, which is where a command reads them when it starts.
     static func stored(includes: @escaping () -> Bool, commands: @escaping () -> [ExtensionCommand]) -> Self {
-        Self(includes: includes, commands: commands, stored: PreferenceStore.storedValues, merge: { PreferenceStore.merge($0, extensionName: $1) })
+        Self(
+            includes: includes,
+            commands: commands,
+            stored: {
+                guard case let .values(values) = PreferenceStore.storedFile($0) else { return nil }
+                return values
+            },
+            merge: { PreferenceStore.merge($0, extensionName: $1) }
+        )
     }
 }

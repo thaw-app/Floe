@@ -14,6 +14,8 @@ import ThawUI
 final class PretendExtensions {
     var commands: [ExtensionCommand] = []
     var stored: [String: [String: Any]] = [:]
+    /// Writes fail while it is set, as with a preferences file that cannot be read.
+    var refusesMerge = false
 }
 
 /// One Mac's Floe: scratch settings and stores, and the sync service over a store in memory.
@@ -41,8 +43,13 @@ final class SyncedFloe {
         let access = ExtensionSettingsSync.Access(
             includes: { [settings] in settings.syncsExtensionSettings },
             commands: { [installed] in installed.commands },
-            stored: { [installed] in installed.stored[$0] ?? [:] },
-            merge: { [installed] values, name in installed.stored[name, default: [:]].merge(values) { _, theirs in theirs } }
+            stored: { [installed] in installed.stored[$0] },
+            merge: { [installed] values, name in
+                guard !installed.refusesMerge else { return false }
+                installed.stored[name, default: [:]].merge(values) { _, theirs in theirs }
+                installed.stored[name] = installed.stored[name]?.filter { !($0.value is NSNull) }
+                return true
+            }
         )
         extensions = ExtensionSettingsSync(access: access, storage: .init(load: { held }, save: { held = $0 }))
         var clock: () -> TimeInterval = { 1000 }

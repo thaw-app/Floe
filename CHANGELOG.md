@@ -37,6 +37,7 @@ these four.
 - **The search shows your changes as soon as you close Settings**, including an extension you installed just before.
 - **Apps in a folder you deleted and recreated show up** without restarting Floe.
 - **Changing an extension's settings no longer erases the rest** when Floe can't read the settings file or a save is cut short.
+- **Clearing an extension's setting on one Mac clears it on your other Macs**, instead of the old value staying there.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.

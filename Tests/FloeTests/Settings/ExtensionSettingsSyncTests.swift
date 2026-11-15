@@ -227,8 +227,8 @@ struct ExtensionSettingsSyncTests {
             access: .init(
                 includes: { true },
                 commands: { installed.commands },
-                stored: { installed.stored[$0] ?? [:] },
-                merge: { values, name in installed.stored[name, default: [:]].merge(values) { _, theirs in theirs } }
+                stored: { installed.stored[$0] },
+                merge: { _, _ in true }
             ),
             storage: .init(load: { older }, save: { _ in /* held in memory */ })
         )
@@ -238,6 +238,107 @@ struct ExtensionSettingsSyncTests {
         #expect(records["ext/weather"] == "{\"city\":\"Oslo\"}")
         #expect(records["ext/notes"] == "{\"city\":\"Oslo\"}", "without the extension installed, the key's name decides")
         #expect(installed.stored["weather"]?["apiKey"] as? String == "abc", "the value typed here stays here")
+    }
+
+    /// Two Macs with the weather extension that share a city and the metric switch.
+    private func sharing() throws -> (a: SyncedFloe, b: SyncedFloe) {
+        let a = try floe("a", installs: [weather])
+        let b = try floe("b", installs: [weather])
+        a.installed.stored["weather"] = ["city": "Oslo", "metric": true]
+        a.changed(at: 2000)
+        cloud.deliver()
+        b.changed(at: 2500)
+        cloud.deliver()
+        return (a, b)
+    }
+
+    @Test func clearingASettingClearsItOnTheOtherMac() throws {
+        let (a, b) = try sharing()
+        #expect(b.installed.stored["weather"]?["city"] as? String == "Oslo")
+        a.installed.stored["weather"]?["city"] = nil
+        a.changed(at: 3000)
+        cloud.deliver()
+        #expect(b.installed.stored["weather"]?["city"] == nil)
+        #expect(b.installed.stored["weather"]?["metric"] as? Bool == true)
+    }
+
+    @Test func clearingEverySettingIsSentToo() throws {
+        let (a, b) = try sharing()
+        a.installed.stored["weather"] = [:]
+        a.changed(at: 3000)
+        cloud.deliver()
+        #expect(b.installed.stored["weather"]?["city"] == nil)
+        #expect(b.installed.stored["weather"]?["metric"] == nil)
+    }
+
+    @Test func aKeyLeftOutOfARecordIsNotCleared() throws {
+        let (_, b) = try sharing()
+        b.store.plant(["t": 5000.0, "d": "x", "v": "{\"metric\":false}"], for: "ext/weather")
+        b.service.engine.refresh()
+        #expect(b.installed.stored["weather"]?["city"] as? String == "Oslo")
+        #expect(b.installed.stored["weather"]?["metric"] as? Bool == false)
+    }
+
+    @Test func aMacThatNeverHadTheValueDoesNotClearIt() throws {
+        let a = try floe("a", installs: [weather])
+        let b = try floe("b", installs: [weather])
+        b.installed.stored["weather"] = ["city": "Oslo"]
+        b.changed(at: 2000)
+        a.changed(at: 2500)
+        cloud.deliver()
+        a.changed(at: 3000)
+        b.changed(at: 3500)
+        cloud.deliver()
+        for mac in [a, b] {
+            #expect(mac.installed.stored["weather"]?["city"] as? String == "Oslo")
+        }
+    }
+
+    @Test func aSettingsFileThatCannotBeReadSendsNoClearing() throws {
+        let (a, b) = try sharing()
+        a.installed.stored["weather"] = nil
+        a.changed(at: 3000)
+        cloud.deliver()
+        #expect(b.installed.stored["weather"]?["city"] as? String == "Oslo")
+        #expect(b.installed.stored["weather"]?["metric"] as? Bool == true)
+    }
+
+    @Test func aClearingThatWaitsForTheExtensionStaysInItsRecord() throws {
+        let (a, _) = try sharing()
+        let c = try floe("c", installs: [])
+        a.installed.stored["weather"]?["city"] = nil
+        a.changed(at: 3000)
+        cloud.deliver()
+        c.installed.commands = [weather]
+        c.changed(at: 4000)
+        cloud.deliver()
+        let text = try #require(record(in: c, of: "weather"))
+        let kept = try #require(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
+        #expect(kept["city"] is NSNull, "a Mac with nothing stored for it yet still passes the clearing on")
+        #expect(kept["metric"] as? Bool == true)
+        #expect(c.installed.stored["weather"]?["city"] == nil)
+    }
+
+    @Test func aMergeThatFailsKeepsTheRecordWaiting() throws {
+        let a = try floe("a", installs: [weather])
+        let b = try floe("b", installs: [weather])
+        b.installed.refusesMerge = true
+        a.installed.stored["weather"] = ["city": "Oslo"]
+        a.changed(at: 2000)
+        cloud.deliver()
+        #expect(b.extensions.held.pending.contains("weather"))
+        #expect(b.installed.stored["weather"] == nil)
+        b.installed.refusesMerge = false
+        b.changed(at: 3000)
+        #expect(b.installed.stored["weather"]?["city"] as? String == "Oslo")
+        #expect(b.extensions.held.pending.isEmpty)
+    }
+
+    @Test func aHeldFileFromBeforeStillLoads() throws {
+        let held = try JSONDecoder().decode(ExtensionSettingsSync.Held.self, from: Data(#"{"records":{"weather":"{}"},"pending":["notes"]}"#.utf8))
+        #expect(held.records == ["weather": "{}"])
+        #expect(held.pending == ["notes"])
+        #expect(held.sent == nil)
     }
 
     @Test func whatIsHeldIsWrittenIntoAFolderThatWasNotThereYet() {
