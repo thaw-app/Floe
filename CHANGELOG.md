@@ -44,6 +44,7 @@ These come from a code review of Floe on 2026-11-15.
 - **Clipboard images an extension read are deleted when Floe quits.**
 - **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log or extension settings sync.**
 - **A password saved before Floe was renamed is no longer lost when the keychain refuses its new copy.**
+- **Extension text fields that look like a token, key, secret or password stay on this Mac** and are taken out of iCloud the next time Floe syncs. Update Floe on each of your Macs, since an older version still sends them.
 
 ## [0.4.0-rc.3] - 2026-11-13
 

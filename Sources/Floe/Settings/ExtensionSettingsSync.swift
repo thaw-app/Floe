@@ -8,7 +8,7 @@
 import Foundation
 
 /// Extension preferences as sync records. A record names only values that mean the same on every Mac:
-/// passwords, files, folders and chosen apps are never in one.
+/// passwords, files, folders and chosen apps are never in one, nor text fields that look like they hold a credential.
 final class ExtensionSettingsSync {
     /// The last record of each extension by name, and the ones another Mac sent that are not applied here yet.
     struct Held: Codable, Equatable {
@@ -43,6 +43,12 @@ final class ExtensionSettingsSync {
     static let prefix = "ext/"
     /// An allow list, so a kind added later stays on this Mac until someone decides it may leave.
     static let syncedTypes: Set<String> = ["textfield", "checkbox", "dropdown"]
+    /// Words in a text field's name or title that say it holds a credential. Such a field stays on this Mac:
+    /// extensions often ask for a token in a plain text field rather than a password one.
+    static let secretWords: Set<String> = [
+        "token", "tokens", "key", "keys", "apikey", "secret", "secrets", "password", "passwords", "passwd", "pwd",
+        "passphrase", "auth", "oauth", "authorization", "credential", "credentials", "bearer", "cookie", "cookies",
+    ]
 
     private let access: Access
     private let storage: Storage
@@ -60,15 +66,47 @@ final class ExtensionSettingsSync {
         for command in commands {
             // An extension with nothing to sync is still listed: it is installed, so nothing waits for it.
             var fields = result[command.extensionName] ?? [:]
-            for field in command.extensionPreferences where syncedTypes.contains(field.type) {
+            for field in command.extensionPreferences where syncedTypes.contains(field.type) && !looksSecret(field) {
                 fields[PreferenceResolver.storageKey(field, commandName: nil)] = field
             }
-            for field in command.commandPreferences where syncedTypes.contains(field.type) {
+            for field in command.commandPreferences where syncedTypes.contains(field.type) && !looksSecret(field) {
                 fields[PreferenceResolver.storageKey(field, commandName: command.name)] = field
             }
             result[command.extensionName] = fields
         }
         return result
+    }
+
+    /// The words of a name or title: split at spaces, punctuation, digits and camel case, lowercased, so
+    /// "keyboard" is one word and "apiKey" is two.
+    static func words(_ text: String) -> [String] {
+        let letters = Array(text)
+        var words: [String] = []
+        var word = ""
+        for (index, letter) in letters.enumerated() {
+            let next = index + 1 < letters.count ? letters[index + 1] : nil
+            // The last capital of a run that goes on in lower case starts a word, so "APIKey" is "API" and "Key".
+            let startsWord = letter.isUppercase && word.last.map { $0.isLowercase || ($0.isUppercase && next?.isLowercase == true) } == true
+            if !letter.isLetter || startsWord, !word.isEmpty {
+                words.append(word.lowercased())
+                word = ""
+            }
+            if letter.isLetter {
+                word.append(letter)
+            }
+        }
+        if !word.isEmpty {
+            words.append(word.lowercased())
+        }
+        return words
+    }
+
+    static func looksSecret(_ text: String) -> Bool {
+        !secretWords.isDisjoint(with: words(text))
+    }
+
+    static func looksSecret(_ field: FieldSpec) -> Bool {
+        field.type == "textfield" && (looksSecret(field.name) || looksSecret(field.title))
     }
 
     /// Whether a value is one the field can hold. A dropdown takes only an option this version of the extension has.
@@ -93,7 +131,16 @@ final class ExtensionSettingsSync {
     func records() -> [String: String] {
         if access.includes() {
             var next = held
-            for (name, fields) in Self.fields(of: access.commands()) {
+            let installed = Self.fields(of: access.commands())
+            // An older Floe may have sent a credential. With no manifest here to read a title from, the key's name decides.
+            for (name, text) in next.records where installed[name] == nil {
+                guard let values = Self.object(text) else { continue }
+                let kept = values.filter { !Self.looksSecret(String($0.key.split(separator: "/").last ?? "")) }
+                if kept.count < values.count, let text = SettingsSync.text(kept) {
+                    next.records[name] = text
+                }
+            }
+            for (name, fields) in installed {
                 var values = Self.syncable(access.stored(name), fields: fields)
                 if next.pending.remove(name) != nil, let waiting = next.records[name].flatMap(Self.object) {
                     let incoming = Self.syncable(waiting, fields: fields)

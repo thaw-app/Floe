@@ -180,6 +180,66 @@ struct ExtensionSettingsSyncTests {
         #expect(ExtensionSettingsSync.syncedTypes.isDisjoint(with: ["password", "file", "directory", "appPicker"]))
     }
 
+    /// The weather extension with a plain text field for its API key, as many extensions ask for one.
+    private var weatherWithKey: ExtensionCommand {
+        Fixture.command("forecast", extension: "weather", extensionPreferences: [Fixture.field("city"), Fixture.field("apiKey")])
+    }
+
+    @Test func aTextFieldThatLooksSecretIsNotSynced() {
+        for secret in ["apiKey", "api_key", "APIKEY", "x-api-key", "accessToken", "githubToken", "clientSecret", "authToken", "password", "passphrase", "credentials", "bearer", "API Key", "Personal Access Token"] {
+            #expect(ExtensionSettingsSync.looksSecret(secret), "\(secret)")
+        }
+        for plain in ["keyboard", "keyword", "monkey", "hotkey", "author", "authorName", "secretary", "tokenizer", "city", "units"] {
+            #expect(!ExtensionSettingsSync.looksSecret(plain), "\(plain)")
+        }
+    }
+
+    @Test func onlyTextFieldsAreJudgedByTheirName() throws {
+        let titled = try #require(Fixture.field(["name": "region", "title": "Access Token", "type": "textfield", "required": false]))
+        let command = Fixture.command(
+            "forecast",
+            extension: "weather",
+            extensionPreferences: [Fixture.field("apiKey"), titled, Fixture.field("useApiKey", type: "checkbox")]
+        )
+        #expect(ExtensionSettingsSync.fields(of: [command])["weather"]?.keys.sorted() == ["useApiKey"])
+    }
+
+    @Test func aSecretLookingTextFieldStaysHereAndLeavesTheRecord() throws {
+        let a = try floe("a", installs: [weatherWithKey])
+        let b = try floe("b", installs: [weatherWithKey])
+        a.installed.stored["weather"] = ["city": "Oslo", "apiKey": "abc"]
+        a.changed(at: 2000)
+        cloud.deliver()
+        #expect(record(in: a, of: "weather") == "{\"city\":\"Oslo\"}")
+        #expect(b.installed.stored["weather"]?["apiKey"] == nil)
+        b.store.plant(["t": 5000.0, "d": "x", "v": "{\"city\":\"Oslo\",\"apiKey\":\"theirs\"}"], for: "ext/weather")
+        b.service.engine.refresh()
+        #expect(b.installed.stored["weather"]?["apiKey"] == nil, "a record from an older Floe does not write it either")
+    }
+
+    @Test func anAlreadySyncedSecretIsTakenOutOfTheRecord() {
+        let installed = PretendExtensions()
+        installed.commands = [weatherWithKey]
+        installed.stored["weather"] = ["apiKey": "abc", "city": "Oslo"]
+        // What an older Floe left behind: records that hold the key.
+        let older = ExtensionSettingsSync.Held(records: ["weather": "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", "notes": "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}"])
+        let sync = ExtensionSettingsSync(
+            access: .init(
+                includes: { true },
+                commands: { installed.commands },
+                stored: { installed.stored[$0] ?? [:] },
+                merge: { values, name in installed.stored[name, default: [:]].merge(values) { _, theirs in theirs } }
+            ),
+            storage: .init(load: { older }, save: { _ in /* held in memory */ })
+        )
+
+        let records = sync.records()
+
+        #expect(records["ext/weather"] == "{\"city\":\"Oslo\"}")
+        #expect(records["ext/notes"] == "{\"city\":\"Oslo\"}", "without the extension installed, the key's name decides")
+        #expect(installed.stored["weather"]?["apiKey"] as? String == "abc", "the value typed here stays here")
+    }
+
     @Test func whatIsHeldIsWrittenIntoAFolderThatWasNotThereYet() {
         defer { try? FileManager.default.removeItem(at: folder) }
         let storage = ExtensionSettingsSync.Storage.file(folder.appendingPathComponent("deeper/held.json"))
