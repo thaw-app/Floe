@@ -32,6 +32,8 @@ final class ExtensionRunner: ObservableObject {
 
         /// The search field takes the keys again: the command's view is gone.
         var refocus: () -> Void = { /* set by the launcher's model */ }
+        /// The command on screen ended, by itself or replaced.
+        var commandEnded: () -> Void = { /* set by the launcher's model */ }
         /// Whether the panel is on screen, so a toast is drawn in the command's footer rather than said as a HUD.
         var isPanelShown: () -> Bool = { false }
         /// Whether the panel is hidden with the command kept for the user to come back to.
@@ -126,6 +128,7 @@ final class ExtensionRunner: ObservableObject {
             reloading?.session.stop()
             reloading = nil
             host.refocus()
+            host.commandEnded()
         }
     }
 

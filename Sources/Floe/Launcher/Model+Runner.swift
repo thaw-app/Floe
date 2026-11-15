@@ -16,6 +16,7 @@ extension LauncherModel {
             popToRootOnHide: { [weak self] in self?.popToRoot($0) },
             showHUD: { [weak self] in self?.panelHost.showHUD($0) },
             refocus: { [weak self] in self?.focusToken += 1 },
+            commandEnded: { [weak self] in self?.commandEnded() },
             isPanelShown: { [weak self] in self?.isPanelShown ?? false },
             isWaitingToResume: { [weak self] in self?.isWaitingToResume ?? false },
             beginSetup: { [weak self] in self?.beginSetup($0) },

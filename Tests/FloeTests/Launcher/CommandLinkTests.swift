@@ -107,6 +107,19 @@ struct CommandLinkTests {
         #expect(model.setup == nil, "the next close follows the setting again")
     }
 
+    @Test func aKeptCommandThatEndsWhileHiddenLeavesAFreshSearch() throws {
+        model.runner.startsHost = { _ in }
+        model.runner.run(Fixture.command("hello"))
+        let session = try #require(model.runner.session)
+        model.query = "pass"
+        model.panelWillShow()
+        model.popToRoot(.suspended)
+        model.panelDidHide()
+        model.runner.handle(["type": "exit"], from: session)
+        #expect(!model.isWaitingToResume)
+        #expect(model.query.isEmpty, "nothing is left to come back to")
+    }
+
     @Test func anImmediateCloseEndsTheCommandWhateverTheSetting() {
         _ = ran(opening: "raycast://extensions/someone/sample/planets")
         model.panelWillShow()

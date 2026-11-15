@@ -132,6 +132,8 @@ final class LauncherModel: ObservableObject {
     private var pendingReset: DispatchWorkItem?
     /// What the command that closed the panel asked for the open command; read by the hide that follows.
     private var closingPopToRoot = PopToRoot.default
+    /// The reset is held for a suspended command, with no timer to end it.
+    private var isHeldUntilShown = false
     private(set) var isPanelShown = false
     /// Floe's own Actions menu, when ⌘K opened it on a view's rows.
     let actionPanel = ActionPanelPresenter()
@@ -267,8 +269,9 @@ final class LauncherModel: ObservableObject {
         }
         let work = DispatchWorkItem { [weak self] in self?.reset() }
         pendingReset = work
+        isHeldUntilShown = asked == .suspended
         // Suspended waits as long as the prompt takes: the reset is held, not scheduled, until the panel shows.
-        if asked != .suspended {
+        if !isHeldUntilShown {
             DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(delay), execute: work)
         }
     }
@@ -287,8 +290,16 @@ final class LauncherModel: ObservableObject {
         case .suspended where pendingReset != nil:
             pendingReset?.cancel()
             pendingReset = DispatchWorkItem { [weak self] in self?.reset() }
+            isHeldUntilShown = true
         case .suspended:
             break
+        }
+    }
+
+    /// A held command that ends while hidden has nothing to come back to, so the held reset runs now.
+    func commandEnded() {
+        if isHeldUntilShown, !isPanelShown {
+            reset()
         }
     }
 
@@ -302,12 +313,14 @@ final class LauncherModel: ObservableObject {
         isPanelShown = true
         pendingReset?.cancel()
         pendingReset = nil
+        isHeldUntilShown = false
     }
 
     /// Back to the root search, ending any open command.
     func reset() {
         pendingReset?.cancel()
         pendingReset = nil
+        isHeldUntilShown = false
         runner.endOpenCommand()
         setup = nil
         isSearchingMenuBar = false
