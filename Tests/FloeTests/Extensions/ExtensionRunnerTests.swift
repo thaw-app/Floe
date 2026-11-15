@@ -24,6 +24,7 @@ struct ExtensionRunnerTests {
         runner.host = ExtensionRunner.Host(
             showPanel: { asked.calls.append("show") },
             hidePanel: { asked.calls.append("hide") },
+            popToRootOnHide: { asked.calls.append("pop to root \($0)") },
             showHUD: { asked.calls.append("hud \($0)") },
             refocus: { asked.calls.append("refocus") },
             isPanelShown: { panelShown },
@@ -171,6 +172,12 @@ struct ExtensionRunnerTests {
         runner.handle(["type": "open", "target": "/tmp/file.txt"], from: session)
         runner.handle(["type": "signIn"], from: session)
         #expect(asked.calls == ["hide", "hud Saved", "hide", "open /tmp/file.txt -", "preferences signIn"])
+    }
+
+    @Test func aCommandThatIsNotTheOneOnScreenHasNoSayOverItsPopToRoot() {
+        let runner = runner()
+        runner.handle(["type": "close", "popToRootType": "immediate"], from: ExtensionSession(command: command()))
+        #expect(asked.calls == ["hide"])
     }
 
     @Test func aCopyIsWrittenConcealedWhenAskedAndABackgroundCopyToo() {

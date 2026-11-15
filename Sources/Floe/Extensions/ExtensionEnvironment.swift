@@ -37,6 +37,10 @@ nonisolated enum ExtensionEnvironment {
             names: ["KUBECONFIG", "DOCKER_HOST", "AWS_PROFILE", "AWS_REGION", "AWS_DEFAULT_REGION", "CODEX_HOME", "CLAUDE_CONFIG_DIR"],
             reason: "which configuration a tool reads; they point at it and hold no secret"
         ),
+        Allowance(
+            names: ["OP_BIOMETRIC_UNLOCK_ENABLED", "OP_ACCOUNT", "OP_CONFIG_DIR", "OP_CACHE"],
+            reason: "how the 1Password CLI reaches the app and which account it uses; its session and service tokens stay out"
+        ),
         Allowance(names: ["NODE_ENV"], reason: "React picks its build from it; Floe sets production when the shell has none"),
     ]
 

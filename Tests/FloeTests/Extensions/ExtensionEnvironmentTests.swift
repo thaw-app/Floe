@@ -26,6 +26,14 @@ struct ExtensionEnvironmentTests {
         #expect(!ExtensionEnvironment.isAllowed("lc_ctype"), "a prefix matches its own case only")
     }
 
+    @Test func onePasswordsSettingsPassAndItsTokensDoNot() {
+        #expect(ExtensionEnvironment.isAllowed("OP_BIOMETRIC_UNLOCK_ENABLED"), "the CLI reaches the 1Password app only with it, for some")
+        #expect(ExtensionEnvironment.isAllowed("OP_ACCOUNT"))
+        for token in ["OP_SESSION", "OP_SESSION_my", "OP_SERVICE_ACCOUNT_TOKEN", "OP_CONNECT_TOKEN"] {
+            #expect(!ExtensionEnvironment.isAllowed(token))
+        }
+    }
+
     @Test func theSwitchHandsOnEverything() {
         #expect(ExtensionEnvironment.handedOn(shell, passesShellEnvironment: true) == shell)
     }

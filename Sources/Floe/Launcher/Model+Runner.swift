@@ -13,6 +13,7 @@ extension LauncherModel {
         runner.host = ExtensionRunner.Host(
             showPanel: { [weak self] in self?.panelHost.showPanel() },
             hidePanel: { [weak self] in self?.panelHost.hidePanel() },
+            popToRootOnHide: { [weak self] in self?.popToRoot($0) },
             showHUD: { [weak self] in self?.panelHost.showHUD($0) },
             refocus: { [weak self] in self?.focusToken += 1 },
             isPanelShown: { [weak self] in self?.isPanelShown ?? false },

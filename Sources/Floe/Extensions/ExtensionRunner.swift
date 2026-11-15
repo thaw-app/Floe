@@ -9,6 +9,11 @@ import AppKit
 import ApplicationServices
 import Combine
 
+/// Raycast's PopToRootType: default follows the setting, immediate ends the command, suspended keeps it until the launcher shows.
+enum PopToRoot: String {
+    case `default`, immediate, suspended
+}
+
 /// The extension command the panel runs: starting it, what it asks the app to do, running it again and ending it.
 /// It is handed what it needs from the panel as a Host, and knows nothing of the launcher.
 final class ExtensionRunner: ObservableObject {
@@ -16,6 +21,11 @@ final class ExtensionRunner: ObservableObject {
     struct Host {
         var showPanel: () -> Void = { /* set by the launcher's model */ }
         var hidePanel: () -> Void = { /* set by the launcher's model */ }
+        /// What the hide that follows does with the open command, as closeMainWindow asked.
+        var popToRootOnHide: (PopToRoot) -> Void = { _ in
+            // Set by the launcher's model.
+        }
+
         var showHUD: (String) -> Void = { _ in
             // Set by the launcher's model.
         }
@@ -213,7 +223,7 @@ final class ExtensionRunner: ObservableObject {
             end(session)
             host.showHUD(String(localized: "\(session.command.title) failed", bundle: .floe, comment: "The placeholder is the name of a command."))
         case "close":
-            host.hidePanel()
+            close(message, from: session)
         case "hud":
             host.showHUD(message["title"] as? String ?? "")
             host.hidePanel()
@@ -229,6 +239,14 @@ final class ExtensionRunner: ObservableObject {
         default:
             showToastWithoutFooter(message, of: session)
         }
+    }
+
+    private func close(_ message: [String: Any], from session: ExtensionSession) {
+        // A command being replaced has no say over the one taking its place.
+        if self.session === session {
+            host.popToRootOnHide(PopToRoot(rawValue: message["popToRootType"] as? String ?? "") ?? .default)
+        }
+        host.hidePanel()
     }
 
     /// Handles open, copy, paste and hud from sessions the panel doesn't own (menu-bar extras,

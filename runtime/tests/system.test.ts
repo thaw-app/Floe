@@ -104,6 +104,11 @@ describe("toasts and HUD", () => {
     expect(sent("toast")[0].title).toBe("Original");
   });
 
+  test("closeMainWindow passes on how the command should be kept", async () => {
+    await api.closeMainWindow({ popToRootType: api.PopToRootType.Suspended });
+    expect(sent()).toEqual([{ type: "close", popToRootType: "suspended" }]);
+  });
+
   test("showHUD sends the title", async () => {
     await api.showHUD("Copied", { clearRootSearch: true });
     expect(sent()).toEqual([{ type: "hud", title: "Copied" }]);

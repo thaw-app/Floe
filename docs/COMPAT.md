@@ -31,7 +31,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | `showToast`, `Toast` | Supported | |
 | `showHUD` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
 | `confirmAlert` | Supported | |
-| `closeMainWindow` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
+| `closeMainWindow` | Partial | `popToRootType` is followed: `Suspended` keeps the command until the launcher shows again, `Immediate` ends it, and `Default` follows the pop-to-root setting. `clearRootSearch` is ignored. |
 | `popToRoot` | Partial | `clearSearchBar` is ignored. |
 | `clearSearchBar` | Partial | `forceScrollToTop` is ignored. |
 
@@ -68,7 +68,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | `process.env` | Partial | An extension gets the variables your shell exports that tools need, such as `PATH`, `HOME`, the locale and proxy settings, and not the rest; `Sources/Floe/Extensions/ExtensionEnvironment.swift` lists them. An extension that reads a token from your shell finds it only after you switch on "Pass on everything your shell exports" on its page in Settings. `RAYCAST_SCHEME` is not set, so an extension builds `raycast://` links, which is what Floe runs. |
 | `launchCommand` | Supported | |
 | `updateCommandMetadata` | Supported | |
-| Deeplinks | Partial | A `raycast://extensions/…` link that an extension opens runs the command in Floe, with its `arguments`, when that command is installed and enabled (and its owner matches, when the extension names one). A menu bar command already in the menu bar is left as it is. `launchContext` and `fallbackText` in the link are ignored. Any other link, and the same link opened from a browser or another app, goes to the system. |
+| Deeplinks | Partial | A `raycast://extensions/…` link that an extension opens runs the command in Floe, with its `arguments`, when that command is installed and enabled (and its owner matches, when the extension names one). A menu bar command already in the menu bar is left as it is. `launchContext` and `fallbackText` in the link are ignored. A bare `raycast://`, which an extension opens to bring the window back after a prompt, shows the launcher with the command still open. Any other link, and the same link opened from a browser or another app, goes to the system. |
 
 ## AI, sign-in, browser and windows
 
