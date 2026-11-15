@@ -28,6 +28,9 @@ these four.
 - **Clipboard history and what extensions keep in their storage are encrypted**, with a key kept in your keychain, so another app can't read what you copied or a token an extension saved. What was there before is encrypted the next time Floe or the extension opens it.
 - **Extension passwords can't be read by other apps while a command runs.** Floe used to hand them to the extension in a way any program running as you could see.
 - **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it. ([#91](https://github.com/thaw-app/Floe/issues/91))
+- **Snippet keywords no longer expand after a click or an app switch**, so finishing a keyword in another field doesn't delete text there.
+- **Expanding a snippet leaves your clipboard as it was**, and the snippet no longer shows up in clipboard history.
+- **Backspace corrects a snippet keyword as you type it**, so a keyword fixed mid-word still expands.
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
 - **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search.
 - **Background commands keep running after they close the launcher**, as they do in Raycast.
