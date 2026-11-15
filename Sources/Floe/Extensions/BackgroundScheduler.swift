@@ -99,8 +99,9 @@ import Foundation
         let session = ExtensionSession(command: command, arguments: arguments, launchType: "background", launchContext: context)
         session.onMessage = { [weak self, weak session] message in
             guard let self, let session else { return }
+            // In the background closeMainWindow has no window to close and the run goes on, as in Raycast.
             switch message["type"] as? String {
-            case "exit", "close", "crashed":
+            case "exit", "crashed":
                 session.forceStop()
                 if runs[command.id] === session {
                     runs.removeValue(forKey: command.id)

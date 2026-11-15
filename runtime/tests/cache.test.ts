@@ -556,7 +556,7 @@ export default async function Command() { setTimeout(() => new Cache().set("k", 
         expect(saved()).toEqual([["k", "v"]]);
     });
 
-    test("closeMainWindow saves first, because a background run is killed on it", async () => {
+    test("closeMainWindow saves first, because the app may end the command on it", async () => {
         const source = `import { Cache, closeMainWindow } from "@raycast/api";
 export default async function Command() {
   new Cache().set("k", "v");

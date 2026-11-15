@@ -198,6 +198,22 @@ final class BackgroundSchedulerTests {
         #expect(scheduler.runs[once.id] === hosts.last)
     }
 
+    @Test func aBackgroundRunGoesOnAfterClosingTheWindow() throws {
+        var hosts: [ExtensionSession] = []
+        scheduler.startsHost = { hosts.append($0) }
+        let once = Self.command("once")
+        scheduler.launch(once, arguments: [:], context: nil)
+        let run = try #require(hosts.first)
+
+        run.onMessage(["type": "close"])
+        #expect(!run.isStopping)
+        #expect(scheduler.runs[once.id] === run)
+
+        run.onMessage(["type": "exit"])
+        #expect(run.isStopping)
+        #expect(scheduler.runs[once.id] == nil)
+    }
+
     @Test func aTickLeavesACommandThatNowNeedsAnArgumentAlone() throws {
         let asks = Self.command("asks", mode: "menu-bar", arguments: [Fixture.field("query", required: true)])
         menuBar.sync([asks])
