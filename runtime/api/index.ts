@@ -432,7 +432,8 @@ export async function confirmAlert(options: Props) {
   });
   const result = confirmed === true;
   if (result) {
-    if (options.rememberUserChoice) await LocalStorage.setItem(storageKey, true);
+    // Storage that can't save (locked without its key) costs only the remembering, not the action the user confirmed.
+    if (options.rememberUserChoice) await LocalStorage.setItem(storageKey, true).catch((error) => console.error(error));
     await options.primaryAction?.onAction?.();
   } else {
     await options.dismissAction?.onAction?.();
@@ -563,7 +564,11 @@ function readJSON(file: string): Record<string, any> {
   }
 }
 // The implementation lives in local-storage.ts; the file is the extension's, shared by all of its commands.
-export const LocalStorage = createLocalStorage(() => path.join(ctx.dataPath, "local-storage.sqlite"));
+export const LocalStorage = createLocalStorage(
+  () => path.join(ctx.dataPath, "local-storage.sqlite"),
+  () => ctx.storageKey,
+  () => ctx.storageLocked,
+);
 
 // The bounded implementation lives in cache.ts; this re-export keeps the API surface stable.
 export { Cache } from "../cache";

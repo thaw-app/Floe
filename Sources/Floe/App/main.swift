@@ -266,6 +266,7 @@ func runSelfTest(extensionName: String, commandName: String) -> Never {
 }
 
 Paths.prepareSupportFolders()
+StorageKey.isEnabled = true
 EarlierIdentifier.importSettings()
 AutoFillOptOut.install()
 

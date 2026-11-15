@@ -56,10 +56,10 @@ extension ClipboardHistoryStore {
 
     /// The preview of a copied image, read off the main actor: decoded no larger than `maxPixels` on its longer side.
     @concurrent
-    static nonisolated func preview(of file: URL, maxPixels: Int) async -> ClipboardImagePreview {
-        let source = CGImageSourceCreateWithURL(file as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary)
-        let bytes = (try? file.resourceValues(forKeys: [.fileSizeKey]))?.fileSize
-        return ClipboardImagePreview(image: source?.thumbnail(at: 0, maxPixelSize: maxPixels), bytes: bytes)
+    static nonisolated func preview(of file: URL, maxPixels: Int, seal: ClipboardSeal = .app) async -> ClipboardImagePreview {
+        let data = storedFile(file.lastPathComponent, in: file.deletingLastPathComponent(), seal: seal)
+        let source = data.flatMap { CGImageSourceCreateWithData($0 as CFData, [kCGImageSourceShouldCache: false] as CFDictionary) }
+        return ClipboardImagePreview(image: source?.thumbnail(at: 0, maxPixelSize: maxPixels), bytes: data?.count)
     }
 }
 

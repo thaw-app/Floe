@@ -38,15 +38,15 @@ struct ExtensionEnvironmentTests {
     }
 
     @Test func theHostIsHandedTheListAndFloesOwnVariables() {
-        let variables = ExtensionSession.hostVariables(shell, preferences: Data(#"{"unit":"metric"}"#.utf8), grants: [.ai])
+        let variables = ExtensionSession.hostVariables(shell, grants: [.ai])
         #expect(variables["GITHUB_TOKEN"] == nil)
         #expect(variables["OPENAI_API_KEY"] == nil)
         #expect(variables["PATH"] == "/opt/homebrew/bin:/usr/bin")
-        #expect(variables["FLOE_PREFERENCES"] == #"{"unit":"metric"}"#, "Floe's own variables are not limited by the list")
+        #expect(variables["FLOE_SECRETS"] == "input", "Floe's own variables are not limited by the list")
         #expect(variables["FLOE_AI"] == "1")
         #expect(variables["NODE_ENV"] == "production")
 
-        let whole = ExtensionSession.hostVariables(shell, passesShellEnvironment: true, preferences: nil, grants: [])
+        let whole = ExtensionSession.hostVariables(shell, passesShellEnvironment: true, grants: [])
         #expect(whole["GITHUB_TOKEN"] == "ghp_secret", "the switch restores what the shell exports")
         #expect(whole["FLOE_LAUNCH_TYPE"] == "userInitiated")
     }
