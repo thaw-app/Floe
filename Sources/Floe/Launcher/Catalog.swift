@@ -190,7 +190,7 @@ nonisolated extension ExtensionCommand {
     }
 
     /// A name as the disk compares it: Data/github and Data/GitHub are one folder on a Mac's usual volume.
-    private static func folderKey(_ name: String) -> String {
+    static func folderKey(_ name: String) -> String {
         name.precomposedStringWithCanonicalMapping.lowercased()
     }
 

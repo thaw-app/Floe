@@ -178,6 +178,7 @@
 		602E606A00E216F429C5548A /* AppleShortcutSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6F24BBC55159EA1F9633EAE /* AppleShortcutSearch.swift */; };
 		60E687EE61413628159E2CC4 /* AISettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 873178EA70279DFA5A5FB656 /* AISettingsSection.swift */; };
 		60FE0B79D7BF23B80E9E658F /* AskAIModel+Panel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F94F4CB7297C9286F2C8A2D /* AskAIModel+Panel.swift */; };
+		62564A97233BC364403B5AFA /* StorageMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC757AAEEA1427D0A08623C /* StorageMigration.swift */; };
 		63306AA3252F2A2A9842CF02 /* DequeModule in Frameworks */ = {isa = PBXBuildFile; productRef = 97536C0D3B3159180D4AFBA9 /* DequeModule */; };
 		634C27A628FB29D607187209 /* Session+Memory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2368E725055044F98037A035 /* Session+Memory.swift */; };
 		63A875F55A40AC8CB417058E /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 3F4985D458BAC986B45EABD6 /* Localizable.xcstrings */; };
@@ -288,6 +289,7 @@
 		9CD87CDEB12FDEF203BBB241 /* AudioDevices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69A5F7D8883EB2E6B660E084 /* AudioDevices.swift */; };
 		9D1C2DFE4C7BEEC36CAC45E6 /* OnboardingWelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 864C7BB5E54860DE8DF05C2F /* OnboardingWelcomeView.swift */; };
 		9D3A35E5B841B1F9AB9FC350 /* AppleIntelligence.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2EB088D66A4B7D987B2E29F /* AppleIntelligence.swift */; };
+		9D608DA253DA7FA7DE9E251D /* LocalStorageReseal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 286B8DC99D618D240A221B64 /* LocalStorageReseal.swift */; };
 		9D77253835F0EF76BAEC232B /* RedirectSchemeClaim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7261A057D0134CE20B9298CD /* RedirectSchemeClaim.swift */; };
 		9DC28CFF96F37DC6E837AF3E /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CEDDD34C97C26441F16E451 /* Node.swift */; };
 		9EC589D757037EEF9F8A11F5 /* OnboardingPermissionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0D9B04517C094B3D5D0788 /* OnboardingPermissionsView.swift */; };
@@ -528,6 +530,7 @@
 		2773C6E3783917FF5AFFAC4E /* AskAISearchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskAISearchProvider.swift; sourceTree = "<group>"; };
 		27BC8BADB46258DEB8AE9E40 /* SettingsSalvage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSalvage.swift; sourceTree = "<group>"; };
 		28096201E2A3829B732B6496 /* Keywords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Keywords.swift; sourceTree = "<group>"; };
+		286B8DC99D618D240A221B64 /* LocalStorageReseal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStorageReseal.swift; sourceTree = "<group>"; };
 		289DC680D352A5C0C337DAD7 /* Scrypt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scrypt.swift; sourceTree = "<group>"; };
 		295470717D29F9111384A9BB /* CloudKitSyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSyncStore.swift; sourceTree = "<group>"; };
 		29EA81798FB7E5CDC5110068 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfo.swift; sourceTree = "<group>"; };
@@ -673,6 +676,7 @@
 		7BACDBEF9B0113F5AD2F9866 /* Emoji.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Emoji.swift; sourceTree = "<group>"; };
 		7CDCE2E7FA932C7BB64EACA8 /* NoteViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteViews.swift; sourceTree = "<group>"; };
 		7DB0B59E18CDED97CC2F777E /* Shell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shell.swift; sourceTree = "<group>"; };
+		7DC757AAEEA1427D0A08623C /* StorageMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageMigration.swift; sourceTree = "<group>"; };
 		7E56A00A425C8E51794B5129 /* AppPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPermissions.swift; sourceTree = "<group>"; };
 		7F00706E74B04A7E2F37D0BE /* TerminalEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalEditor.swift; sourceTree = "<group>"; };
 		7FB4F1D4CA0EF62460C904AA /* Fallback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Fallback.swift; sourceTree = "<group>"; };
@@ -1253,6 +1257,7 @@
 				D9E988DE65E609D0E3B8F836 /* ShellCommandsSettingsSection.swift */,
 				4F0249DC6940E1049818D55E /* SnippetsSettingsPage.swift */,
 				FA230A97DF447A7869422FD0 /* StorageKey.swift */,
+				7DC757AAEEA1427D0A08623C /* StorageMigration.swift */,
 				F309AEDF8D21B519596790F8 /* SyncSettingsSection.swift */,
 				12DB115D3714A1A3D1C7C3D6 /* SyncSettingsView.swift */,
 				3C178B96CB145E8FEA3F3778 /* SystemStores.swift */,
@@ -1307,6 +1312,7 @@
 				4FA646DF9F19D7ED1E8C4DD0 /* HostRequest.swift */,
 				78E2DD9407CEA946488F4FC2 /* HotReload.swift */,
 				8EAF1A1ABE57A2E066C84365 /* LentSignIn.swift */,
+				286B8DC99D618D240A221B64 /* LocalStorageReseal.swift */,
 				5AF3BB2338E4948152EECAA1 /* Manifest.swift */,
 				080FBD40C0E194E41EB45B48 /* MenuBarCommands.swift */,
 				A545F0B8FCA3D5CE64B8F58D /* MenuBarContent.swift */,
@@ -1910,6 +1916,7 @@
 				CBBD95A624BFDE78DABFFCB8 /* LauncherWindow.swift in Sources */,
 				CE4980D0D2FB7C31D9D92402 /* LentSignIn.swift in Sources */,
 				8B15DE218C02DB616707A737 /* ListStepping.swift in Sources */,
+				9D608DA253DA7FA7DE9E251D /* LocalStorageReseal.swift in Sources */,
 				1D735243075E52327F804984 /* Localization.swift in Sources */,
 				3AD35881F6B724143FF6B7E6 /* LoginEnvironment.swift in Sources */,
 				C3A46A5027658323A674E782 /* MainMenu.swift in Sources */,
@@ -2098,6 +2105,7 @@
 				49931F177BD73946A127B1BF /* SoundRows.swift in Sources */,
 				8C6FDFF770264D326E56CF71 /* StatusMenu.swift in Sources */,
 				70E2239339F0CD7551EF27E5 /* StorageKey.swift in Sources */,
+				62564A97233BC364403B5AFA /* StorageMigration.swift in Sources */,
 				850B7B94E7F7EF68C083D50A /* SyncAvailability.swift in Sources */,
 				0A74E23C8016AE1FB4354509 /* SyncEngine.swift in Sources */,
 				99BEFA324285975C6C22D63D /* SyncRecord.swift in Sources */,

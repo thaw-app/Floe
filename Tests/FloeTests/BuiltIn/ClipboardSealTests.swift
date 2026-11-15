@@ -9,6 +9,7 @@ import AppKit
 import CryptoKit
 @testable import Floe
 import Foundation
+import Synchronization
 import Testing
 
 /// The clipboard folder sealed with the storage key: unreadable in its files, whole wherever Floe reads it.
@@ -141,6 +142,55 @@ struct ClipboardSealTests {
         #expect(copies.dropFirst().allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
         PasteboardContent.removeReadableCopies()
         #expect(!copies.contains { FileManager.default.fileExists(atPath: $0.path) })
+    }
+
+    // MARK: The move off the old storage key
+
+    private let old = SymmetricKey(data: Data(repeating: 9, count: 32))
+
+    /// What the folder told the migration, as it loaded.
+    private nonisolated final class Answers: Sendable {
+        let given = Mutex<[Bool]>([])
+        func note(_ done: Bool) {
+            given.withLock { $0.append(done) }
+        }
+    }
+
+    @Test func aFileSealedWithTheOldKeyOpensWhileTheOldKeyIsKept() throws {
+        let sealed = try ClipboardSeal(key: old).seal(Data("from before".utf8), name: "history.json")
+        let moving = ClipboardSeal(key: seal.key, legacy: old)
+        #expect(moving.open(sealed, name: "history.json") == Data("from before".utf8))
+        #expect(seal.open(sealed, name: "history.json") == nil)
+    }
+
+    @Test func filesSealedWithTheOldKeyAreSealedAgainWithTheNewOneAsTheFolderLoads() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let stranger = ClipboardSeal(key: SymmetricKey(data: Data(repeating: 4, count: 32)))
+        try ClipboardSeal(key: old).seal(Data("from before".utf8), name: "history.json").write(to: folder.appendingPathComponent("history.json"))
+        let unknown = try stranger.seal(Data("someone else's".utf8), name: "other.png")
+        try unknown.write(to: folder.appendingPathComponent("other.png"))
+        try Data("plain".utf8).write(to: folder.appendingPathComponent("plain.txt"))
+        let moving = ClipboardSeal(key: seal.key, legacy: old)
+        let answers = Answers()
+        _ = ClipboardFiles.onDisk(folder, seal: moving, settled: answers.note).sizes()
+        let current = ClipboardFiles.onDisk(folder, seal: seal, settled: { _ in /* not asked */ })
+        #expect(current.read("history.json") == Data("from before".utf8))
+        #expect(current.read("plain.txt") == Data("plain".utf8))
+        #expect(onDisk("plain.txt") != Data("plain".utf8))
+        #expect(onDisk("other.png") == unknown, "a file that opens with neither key is left as it is")
+        #expect(answers.given.withLock { $0 } == [true])
+    }
+
+    @Test func aLockedFolderMovesNothingAndSaysItIsNotDone() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let sealed = try ClipboardSeal(key: old).seal(Data("from before".utf8), name: "history.json")
+        try sealed.write(to: folder.appendingPathComponent("history.json"))
+        let answers = Answers()
+        _ = ClipboardFiles.onDisk(folder, seal: .unavailable, settled: answers.note).sizes()
+        #expect(onDisk("history.json") == sealed)
+        #expect(answers.given.withLock { $0 } == [false])
     }
 
     @Test func aReadableCopyFolderLeftWithWiderPermissionsIsMadePrivate() throws {

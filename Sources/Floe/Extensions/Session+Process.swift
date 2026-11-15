@@ -24,8 +24,7 @@ extension ExtensionSession {
         options.teardownSequence = [.gracefulShutDown(allowedDurationToNextStep: .seconds(1))]
         // Messages sent before the host is up wait here until its stdin opens.
         let (outgoing, messages) = AsyncStream<[UInt8]>.makeStream()
-        // The host reads its secrets before anything else, so they go first.
-        messages.yield(hostSecrets())
+        let secrets = secretsWhenReady()
         transport = { message in
             guard let data = try? JSONSerialization.data(withJSONObject: message) else { return }
             messages.yield(Array(data) + [0x0A])
@@ -60,7 +59,7 @@ extension ExtensionSession {
                     error: .sequence
                 ) { execution in
                     await started(execution.processIdentifier.value)
-                    try await Self.relay(execution, outgoing: outgoing, output: output, errors: errors)
+                    try await Self.relay(execution, secrets: secrets, outgoing: outgoing, output: output, errors: errors)
                     // The host closed its output, so nothing more will be read from its input.
                     messages.finish()
                 }
@@ -72,11 +71,15 @@ extension ExtensionSession {
         }
     }
 
-    private func hostSecrets() -> [UInt8] {
-        Self.secretsLine(
-            preferences: try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command)),
-            storage: StorageKey.forApp()
-        )
+    /// The host reads its secrets before anything else. Its own key is ready once its storage has moved off the old
+    /// shared key, which the host waits for while it reads.
+    private func secretsWhenReady() -> @Sendable () async -> [UInt8] {
+        let preferences = try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command))
+        let extensionName = command.extensionName
+        return {
+            await StorageMigration.shared.settled(within: .seconds(10))
+            return Self.secretsLine(preferences: preferences, storage: StorageKey.forExtension(extensionName))
+        }
     }
 
     /// Built from the login shell's environment, not the app's own: launched from Finder, the app has a PATH
@@ -106,11 +109,14 @@ extension ExtensionSession {
     @concurrent
     private static nonisolated func relay(
         _ execution: Execution<CustomWriteInput, SequenceOutput, SequenceOutput>,
+        secrets: @escaping @Sendable () async -> [UInt8],
         outgoing: AsyncStream<[UInt8]>,
         output: @escaping @Sendable (Data) async -> Void,
         errors: @escaping @Sendable (Data) async -> Void
     ) async throws {
         let writing = Task {
+            // Written before any message, so the secrets line always comes first.
+            _ = try? await execution.standardInputWriter.write(await secrets())
             for await bytes in outgoing {
                 _ = try? await execution.standardInputWriter.write(bytes)
             }

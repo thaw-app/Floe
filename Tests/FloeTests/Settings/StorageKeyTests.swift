@@ -21,6 +21,8 @@ struct StorageKeyTests {
     /// A keychain that holds the key but could not read it just now, as a locked one may.
     private final class Unreadable: KeychainAccess, @unchecked Sendable {
         var stored = "the real key"
+        /// What a listing shows: the accounts are there, their secrets cannot be read.
+        var listed: [KeychainEntry] = []
         func read(service _: String, account _: String, synchronizable _: Bool) -> String? {
             nil
         }
@@ -39,7 +41,7 @@ struct StorageKeyTests {
         }
 
         func list(service _: String, synchronizable _: Bool) -> [KeychainEntry] {
-            []
+            listed
         }
     }
 
@@ -73,5 +75,59 @@ struct StorageKeyTests {
         #expect(variables["FLOE_SECRETS"] == "input")
         #expect(variables["FLOE_PREFERENCES"] == nil)
         #expect(variables["FLOE_STORAGE_KEY"] == nil)
+    }
+
+    // MARK: Each extension's own key
+
+    private let ones = Data(repeating: 1, count: 32).base64EncodedString()
+
+    @Test func anExtensionsKeyIsTheOneTheRuntimeWouldDerive() {
+        // Made with node:crypto's hkdfSync, outside this code. Fixed forever: if this changes, every extension's
+        // storage becomes unreadable.
+        #expect(StorageKey.extensionKey(root: ones, name: "github") == "TN/bpI0dIMYpRybu2md5292MXGfh0iV5gqRpnH3oKtg=")
+        #expect(StorageKey.extensionKey(root: ones, name: "GitHub") == "TN/bpI0dIMYpRybu2md5292MXGfh0iV5gqRpnH3oKtg=", "one data folder, one key")
+        #expect(StorageKey.extensionKey(root: "not a key", name: "github") == nil)
+    }
+
+    @Test func twoExtensionsGetDifferentKeysAndNeitherIsTheRoot() {
+        let github = StorageKey.extensionKey(root: ones, name: "github")
+        let notes = StorageKey.extensionKey(root: ones, name: "notes")
+        #expect(github != notes)
+        #expect(github != ones)
+        #expect(notes != ones)
+    }
+
+    @Test func theNewKeyIsMadeBesideTheOldOneAndLeavesItAlone() throws {
+        let keychain = MemoryKeychain()
+        keychain.write(ones, service: StorageKey.service, account: StorageKey.legacyAccount, synchronizable: false)
+        let made = try #require(StorageKey.current(in: keychain))
+        #expect(made != ones)
+        #expect(keychain.read(service: StorageKey.service, account: StorageKey.account, synchronizable: false) == made)
+        #expect(keychain.read(service: StorageKey.service, account: StorageKey.legacyAccount, synchronizable: false) == ones)
+    }
+
+    @Test func theOldKeyIsFoundOnlyWhenItIsThereAndIsAKey() {
+        let keychain = MemoryKeychain()
+        #expect(StorageKey.legacy(in: keychain) == .none)
+        keychain.write(ones, service: StorageKey.service, account: StorageKey.legacyAccount, synchronizable: false)
+        #expect(StorageKey.legacy(in: keychain) == .key(ones))
+        keychain.write("not a key", service: StorageKey.service, account: StorageKey.legacyAccount, synchronizable: false)
+        #expect(StorageKey.legacy(in: keychain) == .none, "nothing was ever sealed with it")
+        StorageKey.retireLegacy(in: keychain)
+        #expect(keychain.list(service: StorageKey.service, synchronizable: false).isEmpty)
+
+        let unreadable = Unreadable()
+        #expect(StorageKey.legacy(in: unreadable) == .none)
+        unreadable.listed = [KeychainEntry(account: StorageKey.legacyAccount, modified: nil)]
+        #expect(StorageKey.legacy(in: unreadable) == .unreadable)
+    }
+
+    @Test func aHostIsGivenItsOwnKeyOnlyWhenAllowedAndNeverTheRoot() {
+        #expect(StorageKey.access(forExtension: "github", root: .off, allowed: true) == .off)
+        #expect(StorageKey.access(forExtension: "github", root: .unavailable, allowed: true) == .unavailable)
+        #expect(StorageKey.access(forExtension: "github", root: .key(ones), allowed: false) == .unavailable)
+        let own = StorageKey.access(forExtension: "github", root: .key(ones), allowed: true)
+        #expect(own == StorageKey.extensionKey(root: ones, name: "github").map(StorageKey.Access.key))
+        #expect(own != .key(ones))
     }
 }

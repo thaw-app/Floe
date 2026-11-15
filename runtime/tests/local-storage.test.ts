@@ -319,6 +319,20 @@ describe("LocalStorage sealed with the storage key", () => {
         await storage.setItem("token", "new");
         expect(await storage.getItem("token")).toBe("new");
     });
+
+    test("a value the app sealed in the runtime's layout reads back", async () => {
+        // Made with node:crypto under 32 bytes of 0x01 and an IV of 12 bytes of 0x02. The app's tests pin the same
+        // value, so the two sides keep writing and reading one layout.
+        const appKey = Buffer.alloc(32, 1);
+        await createLocalStorage(() => file, () => appKey).setItem("other", 1);
+        const database = new Database(file);
+        try {
+            database.run("INSERT OR REPLACE INTO items (key, value) VALUES (?, ?)", ["token", "sealed1:AgICAgICAgICAgICvVzZaAPRw6HYcFytWCZRPiW3qypo"]);
+        } finally {
+            database.close();
+        }
+        expect(await createLocalStorage(() => file, () => appKey).getItem("token")).toBe("abc");
+    });
 });
 
 describe("LocalStorage when Floe could not read its key", () => {

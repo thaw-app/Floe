@@ -1,5 +1,5 @@
 // An extension's LocalStorage: one SQLite database in its support folder, shared by every process of the extension.
-// With the storage key from the app each value is sealed, as Raycast keeps its LocalStorage encrypted.
+// With the extension's own key from the app each value is sealed, as Raycast keeps its LocalStorage encrypted.
 import { Database } from "bun:sqlite";
 import { createCipheriv, createDecipheriv, randomBytes, randomInt } from "node:crypto";
 import fs from "node:fs";

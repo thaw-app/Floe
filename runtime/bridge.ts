@@ -31,7 +31,8 @@ export const ctx = {
   manifest: { name: "" } as Manifest,
   // The command's preferences as the app resolved them, as JSON, or nothing when the host runs without the app.
   preferences: undefined as string | undefined,
-  // The key LocalStorage seals its values with, from the app's Keychain, or nothing when the host runs without the app.
+  // The extension's own key, which LocalStorage seals its values with: the app derives it from its storage key, which
+  // never leaves the app. Nothing when the host runs without the app.
   storageKey: undefined as Buffer | undefined,
   // True when the app could not read that key: LocalStorage then saves nothing.
   storageLocked: false,
@@ -39,7 +40,7 @@ export const ctx = {
   signInFailure: undefined as { error: Error; at: number } | undefined,
 };
 
-// The command's Keychain values and the storage key come as the first line of the host's input, never in the
+// The command's Keychain values and the extension's storage key come as the first line of the host's input, never in the
 // environment: another program running as the same user can read a process's starting environment with ps.
 // FLOE_SECRETS=input says the line is there; without it, as when the host runs without the app, there is none.
 export function takeSecrets(readLine: () => string = () => firstLine(0)): void {

@@ -30,6 +30,11 @@ these four.
 - **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it. ([#91](https://github.com/thaw-app/Floe/issues/91))
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
 
+#### Security
+These come from a code review of Floe on 2026-11-15.
+- **Each extension's saved data is encrypted with a key of its own**, so one extension can't read what another saved or your clipboard history.
+- **Clipboard images an extension read are deleted when Floe quits.**
+
 ## [0.4.0-rc.3] - 2026-11-13
 
 **macOS 26 and later · Build 11**

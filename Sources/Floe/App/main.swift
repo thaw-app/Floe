@@ -61,6 +61,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Starts the services, the launcher's window and the routes into it. The window itself is made on its first show.
     func applicationDidFinishLaunching(_: Notification) {
+        // Only this process moves the storage off the old key; Settings and the self-test never do.
+        StorageMigration.shared.begin()
         Log.follow(settings).store(in: &cancellables)
         settings.$fetchesExchangeRates.removeDuplicates()
             .filter { !$0 }
