@@ -180,6 +180,14 @@ struct ExtensionRunnerTests {
         #expect(asked.calls == ["hide"])
     }
 
+    @Test func theCommandOnScreenSaysHowItIsKeptBeforeThePanelHides() throws {
+        let (runner, _) = reloadingRunner()
+        let session = try #require(runner.session)
+        asked.calls = []
+        runner.handle(["type": "close", "popToRootType": "suspended"], from: session)
+        #expect(asked.calls == ["pop to root suspended", "hide"])
+    }
+
     @Test func aCopyIsWrittenConcealedWhenAskedAndABackgroundCopyToo() {
         withPasteboard { pasteboard in
             let runner = runner()
