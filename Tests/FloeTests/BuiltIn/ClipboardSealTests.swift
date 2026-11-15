@@ -143,6 +143,18 @@ struct ClipboardSealTests {
         #expect(!copies.contains { FileManager.default.fileExists(atPath: $0.path) })
     }
 
+    @Test func aReadableCopyFolderLeftWithWiderPermissionsIsMadePrivate() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        PasteboardContent.removeReadableCopies()
+        defer { PasteboardContent.removeReadableCopies() }
+        let readable = FileManager.default.temporaryDirectory.appendingPathComponent("Floe Clipboard")
+        try FileManager.default.createDirectory(at: readable, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o755])
+        try ClipboardFiles.onDisk(folder, seal: seal).write(try png(), "picture.png", false)
+        _ = try #require(PasteboardContent.readableCopy(of: "picture.png", in: folder, seal: seal))
+        let permissions = try FileManager.default.attributesOfItem(atPath: readable.path)[.posixPermissions] as? Int
+        #expect(permissions == 0o700)
+    }
+
     @Test func anImageLeavingTheHistoryTakesItsReadableCopyWithIt() throws {
         defer { try? FileManager.default.removeItem(at: folder) }
         PasteboardContent.removeReadableCopies()

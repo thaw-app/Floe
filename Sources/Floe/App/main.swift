@@ -67,6 +67,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { _ in ExchangeRateStore.remove() }
             .store(in: &cancellables)
         NSApp.setActivationPolicy(settings.showInDock ? .regular : .accessory)
+        // Copies left by a launch that crashed are plain images, and no extension of this launch has asked for them.
+        PasteboardContent.removeReadableCopies()
 
         launcher.start()
         // Settings' changes reach the search at once: they are this process's own settings, read again.
@@ -193,6 +195,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarCommands?.stopAll()
         backgroundScheduler?.stopAll()
         settingsLink.terminate()
+        // The extensions that read the plain copies of clipboard images have stopped.
+        PasteboardContent.removeReadableCopies()
         clipboard.flush()
         UsageStore.shared.flush()
         FileIndexService.shared.flush()
