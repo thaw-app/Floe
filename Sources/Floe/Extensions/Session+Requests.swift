@@ -13,14 +13,8 @@ extension ExtensionSession {
     func handleRequest(_ fields: [String: Any]) -> Bool {
         switch fields["type"] as? String {
         case "request":
-            let params = fields["params"] as? [String: Any] ?? [:]
-            let method = fields["method"] as? String ?? ""
-            guard let id = fields["id"] as? Int else { break }
-            switch method {
-            case "alert.confirm": showAlert(id: id, params: params)
-            case "command.launch": reply(to: id) { try launch(params) }
-            case "snippet.create", "quicklink.create": reply(to: id) { try ExtensionCreations.create(method, params) }
-            default: answerRequest(fields)
+            if let id = fields["id"] as? Int {
+                take(fields, id: id)
             }
         case "cancelRequest":
             if let id = fields["id"] as? Int {
@@ -33,6 +27,24 @@ extension ExtensionSession {
             return false
         }
         return true
+    }
+
+    /// Starts on one request, or refuses it once the session is stopping.
+    private func take(_ fields: [String: Any], id: Int) {
+        // The host may still ask in the moment before it stops; a dialog, a launch or a sign-in would act for
+        // a command that is gone.
+        guard !isStopping else {
+            send(["type": "reply", "id": id, "error": "The command is ending."])
+            return
+        }
+        let params = fields["params"] as? [String: Any] ?? [:]
+        let method = fields["method"] as? String ?? ""
+        switch method {
+        case "alert.confirm": showAlert(id: id, params: params)
+        case "command.launch": reply(to: id) { try launch(params) }
+        case "snippet.create", "quicklink.create": reply(to: id) { try ExtensionCreations.create(method, params) }
+        default: answerRequest(fields)
+        }
     }
 
     /// Answers a request the app settles at once: null when `body` returns, its error when it throws.
