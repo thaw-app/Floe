@@ -42,6 +42,11 @@ these four.
 - **Changing an extension's settings no longer erases the rest** when Floe can't read the settings file or a save is cut short.
 - **Clearing an extension's setting on one Mac clears it on your other Macs**, instead of the old value staying there.
 - **iCloud sync stops resending a change that keeps conflicting** and reads iCloud's copy instead.
+- **Toggle Bluetooth says when macOS didn't let it change** instead of claiming it is on or off.
+- **Restart, Shut Down, Log Out, Empty Trash and Toggle Appearance show a message when they fail** instead of doing nothing.
+- **Reading text or a QR code from the screen no longer stops after two minutes**, and a shell command or script that runs past its time limit says it took too long.
+- **Floe no longer quits when the disk is full while diagnostic logging is on**; logging stops instead.
+- **Reminders finds your lists after you allow Floe in System Settings**, without restarting Floe.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.
