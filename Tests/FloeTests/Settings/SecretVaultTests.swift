@@ -38,6 +38,34 @@ struct SecretVaultTests {
         #expect(keychain.read(service: earlier, account: "github/token", synchronizable: false) == nil)
     }
 
+    @Test func anEarlierSecretStaysWhenItsNewCopyCannotBeSaved() {
+        let earlier = EarlierIdentifier.secretService
+        keychain.write("old", service: earlier, account: "github/token", synchronizable: false)
+        keychain.localFailure = errSecInteractionNotAllowed
+
+        #expect(vault.read(account: "github/token") == "old")
+        #expect(keychain.read(service: earlier, account: "github/token", synchronizable: false) == "old")
+
+        keychain.localFailure = nil
+        #expect(vault.read(account: "github/token") == "old")
+        #expect(local("github/token") == "old")
+        #expect(keychain.read(service: earlier, account: "github/token", synchronizable: false) == nil)
+    }
+
+    @Test func aWriteSaysWhetherItStored() {
+        #expect(vault.write("v", account: "a/b"))
+        keychain.localFailure = errSecInteractionNotAllowed
+        #expect(!vault.write("v", account: "a/b"))
+
+        keychain.localFailure = nil
+        #expect(vault.turnOn())
+        keychain.synchronizableFailure = errSecMissingEntitlement
+        keychain.localFailure = errSecInteractionNotAllowed
+        #expect(!vault.write("v", account: "a/b"))
+        keychain.localFailure = nil
+        #expect(vault.write("v", account: "a/b"), "the local item holds it when the synced one is refused")
+    }
+
     @Test func aSecretSavedSinceTheRenameWinsOverAnEarlierOne() {
         let earlier = EarlierIdentifier.secretService
         keychain.write("old", service: earlier, account: "github/token", synchronizable: false)
