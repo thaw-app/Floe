@@ -322,6 +322,38 @@ struct ExtensionSessionTests {
         #expect(recorder.forwarded.compactMap { $0["type"] as? String } == ["crashed"])
     }
 
+    @Test func aHostThatEndsHasEnded() {
+        #expect(!session.hasEnded, "a host still starting counts as running")
+        session.processEnded(status: 0, wasSignalled: false)
+        #expect(session.hasEnded)
+    }
+
+    @Test func forceStopCancelsTheHostTaskBeforeTheProcessIsKnown() {
+        session.hostTask = Task { try? await Task.sleep(for: .seconds(30)) }
+        session.forceStop()
+        #expect(session.hostTask?.isCancelled == true)
+    }
+
+    @Test func aHostThatFinishesStartingAfterAStopIsKilled() async throws {
+        let sleeper = Process()
+        sleeper.executableURL = URL(fileURLWithPath: "/bin/sleep")
+        sleeper.arguments = ["30"]
+        try sleeper.run()
+        defer {
+            if sleeper.isRunning {
+                sleeper.terminate()
+            }
+        }
+        session.forceStop()
+        session.hostStarted(sleeper.processIdentifier)
+        for _ in 0 ..< 40 where sleeper.isRunning {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        #expect(!sleeper.isRunning)
+        #expect(session.processID == nil)
+        #expect(session.watchdog == nil)
+    }
+
     @Test func aProcessWeStoppedIsNotACrash() {
         session.isStopping = true
         session.processEnded(status: 15, wasSignalled: true)

@@ -130,6 +130,9 @@ final class ExtensionSession: ObservableObject {
     /// The tail of the host's stderr, shown on the error screen.
     private(set) var log = ""
     var isStopping = false
+    /// Set once the host has exited or could not start. A host still starting has no process id yet and
+    /// still counts as running.
+    var hasEnded = false
     var watchdog: Timer?
     /// Answers what the extension asks the app for; tests replace it.
     var answer: @concurrent @Sendable (HostRequest, @Sendable (String) async -> Void) async throws -> Any = HostRequest.answer
@@ -144,11 +147,6 @@ final class ExtensionSession: ObservableObject {
         self.launchType = launchType
         self.launchContext = launchContext
         self.fallbackText = fallbackText
-    }
-
-    /// Set while the host is running.
-    var isRunning: Bool {
-        processID != nil
     }
 
     func send(_ message: [String: Any]) {
@@ -262,6 +260,7 @@ final class ExtensionSession: ObservableObject {
 
     /// Exit status 0 is a normal finish; anything else, or a signal, is a crash unless we asked it to stop.
     func processEnded(status: Int32, wasSignalled: Bool) {
+        hasEnded = true
         watchdog?.invalidate()
         cancelRequests()
         guard !isStopping else { return }

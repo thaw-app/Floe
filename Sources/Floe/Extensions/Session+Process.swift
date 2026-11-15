@@ -138,7 +138,12 @@ extension ExtensionSession {
     }
 
     /// Every three seconds from here on, the host's memory is checked against its ceiling and the host is pinged.
-    private func hostStarted(_ identifier: pid_t) {
+    func hostStarted(_ identifier: pid_t) {
+        // A stop asked for while the host was starting had no process to signal.
+        guard !isStopping else {
+            kill(identifier, SIGKILL)
+            return
+        }
         processID = identifier
         watchdog = Timer.scheduledOnMain(withTimeInterval: 3, repeats: true) { [weak self] in
             guard let self, let processID, !stopsOverCeiling(holding: Processes.memory(of: processID)) else { return }
@@ -158,6 +163,7 @@ extension ExtensionSession {
 
     /// The host couldn't be launched, or reading from it broke off; stopping it on purpose also ends up here.
     private func hostFailed(_ error: Error) {
+        hasEnded = true
         let hadStarted = processID != nil
         processID = nil
         watchdog?.invalidate()
@@ -184,6 +190,8 @@ extension ExtensionSession {
         resolveAlert(false)
         watchdog?.invalidate()
         cancelRequests()
+        // Cancelling the task also ends a host whose process id has not reached the main actor yet.
+        hostTask?.cancel()
         if let processID {
             kill(processID, SIGKILL)
         }

@@ -182,6 +182,22 @@ final class BackgroundSchedulerTests {
         #expect(menuBar.presenter(for: status.id)?.commandTitle == "Current")
     }
 
+    @Test func aSecondTickWhileTheRunStartsStartsNothing() throws {
+        var hosts: [ExtensionSession] = []
+        scheduler.startsHost = { hosts.append($0) }
+        let once = Self.command("once")
+        scheduler.launch(once, arguments: [:], context: nil)
+        scheduler.launch(once, arguments: [:], context: nil)
+        #expect(hosts.count == 1)
+        let first = try #require(hosts.first)
+        #expect(scheduler.runs[once.id] === first)
+
+        first.processEnded(status: 1, wasSignalled: false)
+        scheduler.launch(once, arguments: [:], context: nil)
+        #expect(hosts.count == 2)
+        #expect(scheduler.runs[once.id] === hosts.last)
+    }
+
     @Test func aTickLeavesACommandThatNowNeedsAnArgumentAlone() throws {
         let asks = Self.command("asks", mode: "menu-bar", arguments: [Fixture.field("query", required: true)])
         menuBar.sync([asks])
