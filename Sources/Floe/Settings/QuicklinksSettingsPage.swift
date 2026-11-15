@@ -54,7 +54,10 @@ struct QuicklinksSettingsPage: View {
         .task(id: importsFromRaycast) {
             guard importsFromRaycast else { return }
             await RaycastImportFlow.run(into: store, environment: .live)
-            importsFromRaycast = false
+            // A run cancelled because its page went away leaves the request: a page made since may be running it.
+            if !Task.isCancelled {
+                importsFromRaycast = false
+            }
         }
         .sheet(isPresented: $showingEditor) {
             editor
