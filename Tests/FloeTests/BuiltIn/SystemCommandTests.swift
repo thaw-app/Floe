@@ -70,6 +70,14 @@ struct SystemCommandTests {
         #expect(!SystemToggle.isKeepingAwake)
     }
 
+    @Test(arguments: [
+        (true, true, "Bluetooth On"), (false, false, "Bluetooth Off"),
+        (true, false, "Couldn't turn Bluetooth on"), (false, true, "Couldn't turn Bluetooth off"),
+    ])
+    func bluetoothSaysWhatItIsAfterTheFlip(turningOn: Bool, isOn: Bool, line: String) {
+        #expect(SystemToggle.bluetoothLine(turningOn: turningOn, isOn: isOn) == line)
+    }
+
     @Test func aKeywordFindsItsCommand() {
         let results = Ranking.search(
             SystemCommand.allCases.map(RootItem.system), query: "reboot", favorites: [], alias: { _ in nil }, frecency: { _ in 0 }

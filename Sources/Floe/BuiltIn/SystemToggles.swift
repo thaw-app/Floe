@@ -94,7 +94,23 @@ enum SystemToggle {
         guard let power = bluetoothPower else { return String(localized: "Couldn't change Bluetooth", bundle: .floe) }
         let turnOn = power.get() == 0
         _ = power.set(turnOn ? 1 : 0)
-        return turnOn ? String(localized: "Bluetooth On", bundle: .floe) : String(localized: "Bluetooth Off", bundle: .floe)
+        // The controller can take a moment to report the new state. The panel is already gone, so a short wait is unseen.
+        var isOn = power.get() != 0
+        for _ in 0 ..< 10 where isOn != turnOn {
+            usleep(50000)
+            isOn = power.get() != 0
+        }
+        return bluetoothLine(turningOn: turnOn, isOn: isOn)
+    }
+
+    /// The HUD line, from the state Bluetooth is in afterwards: the private setter's return value is undocumented.
+    static func bluetoothLine(turningOn: Bool, isOn: Bool) -> String {
+        guard turningOn == isOn else {
+            return turningOn
+                ? String(localized: "Couldn't turn Bluetooth on", bundle: .floe)
+                : String(localized: "Couldn't turn Bluetooth off", bundle: .floe)
+        }
+        return turningOn ? String(localized: "Bluetooth On", bundle: .floe) : String(localized: "Bluetooth Off", bundle: .floe)
     }
 
     // MARK: Disks

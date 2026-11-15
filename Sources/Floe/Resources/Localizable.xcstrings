@@ -1549,6 +1549,12 @@
     "Couldn't transfer settings" : {
 
     },
+    "Couldn't turn Bluetooth off" : {
+
+    },
+    "Couldn't turn Bluetooth on" : {
+
+    },
     "Couldn't turn Wi-Fi off" : {
 
     },
