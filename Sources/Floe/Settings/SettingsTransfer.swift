@@ -67,23 +67,27 @@ enum SettingsTransfer {
         )
     }
 
-    /// Imported settings with this Mac's consent in place of the file's. A file can come from anyone, so it never
-    /// lends a sign-in, hands an extension the shell environment, switches on a search source, the file index, iCloud
-    /// sync or running shell commands, allows a download, or loosens the promise to keep AI on this Mac, which it may
-    /// only tighten. A file that is not settings is handed on as it is, to be refused.
+    /// Imported settings with this Mac's consent in place of the file's, as SettingsSync.thisMacOnly says for each
+    /// setting. A file can come from anyone. A file that is not settings is handed on as it is, to be refused.
     static func keepingConsent(_ file: Data, of here: AppSettings) -> Data {
         guard var theirs = (try? JSONSerialization.jsonObject(with: file)) as? [String: Any] else { return file }
-        theirs["lentSignIns"] = here.lentSignIns.sorted()
-        theirs["shellEnvironmentExtensions"] = here.shellEnvironmentExtensions.sorted()
-        theirs["searchSources"] = here.searchSources.sorted()
-        theirs["indexesFileNames"] = here.indexesFileNames
-        theirs["fetchesExchangeRates"] = here.fetchesExchangeRates
-        theirs["syncsWithICloud"] = here.syncsWithICloud
-        // A file without shell settings would get the defaults, which run commands.
+        // Exporting saves first. With no edit waiting that save changes nothing, so it stays quiet: the other process
+        // hears of the import once, from its own save.
+        let notify = here.onSaved
+        if !here.hasUnsavedChanges {
+            here.onSaved = nil
+        }
+        let exported = try? here.exportedJSON()
+        here.onSaved = notify
+        guard let mine = exported.flatMap({ try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }) else { return file }
+        for (key, local) in SettingsSync.thisMacOnly {
+            theirs[key] = local.onImport.value(mine: mine[key], theirs: theirs[key])
+        }
+        // Shell settings sync except whether commands run, so they are not in that list. A file without them would
+        // get the defaults, which run commands.
         var shell = theirs["shell"] as? [String: Any] ?? [:]
         shell["runs"] = here.shell.runs
         theirs["shell"] = shell
-        theirs["aiOnThisMacOnly"] = here.aiOnThisMacOnly || theirs["aiOnThisMacOnly"] as? Bool == true
         return (try? JSONSerialization.data(withJSONObject: theirs)) ?? file
     }
 

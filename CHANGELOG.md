@@ -41,6 +41,7 @@ these four.
 These come from a code review of Floe on 2026-11-15.
 - **Each extension's saved data is encrypted with a key of its own**, so one extension can't read what another saved or your clipboard history.
 - **Clipboard images an extension read are deleted when Floe quits.**
+- **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log or extension settings sync.**
 
 ## [0.4.0-rc.3] - 2026-11-13
 
