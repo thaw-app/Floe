@@ -164,7 +164,7 @@ enum SystemCommand: String, CaseIterable, Identifiable {
     }
 
     /// What a command that flips a setting does, which answers with the line for the HUD.
-    var flip: (() -> String)? {
+    var flip: (() async -> String)? {
         switch self {
         case .toggleWiFi: SystemToggle.flipWiFi
         case .toggleMute: SystemToggle.flipMute
@@ -221,7 +221,9 @@ enum SystemCommand: String, CaseIterable, Identifiable {
         case .copyScreenText:
             ScreenTools.run(.copyText, say: say)
         default:
-            _ = flip?()
+            if let flip {
+                Task { _ = await flip() }
+            }
         }
     }
 }
