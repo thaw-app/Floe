@@ -33,6 +33,7 @@ these four.
 - **Background commands keep running after they close the launcher**, as they do in Raycast.
 - **Commands that run without opening anything now say when they fail** instead of failing silently.
 - **Signing in to an extension in the browser no longer fails when another of its commands refreshes or ends.**
+- **A command opened by its hotkey or a link while clipboard history or another search is open now gets your typing**, so Return runs the command's action instead of pasting the clipboard item behind it.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.

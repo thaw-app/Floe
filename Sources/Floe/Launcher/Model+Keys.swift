@@ -21,44 +21,54 @@ extension LauncherModel {
         }
     }
 
-    /// Returns true when the key was consumed. Each mode's own keys are its model's.
+    /// Returns true when the key was consumed. The view on screen gets the key, and each mode's own keys are its model's.
     func handleKey(_ event: NSEvent) -> Bool {
         let flags = event.modifierFlags.intersection([.command, .shift, .option, .control])
         settleTyping(before: event.keyCode, flags: flags)
         pointerRest.rest()
-        if setup != nil {
-            return handleSetupKey(event)
-        }
-        if event.keyCode == 43, flags == .command {
-            panelHost.hidePanel()
-            panelHost.openSettings(nil)
+        let screen = onScreen
+        if openSettings(event, flags, over: screen) {
             return true
         }
-        if isSearchingMenuBar {
+        switch screen {
+        case .setup:
+            return handleSetupKey(event)
+        case let .command(session):
+            return handleCommandKey(event, flags, session)
+        case .menuBarSearch:
             return menuBarSearch.handleKey(event, flags)
+        case let .menuItemSearch(search):
+            return search.handleKey(event, flags)
+        case .clipboardHistory:
+            return clipboardHistory.handleKey(event)
+        case .fileSearch:
+            return fileSearch.handleKey(event, flags)
+        case let .noteDesk(desk):
+            return desk.handleKey(event, flags)
+        case let .askAI(asking):
+            return asking.handleKey(event, flags)
+        case .rootSearch:
+            return handleRootKey(event, flags)
         }
-        if let menuItemSearch {
-            return menuItemSearch.handleKey(event, flags)
+    }
+
+    /// Command-Comma opens Settings from any view but a setup form, which keeps every key while it is on screen.
+    private func openSettings(_ event: NSEvent, _ flags: NSEvent.ModifierFlags, over screen: OnScreen) -> Bool {
+        if case .setup = screen {
+            return false
         }
-        if let session = runner.session, session.command.mode == "view", session.alert != nil {
+        guard event.keyCode == 43, flags == .command else { return false }
+        panelHost.hidePanel()
+        panelHost.openSettings(nil)
+        return true
+    }
+
+    /// An extension's view: its alert first, then its error screen or the view itself.
+    private func handleCommandKey(_ event: NSEvent, _ flags: NSEvent.ModifierFlags, _ session: ExtensionSession) -> Bool {
+        if session.alert != nil {
             return handleAlertKey(event, session)
         }
-        if isShowingClipboardHistory {
-            return clipboardHistory.handleKey(event)
-        }
-        if isSearchingFiles {
-            return fileSearch.handleKey(event, flags)
-        }
-        if let noteDesk {
-            return noteDesk.handleKey(event, flags)
-        }
-        if let session = runner.session, session.command.mode == "view" {
-            return session.failure == nil ? handleSessionKey(event, flags, session) : handleFailureKey(event, flags, session)
-        }
-        if let askAI {
-            return askAI.handleKey(event, flags)
-        }
-        return handleRootKey(event, flags)
+        return session.failure == nil ? handleSessionKey(event, flags, session) : handleFailureKey(event, flags, session)
     }
 
     /// A setup form: Return submits it and Escape cancels; every other key is a field's.
