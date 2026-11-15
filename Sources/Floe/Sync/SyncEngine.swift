@@ -194,6 +194,7 @@ final class SyncEngine {
         var (remote, skipped) = SyncWire.decode(contents.filter { $0.key != Self.clearedKey }, in: store.limits)
         var outcome = SyncMerge.merge(local: journal.records, remote: remote)
         skipped += take(&outcome, from: remote)
+        clean(&outcome)
         send(outcome.push, to: store, holding: &remote)
         forgetOldRemovals(in: store, holding: remote)
         if journal != before {
@@ -315,16 +316,21 @@ final class SyncEngine {
         let snapshot = client.snapshot()
         // A refused record is not noted, so it is tried and counted again until the other Mac repairs it.
         for key in outcome.apply.subtracting(refused) {
-            if let record = remote[key], let value = record.value, let cleaned = client.cleaned(key, value) {
-                journal.records[key] = SyncRecord(value: cleaned, time: stamp(after: record.time), device: journal.device)
-                outcome.push.insert(key)
-            } else {
-                journal.records[key] = remote[key]
-            }
+            journal.records[key] = remote[key]
             // What the app holds now, which is the same value unless it could keep only part of it.
             journal.seen[key] = snapshot[key].map(SyncWire.digest)
         }
         return refused.count
+    }
+
+    /// Sends back without it any record that holds what must not stay in the store: one just taken in, and one this
+    /// Mac took in before it knew to clean it.
+    private func clean(_ outcome: inout SyncMerge.Outcome) {
+        for (key, record) in journal.records {
+            guard let value = record.value, let cleaned = client.cleaned(key, value) else { continue }
+            journal.records[key] = SyncRecord(value: cleaned, time: stamp(after: record.time), device: journal.device)
+            outcome.push.insert(key)
+        }
     }
 
     private func send(_ keys: Set<String>, to store: any SyncStore, holding remote: inout [String: SyncRecord]) {
