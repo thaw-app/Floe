@@ -20,13 +20,14 @@ nonisolated struct ClipboardFiles: Sendable {
     var write: @Sendable (_ data: Data, _ name: String, _ atomically: Bool) throws -> Void
     var remove: @Sendable (_ name: String) -> Void
 
-    /// The real folder: private to the user, 0700 with 0600 files.
+    /// The real folder: private to the user, 0700 with 0600 files, and left out of Time Machine.
     static func onDisk(_ directory: URL) -> ClipboardFiles {
         @Sendable func ensureDirectory() {
             try? FileManager.default.createDirectory(
                 at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700]
             )
-            try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+            PrivateStorage.restrict(directory, to: 0o700)
+            PrivateStorage.excludeFromBackups(directory)
         }
         return ClipboardFiles(
             directory: directory,
