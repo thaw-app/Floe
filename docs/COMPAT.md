@@ -31,7 +31,7 @@ Supported works as in Raycast. Partial works, with the difference in Notes. Not 
 | `showToast`, `Toast` | Supported | |
 | `showHUD` | Partial | `clearRootSearch` and `popToRootType` are ignored. |
 | `confirmAlert` | Supported | |
-| `closeMainWindow` | Partial | `popToRootType` is followed: `Suspended` keeps the command until the launcher shows again, `Immediate` ends it, and `Default` follows the pop-to-root setting. `clearRootSearch` is ignored. |
+| `closeMainWindow` | Partial | `popToRootType` is followed: `Suspended` keeps the command until the launcher shows again, `Immediate` ends a command with a view, and `Default` follows the pop-to-root setting. `clearRootSearch` is ignored. In a background run it does nothing, and the run goes on. |
 | `popToRoot` | Partial | `clearSearchBar` is ignored. |
 | `clearSearchBar` | Partial | `forceScrollToTop` is ignored. |
 
@@ -109,7 +109,7 @@ Floe runs the copy the extension installed, against the API above. A helper work
 | API | Status | Notes |
 | --- | --- | --- |
 | `view` | Supported | |
-| `no-view` | Supported | |
+| `no-view` | Supported | Runs until it finishes. After the launcher goes back to the root search, it gets up to a minute more. |
 | `menu-bar` | Partial | You add each one by hand. None starts at launch. |
 | `interval` | Supported | |
 
