@@ -275,7 +275,9 @@ nonisolated struct CloudSyncCore {
             mirror.server[name] = entry
             mirror.pending[name] = nil
             effects.note(.values)
-        case .conflict(nil), .unknownItem:
+        case .conflict(nil):
+            return conflictedWithoutRecord(name, &effects)
+        case .unknownItem:
             mirror.server[name] = nil
             return true
         case .zoneMissing:
@@ -294,6 +296,18 @@ nonisolated struct CloudSyncCore {
             mirror.refused.insert(name)
         }
         return false
+    }
+
+    /// Answers whether the save is to be sent afresh, without the server's fields.
+    private mutating func conflictedWithoutRecord(_ name: String, _ effects: inout CloudSyncEffects) -> Bool {
+        // A save that carried no server fields and still conflicts: the server holds a record this Mac never
+        // read, and sending afresh again would conflict again. Read it; the engine then decides by age.
+        guard mirror.server[name] != nil else {
+            effects.commands.append(.fetch)
+            return false
+        }
+        mirror.server[name] = nil
+        return true
     }
 
     private mutating func zoneLost(_ loss: CloudSyncZoneLoss, _ effects: inout CloudSyncEffects) {

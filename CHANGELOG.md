@@ -38,6 +38,7 @@ these four.
 - **Apps in a folder you deleted and recreated show up** without restarting Floe.
 - **Changing an extension's settings no longer erases the rest** when Floe can't read the settings file or a save is cut short.
 - **Clearing an extension's setting on one Mac clears it on your other Macs**, instead of the old value staying there.
+- **iCloud sync stops resending a change that keeps conflicting** and reads iCloud's copy instead.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.
