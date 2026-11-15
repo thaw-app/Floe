@@ -349,5 +349,6 @@ final class ClipboardHistoryStore: ObservableObject {
         guard !name.isEmpty else { return }
         ledger.remove(name)
         unusedFiles.append(name)
+        PasteboardContent.removeReadableCopy(of: name)
     }
 }

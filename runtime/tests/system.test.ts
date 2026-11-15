@@ -211,6 +211,21 @@ describe("confirmAlert", () => {
     expect(await third).toBe(false);
     expect(other).toEqual(["dismissed"]);
   });
+
+  test("a confirmed action still runs when the remembered choice can't be saved", async () => {
+    await api.LocalStorage.clear();
+    ctx.storageLocked = true;
+    try {
+      const calls: string[] = [];
+      const asked = api.confirmAlert({ ...options(calls), rememberUserChoice: true });
+      await Bun.sleep(0);
+      handleReply({ id: sent("request")[0].id, result: true });
+      expect(await asked).toBe(true);
+      expect(calls).toEqual(["confirmed"]);
+    } finally {
+      ctx.storageLocked = false;
+    }
+  });
 });
 
 describe("window and system", () => {

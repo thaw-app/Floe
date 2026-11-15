@@ -432,7 +432,8 @@ export async function confirmAlert(options: Props) {
   });
   const result = confirmed === true;
   if (result) {
-    if (options.rememberUserChoice) await LocalStorage.setItem(storageKey, true);
+    // Storage that can't save (locked without its key) costs only the remembering, not the action the user confirmed.
+    if (options.rememberUserChoice) await LocalStorage.setItem(storageKey, true).catch((error) => console.error(error));
     await options.primaryAction?.onAction?.();
   } else {
     await options.dismissAction?.onAction?.();

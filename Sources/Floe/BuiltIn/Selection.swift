@@ -301,6 +301,11 @@ extension PasteboardContent {
         }
     }
 
+    /// An image leaving the history, deleted or past its limits, takes its readable copy with it.
+    static func removeReadableCopy(of name: String) {
+        try? FileManager.default.removeItem(at: readableFolder.appendingPathComponent(name))
+    }
+
     /// Clearing the history takes the readable copies with it.
     static func removeReadableCopies() {
         try? FileManager.default.removeItem(at: readableFolder)

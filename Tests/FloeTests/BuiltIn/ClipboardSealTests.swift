@@ -12,7 +12,9 @@ import Foundation
 import Testing
 
 /// The clipboard folder sealed with the storage key: unreadable in its files, whole wherever Floe reads it.
+/// Serialized: the readable copies share one folder, which a test clears.
 @MainActor
+@Suite(.serialized)
 struct ClipboardSealTests {
     private let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-seal-\(UUID().uuidString)")
     private let seal = ClipboardSeal(key: SymmetricKey(data: Data(repeating: 7, count: 32)))
@@ -139,5 +141,28 @@ struct ClipboardSealTests {
         #expect(copies.dropFirst().allSatisfy { FileManager.default.fileExists(atPath: $0.path) })
         PasteboardContent.removeReadableCopies()
         #expect(!copies.contains { FileManager.default.fileExists(atPath: $0.path) })
+    }
+
+    @Test func anImageLeavingTheHistoryTakesItsReadableCopyWithIt() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        PasteboardContent.removeReadableCopies()
+        let store = ClipboardHistoryStore(files: .onDisk(folder, seal: seal), limits: .init(maxEntries: 2), monitorsPasteboard: false)
+        let date = Date(timeIntervalSince1970: 1)
+        store.record(ClipboardCapture(content: .image(try png(), fallbackText: nil), date: date, sourceApp: "Tests"))
+        store.flush()
+        let name = try #require(store.entries.first?.imageFile)
+        let deleted = try #require(PasteboardContent.readableCopy(of: name, in: folder, seal: seal))
+        store.delete(store.entries[0])
+        store.flush()
+        #expect(!FileManager.default.fileExists(atPath: deleted.path), "deleted")
+
+        store.record(ClipboardCapture(content: .image(try png(), fallbackText: nil), date: date, sourceApp: "Tests"))
+        store.flush()
+        let oldest = try #require(store.entries.first?.imageFile)
+        let evicted = try #require(PasteboardContent.readableCopy(of: oldest, in: folder, seal: seal))
+        store.record(ClipboardCapture(content: .text("one"), date: date.addingTimeInterval(1), sourceApp: "Tests"))
+        store.record(ClipboardCapture(content: .text("two"), date: date.addingTimeInterval(2), sourceApp: "Tests"))
+        store.flush()
+        #expect(!FileManager.default.fileExists(atPath: evicted.path), "past the history's limit")
     }
 }
