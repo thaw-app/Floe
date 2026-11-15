@@ -218,4 +218,20 @@ import Testing
         #expect(!logger.isEnabled)
         #expect(logger.currentLogFile == nil)
     }
+
+    /// A refused write must come back as false: with FileHandle.write(_:) it would end the test run.
+    @Test func aWriteTheFileRefusesIsReportedInsteadOfEndingTheApp() throws {
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try Data().write(to: file)
+
+        let reading = try FileHandle(forReadingFrom: file)
+        defer { try? reading.close() }
+        #expect(!DiagnosticLogger.append(Data("x".utf8), to: reading))
+
+        let writing = try FileHandle(forWritingTo: file)
+        #expect(DiagnosticLogger.append(Data("x".utf8), to: writing))
+        try writing.close()
+        #expect(try String(contentsOf: file, encoding: .utf8) == "x")
+    }
 }

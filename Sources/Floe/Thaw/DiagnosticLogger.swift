@@ -189,8 +189,9 @@ final nonisolated class DiagnosticLogger: Sendable {
         macOS: \(ProcessInfo.processInfo.operatingSystemVersionString)
         ========================================\n\n
         """
-        if let data = header.data(using: .utf8) {
-            handle.write(data)
+        if let data = header.data(using: .utf8), !Self.append(data, to: handle) {
+            stopAfterFailedWrite()
+            return
         }
 
         osLog.info("Diagnostic logging started: \(fileURL.path, privacy: .public)")
@@ -204,7 +205,7 @@ final nonisolated class DiagnosticLogger: Sendable {
                 let ts = Self.timestampStyle.format(Date())
                 let footer = "\n\(ts) [DiagnosticLogger] Diagnostic logging stopped\n"
                 if let data = footer.data(using: .utf8) {
-                    handle.write(data)
+                    _ = Self.append(data, to: handle)
                 }
                 try? handle.close()
             }
@@ -212,6 +213,22 @@ final nonisolated class DiagnosticLogger: Sendable {
         }
         currentLogFileLock.withLock { $0 = nil }
         osLog.info("Diagnostic logging stopped")
+    }
+
+    /// False when the disk refused the write. FileHandle.write(_:) raises an Objective-C exception on a full or
+    /// failing disk instead, which Swift can't catch, so Floe would quit.
+    static func append(_ data: Data, to handle: FileHandle) -> Bool {
+        (try? handle.write(contentsOf: data)) != nil
+    }
+
+    /// Lets the file go and leaves logging off until the user turns it on again. It takes fileHandleLock, so call it
+    /// outside that lock.
+    private func stopAfterFailedWrite() {
+        let handle = fileHandleLock.withLock { $0.take() }
+        try? handle?.close()
+        currentLogFileLock.withLock { $0 = nil }
+        isEnabledLock.withLock { $0 = false }
+        osLog.error("Diagnostic logging stopped: the log file could not be written")
     }
 
     private func cleanupOldLogFiles(in directory: URL, keepCount: Int) {
@@ -271,8 +288,12 @@ final nonisolated class DiagnosticLogger: Sendable {
         guard let data = line.data(using: .utf8) else { return }
 
         writeQueue.async { [weak self] in
-            self?.fileHandleLock.withLock { handle in
-                handle?.write(data)
+            guard let self else { return }
+            let failed = fileHandleLock.withLock { handle in
+                handle.map { !Self.append(data, to: $0) } ?? false
+            }
+            if failed {
+                stopAfterFailedWrite()
             }
         }
     }
