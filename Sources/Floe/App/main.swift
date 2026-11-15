@@ -193,7 +193,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Flushes what is kept and stops the processes Floe started, before quitting or ending a benchmark.
     func shutDown() {
-        model.runner.session?.forceStop()
+        model.runner.stopAll()
         menuBarCommands?.stopAll()
         backgroundScheduler?.stopAll()
         settingsLink.terminate()

@@ -12,6 +12,9 @@ import System
 /// The half of a session that needs a real Bun process: spawning it, wiring its pipes, and stopping it.
 /// What the session does with the messages lives in Session.swift.
 extension ExtensionSession {
+    /// How long a command with no view runs unattended before it is stopped.
+    static let unattendedLimit: TimeInterval = 60
+
     func start() {
         guard let bun = Paths.bun else {
             toast = ToastState(id: 0, style: "failure", title: String(localized: "Bun isn't installed", bundle: .floe, comment: "Bun is the name of a tool."), message: "brew install bun")

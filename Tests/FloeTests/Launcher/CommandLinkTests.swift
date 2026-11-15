@@ -120,6 +120,18 @@ struct CommandLinkTests {
         #expect(model.query.isEmpty, "nothing is left to come back to")
     }
 
+    @Test func aNoViewCommandOutlivesPopToRoot() throws {
+        settings.popToRootDelay = 0
+        model.runner.startsHost = { _ in }
+        model.runner.run(Fixture.command("hello", mode: "no-view"))
+        let session = try #require(model.runner.session)
+        model.panelWillShow()
+        model.panelDidHide()
+        #expect(model.runner.session == nil)
+        #expect(!session.isStopping)
+        model.runner.stopAll()
+    }
+
     @Test func anImmediateCloseEndsTheCommandWhateverTheSetting() {
         _ = ran(opening: "raycast://extensions/someone/sample/planets")
         model.panelWillShow()

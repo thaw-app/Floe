@@ -115,7 +115,7 @@ import Foundation
         session.answer = ExtensionRunner.answer(withHistory: model.runner.host.clipboardHistory)
         runs[command.id] = session
         startsHost(session)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self, weak session] in
+        DispatchQueue.main.asyncAfter(deadline: .now() + ExtensionSession.unattendedLimit) { [weak self, weak session] in
             guard let self, let session else { return }
             if !session.hasEnded {
                 session.forceStop()
