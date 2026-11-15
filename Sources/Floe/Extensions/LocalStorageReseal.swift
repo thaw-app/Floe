@@ -110,14 +110,26 @@ nonisolated enum LocalStorageReseal {
         while true {
             switch sqlite3_step(statement) {
             case SQLITE_ROW:
-                guard let key = sqlite3_column_text(statement, 0), let value = sqlite3_column_text(statement, 1) else { continue }
-                rows.append(Row(key: String(cString: key), value: String(cString: value)))
+                guard let key = text(statement, column: 0), let value = text(statement, column: 1) else { continue }
+                rows.append(Row(key: key, value: value))
             case SQLITE_DONE:
                 return rows
             default:
                 return nil
             }
         }
+    }
+
+    /// A column's text by its length, so a key with a NUL inside is read whole, as the runtime wrote it.
+    private static func text(_ statement: OpaquePointer?, column: Int32) -> String? {
+        guard let bytes = sqlite3_column_text(statement, column) else { return nil }
+        return String(bytes: UnsafeBufferPointer(start: bytes, count: Int(sqlite3_column_bytes(statement, column))), encoding: .utf8)
+    }
+
+    /// Binds the text by its length, for the same reason.
+    private static func bind(_ text: String, at index: Int32, in statement: OpaquePointer?) {
+        let bytes = text.utf8CString
+        _ = bytes.withUnsafeBufferPointer { sqlite3_bind_text(statement, index, $0.baseAddress, Int32($0.count - 1), transient) }
     }
 
     /// The row sealed under the new key, when it opens under the old one and not already under the new one.
@@ -131,9 +143,9 @@ nonisolated enum LocalStorageReseal {
         var statement: OpaquePointer?
         defer { sqlite3_finalize(statement) }
         guard sqlite3_prepare_v2(database, "UPDATE items SET value = ? WHERE key = ? AND value = ?", -1, &statement, nil) == SQLITE_OK else { return false }
-        sqlite3_bind_text(statement, 1, value, -1, transient)
-        sqlite3_bind_text(statement, 2, row.key, -1, transient)
-        sqlite3_bind_text(statement, 3, row.value, -1, transient)
+        bind(value, at: 1, in: statement)
+        bind(row.key, at: 2, in: statement)
+        bind(row.value, at: 3, in: statement)
         return sqlite3_step(statement) == SQLITE_DONE
     }
 }

@@ -21,7 +21,8 @@ nonisolated final class StorageMigration: Sendable {
     struct Environment: Sendable {
         var legacy: @Sendable () -> StorageKey.Legacy
         var root: @Sendable () -> StorageKey.Access
-        var storageFiles: @Sendable () -> [StorageFile]
+        /// Nil when the data folder could not be read.
+        var storageFiles: @Sendable () -> [StorageFile]?
         var reseal: @Sendable (_ file: URL, _ from: SymmetricKey, _ to: SymmetricKey) -> LocalStorageReseal.Outcome
         var retire: @Sendable () -> Void
 
@@ -39,9 +40,10 @@ nonisolated final class StorageMigration: Sendable {
 
     private struct State {
         var legacy: StorageKey.Legacy?
-        var task: Task<Void, Never>?
+        var started = false
         var finished = false
-        /// The new storage key could not be read, so no file was done: every extension stays locked this launch.
+        /// No file was done, because the new storage key or the data folder could not be read: every extension stays
+        /// locked this launch.
         var blocked = false
         /// Extensions whose file another process held, by ExtensionCommand.folderKey.
         var locked: Set<String> = []
@@ -73,11 +75,16 @@ nonisolated final class StorageMigration: Sendable {
         }
     }
 
-    /// Starts the move off the main thread, the keychain read included. Only the launcher's process calls this.
+    /// Starts the move on a queue of its own: it blocks on the keychain and SQLite, which must not hold one of Swift's
+    /// few shared threads. Only the launcher's process calls this.
     func begin() {
-        state.withLock { state in
-            guard state.task == nil else { return }
-            state.task = Task { @concurrent [self] in run() }
+        let starts = state.withLock { state in
+            guard !state.started else { return false }
+            state.started = true
+            return true
+        }
+        if starts {
+            DispatchQueue.global(qos: .utility).async { [self] in run() }
         }
     }
 
@@ -86,7 +93,7 @@ nonisolated final class StorageMigration: Sendable {
             state.withLock { $0.finished = true }
             return
         }
-        guard case let .key(root) = environment.root() else {
+        guard case let .key(root) = environment.root(), let files = environment.storageFiles() else {
             state.withLock {
                 $0.blocked = true
                 $0.finished = true
@@ -94,7 +101,7 @@ nonisolated final class StorageMigration: Sendable {
             return
         }
         var locked: Set<String> = []
-        for storage in environment.storageFiles() {
+        for storage in files {
             let name = ExtensionCommand.folderKey(storage.name)
             guard let own = StorageKey.extensionKey(root: root, name: storage.name).flatMap(StorageKey.symmetricKey) else {
                 locked.insert(name)
@@ -146,7 +153,7 @@ nonisolated final class StorageMigration: Sendable {
     func settled(within limit: Duration) async {
         let clock = ContinuousClock()
         let deadline = clock.now + limit
-        while state.withLock({ $0.task != nil && !$0.finished }), clock.now < deadline {
+        while state.withLock({ $0.started && !$0.finished }), clock.now < deadline {
             do {
                 try await Task.sleep(for: .milliseconds(10))
             } catch {
@@ -156,15 +163,32 @@ nonisolated final class StorageMigration: Sendable {
     }
 
     /// Each extension's LocalStorage file under the data folder, named by its folder. Links are skipped, so one
-    /// cannot make the app write somewhere else.
-    static func storageFiles(in data: URL) -> [StorageFile] {
+    /// cannot make the app write somewhere else. Nil when the folder or one in it could not be read: a file missed
+    /// would keep rows only the old key opens.
+    static func storageFiles(in data: URL) -> [StorageFile]? {
         let keys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey]
-        let folders = (try? FileManager.default.contentsOfDirectory(at: data, includingPropertiesForKeys: Array(keys))) ?? []
-        return folders.sorted { $0.lastPathComponent < $1.lastPathComponent }.compactMap { folder in
-            guard let values = try? folder.resourceValues(forKeys: keys), values.isDirectory == true, values.isSymbolicLink != true else { return nil }
-            let file = folder.appendingPathComponent("local-storage.sqlite")
-            guard (try? file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true else { return nil }
-            return StorageFile(name: folder.lastPathComponent, file: file)
+        let folders: [URL]
+        do {
+            folders = try FileManager.default.contentsOfDirectory(at: data, includingPropertiesForKeys: Array(keys))
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return []
+        } catch {
+            return nil
         }
+        var files: [StorageFile] = []
+        for folder in folders.sorted(by: { $0.lastPathComponent < $1.lastPathComponent }) {
+            guard let values = try? folder.resourceValues(forKeys: keys) else { return nil }
+            guard values.isDirectory == true, values.isSymbolicLink != true else { continue }
+            let file = folder.appendingPathComponent("local-storage.sqlite")
+            do {
+                guard try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { continue }
+            } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+                continue
+            } catch {
+                return nil
+            }
+            files.append(StorageFile(name: folder.lastPathComponent, file: file))
+        }
+        return files
     }
 }

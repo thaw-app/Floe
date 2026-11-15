@@ -100,6 +100,30 @@ struct LocalStorageResealTests {
         #expect(bytes.range(of: Data(old.dropFirst(LocalStorageReseal.prefix.count).prefix(64).utf8)) == nil)
     }
 
+    @Test func aKeyWithANulInsideIsSealedAgainWhole() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let key = "account\u{0}token"
+        let old = try sealed("1", key, legacy)
+        try database([
+            "CREATE TABLE items (key TEXT PRIMARY KEY, value TEXT NOT NULL)",
+            "INSERT INTO items (key, value) VALUES ('account' || char(0) || 'token', '\(old)')",
+        ])
+        #expect(LocalStorageReseal.reseal(file: file, from: legacy, to: own) == .done(resealed: 1))
+        let after = try #require(value(where: "key = 'account' || char(0) || 'token'"))
+        #expect(LocalStorageReseal.open(after, itemKey: key, key: own) == "1")
+    }
+
+    private func value(where condition: String) -> String? {
+        var handle: OpaquePointer?
+        defer { sqlite3_close_v2(handle) }
+        guard sqlite3_open_v2(file.path, &handle, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { return nil }
+        var statement: OpaquePointer?
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_prepare_v2(handle, "SELECT value FROM items WHERE \(condition)", -1, &statement, nil) == SQLITE_OK,
+              sqlite3_step(statement) == SQLITE_ROW, let text = sqlite3_column_text(statement, 0) else { return nil }
+        return String(cString: text)
+    }
+
     @Test func aFileThatIsNotThereIsNotMade() {
         #expect(LocalStorageReseal.reseal(file: file, from: legacy, to: own) == .missing)
         #expect(!FileManager.default.fileExists(atPath: file.path))
