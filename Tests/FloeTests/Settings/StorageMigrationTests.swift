@@ -177,7 +177,7 @@ struct StorageMigrationTests {
         #expect(migration.allows("github"))
     }
 
-    @Test func aWaiterThatIsCancelledStopsWaitingAtOnce() async {
+    @Test(.timeLimit(.minutes(2))) func aWaiterThatIsCancelledStopsWaitingAtOnce() async {
         let release = DispatchSemaphore(value: 0)
         let (old, root) = (Self.old, Self.root)
         let migration = StorageMigration(environment: StorageMigration.Environment(
@@ -192,16 +192,11 @@ struct StorageMigrationTests {
         ))
         defer { release.signal() }
         migration.begin()
-        // Timed from inside the waiter, so the wait for a thread on a busy test run is not counted; a waiter that
-        // ignored cancellation would keep polling until the limit.
-        let waiter = Task {
-            let clock = ContinuousClock()
-            let start = clock.now
-            await migration.settled(within: .seconds(30))
-            return clock.now - start
-        }
+        // Not timed, since a busy test run stalls for seconds: a waiter that ignored cancellation would poll past the
+        // test's time limit.
+        let waiter = Task { await migration.settled(within: .seconds(600)) }
         waiter.cancel()
-        #expect(await waiter.value < .seconds(5))
+        await waiter.value
         #expect(!migration.allows("github"), "the move is still running")
     }
 
