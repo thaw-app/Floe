@@ -266,11 +266,12 @@ final class ExtensionSession: ObservableObject {
         guard !isStopping else { return }
         if status == 0, !wasSignalled {
             onMessage(["type": "exit"])
-        } else if failure == nil {
+        } else {
             let message = wasSignalled
                 ? String(localized: "The extension stopped unexpectedly. It was killed by signal \(status).", bundle: .floe, comment: "The placeholder is a number.")
                 : String(localized: "The extension stopped unexpectedly. It exited with status \(status).", bundle: .floe, comment: "The placeholder is a number.")
-            failure = SessionFailure(kind: .crashed, message: message, details: log)
+            // A command that threw has told why already, and that stays the failure shown.
+            failure = failure ?? SessionFailure(kind: .crashed, message: message, details: log)
             onMessage(["type": "crashed"])
         }
     }

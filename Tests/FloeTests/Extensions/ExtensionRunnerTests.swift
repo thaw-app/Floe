@@ -164,6 +164,20 @@ struct ExtensionRunnerTests {
         #expect(asked.calls == ["hud Greet failed"], "one launched in the background by another leaves the panel to the command on screen")
     }
 
+    @Test func anOpenNoViewCommandThatThrowsSaysItFailed() throws {
+        let runner = runner()
+        runner.startsHost = { _ in /* the test plays the host */ }
+        runner.run(command(mode: "no-view"))
+        let session = try #require(runner.session)
+        var kept = KeptRender()
+        let line = Data(#"{"type":"error","message":"boom","fatal":true}"#.utf8)
+        let message = try #require(DecodedHostMessage.decode(line, kept: &kept))
+        session.apply(message)
+        session.processEnded(status: 1, wasSignalled: false)
+        #expect(asked.calls.contains("hud Greet failed"))
+        #expect(runner.session == nil)
+    }
+
     @Test func whatACommandAsksForReachesTheHost() {
         let runner = runner()
         let session = ExtensionSession(command: command())

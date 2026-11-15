@@ -361,11 +361,12 @@ struct ExtensionSessionTests {
         #expect(recorder.forwarded.isEmpty)
     }
 
-    @Test func aCrashAfterAnErrorKeepsTheError() {
+    @Test func aCrashAfterAnErrorKeepsTheErrorAndIsStillReported() {
         apply(["type": "error", "message": "Render failed", "fatal": true])
         session.processEnded(status: 1, wasSignalled: false)
         #expect(session.failure?.kind == .error)
-        #expect(recorder.forwarded.isEmpty)
+        #expect(session.failure?.message == "Render failed")
+        #expect(recorder.forwarded.compactMap { $0["type"] as? String } == ["crashed"])
     }
 
     @Test func theWatchdogPingsThenReportsAHostThatStopsAnswering() {

@@ -556,6 +556,26 @@ export default async function Command() { setTimeout(() => new Cache().set("k", 
         expect(saved()).toEqual([["k", "v"]]);
     });
 
+    test("a no-view command that throws reports it and exits", async () => {
+        const source = `export default async function Command() { throw new Error("boom"); }`;
+        const { proc, saved } = makeHost("thrower", "no-view", source);
+        await waitFor(proc.stdout, '"fatal":true');
+        expect(await proc.exited).toBe(1);
+        saved();
+    });
+
+    test("a view command that throws on import reports it and stays for the error screen", async () => {
+        const source = `throw new Error("boom");
+export default function Command() { return null; }`;
+        const { proc, saved } = makeHost("thrower", "view", source);
+        await waitFor(proc.stdout, '"fatal":true');
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        expect(proc.exitCode).toBeNull();
+        proc.kill("SIGKILL");
+        await proc.exited;
+        saved();
+    });
+
     test("closeMainWindow saves first, because the app may end the command on it", async () => {
         const source = `import { Cache, closeMainWindow } from "@raycast/api";
 export default async function Command() {
