@@ -119,8 +119,8 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
     }
 
     /// Opens the provider's page and waits for its `floe://oauth` callback. A newer sign-in from the
-    /// same extension replaces this one; cancelling the waiting task, the session stopping, or ten
-    /// minutes passing fails it instead.
+    /// same extension replaces this one; cancelling the waiting task (which the session does when it
+    /// stops) or ten minutes passing fails it instead.
     func authorize(extensionName: String, url: URL, state: String) async throws -> String {
         let say = say.withLock { $0 }
         let scheme = RedirectSchemeClaim.scheme(returningFrom: url)
@@ -145,11 +145,6 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
         } onCancel: {
             cancel(extensionName: extensionName, state: state)
         }
-    }
-
-    /// Fails every sign-in of one extension, when its session stops.
-    func cancelAll(for extensionName: String) {
-        failPending(for: extensionName, error: OAuthError.cancelled)
     }
 
     private func pendingKey(extensionName: String, state: String) -> String {
@@ -179,17 +174,6 @@ final nonisolated class OAuthBroker: NSObject, Sendable {
 
     func cancel(extensionName: String, state: String) {
         fail(key: pendingKey(extensionName: extensionName, state: state), error: OAuthError.cancelled)
-    }
-
-    private func failPending(for extensionName: String, error: Error) {
-        let matching = pending.withLock { pending -> [Pending] in
-            let keys = pending.filter { $0.value.extensionName == extensionName }.map(\.key)
-            return keys.compactMap { pending.removeValue(forKey: $0) }
-        }
-        for entry in matching {
-            entry.timeout.cancel()
-            entry.resume(.failure(error))
-        }
     }
 
     private func fail(key: String, error: Error) {

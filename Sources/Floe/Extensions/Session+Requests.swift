@@ -129,10 +129,9 @@ extension ExtensionSession {
         }
     }
 
-    /// Stops answering, when the host is going away. A waiting sign-in fails too: the browser's
-    /// callback would otherwise answer a session that is no longer there.
+    /// Stops answering, when the host is going away. A sign-in waiting for the browser is one of these requests,
+    /// so only this session's sign-in fails.
     func cancelRequests() {
-        OAuthBroker.shared.cancelAll(for: command.extensionName)
         for task in pendingRequests.values {
             task.cancel()
         }

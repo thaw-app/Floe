@@ -594,6 +594,19 @@ struct ExtensionSessionTests {
         #expect(recorder.sent.allSatisfy { $0["error"] as? String == "The command is ending." })
     }
 
+    @Test func stoppingCancelsTheSessionsOwnRequestsWithoutAnswering() async {
+        session.answer = { _, _ in
+            try await Task.sleep(for: .seconds(30))
+            return "too late"
+        }
+        apply(["type": "request", "id": 34, "method": "selectedText", "params": [:]])
+        #expect(session.pendingRequests.count == 1)
+        session.stop()
+        #expect(session.pendingRequests.isEmpty)
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(!recorder.sent.contains { $0["type"] as? String == "reply" })
+    }
+
     @Test func aRenderThatNamesWhatTheAppDoesNotHoldAsksForAWholeOneAndLeavesTheListAsItWas() {
         render(Fixture.node("List", id: 3, children: [Fixture.item("Mercury", id: 10), Fixture.item("Venus", id: 11)]))
         session.selection = 1
