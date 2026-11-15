@@ -243,15 +243,22 @@ extension SystemCommand {
 
     private func runAppleScript(_ source: String) {
         AppleScript.execute(source, priority: .utility) { execution in
-            guard execution.errorNumber != nil else { return }
+            guard execution.hasError else { return }
             if execution.isRefused {
                 Self.askForAutomation(toControl: String(localized: "System Events and Finder", bundle: .floe, comment: "The names of two apps, as they stand in a sentence that asks for permission to control them."))
             } else {
                 let alert = NSAlert()
-                alert.messageText = execution.errorMessage ?? String(localized: "The system command failed.", bundle: .floe)
+                alert.messageText = Self.failureMessage(for: execution) ?? ""
                 alert.runModal()
             }
         }
+    }
+
+    /// What to tell the user after a script failed for a reason other than a refusal, or nil when it ran.
+    /// A failure can come without an error number, when osascript printed none or could not start.
+    static func failureMessage(for execution: AppleScript.Execution) -> String? {
+        guard execution.hasError else { return nil }
+        return execution.errorMessage ?? String(localized: "The system command failed.", bundle: .floe)
     }
 
     /// What to show when macOS refused a script (error -1743): the pane where it is allowed.
