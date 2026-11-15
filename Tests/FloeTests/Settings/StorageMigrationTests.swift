@@ -192,14 +192,16 @@ struct StorageMigrationTests {
         ))
         defer { release.signal() }
         migration.begin()
-        let clock = ContinuousClock()
-        let start = clock.now
-        // The limit is long and the bound loose, so a busy test run does not fail it; a waiter that ignored
-        // cancellation would keep polling until the limit.
-        let waiter = Task { await migration.settled(within: .seconds(30)) }
+        // Timed from inside the waiter, so the wait for a thread on a busy test run is not counted; a waiter that
+        // ignored cancellation would keep polling until the limit.
+        let waiter = Task {
+            let clock = ContinuousClock()
+            let start = clock.now
+            await migration.settled(within: .seconds(30))
+            return clock.now - start
+        }
         waiter.cancel()
-        await waiter.value
-        #expect(clock.now - start < .seconds(20))
+        #expect(await waiter.value < .seconds(5))
         #expect(!migration.allows("github"), "the move is still running")
     }
 
