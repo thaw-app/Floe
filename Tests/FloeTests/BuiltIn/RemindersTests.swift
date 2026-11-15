@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import EventKit
 @testable import Floe
 import Foundation
 import Testing
@@ -465,6 +466,25 @@ struct RemindersTests {
         var undone = receipt
         undone.undone = Date()
         #expect(ReceiptUndo.undo(undone) { _ in true } == .notUndoable)
+    }
+
+    @Test func theStoreIsMadeAgainOnlyWhenAccessChanges() {
+        final class Store {}
+        var access = EKAuthorizationStatus.denied
+        var made = 0
+        let stores = RemadeOnAccessChange(make: {
+            made += 1
+            return Store()
+        }, access: { access })
+        #expect(made == 0, "nothing is made before it is used")
+        let first = stores.current
+        #expect(stores.current === first)
+        #expect(made == 1)
+        access = .fullAccess
+        let second = stores.current
+        #expect(second !== first)
+        #expect(stores.current === second)
+        #expect(made == 2)
     }
 
     @Test func aReceiptFileFromBeforeRemindersStillReads() throws {
