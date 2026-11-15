@@ -122,6 +122,7 @@ final class LauncherModel: ObservableObject {
     private var cancellables: Set<AnyCancellable> = []
     var clipboardOpener = ClipboardOpener.system
     var linkOpener = LinkOpener.system
+    var quicklinkFills = QuicklinkFillReader.system
     let usage: UsageStore
     /// The launcher's features, each handed what it asks of the launcher.
     lazy var features = LauncherFeatures(model: self)

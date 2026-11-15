@@ -245,11 +245,12 @@ function OpenWithSubmenu(props: Props) {
 }
 
 // As in Raycast, a snippet or a quicklink is kept only once the user confirms the form the extension filled in.
-function keepForm(method: string, title: string, kept: string, fields: unknown[]) {
+// extra goes with what the user typed, for what the form shows but does not let them change.
+function keepForm(method: string, title: string, kept: string, fields: unknown[], extra: Props = {}) {
   const { pop } = useNavigation();
   const keep = async (values: Props) => {
     try {
-      await request(method, values);
+      await request(method, { ...values, ...extra });
       await showToast({ style: Toast.Style.Success, title: kept });
       pop();
     } catch (error) {
@@ -267,12 +268,22 @@ function SnippetForm({ snippet }: Props) {
   ]);
 }
 
+// The app is a name, path or bundle ID, or an Application, which is sent by its path.
 function QuicklinkForm({ quicklink }: Props) {
-  return keepForm("quicklink.create", "Create Quicklink", "Quicklink saved", [
-    h(Form.TextField, { id: "name", title: "Name", defaultValue: quicklink.name ?? "" }),
-    h(Form.TextField, { id: "link", title: "Link", defaultValue: quicklink.link ?? "" }),
-    h(Form.TextField, { id: "keyword", title: "Keyword", defaultValue: "" }),
-  ]);
+  const app = quicklink.application;
+  const application = typeof app === "string" ? app : (app?.path ?? app?.bundleId ?? app?.name);
+  return keepForm(
+    "quicklink.create",
+    "Create Quicklink",
+    "Quicklink saved",
+    [
+      h(Form.TextField, { id: "name", title: "Name", defaultValue: quicklink.name ?? "" }),
+      h(Form.TextField, { id: "link", title: "Link", defaultValue: quicklink.link ?? "" }),
+      h(Form.TextField, { id: "keyword", title: "Keyword", defaultValue: "" }),
+      application ? h(Form.Description, { title: "Open With", text: typeof app === "string" ? app : (app?.name ?? application) }) : null,
+    ],
+    application ? { application } : {},
+  );
 }
 
 // The date goes to onChange once picked; the form closes and the extension's view is back.

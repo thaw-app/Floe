@@ -142,4 +142,14 @@ enum InstalledApps {
         }
         .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
+
+    /// The app Raycast names for a quicklink: a path to an app, an app's name in the usual folders, or its bundle
+    /// identifier. Nil when it is not on this Mac.
+    static func choice(named name: String, among apps: @autoclosure () -> [AppPickerValue.App] = list()) -> AppChoice? {
+        let path = name.hasPrefix("/")
+            ? name
+            : apps().first { $0.name == name || $0.bundleId == name }?.path ?? AppLookup.system.url(name)?.path
+        guard let path, FileManager.default.fileExists(atPath: path) else { return nil }
+        return PreferredApps.choice(forAppAt: URL(fileURLWithPath: path), installed: .system)
+    }
 }

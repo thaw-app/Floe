@@ -49,7 +49,7 @@ struct SettingsView: View {
         case .applications: SearchPaneLabel.applications.title
         case .ai: SearchPaneLabel.ai.title
         case .sync: SearchPaneLabel.sync.title
-        case .quicklinks: SearchPaneLabel.quicklinks.title
+        case .quicklinks, .raycastImport: SearchPaneLabel.quicklinks.title
         case .fallbacks: SearchPaneLabel.fallbacks.title
         case .snippets: SearchPaneLabel.snippets.title
         case .extensionStore: SearchPaneLabel.extensionStore.title
@@ -91,8 +91,8 @@ struct SettingsView: View {
             .formStyle(.grouped)
         case .sync:
             SyncSettingsView(catalog: catalog, settings: settings, sync: stores.sync)
-        case .quicklinks:
-            QuicklinksSettingsPage(store: stores.quicklinks)
+        case .quicklinks, .raycastImport:
+            QuicklinksSettingsPage(store: stores.quicklinks, importsFromRaycast: $selection.importsFromRaycast)
         case .fallbacks:
             FallbacksSettingsPage(catalog: catalog, settings: settings, quicklinks: stores.quicklinks)
         case .snippets:

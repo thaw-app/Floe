@@ -82,6 +82,20 @@ struct SettingsModeTests {
         #expect(SettingsPage(id: "extension:") == nil)
     }
 
+    @Test func theRaycastImportOpensQuicklinksAndStartsTheImport() {
+        #expect(SettingsPage(id: "import-raycast") == .raycastImport)
+        #expect(SettingsPage.raycastImport.id == "import-raycast")
+        let selection = SettingsSelection()
+        selection.open(.raycastImport)
+        #expect(selection.page == .quicklinks)
+        #expect(selection.importsFromRaycast)
+        selection.importsFromRaycast = false
+        selection.open(.sync)
+        selection.open(nil)
+        #expect(selection.page == .sync, "no page keeps the one on screen")
+        #expect(!selection.importsFromRaycast)
+    }
+
     @Test func theProcessEndsWhenItsWindowIsClosedAndNothingIsStillGoing() {
         #expect(SettingsExit.isDue(windowOpen: false, otherWindowOpen: false, installing: false))
         #expect(!SettingsExit.isDue(windowOpen: true, otherWindowOpen: false, installing: false))

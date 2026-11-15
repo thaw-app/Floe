@@ -29,6 +29,14 @@ struct QuicklinkURLTests {
         #expect(link("https://example.com/{query}?q={query}", "a/b") == "https://example.com/a/b?q=a%2Fb", "each place is encoded for where it is")
     }
 
+    @Test func theSelectionAndTheClipboardAreFilledAsTheQueryIs() {
+        let template = Quicklink(name: "Link", keyword: "l", url: "https://example.com/{selection}?q={query}&c={clipboard}")
+        let filled = url(for: template, query: "a b", fills: QuicklinkFills(selection: "x/y", clipboard: "1&2"))
+        #expect(filled?.absoluteString == "https://example.com/x/y?q=a%20b&c=1%262")
+        #expect(template.fillsOnOpening)
+        #expect(!Quicklink(name: "Link", keyword: "l", url: "https://example.com/?q={query}").fillsOnOpening)
+    }
+
     @Test func aLinkWithoutThePlaceholderOpensAsItIs() {
         #expect(link("https://example.com/?a=1&b=2", "ignored") == "https://example.com/?a=1&b=2")
     }

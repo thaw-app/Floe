@@ -75,6 +75,10 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
   - `Settings`: the settings model (`Settings.swift`), its window, pages and sections, settings search entries,
     import and export, and the Keychain and preference stores. `SettingsMode.swift` is the settings process. It lists
     commands, scripts and apps from a `CatalogStore` (in `Launcher`) of its own, as the launcher does.
+  - `RaycastImport`: Import from Raycast, which the settings process runs. It reads Raycast's quicklinks export and
+    its `.rayconfig` backup (`RaycastExport.swift`, with the scrypt key derivation the backup's passphrase needs in
+    `Scrypt.swift` and gzip through the system's zlib), turns Raycast's links into Floe's and says what it left out
+    (`QuicklinkImport.swift`), and asks for the file and passphrase (`RaycastImportFlow.swift`).
   - `Sync`: settings sync through iCloud, by CloudKit or the key-value store, written to be moved to Thaw as it is.
     It knows records, not Floe's settings (see [Settings sync](DEVELOPMENT.md#settings-sync)).
   - `Picker`: `Floe --pick`.

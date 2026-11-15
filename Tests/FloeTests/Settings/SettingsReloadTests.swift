@@ -210,6 +210,25 @@ struct StoreReloadTests {
         #expect(launcherSaves == 0)
     }
 
+    @Test func quicklinksSavedBeforeOpenWithExistedStillLoad() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("quicklinks.json")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let older = #"[{"id":"F10E0000-0000-4000-8000-000000000009","name":"Old","keyword":"old","url":"https://old.example","isFallback":false,"symbol":"link"}]"#
+        try Data(older.utf8).write(to: file)
+        #expect(QuicklinkStore(file: file).links == [
+            Quicklink(id: try #require(UUID(uuidString: "F10E0000-0000-4000-8000-000000000009")), name: "Old", keyword: "old", url: "https://old.example", symbol: "link"),
+        ])
+    }
+
+    @Test func aQuicklinksOwnAppIsSavedWithIt() {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("quicklinks.json")
+        let arc = AppChoice(bundleIdentifier: "company.thebrowser.Browser", path: "/Applications/Arc.app")
+        QuicklinkStore(file: file).add(Quicklink(name: "Repo", keyword: "repo", url: "https://github.com", openWith: arc))
+        #expect(QuicklinkStore(file: file).links.last?.openWith == arc)
+    }
+
     @Test func aQuicklinkReloadWithoutAFileKeepsWhatIsThere() {
         let launcher = QuicklinkStore(file: folder.appendingPathComponent("missing.json"))
         launcher.reload()

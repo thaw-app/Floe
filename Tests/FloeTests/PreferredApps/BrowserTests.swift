@@ -191,6 +191,22 @@ struct BrowserTests {
         #expect(opened.apps == [Fake.zen, Fake.zen, Fake.zen])
     }
 
+    @Test func aLinkWithItsOwnAppOpensThereWhateverTheRole() throws {
+        let arcChoice = AppChoice(bundleIdentifier: "company.thebrowser.Browser", path: Fake.arc.path)
+        for text in ["https://github.com/thaw-app", "file:///Users/me/Downloads/"] {
+            let url = try link(text)
+            #expect(Browsers.destination(for: url, app: arcChoice, choice: Fake.zenChoice, installed: Fake.mac()) == .browser(ResolvedApp(url: Fake.arc)))
+            #expect(Browsers.open(url, app: arcChoice, choice: nil, installed: Fake.mac(), opener: opened.opener) == nil)
+        }
+        #expect(opened.apps == [Fake.arc, Fake.arc])
+    }
+
+    @Test func aLinkWhoseOwnAppIsGoneOpensAsAnyOtherLink() throws {
+        let url = try link("https://github.com/thaw-app")
+        #expect(Browsers.destination(for: url, app: Fake.goneChoice, choice: Fake.zenChoice, installed: Fake.mac()) == .browser(ResolvedApp(url: Fake.zen)))
+        #expect(Browsers.destination(for: url, app: Fake.goneChoice, choice: nil, installed: Fake.mac()) == .system)
+    }
+
     @Test func aBrowserThatIsGoneGivesWayToTheSystemAndSaysSo() throws {
         let url = try link("https://github.com/thaw-app")
         #expect(Browsers.destination(for: url, choice: Fake.goneChoice, installed: Fake.mac()) == .systemInstead(of: "Orion"))
@@ -252,6 +268,16 @@ struct BrowserTests {
         #expect(opened.hides == 2)
     }
 
+    @Test func aQuicklinkWithItsOwnAppOpensThereAndNotInTheChosenBrowser() {
+        let model = makeModel()
+        settings.browserApp = Fake.zenChoice
+        let arcChoice = AppChoice(bundleIdentifier: "company.thebrowser.Browser", path: Fake.arc.path)
+        let repo = Quicklink(name: "Repo", keyword: "repo", url: "https://github.com/{query}", openWith: arcChoice)
+        model.activate(.quicklink(repo, queryText: "thaw-app", fallback: false, keywordSearch: true))
+        #expect(opened.links == ["https://github.com/thaw-app"])
+        #expect(opened.apps == [Fake.arc])
+    }
+
     @Test func aQuicklinkToAnAppsOwnSchemeStaysWithTheSystem() {
         let model = makeModel()
         settings.browserApp = Fake.zenChoice
@@ -261,6 +287,30 @@ struct BrowserTests {
         model.activate(.quicklink(mail, queryText: "", fallback: false, keywordSearch: false))
         #expect(opened.links == ["maps://?q=coffee", "mailto:someone@example.com"])
         #expect(opened.apps == [nil, nil])
+    }
+
+    @Test func aQuicklinkFillsTheSelectionAndTheClipboardWhenItOpens() async {
+        let model = makeModel()
+        model.quicklinkFills = QuicklinkFillReader(selection: { "swift actors" }, clipboard: { "copied" })
+        let link = Quicklink(name: "Look Up", keyword: "lu", url: "https://s.example/?q={selection}&c={clipboard}&t={query}")
+        await model.openFilled(link, query: "typed")
+        #expect(opened.links == ["https://s.example/?q=swift%20actors&c=copied&t=typed"])
+        #expect(opened.hud.isEmpty)
+    }
+
+    @Test func aQuicklinkWithNoSelectionToFillSaysWhyAndOpensNothing() async {
+        let model = makeModel()
+        model.quicklinkFills = QuicklinkFillReader(selection: { throw SelectionError.noSelectedText }, clipboard: { "" })
+        await model.openFilled(Quicklink(name: "Look Up", keyword: "lu", url: "https://s.example/?q={selection}"), query: "")
+        #expect(opened.links.isEmpty)
+        #expect(opened.hud == ["No text is selected."])
+    }
+
+    @Test func aQuicklinkThatFillsOnlyTheClipboardDoesNotReadTheSelection() async {
+        let model = makeModel()
+        model.quicklinkFills = QuicklinkFillReader(selection: { throw SelectionError.noSelectedText }, clipboard: { "copied" })
+        await model.openFilled(Quicklink(name: "Paste", keyword: "p", url: "https://p.example/{clipboard}"), query: "")
+        #expect(opened.links == ["https://p.example/copied"])
     }
 
     @Test func aBrowserThatIsGoneIsSaidInTheHUDAndTheLinkStillOpens() throws {
@@ -290,6 +340,16 @@ struct BrowserTests {
     }
 
     // MARK: The Actions menu
+
+    @Test func aQuicklinkWithItsOwnBrowserOffersTheOthersIncludingTheChosenOne() {
+        let model = makeModel()
+        settings.browserApp = Fake.zenChoice
+        let arcChoice = AppChoice(bundleIdentifier: "company.thebrowser.Browser", path: Fake.arc.path)
+        let repo = Quicklink(name: "Repo", keyword: "repo", url: "https://github.com/{query}", openWith: arcChoice)
+        let actions = model.rootActions(for: .quicklink(repo, queryText: "thaw-app", fallback: false, keywordSearch: true))
+        let openWith = actions.compactMap(\.self).first { $0.id == .openWith }
+        #expect(openWith?.children.map(\.title) == ["Safari (default)", "Zen"])
+    }
 
     @Test func aWebAddressOffersItsBrowserThenTheOthersThenCopyAddress() throws {
         let model = makeModel()

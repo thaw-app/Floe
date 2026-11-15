@@ -20,6 +20,9 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
     /// Shows the launcher once a first-launch flow ends. Set by the app delegate.
     var openLauncher: (() -> Void)?
 
+    /// Opens Settings on the Quicklinks page and starts Import from Raycast. Each process that shows the window sets it.
+    var importFromRaycast: (() -> Void)?
+
     /// Called after the window has closed. The settings process sets it: it stays alive while the welcome is open.
     var onClose: (() -> Void)?
 
@@ -74,9 +77,14 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
-        let view = ThawOnboardingView(settings: settings, permissions: permissions, isReplay: isReplay, startsAtAccess: startsAtAccess) { [weak self] in
-            self?.finish(opensLauncher: !isReplay)
-        }
+        let view = ThawOnboardingView(
+            settings: settings,
+            permissions: permissions,
+            isReplay: isReplay,
+            startsAtAccess: startsAtAccess,
+            importFromRaycast: { [weak self] in self?.importFromRaycast?() },
+            onFinish: { [weak self] in self?.finish(opensLauncher: !isReplay) }
+        )
         .frame(minWidth: size.width, idealWidth: size.width, minHeight: size.height, idealHeight: size.height)
         .ignoresSafeArea()
         // Light or Dark from the Settings theme. Black's background is for Settings, so this window keeps its own.

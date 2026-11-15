@@ -209,6 +209,23 @@ describe("built-in actions", () => {
     expect(find(still, "Form").props.navigationTitle).toBe("Create Quicklink");
   });
 
+  test("CreateQuicklink sends the app the link opens in, by path or as the extension named it", async () => {
+    const arc = { name: "Arc", path: "/Applications/Arc.app", bundleId: "company.thebrowser.Browser" };
+    for (const [application, sentAs, shown] of [
+      [arc, "/Applications/Arc.app", "Arc"],
+      ["Safari", "Safari", "Safari"],
+    ] as const) {
+      const action = await showAction(h(Action.CreateQuicklink, { quicklink: { name: "Repo", link: "https://github.com", application } }));
+      const form = await fire(action, "onAction");
+      expect(find(form, "Form.Description").props).toMatchObject({ title: "Open With", text: shown });
+      await fire(submitOf(form), "onSubmit", { name: "Repo", link: "https://github.com", keyword: "repo" });
+      const request = sent("request").at(-1)!;
+      expect(request.params).toMatchObject({ name: "Repo", keyword: "repo", application: sentAs });
+      handleReply({ id: request.id, result: null });
+      await settle();
+    }
+  });
+
   test("PickDate hands the picked date to onChange and goes back", async () => {
     const picked: unknown[] = [];
     const action = await showAction(h(Action.PickDate, { title: "Set Due Date", type: Action.PickDate.Type.Date, onChange: (date: unknown) => picked.push(date) }));

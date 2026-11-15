@@ -138,7 +138,7 @@ struct SearchIndexTests {
             case .ai: #expect(entry.paneLabel == .ai)
             case .sync: #expect(entry.paneLabel == .sync)
             case .appearance: #expect(entry.paneLabel == .appearance)
-            case .quicklinks: #expect(entry.paneLabel == .quicklinks)
+            case .quicklinks, .raycastImport: #expect(entry.paneLabel == .quicklinks)
             case .fallbacks: #expect(entry.paneLabel == .fallbacks)
             case .snippets: #expect(entry.paneLabel == .snippets)
             case .extensionStore: #expect(entry.paneLabel == .extensionStore)
@@ -301,6 +301,15 @@ struct SearchModelTests {
         #expect(general.label == .general)
         #expect(general.entries.allSatisfy { $0.pane == .general })
         #expect(model.resultCount == model.displayedGroups.reduce(0) { $0 + $1.entries.count })
+    }
+
+    @Test func theRaycastImportAndAQuicklinksAppAreFound() throws {
+        let model = SearchModel()
+        model.searchText = "import raycast"
+        let quicklinks = try #require(model.displayedGroups.first { $0.pane == .quicklinks })
+        #expect(quicklinks.entries.map(\.title).contains("Import from Raycast…"))
+        model.searchText = "open with"
+        #expect(model.displayedGroups.first { $0.pane == .quicklinks }?.entries.map(\.title).contains("Open with") == true)
     }
 
     @Test func extensionsAreFoundOnlyOnceTheirCommandsAreSet() throws {

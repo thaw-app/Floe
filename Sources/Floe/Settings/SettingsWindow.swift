@@ -31,7 +31,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     func show(page: SettingsPage? = nil) {
-        selection.page = page ?? selection.page
+        selection.open(page)
         if window == nil {
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 820, height: 560),
@@ -90,6 +90,8 @@ nonisolated enum SettingsPage: Hashable {
     case privacy
     case about
     case extensionPage(String)
+    /// The Quicklinks page, with Import from Raycast started on it.
+    case raycastImport
 
     private static let extensionPrefix = "extension:"
     private static let fixed: [String: SettingsPage] = [
@@ -106,6 +108,7 @@ nonisolated enum SettingsPage: Hashable {
         "appearance": .appearance,
         "privacy": .privacy,
         "about": .about,
+        "import-raycast": .raycastImport,
     ]
 
     /// The page's name on the command line and between the two processes.
@@ -130,4 +133,17 @@ nonisolated enum SettingsPage: Hashable {
 
 final class SettingsSelection: ObservableObject {
     @Published var page: SettingsPage = .general
+    /// Set when the Raycast import was asked for; the Quicklinks page starts it and clears this.
+    @Published var importsFromRaycast = false
+
+    /// Shows a page; nil keeps the one on screen.
+    func open(_ requested: SettingsPage?) {
+        guard let requested else { return }
+        if requested == .raycastImport {
+            page = .quicklinks
+            importsFromRaycast = true
+        } else {
+            page = requested
+        }
+    }
 }
