@@ -248,15 +248,16 @@ final nonisolated class FileIndexService: Sendable {
         _ = done.wait(timeout: .now() + 2)
     }
 
-    /// The index first and its stamp after: a launch that finds a newer index than its stamp reads a few events twice.
+    /// Index before stamp, so a launch may read a few events twice. A failed save stays unsaved for the save at quit.
     private func save(_ index: FileIndex) {
         guard environment.writesCache, let saved = environment.saved,
               let now = running.withLock({ $0?.index === index ? $0 : nil }),
               let volume = environment.volume(now.root)
         else { return }
         try? FileManager.default.createDirectory(at: saved.deletingLastPathComponent(), withIntermediateDirectories: true)
-        running.withLock { $0?.hasUnsavedChanges = false }
-        guard index.save(to: saved), let stamp = try? JSONEncoder().encode(Stamp(event: now.event, volume: volume)) else { return }
+        let isSaved = index.save(to: saved)
+        running.withLock { if $0?.index === index { $0?.hasUnsavedChanges = !isSaved } }
+        guard isSaved, let stamp = try? JSONEncoder().encode(Stamp(event: now.event, volume: volume)) else { return }
         try? stamp.write(to: Self.stampFile(for: saved), options: .atomic)
     }
 
