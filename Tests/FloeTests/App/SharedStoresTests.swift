@@ -59,4 +59,14 @@ struct SharedStoresTests {
         SharedStores.reload(nil) { preferences += 1 }
         #expect(preferences == 1)
     }
+
+    @Test func aSettingsProcessThatEndsHasEverythingReadAgainThenTheSearchRunsLast() {
+        var calls: [String] = []
+        SharedStores.settingsProcessEnded(
+            reloadStores: { calls.append("stores") },
+            rescan: { scan in calls.append("rescan \(scan.rawValue)") },
+            refreshSearch: { calls.append("search") }
+        )
+        #expect(calls == ["stores", "rescan commands", "rescan scripts", "search"])
+    }
 }

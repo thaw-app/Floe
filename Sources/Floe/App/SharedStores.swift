@@ -30,6 +30,15 @@ enum SharedStores {
         reload(.quicklinks)
     }
 
+    /// What the launcher does once the Settings process has ended. Its last messages may not have arrived, so every
+    /// store it saves is read and every scan it can ask for runs again; the search runs last, on what was read.
+    static func settingsProcessEnded(reloadStores: () -> Void, rescan: (LinkScan) -> Void, refreshSearch: () -> Void) {
+        reloadStores()
+        rescan(.commands)
+        rescan(.scripts)
+        refreshSearch()
+    }
+
     /// Reads again the store another process saved. Preferences are read where they are used, so a process
     /// that keeps something made from them passes what to do.
     static func reload(_ store: LinkStore?, preferences: () -> Void = { /* nothing is made from the preferences */ }) {

@@ -93,14 +93,16 @@ final class LauncherSettingsLink {
         hotkeys.isSuspended = local || recording.isRecording
     }
 
-    /// Clears remote recording state and reloads stores even if the final notification was lost.
+    /// Clears remote recording state and reads everything again, even if the final notification was lost.
     private func settingsProcessExited() {
         recording.settingsProcessExited()
         suspendHotkeys(local: settings.isRecordingHotkey)
         // Its last words may not have arrived, so everything it could have changed is read once more.
-        settings.reload()
-        SnippetStore.shared.reload()
-        QuicklinkStore.shared.reload()
+        SharedStores.settingsProcessEnded(
+            reloadStores: { SharedStores.reloadAll(settings: settings) },
+            rescan: { rescan($0) },
+            refreshSearch: { onChange?() }
+        )
     }
 
     /// Applies a validated Settings message, then has the search read it again when it could answer differently.
