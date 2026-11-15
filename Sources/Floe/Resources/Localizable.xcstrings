@@ -4528,6 +4528,9 @@
     "The command line tool set up on the AI page" : {
 
     },
+    "The command took too long and was stopped." : {
+      "comment" : "Said when Floe stopped a command that ran past its time limit."
+    },
     "The command's input could not be prepared." : {
       "comment" : "Said when a command is given something to read and the pipe to read it from cannot be made."
     },

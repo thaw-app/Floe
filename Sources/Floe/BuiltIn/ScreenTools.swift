@@ -76,7 +76,8 @@ nonisolated enum ScreenTools {
     static func capture() async -> CGImage? {
         let file = FileManager.default.temporaryDirectory.appendingPathComponent("floe-screen-\(UUID().uuidString).png")
         defer { try? FileManager.default.removeItem(at: file) }
-        _ = try? await Shell.run(URL(fileURLWithPath: "/usr/sbin/screencapture"), ["-i", "-x", "-t", "png", file.path])
+        // The user drags for as long as they like, and Escape ends it, so no deadline.
+        _ = try? await Shell.run(URL(fileURLWithPath: "/usr/sbin/screencapture"), ["-i", "-x", "-t", "png", file.path], timeout: nil)
         guard let source = CGImageSourceCreateWithURL(file as CFURL, nil) else { return nil }
         return CGImageSourceCreateImageAtIndex(source, 0, nil)
     }

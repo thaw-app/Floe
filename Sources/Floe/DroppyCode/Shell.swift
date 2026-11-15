@@ -14,7 +14,8 @@
 //  as it is read, for a tool that streams its answer. Input written to a program that has already
 //  ended fails quietly, where it used to end the app with a broken pipe. The process itself is
 //  Subprocess's now, as the extension installer already runs; what stays here is the tail-keeping
-//  collector, the deadline, and the quiet treatment of a broken pipe.
+//  collector, the deadline, and the quiet treatment of a broken pipe. A process ended at its
+//  deadline is marked so, and a deadline can be left off.
 
 import Foundation
 import Subprocess
@@ -25,9 +26,13 @@ nonisolated struct ShellResult: Sendable {
     var status: Int32
     var stdout: Data
     var stderr: Data
+    /// Floe ended it at its deadline: its status is the signal it was stopped with, not a failure of its own.
+    var timedOut = false
+
+    static let tookTooLong = String(localized: "The command took too long and was stopped.", bundle: .floe, comment: "Said when Floe stopped a command that ran past its time limit.")
 
     var succeeded: Bool {
-        status == 0
+        status == 0 && !timedOut
     }
 
     var output: String {
@@ -48,6 +53,9 @@ nonisolated struct ShellResult: Sendable {
 
     /// The most useful text to show when a command fails.
     var failureMessage: String {
+        if timedOut {
+            return Self.tookTooLong
+        }
         let error = errorOutput.trimmingCharacters(in: .whitespacesAndNewlines)
         let message = error.isEmpty ? trimmedOutput : error
         return message.isEmpty ? String(localized: "The command failed with exit code \(status).", bundle: .floe, comment: "The placeholder is the number a command ended with.") : message
@@ -68,7 +76,7 @@ nonisolated struct ShellError: LocalizedError, Sendable {
 nonisolated enum Shell {
     /// Runs a process to completion off the main actor and collects its output. With an
     /// `outputLimit`, only that many bytes of each stream's tail are kept. `onOutput` is given
-    /// standard output as it is read, in order.
+    /// standard output as it is read, in order. A nil timeout is no deadline, for a program that waits on the user.
     @concurrent
     static func run(
         _ executable: URL,
@@ -76,7 +84,7 @@ nonisolated enum Shell {
         in directory: URL? = nil,
         environment: [String: String]? = nil,
         input: Data? = nil,
-        timeout: TimeInterval = 120,
+        timeout: TimeInterval? = 120,
         outputLimit: Int? = nil,
         onOutput: (@Sendable (Data) -> Void)? = nil
     ) async throws -> ShellResult {
@@ -93,22 +101,22 @@ nonisolated enum Shell {
         options.teardownSequence = teardown
         // The body hands the running process over, for the deadline to end when it outlives its time.
         let running = Mutex<Execution<FileDescriptorInput, SequenceOutput, SequenceOutput>?>(nil)
+        let timedOut = Mutex(false)
         let surroundings = environment ?? LoginEnvironment.current
         // The input goes through a pipe of Floe's own, whose write end is made quiet, so a program
         // that ends without reading it fails the write instead of ending Floe. Without input: the null device.
         let stdin = try StandardInput(for: input)
-        let deadline = Task {
-            do {
-                try await Task.sleep(for: .seconds(timeout))
-            } catch {
-                // Cancelled because the process has ended: only a real deadline tears
-                // a living process down, however its streams ended before it did.
-                return
+        let deadline = timeout.map { seconds in
+            Task {
+                // Cancelled because the process has ended: only a real deadline tears a living process
+                // down, however its streams ended before it did.
+                guard (try? await Task.sleep(for: .seconds(seconds))) != nil, let execution = running.withLock({ $0 }) else { return }
+                timedOut.withLock { $0 = true }
+                await execution.teardown(using: teardown)
             }
-            await running.withLock { $0 }?.teardown(using: teardown)
         }
         // The process has ended, one way or another: its deadline is of no more use.
-        defer { deadline.cancel() }
+        defer { deadline?.cancel() }
 
         let result: ExecutionResult<Void, SequenceOutput, SequenceOutput>
         do {
@@ -138,7 +146,7 @@ nonisolated enum Shell {
         case let .exited(code): code
         case let .signaled(signal): signal
         }
-        return ShellResult(status: status, stdout: collector.output(.stdout), stderr: collector.output(.stderr))
+        return ShellResult(status: status, stdout: collector.output(.stdout), stderr: collector.output(.stderr), timedOut: timedOut.withLock { $0 })
     }
 
     /// Reads both streams to their ends while the input is written.

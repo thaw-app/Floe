@@ -46,8 +46,21 @@ struct ShellTests {
         let started = Date()
         let result = try await Shell.run(tool("/bin/sleep"), ["60"], environment: [:], timeout: 0.2)
         #expect(!result.succeeded)
+        #expect(result.timedOut)
+        #expect(result.failureMessage == ShellResult.tookTooLong)
         // Well under the minute: a busy CI runner has taken 13 seconds to stop it.
         #expect(Date().timeIntervalSince(started) < 30)
+    }
+
+    @Test func aProcessThatEndsWithASignalOfItsOwnIsNotTimedOut() async throws {
+        let result = try await Shell.run(tool("/bin/sh"), ["-c", "kill -TERM $$"], environment: [:], timeout: 5)
+        #expect(!result.timedOut)
+        #expect(!result.succeeded)
+    }
+
+    @Test func noDeadlineLetsAProcessRunToItsEnd() async throws {
+        let result = try await Shell.run(tool("/bin/sleep"), ["0.3"], environment: [:], timeout: nil)
+        #expect(result.succeeded)
     }
 
     @Test func aProcessThatClosesItsOwnStreamsKeepsRunningToItsEnd() async throws {
