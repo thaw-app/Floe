@@ -36,6 +36,7 @@ these four.
 - **A command opened by its hotkey or a link while clipboard history or another search is open now gets your typing**, so Return runs the command's action instead of pasting the clipboard item behind it.
 - **The search shows your changes as soon as you close Settings**, including an extension you installed just before.
 - **Apps in a folder you deleted and recreated show up** without restarting Floe.
+- **Changing an extension's settings no longer erases the rest** when Floe can't read the settings file or a save is cut short.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.

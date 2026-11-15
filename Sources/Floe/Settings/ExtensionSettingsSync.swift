@@ -154,6 +154,6 @@ final class ExtensionSettingsSync {
 extension ExtensionSettingsSync.Access {
     /// The preferences as `PreferenceStore` keeps them, which is where a command reads them when it starts.
     static func stored(includes: @escaping () -> Bool, commands: @escaping () -> [ExtensionCommand]) -> Self {
-        Self(includes: includes, commands: commands, stored: PreferenceStore.storedValues, merge: PreferenceStore.merge)
+        Self(includes: includes, commands: commands, stored: PreferenceStore.storedValues, merge: { PreferenceStore.merge($0, extensionName: $1) })
     }
 }
