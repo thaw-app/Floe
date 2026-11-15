@@ -156,6 +156,26 @@ final class ExtensionSettingsSync {
         return Dictionary(uniqueKeysWithValues: held.records.map { (Self.prefix + $0.key, $0.value) })
     }
 
+    /// A record taken in from the store without the credentials an older Floe put in it, or nil when it holds none.
+    /// Only an installed extension's manifest says which fields hold one, so a record for another is left as it is.
+    func withoutCredentials(_ key: String, _ text: String) -> String? {
+        guard key.hasPrefix(Self.prefix), access.includes(), let values = Self.object(text) else { return nil }
+        let name = String(key.dropFirst(Self.prefix.count))
+        let credentials = Self.credentialKeys(of: access.commands().filter { $0.extensionName == name })
+        let kept = values.filter { !credentials.contains($0.key) }
+        return kept.count < values.count ? SettingsSync.text(kept) : nil
+    }
+
+    /// The storage keys of the text fields that look like they hold a credential.
+    static func credentialKeys(of commands: [ExtensionCommand]) -> Set<String> {
+        var keys: Set<String> = []
+        for command in commands {
+            keys.formUnion(command.extensionPreferences.filter { looksSecret($0) }.map { PreferenceResolver.storageKey($0, commandName: nil) })
+            keys.formUnion(command.commandPreferences.filter { looksSecret($0) }.map { PreferenceResolver.storageKey($0, commandName: command.name) })
+        }
+        return keys
+    }
+
     /// The record without keys named like a credential, or nil when it has none.
     private static func withoutSecrets(_ text: String) -> String? {
         guard let values = object(text) else { return nil }

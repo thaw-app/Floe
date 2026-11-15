@@ -97,6 +97,9 @@ struct SyncClient {
     var apply: (_ changed: [String: String], _ removed: Set<String>) -> Set<String>
     /// Switches sync off in the app, when another Mac removed the settings from iCloud.
     var turnOff: () -> Void = { /* an app without a switch has nothing to turn */ }
+    /// A value taken in without what must not stay in the store, such as a credential an older version sent, or nil
+    /// to keep it. The engine sends the cleaned value back.
+    var cleaned: (_ key: String, _ value: String) -> String? = { _, _ in nil }
 }
 
 /// Keeps the app's values and a store in step, one record per key, newest change winning.
@@ -312,7 +315,12 @@ final class SyncEngine {
         let snapshot = client.snapshot()
         // A refused record is not noted, so it is tried and counted again until the other Mac repairs it.
         for key in outcome.apply.subtracting(refused) {
-            journal.records[key] = remote[key]
+            if let record = remote[key], let value = record.value, let cleaned = client.cleaned(key, value) {
+                journal.records[key] = SyncRecord(value: cleaned, time: stamp(after: record.time), device: journal.device)
+                outcome.push.insert(key)
+            } else {
+                journal.records[key] = remote[key]
+            }
             // What the app holds now, which is the same value unless it could keep only part of it.
             journal.seen[key] = snapshot[key].map(SyncWire.digest)
         }
