@@ -14,7 +14,7 @@ nonisolated enum RecentDocuments {
     static let keyword = "recent"
     /// How far back a file counts as used lately.
     static let window: TimeInterval = 30 * 24 * 3600
-    /// How many of the latest files are asked about, and how many rows are shown.
+    /// How many of the latest files Spotlight returns, and how many rows are shown.
     static let askedLimit = 400
     static let rowLimit = 30
 
@@ -26,8 +26,12 @@ nonisolated enum RecentDocuments {
     /// The files in the home folder that Spotlight says were used inside the window, latest first. Folders and apps are left out.
     static func recentlyUsed(now: Date = Date()) -> [Used] {
         let text = "kMDItemLastUsedDate >= $time.iso(\(now.addingTimeInterval(-window).ISO8601Format())) && kMDItemContentTypeTree != \"public.folder\" && kMDItemContentType != \"com.apple.application-bundle\""
-        guard let query = MDQueryCreate(kCFAllocatorDefault, text as CFString, nil, nil) else { return [] }
+        guard let query = MDQueryCreate(kCFAllocatorDefault, text as CFString, nil, [kMDItemLastUsedDate] as CFArray) else { return [] }
         MDQuerySetSearchScope(query, [kMDQueryScopeHome] as CFArray, 0)
+        // Newest first and capped: a busy month is thousands of files.
+        MDQuerySetSortOrder(query, [kMDItemLastUsedDate] as CFArray)
+        MDQuerySetSortOptionFlagsForAttribute(query, kMDItemLastUsedDate, kMDQueryReverseSortOrderFlag.rawValue)
+        MDQuerySetMaxCount(query, askedLimit)
         guard MDQueryExecute(query, CFOptionFlags(kMDQuerySynchronous.rawValue)) else { return [] }
         let found = (0 ..< MDQueryGetResultCount(query)).compactMap { index -> Used? in
             guard let raw = MDQueryGetResultAtIndex(query, index) else { return nil }
