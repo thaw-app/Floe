@@ -25,7 +25,7 @@ these four.
 
 ### Changed
 
-- **Updates download only what changed** instead of the whole app, usually a few megabytes instead of about 80.
+- **Updating from any of the last three releases downloads only what changed**, a few megabytes instead of about 80.
 
 ### Fixed
 
