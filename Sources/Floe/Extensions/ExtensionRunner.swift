@@ -224,6 +224,9 @@ final class ExtensionRunner: ObservableObject {
     // MARK: What a command asks for
 
     func handle(_ message: [String: Any], from session: ExtensionSession) {
+        if handledOffScreen(message, from: session) {
+            return
+        }
         switch message["type"] as? String {
         case "exit", "popToRoot":
             leave(session, poppingToRoot: message["type"] as? String == "popToRoot")
@@ -247,6 +250,16 @@ final class ExtensionRunner: ObservableObject {
         default:
             showToastWithoutFooter(message, of: session)
         }
+    }
+
+    /// A command left running off screen has no say over the panel, which may be showing another by now: what it asks
+    /// of the panel is handled as a background run's, and closing it or asking for preferences is ignored. False for
+    /// any other message.
+    private func handledOffScreen(_ message: [String: Any], from session: ExtensionSession) -> Bool {
+        guard unattended.contains(where: { $0 === session }), let type = message["type"] as? String,
+              ["close", "hud", "copy", "paste", "open", "openPreferences", "signIn"].contains(type) else { return false }
+        handleBackgroundMessage(message)
+        return true
     }
 
     private func close(_ message: [String: Any], from session: ExtensionSession) {
@@ -323,7 +336,7 @@ final class ExtensionRunner: ObservableObject {
 
 extension ExtensionRunner {
     /// Takes the open no-view command off the panel without stopping it. Its messages still reach handle, which
-    /// treats it as a command that is not on screen.
+    /// treats it as a background run.
     func detach(_ session: ExtensionSession) {
         guard self.session === session else { return }
         unattended.append(session)
@@ -352,6 +365,8 @@ extension ExtensionRunner {
     /// Stops every command, open or unattended, when Floe quits.
     func stopAll() {
         session?.forceStop()
+        reloading?.session.forceStop()
+        reloading = nil
         for session in unattended {
             session.forceStop()
         }

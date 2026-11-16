@@ -34,6 +34,7 @@ these four.
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
 - **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search.
 - **Background commands keep running after they close the launcher**, as they do in Raycast.
+- **A command still running after you go back to the search can't close the launcher or paste into the app in front.** What it copies stays on the clipboard for you to paste.
 - **Commands that run without opening anything now say when they fail** instead of failing silently.
 - **Signing in to an extension in the browser no longer fails when another of its commands refreshes or ends.**
 - **A command opened by its hotkey or a link while clipboard history or another search is open now gets your typing**, so Return runs the command's action instead of pasting the clipboard item behind it.

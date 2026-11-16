@@ -54,10 +54,10 @@ struct ExtensionRunnerTests {
     }
 
     /// A pasteboard of the test's own, so the user's clipboard is never written.
-    private func withPasteboard(_ body: (NSPasteboard) -> Void) {
+    private func withPasteboard(_ body: (NSPasteboard) throws -> Void) rethrows {
         let pasteboard = NSPasteboard.withUniqueName()
         defer { pasteboard.releaseGlobally() }
-        body(pasteboard)
+        try body(pasteboard)
     }
 
     /// A runner whose sessions start no host, handed out as they are made: the test plays the host.
@@ -86,6 +86,15 @@ struct ExtensionRunnerTests {
         #expect(runner.session === first, "the view on screen stays while the change starts")
         render(started()[1])
         #expect(runner.session === started()[1])
+    }
+
+    @Test func quittingStopsAChangeThatIsStillStarting() throws {
+        let (runner, started) = reloadingRunner()
+        let first = try #require(runner.session)
+        render(first)
+        runner.reload(first, changed: ["src/index.tsx"])
+        runner.stopAll()
+        #expect(started()[1].isStopping)
     }
 
     @Test func aSavedChangeThatFailsLeavesTheLastViewUpAndSaysWhy() throws {
@@ -226,6 +235,25 @@ struct ExtensionRunnerTests {
         runner.handle(["type": "crashed"], from: session)
         #expect(asked.calls.contains("hud Greet failed"))
         #expect(runner.unattended.isEmpty)
+    }
+
+    @Test func anUnattendedCommandHasNoSayOverThePanel() throws {
+        try withPasteboard { pasteboard in
+            let (runner, session) = try noViewRunner()
+            runner.pasteboard = pasteboard
+            runner.endOpenCommand()
+            runner.run(command())
+            asked.calls = []
+            runner.handle(["type": "hud", "title": "Done"], from: session)
+            runner.handle(["type": "close"], from: session)
+            runner.handle(["type": "paste", "text": "hello"], from: session)
+            runner.handle(["type": "open", "target": "https://example.com"], from: session)
+            runner.handle(["type": "openPreferences"], from: session)
+            runner.handle(["type": "signIn", "preference": "token"], from: session)
+            #expect(asked.calls == ["hud Done", "hud Copied. Press ⌘V to paste.", "open https://example.com -"], "the view on screen stays")
+            #expect(pasteboard.string(forType: .string) == "hello")
+            runner.stopAll()
+        }
     }
 
     @Test func runningAnotherCommandLeavesTheNoViewOneRunning() throws {
