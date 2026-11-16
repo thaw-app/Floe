@@ -265,7 +265,7 @@ jobs:
       attest: ${{ !inputs.dry_run }}
     secrets: inherit
 
-  # Not org-ci's release-macos-app.yml: it signs older ZIPs again for delta updates, and Floe signs only this build.
+  # Not org-ci's release-macos-app.yml: its sparkle-release pin still signs older ZIPs for deltas without checking them.
   release:
     needs: [meta, build]
     if: github.repository == 'thaw-app/Floe'
@@ -429,7 +429,7 @@ jobs:
       - name: Sparkle ZIP and appcast
         id: sparkle
         if: needs.meta.outputs.updates == 'true'
-        uses: thaw-app/org-ci/actions/sparkle-release@cfa52194f39013d6f54e6f5a14dc57cec3a20e9b
+        uses: thaw-app/org-ci/actions/sparkle-release@89978ae80302fa0e5028d415ea780b51bae4c246
         with:
           tag: ${{ needs.meta.outputs.tag }}
           channel: ${{ needs.meta.outputs.channel }}
@@ -437,10 +437,6 @@ jobs:
           asset-prefix: Floe
           appcast-title: Floe
           sparkle-private-key: ${{ secrets.SPARKLE_ED25519_PRIVATE_KEY }}
-          # Older ZIPs come from the public release listing, and generate_appcast
-          # would sign them again with the update key. Only this build is signed,
-          # so there are no delta updates; the appcast keeps its older items.
-          previous-release-count: "0"
           # Matches the Sparkle version in Package.resolved.
           sparkle-version: "2.10.0"
           sparkle-sha256: c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c
@@ -722,3 +718,30 @@ jobs:
             *
             !appcast.xml
             !.gitignore
+
+  # A dry run or a draft release only logs. A job of its own keeps issues: write out of the others.
+  comment-shipped:
+    needs: [meta, release, attach-provenance]
+    if: >-
+      ${{ !cancelled() && github.repository == 'thaw-app/Floe' && needs.release.result == 'success'
+      && (needs.attach-provenance.result == 'success' || needs.attach-provenance.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout the changelog
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.meta.outputs.tag }}
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Comment on shipped issues
+        uses: thaw-app/org-ci/actions/shipped-comments@89978ae80302fa0e5028d415ea780b51bae4c246
+        with:
+          tag: ${{ needs.meta.outputs.tag }}
+          product-name: Floe
+          close-issues: "true"
+          dry-run: ${{ inputs.dry_run || !inputs.publish_release }}
