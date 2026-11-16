@@ -157,6 +157,26 @@ struct SyncEngineTests {
         #expect(a.values["ext/weather"] == clean, "the store holds it without the key")
     }
 
+    @Test func aRecordTheAppRefusedANewerValueOfIsNotCleanedOverIt() {
+        let a = mac("a")
+        let b = mac("b")
+        let newer = "{\"city\":\"Lisbon\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        b.unacceptable = ["ext/weather"]
+        a.edit("ext/weather", newer, at: 4000)
+        cloud.deliver()
+        b.cleans = { _, value in value.contains("apiKey") ? "{\"city\":\"Oslo\"}" : nil }
+        b.time = 5000
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        cloud.deliver()
+        #expect(a.values["ext/weather"] == newer, "the newer record stays in the store")
+        #expect(updated.journal.records["ext/weather"]?.value?.contains("apiKey") == true, "kept to try the newer one again")
+    }
+
     @Test func aDeletionIsNotBroughtBackByAnotherMac() {
         let a = mac("a", values: ["snippet": "\"hi\""])
         let b = mac("b", values: ["snippet": "\"hi\""])

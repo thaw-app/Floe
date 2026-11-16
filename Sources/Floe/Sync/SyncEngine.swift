@@ -194,7 +194,7 @@ final class SyncEngine {
         var (remote, skipped) = SyncWire.decode(contents.filter { $0.key != Self.clearedKey }, in: store.limits)
         var outcome = SyncMerge.merge(local: journal.records, remote: remote)
         skipped += take(&outcome, from: remote)
-        clean(&outcome)
+        clean(&outcome, against: remote)
         send(outcome.push, to: store, holding: &remote)
         forgetOldRemovals(in: store, holding: remote)
         if journal != before {
@@ -324,9 +324,12 @@ final class SyncEngine {
     }
 
     /// Sends back without it any record that holds what must not stay in the store: one just taken in, and one this
-    /// Mac took in before it knew to clean it.
-    private func clean(_ outcome: inout SyncMerge.Outcome) {
+    /// Mac took in before it knew to clean it. One the store holds a newer record of, as one the app refused, waits.
+    private func clean(_ outcome: inout SyncMerge.Outcome, against remote: [String: SyncRecord]) {
         for (key, record) in journal.records {
+            if let theirs = remote[key], SyncMerge.wins(theirs, over: record) {
+                continue
+            }
             guard let value = record.value, let cleaned = client.cleaned(key, value) else { continue }
             journal.records[key] = SyncRecord(value: cleaned, time: stamp(after: record.time), device: journal.device)
             outcome.push.insert(key)
