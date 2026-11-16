@@ -129,7 +129,7 @@ struct AppScanTests {
         #expect(watcher.watched.contains(subfolder.path))
 
         try FileManager.default.removeItem(at: subfolder)
-        watcher.watch([root.path, subfolder.path])
+        watcher.watch(AppEntry.folders(in: [root.path]))
         #expect(!watcher.watched.contains(subfolder.path))
         #expect(watcher.identity(watching: subfolder.path) == nil)
     }
