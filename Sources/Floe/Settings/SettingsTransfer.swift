@@ -83,11 +83,10 @@ enum SettingsTransfer {
         for (key, local) in SettingsSync.thisMacOnly {
             theirs[key] = local.onImport.value(mine: mine[key], theirs: theirs[key])
         }
-        // Shell settings sync except whether commands run, so they are not in that list. A file without them would
-        // get the defaults, which run commands.
-        var shell = theirs["shell"] as? [String: Any] ?? [:]
-        shell["runs"] = here.shell.runs
-        theirs["shell"] = shell
+        // Only the shell prefix is the file's, as with sync. The rest is this Mac's, written out in full: a file without
+        // it, or with a value that does not read, would get defaults that run commands.
+        let prefix = ((theirs["shell"] as? [String: Any])?["prefix"] as? String).flatMap(CommandPrefix.init) ?? here.shell.prefix
+        theirs["shell"] = ["runs": here.shell.runs, "prefix": prefix.rawValue, "recognizes": here.shell.recognizes, "suggests": here.shell.suggests]
         return (try? JSONSerialization.data(withJSONObject: theirs)) ?? file
     }
 

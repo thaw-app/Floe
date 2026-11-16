@@ -53,7 +53,7 @@ these four.
 These come from a code review of Floe on 2026-11-15.
 - **Each extension's saved data is encrypted with a key of its own**, so one extension can't read what another saved or your clipboard history.
 - **Clipboard images an extension read are deleted when Floe quits.**
-- **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log or extension settings sync.**
+- **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log, extension settings sync or shell commands without the prefix**, even when the file's shell settings are damaged.
 - **A password saved before Floe was renamed is no longer lost when the keychain refuses its new copy.**
 - **Extension text fields that look like a token, key, secret or password stay on this Mac** and are taken out of iCloud the next time Floe syncs. Update Floe on each of your Macs, since an older version still sends them.
 

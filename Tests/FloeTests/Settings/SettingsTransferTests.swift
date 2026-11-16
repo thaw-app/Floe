@@ -58,6 +58,7 @@ struct SettingsImportTests {
         file.syncsWithICloud = true
         file.shell.runs = true
         file.shell.prefix = .dollar
+        file.shell.recognizes = true
         file.aiOnThisMacOnly = false
         file.aliases = ["sample/planets": "p"]
         return try file.exportedJSON()
@@ -69,6 +70,7 @@ struct SettingsImportTests {
         here.searchSources = ["files"]
         here.aiOnThisMacOnly = true
         here.shell.runs = false
+        here.shell.recognizes = false
 
         try here.importJSON(generousFile())
 
@@ -79,7 +81,8 @@ struct SettingsImportTests {
         #expect(!here.fetchesExchangeRates)
         #expect(!here.syncsWithICloud)
         #expect(!here.shell.runs, "a file never switches on running commands")
-        #expect(here.shell.prefix == .dollar, "the rest of the shell settings are the file's")
+        #expect(!here.shell.recognizes, "nor recognizing them without the prefix")
+        #expect(here.shell.prefix == .dollar, "the prefix is the file's")
         #expect(here.aiOnThisMacOnly, "a file never loosens the promise")
         #expect(here.aliases == ["sample/planets": "p"], "everything else is the file's")
     }
@@ -93,6 +96,19 @@ struct SettingsImportTests {
         try here.importJSON(JSONSerialization.data(withJSONObject: file))
 
         #expect(!here.shell.runs)
+    }
+
+    @Test func shellSettingsThatDoNotReadDoNotSwitchOnRunningCommands() throws {
+        let here = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        here.shell.runs = false
+        here.shell.prefix = .exclamation
+        var file = try #require(JSONSerialization.jsonObject(with: AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false).exportedJSON()) as? [String: Any])
+        file["shell"] = ["runs": true, "prefix": "%", "recognizes": "yes"]
+
+        try here.importJSON(JSONSerialization.data(withJSONObject: file))
+
+        #expect(!here.shell.runs)
+        #expect(here.shell.prefix == .exclamation, "a prefix that does not read leaves this Mac's")
     }
 
     @Test func aFileMayStillTightenThePromiseToKeepAIHere() throws {
