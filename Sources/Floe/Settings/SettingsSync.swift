@@ -65,47 +65,87 @@ enum SettingsSync {
         field("shell", CommandPrefix.self, .entries(only: ["prefix"])),
     ]
 
-    /// The settings that never leave this Mac, each with why.
-    static let thisMacOnly: [String: String] = [
-        "notesFolder": "a path on this Mac",
-        "launcherScreen": "names a screen connected to this Mac",
-        "terminalApp": "holds the app's path on this Mac",
-        "editorApp": "holds the app's path on this Mac",
-        "browserApp": "holds the app's path on this Mac",
-        "clipboardApp": "holds the app's path on this Mac",
-        "clipboardHandler": "goes with the clipboard app chosen on this Mac",
-        "clipboardURL": "goes with the clipboard app chosen on this Mac",
-        "clipboardHistoryEnabled": "whether this Mac records what is copied",
-        "includeRaycastExtensions": "reads a folder on this Mac and loads the code in it",
-        "disabledExtensions": "switching an extension back on runs its code, which is decided on each Mac",
-        "disabledCommands": "switching a command back on runs its code, which is decided on each Mac",
-        "enabledCommands": "switching a command on runs its code, which is decided on each Mac",
-        "menuBarCommands": "the commands running in this Mac's menu bar",
-        "menuBarItemNames": "keyed by where an item sits in this Mac's menu bar",
-        "searchSources": "each source was switched on here after macOS asked for access",
-        "indexesFileNames": "a permission given on this Mac",
-        "focusShortcut": "names a Shortcut that exists on this Mac",
-        "fetchesExchangeRates": "consent to a download, given on this Mac",
-        "lentSignIns": "sign-ins lent to extensions on this Mac",
-        "shellEnvironmentExtensions": "hands an extension this Mac's shell environment, tokens included, so it is decided on each Mac",
-        "aiSource": "what answers depends on what is installed and signed in here",
-        "aiBaseURL": "goes with a key in this Mac's Keychain",
-        "aiModel": "goes with the AI source of this Mac",
-        "aiTool": "a command line tool installed on this Mac",
-        "aiToolModels": "goes with the tools installed on this Mac",
-        "aiSourceByExtension": "goes with the AI source of this Mac",
-        "aiOnThisMacOnly": "a promise about this Mac, never loosened from elsewhere",
-        "remembersSearches": "whether this Mac keeps a history, and off forgets it here",
-        "keepsReceipts": "whether this Mac keeps receipts, and off forgets them here",
-        "recordsExtensionAccess": "whether this Mac keeps the access record, and off forgets it here",
-        "followsThawAppearance": "needs Thaw running on this Mac and asks it",
-        "showInDock": "how the app sits on this Mac",
-        "showInMenuBar": "how the app sits on this Mac",
-        "settingsTheme": "Black is chosen for this Mac's display",
-        "hasSeenOnboarding": "the welcome is shown once on each Mac",
-        "diagnosticLogging": "a log file on this Mac",
-        "syncsWithICloud": "the sync switch itself, so each Mac joins by choice",
-        "syncsExtensionSettings": "whether this Mac shares its extensions' settings, chosen on each Mac",
+    /// What an imported settings file may do to a setting kept on this Mac. A file can come from anyone.
+    enum OnImport {
+        /// The file's value is taken: it is a choice, not a consent.
+        case takesFile
+        /// This Mac's value stays, whatever the file holds.
+        case keepsThisMac
+        /// The file may switch it off or take names out of it, never switch it on or add names.
+        case mayOnlyRemove
+        /// The file may switch it on or add names, never the other way. For a promise or a list of things switched off.
+        case mayOnlyAdd
+
+        /// The value an import keeps. A file that holds none, or one of another kind, leaves this Mac's in place.
+        func value(mine: Any?, theirs: Any?) -> Any? {
+            switch self {
+            case .takesFile: return theirs
+            case .keepsThisMac: return mine
+            case .mayOnlyRemove, .mayOnlyAdd:
+                if let mine = mine as? Bool, let theirs = theirs as? Bool {
+                    return self == .mayOnlyAdd ? mine || theirs : mine && theirs
+                }
+                if let mine = mine as? [String], let theirs = theirs as? [String] {
+                    let names = self == .mayOnlyAdd ? Set(mine).union(theirs) : Set(mine).intersection(theirs)
+                    return names.sorted()
+                }
+                return mine
+            }
+        }
+    }
+
+    struct Local {
+        let onImport: OnImport
+        let why: String
+
+        /// The rule has no default, so a setting added later cannot skip the decision.
+        init(_ onImport: OnImport, _ why: String) {
+            self.onImport = onImport
+            self.why = why
+        }
+    }
+
+    /// The settings that never leave this Mac, each with what an import may do to it and why.
+    static let thisMacOnly: [String: Local] = [
+        "notesFolder": Local(.takesFile, "a path on this Mac"),
+        "launcherScreen": Local(.takesFile, "names a screen connected to this Mac"),
+        "terminalApp": Local(.takesFile, "holds the app's path on this Mac"),
+        "editorApp": Local(.takesFile, "holds the app's path on this Mac"),
+        "browserApp": Local(.takesFile, "holds the app's path on this Mac"),
+        "clipboardApp": Local(.takesFile, "holds the app's path on this Mac"),
+        "clipboardHandler": Local(.takesFile, "goes with the clipboard app chosen on this Mac"),
+        "clipboardURL": Local(.takesFile, "goes with the clipboard app chosen on this Mac"),
+        "clipboardHistoryEnabled": Local(.mayOnlyRemove, "whether this Mac records what is copied"),
+        "includeRaycastExtensions": Local(.mayOnlyRemove, "reads a folder on this Mac and loads the code in it"),
+        "disabledExtensions": Local(.mayOnlyAdd, "switching an extension back on runs its code, which is decided on each Mac"),
+        "disabledCommands": Local(.mayOnlyAdd, "switching a command back on runs its code, which is decided on each Mac"),
+        "enabledCommands": Local(.mayOnlyRemove, "switching a command on runs its code, which is decided on each Mac"),
+        "menuBarCommands": Local(.mayOnlyRemove, "the commands running in this Mac's menu bar"),
+        "menuBarItemNames": Local(.takesFile, "keyed by where an item sits in this Mac's menu bar"),
+        "searchSources": Local(.keepsThisMac, "each source was switched on here after macOS asked for access"),
+        "indexesFileNames": Local(.keepsThisMac, "a permission given on this Mac"),
+        "focusShortcut": Local(.takesFile, "names a Shortcut that exists on this Mac"),
+        "fetchesExchangeRates": Local(.keepsThisMac, "consent to a download, given on this Mac"),
+        "lentSignIns": Local(.keepsThisMac, "sign-ins lent to extensions on this Mac"),
+        "shellEnvironmentExtensions": Local(.keepsThisMac, "hands an extension this Mac's shell environment, tokens included, so it is decided on each Mac"),
+        "aiSource": Local(.takesFile, "what answers depends on what is installed and signed in here"),
+        "aiBaseURL": Local(.takesFile, "goes with a key in this Mac's Keychain"),
+        "aiModel": Local(.takesFile, "goes with the AI source of this Mac"),
+        "aiTool": Local(.takesFile, "a command line tool installed on this Mac"),
+        "aiToolModels": Local(.takesFile, "goes with the tools installed on this Mac"),
+        "aiSourceByExtension": Local(.takesFile, "goes with the AI source of this Mac"),
+        "aiOnThisMacOnly": Local(.mayOnlyAdd, "a promise about this Mac, never loosened from elsewhere"),
+        "remembersSearches": Local(.mayOnlyRemove, "whether this Mac keeps a history, and off forgets it here"),
+        "keepsReceipts": Local(.mayOnlyRemove, "whether this Mac keeps receipts, and off forgets them here"),
+        "recordsExtensionAccess": Local(.keepsThisMac, "whether this Mac keeps the access record, and off forgets it here"),
+        "followsThawAppearance": Local(.takesFile, "needs Thaw running on this Mac and asks it"),
+        "showInDock": Local(.takesFile, "how the app sits on this Mac"),
+        "showInMenuBar": Local(.takesFile, "how the app sits on this Mac"),
+        "settingsTheme": Local(.takesFile, "Black is chosen for this Mac's display"),
+        "hasSeenOnboarding": Local(.takesFile, "the welcome is shown once on each Mac"),
+        "diagnosticLogging": Local(.mayOnlyRemove, "a log file on this Mac"),
+        "syncsWithICloud": Local(.keepsThisMac, "the sync switch itself, so each Mac joins by choice"),
+        "syncsExtensionSettings": Local(.mayOnlyRemove, "whether this Mac shares its extensions' settings, chosen on each Mac"),
     ]
 
     static let prefix = "s."

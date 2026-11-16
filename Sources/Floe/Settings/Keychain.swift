@@ -87,7 +87,7 @@ nonisolated struct SystemKeychain: KeychainAccess {
     }
 }
 
-/// A keychain in memory, for tests. It can refuse synchronizable writes, and it notes every synchronizable call.
+/// A keychain in memory, for tests. It can refuse local or synchronizable writes, and it notes every synchronizable call.
 final nonisolated class MemoryKeychain: KeychainAccess {
     private struct Key: Hashable {
         let service: String
@@ -99,6 +99,7 @@ final nonisolated class MemoryKeychain: KeychainAccess {
         var items: [Key: (value: String, modified: Date)] = [:]
         var synchronizableCalls = 0
         var failure: OSStatus?
+        var localFailure: OSStatus?
         var time = Date(timeIntervalSince1970: 1000)
     }
 
@@ -108,6 +109,12 @@ final nonisolated class MemoryKeychain: KeychainAccess {
     var synchronizableFailure: OSStatus? {
         get { state.withLock { $0.failure } }
         set { state.withLock { $0.failure = newValue } }
+    }
+
+    /// The status every local write answers with, as a locked keychain would. Nil lets them through.
+    var localFailure: OSStatus? {
+        get { state.withLock { $0.localFailure } }
+        set { state.withLock { $0.localFailure = newValue } }
     }
 
     /// The time the next writes are dated with.
@@ -135,7 +142,7 @@ final nonisolated class MemoryKeychain: KeychainAccess {
     func write(_ value: String, service: String, account: String, synchronizable: Bool) -> OSStatus {
         state.withLock {
             note(synchronizable, in: &$0)
-            if synchronizable, let failure = $0.failure {
+            if let failure = synchronizable ? $0.failure : $0.localFailure {
                 return failure
             }
             $0.items[Key(service: service, account: account, synchronizable: synchronizable)] = (value, $0.time)
@@ -146,6 +153,9 @@ final nonisolated class MemoryKeychain: KeychainAccess {
     @discardableResult
     func add(_ value: String, service: String, account: String) -> OSStatus {
         state.withLock {
+            if let failure = $0.localFailure {
+                return failure
+            }
             let key = Key(service: service, account: account, synchronizable: false)
             guard $0.items[key] == nil else { return errSecDuplicateItem }
             $0.items[key] = (value, $0.time)
@@ -243,22 +253,23 @@ final nonisolated class SecretVault: Sendable {
     private func takeEarlier(_ account: String) -> String? {
         let service = EarlierIdentifier.secretService
         guard let value = keychain.read(service: service, account: account, synchronizable: false) else { return nil }
-        write(value, account: account)
+        // The earlier item goes only once the new one is saved: a keychain that refuses the write would lose it.
+        guard write(value, account: account) else { return value }
         keychain.delete(service: service, account: account, synchronizable: false)
         return value
     }
 
-    func write(_ value: String, account: String) {
+    /// False when the keychain kept nothing.
+    @discardableResult
+    func write(_ value: String, account: String) -> Bool {
         guard isOn, Self.syncs(account) else {
-            keychain.write(value, service: Self.service, account: account, synchronizable: false)
-            return
+            return keychain.write(value, service: Self.service, account: account, synchronizable: false) == errSecSuccess
         }
         let status = move(value, account: account)
-        if status != errSecSuccess {
-            // The secret is never lost to a keychain that refused it: it stays a local item.
-            keychain.write(value, service: Self.service, account: account, synchronizable: false)
-            defaults.set(Int(status), forKey: Self.failureKey)
-        }
+        guard status != errSecSuccess else { return true }
+        // The secret is never lost to a keychain that refused it: it stays a local item.
+        defaults.set(Int(status), forKey: Self.failureKey)
+        return keychain.write(value, service: Self.service, account: account, synchronizable: false) == errSecSuccess
     }
 
     /// With sync on this removes the secret on every device, which is what clearing a synced password means.
@@ -374,7 +385,8 @@ nonisolated enum Keychain {
         vault.read(account: account)
     }
 
-    static func write(_ value: String, account: String) {
+    @discardableResult
+    static func write(_ value: String, account: String) -> Bool {
         vault.write(value, account: account)
     }
 

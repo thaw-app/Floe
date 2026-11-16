@@ -20,6 +20,45 @@ extension AppSettings {
     }
 }
 
+/// One extension's preferences.json. A file that is there but cannot be read is never written over, so the values in
+/// it are not replaced by the few a save brings.
+nonisolated enum PreferenceFile {
+    enum Contents {
+        case missing
+        case values([String: Any])
+        case unreadable
+    }
+
+    static func read(_ file: URL) -> Contents {
+        guard FileManager.default.fileExists(atPath: file.path) else { return .missing }
+        guard let data = try? Data(contentsOf: file),
+              let values = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+        else { return .unreadable }
+        return .values(values)
+    }
+
+    /// Writes the whole file or nothing. False when nothing was written.
+    @discardableResult
+    static func write(_ values: [String: Any], to file: URL) -> Bool {
+        try? FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        guard let data = try? JSONSerialization.data(withJSONObject: values) else { return false }
+        return (try? data.write(to: file, options: .atomic)) != nil
+    }
+
+    /// Reads, changes and writes back. A null value removes its key. False, and nothing written, when the file is
+    /// there but could not be read or the write failed.
+    @discardableResult
+    static func update(_ file: URL, _ change: ([String: Any]) -> [String: Any]) -> Bool {
+        let stored: [String: Any]
+        switch read(file) {
+        case .missing: stored = [:]
+        case let .values(values): stored = values
+        case .unreadable: return false
+        }
+        return write(change(stored).filter { !($0.value is NSNull) }, to: file)
+    }
+}
+
 /// Extension and command preference values. Plain values live in the extension's support folder
 /// as preferences.json; password preferences live in the Keychain.
 enum PreferenceStore {
@@ -40,8 +79,18 @@ enum PreferenceStore {
 
     /// An extension's plain stored values by storage key. Passwords are not among them.
     static func storedValues(_ extensionName: String) -> [String: Any] {
-        guard let data = try? Data(contentsOf: file(for: extensionName)) else { return [:] }
-        return (try? JSONSerialization.jsonObject(with: data) as? [String: Any]) ?? [:]
+        switch storedFile(extensionName) {
+        case let .values(values): return values
+        case .missing: return [:]
+        case .unreadable:
+            Log.extensions.error("\(extensionName)'s preferences.json could not be read, so it is left as it is")
+            return [:]
+        }
+    }
+
+    /// An extension's preferences.json, telling a missing file from one that could not be read.
+    static func storedFile(_ extensionName: String) -> PreferenceFile.Contents {
+        PreferenceFile.read(file(for: extensionName))
     }
 
     /// The stored value for one field, without falling back to its default.
@@ -53,9 +102,12 @@ enum PreferenceStore {
         return storedValues(extensionName)[key]
     }
 
-    static func save(_ values: [String: Any], fields: [FieldSpec], extensionName: String, command: ExtensionCommand?) {
-        guard ExtensionCommand.isUsableName(extensionName) else { return }
-        var stored = storedValues(extensionName)
+    /// False when the plain values could not be written, the file left as it was.
+    @discardableResult
+    static func save(_ values: [String: Any], fields: [FieldSpec], extensionName: String, command: ExtensionCommand?) -> Bool {
+        guard ExtensionCommand.isUsableName(extensionName) else { return false }
+        // A field with no value is removed from the file, as a null.
+        var plain: [String: Any] = [:]
         for field in fields {
             let key = storageKey(field, command: command)
             let value = values[field.name]
@@ -67,10 +119,11 @@ enum PreferenceStore {
                     Keychain.delete(account: account)
                 }
             } else {
-                stored[key] = value
+                plain[key] = value ?? NSNull()
             }
         }
-        store(stored, for: extensionName)
+        let saved = PreferenceFile.update(file(for: extensionName)) { $0.merging(plain) { _, new in new } }
+        return finish(saved, extensionName)
     }
 
     /// Every extension's plain stored values, for a settings export.
@@ -86,17 +139,21 @@ enum PreferenceStore {
 
     /// Adds imported values to an extension's stored ones; the imported value wins for a key in both.
     /// A name no extension could have, such as one with a slash, is skipped, so nothing lands outside Floe's data folder.
-    static func merge(_ values: [String: Any], extensionName: String) {
-        guard ExtensionCommand.isUsableName(extensionName) else { return }
-        store(storedValues(extensionName).merging(values) { _, imported in imported }, for: extensionName)
+    /// A null among the values removes its key. False when nothing was written.
+    @discardableResult
+    static func merge(_ values: [String: Any], extensionName: String) -> Bool {
+        guard ExtensionCommand.isUsableName(extensionName) else { return false }
+        let saved = PreferenceFile.update(file(for: extensionName)) { $0.merging(values) { _, imported in imported } }
+        return finish(saved, extensionName)
     }
 
-    private static func store(_ values: [String: Any], for extensionName: String) {
-        try? FileManager.default.createDirectory(at: directory(for: extensionName), withIntermediateDirectories: true)
-        if let data = try? JSONSerialization.data(withJSONObject: values) {
-            try? data.write(to: file(for: extensionName))
+    private static func finish(_ saved: Bool, _ extensionName: String) -> Bool {
+        if saved {
+            onSaved()
+        } else {
+            Log.extensions.error("\(extensionName)'s preferences were not saved")
         }
-        onSaved()
+        return saved
     }
 
     /// Password preference keys by extension, never their values.

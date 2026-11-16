@@ -116,6 +116,18 @@ struct CloudSyncCoreTests {
         #expect(core.handle(sent(failedSaves: ["alias": .unknownItem])).commands == [.save("alias")])
     }
 
+    @Test func aSecondConflictWithoutTheServersRecordFetchesInstead() {
+        var core = settled(["alias": entry("1", tag: "1")])
+        _ = core.set("2", for: "alias")
+        #expect(core.handle(sent(failedSaves: ["alias": .conflict(nil)])).commands == [.save("alias")])
+        #expect(core.handle(sent(failedSaves: ["alias": .conflict(nil)])).commands == [.fetch], "sending afresh again would conflict again")
+        #expect(core.mirror.pending["alias"]?.json == "2")
+        let fetched = core.handle(.fetched(changed: ["alias": entry("3", tag: "5")], deleted: []))
+        #expect(fetched.commands.contains(.forget("alias")))
+        _ = core.handle(.fetchFinished)
+        #expect(core.contents["alias"] as? String == "3")
+    }
+
     @Test func aZoneThatWasNeverMadeIsMadeAndTheSaveRepeated() {
         var core = CloudSyncCore(mirror: SyncMirror(hasFetched: true), hasSavedState: true)
         #expect(core.set("1", for: "alias") == [.saveZone, .save("alias")])

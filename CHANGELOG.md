@@ -36,11 +36,17 @@ these four.
 - **A command opened by its hotkey or a link while clipboard history or another search is open now gets your typing**, so Return runs the command's action instead of pasting the clipboard item behind it.
 - **The search shows your changes as soon as you close Settings**, including an extension you installed just before.
 - **Apps in a folder you deleted and recreated show up** without restarting Floe.
+- **Changing an extension's settings no longer erases the rest** when Floe can't read the settings file or a save is cut short.
+- **Clearing an extension's setting on one Mac clears it on your other Macs**, instead of the old value staying there.
+- **iCloud sync stops resending a change that keeps conflicting** and reads iCloud's copy instead.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.
 - **Each extension's saved data is encrypted with a key of its own**, so one extension can't read what another saved or your clipboard history.
 - **Clipboard images an extension read are deleted when Floe quits.**
+- **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log or extension settings sync.**
+- **A password saved before Floe was renamed is no longer lost when the keychain refuses its new copy.**
+- **Extension text fields that look like a token, key, secret or password stay on this Mac** and are taken out of iCloud the next time Floe syncs. Update Floe on each of your Macs, since an older version still sends them.
 
 ## [0.4.0-rc.3] - 2026-11-13
 
