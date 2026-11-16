@@ -220,9 +220,39 @@ nonisolated extension CatalogSnapshot {
     }
 }
 
+/// Which folder a path leads to: a folder made again at the same path is another one, with another inode.
+nonisolated struct FileIdentity: Equatable, Sendable {
+    let device: UInt64
+    let inode: UInt64
+
+    /// Nil when nothing is at the path.
+    init?(path: String) {
+        var info = stat()
+        guard stat(path, &info) == 0 else { return nil }
+        self.init(info)
+    }
+
+    /// The folder an open handle is on, which stays the same whatever happens to its path afterwards.
+    init?(descriptor: Int32) {
+        var info = stat()
+        guard fstat(descriptor, &info) == 0 else { return nil }
+        self.init(info)
+    }
+
+    private init(_ info: stat) {
+        device = UInt64(info.st_dev)
+        inode = UInt64(info.st_ino)
+    }
+}
+
 /// Watches the application folders and reports changes, so newly installed apps show up without a restart.
 final class AppFolderWatcher {
-    private var sources: [String: DispatchSourceFileSystemObject] = [:]
+    private struct Watch {
+        let source: DispatchSourceFileSystemObject
+        let identity: FileIdentity
+    }
+
+    private var watches: [String: Watch] = [:]
     private let changes = AsyncStream.makeStream(of: Void.self, bufferingPolicy: .bufferingNewest(1))
     private var settling: Task<Void, Never>?
 
@@ -239,28 +269,46 @@ final class AppFolderWatcher {
         watch(AppEntry.folders())
     }
 
-    /// Starts watching the folders that are not watched yet. The ones that are stay as they are.
+    /// Watches each folder as it is now. A handle follows the folder it was opened on, not its path, so a folder that
+    /// was deleted or renamed since is let go, and one made at its path is watched in its place.
     func watch(_ folders: [String]) {
-        for folder in folders where sources[folder] == nil {
+        for folder in folders {
+            if let watch = watches[folder] {
+                if watch.identity == FileIdentity(path: folder) {
+                    continue
+                }
+                watch.source.cancel()
+                watches[folder] = nil
+            }
             let descriptor = open(folder, O_EVTONLY)
             guard descriptor >= 0 else { continue }
+            // Read from the handle, not the path: the folder may have been replaced between the two.
+            guard let identity = FileIdentity(descriptor: descriptor) else {
+                close(descriptor)
+                continue
+            }
             let source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete], queue: .main)
             source.setEventHandler { [continuation = changes.continuation] in
                 continuation.yield()
             }
             source.setCancelHandler { close(descriptor) }
             source.resume()
-            sources[folder] = source
+            watches[folder] = Watch(source: source, identity: identity)
         }
     }
 
     var watched: Set<String> {
-        Set(sources.keys)
+        Set(watches.keys)
+    }
+
+    /// The folder a path is watched as, or nil when it is not watched.
+    func identity(watching folder: String) -> FileIdentity? {
+        watches[folder]?.identity
     }
 
     deinit {
         settling?.cancel()
         changes.continuation.finish()
-        sources.values.forEach { $0.cancel() }
+        watches.values.forEach { $0.source.cancel() }
     }
 }

@@ -151,8 +151,55 @@ extension LauncherModel {
     }
 }
 
+/// The one view the panel shows. It is picked here only, so what is drawn and what takes the keys never differ: a
+/// command started by a hotkey or a link while a mode is open is drawn in front, and so it must also get Return.
+enum OnScreen {
+    /// A command's preferences or arguments, in front of everything.
+    case setup(SetupRequest)
+    /// An extension's view, with its alert or its error screen when it has one.
+    case command(ExtensionSession)
+    case menuBarSearch
+    case menuItemSearch(MenuItemSearchModel)
+    case clipboardHistory
+    case fileSearch
+    case noteDesk(NoteDeskModel)
+    case askAI(AskAIModel)
+    case rootSearch
+}
+
+extension LauncherModel {
+    /// What the panel shows now, in the order LauncherView draws it and handleKey routes to it.
+    var onScreen: OnScreen {
+        if let setup {
+            return .setup(setup)
+        }
+        if let session = runner.session, session.command.mode == "view" {
+            return .command(session)
+        }
+        if isSearchingMenuBar {
+            return .menuBarSearch
+        }
+        if let menuItemSearch {
+            return .menuItemSearch(menuItemSearch)
+        }
+        if isShowingClipboardHistory {
+            return .clipboardHistory
+        }
+        if isSearchingFiles {
+            return .fileSearch
+        }
+        if let noteDesk {
+            return .noteDesk(noteDesk)
+        }
+        if let askAI {
+            return .askAI(askAI)
+        }
+        return .rootSearch
+    }
+}
+
 extension LauncherPanelState {
-    /// Mirrors the order `LauncherView` picks its view in: anything but the last branch is not the root search.
+    /// Any view but the root search fills the panel, whichever of them is on top.
     init(
         showingSetup: Bool,
         showingCommand: Bool,

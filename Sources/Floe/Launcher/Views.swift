@@ -25,23 +25,24 @@ struct LauncherView: View {
         let look = settings.launcherLook(for: colorScheme)
         let heights = state.pieceHeights(in: settings.launcherLayout)
         GlassEffectContainer {
-            if let setup = model.setup {
+            switch model.onScreen {
+            case let .setup(setup):
                 SetupView(form: model.setupForm, request: setup, submit: model.submitSetup, cancel: model.cancelSetup).modifier(PanelOnePiece())
-            } else if let session = model.runner.session, session.command.mode == "view" {
+            case let .command(session):
                 SessionContainer(model: model, session: session)
-            } else if model.isSearchingMenuBar {
+            case .menuBarSearch:
                 MenuBarSearchView(search: model.menuBarSearch, launcher: model, focusToken: model.focusToken)
-            } else if let menuItems = model.menuItemSearch {
+            case let .menuItemSearch(menuItems):
                 MenuItemSearchView(search: menuItems, launcher: model, focusToken: model.focusToken)
-            } else if model.isShowingClipboardHistory {
+            case .clipboardHistory:
                 ClipboardHistoryView(clipboard: model.clipboardHistory, launcher: model, focusToken: model.focusToken, history: model.clipboard)
-            } else if model.isSearchingFiles {
+            case .fileSearch:
                 FileSearchView(search: model.fileSearch, spotlight: model.fileSearch.spotlight, launcher: model, focusToken: model.focusToken)
-            } else if let desk = model.noteDesk {
+            case let .noteDesk(desk):
                 NoteDeskView(desk: desk, launcher: model, focusToken: model.focusToken)
-            } else if let asking = model.askAI {
+            case let .askAI(asking):
                 AskAIView(launcher: model, asking: asking)
-            } else {
+            case .rootSearch:
                 RootView(model: model, refusal: model.refusal, isCollapsed: state.isCollapsed(in: settings.launcherLayout))
             }
         }

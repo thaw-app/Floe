@@ -105,6 +105,35 @@ struct AppScanTests {
         #expect(watcher.watched.subtracting(before).count == 2, "a folder already watched is not watched twice")
     }
 
+    @MainActor @Test func aFolderDeletedAndMadeAgainIsWatchedAgain() throws {
+        let root = try applications(["Notes.app"])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let watcher = AppFolderWatcher { /* nothing to reload */ }
+        watcher.watch(AppEntry.folders(in: [root.path]))
+        let first = try #require(watcher.identity(watching: root.path))
+
+        try FileManager.default.removeItem(at: root)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        watcher.watch(AppEntry.folders(in: [root.path]))
+        #expect(watcher.identity(watching: root.path) == FileIdentity(path: root.path))
+        #expect(watcher.identity(watching: root.path) != first, "the handle on the deleted folder is let go")
+        #expect(watcher.watched.contains(root.path))
+    }
+
+    @MainActor @Test func aFolderThatIsGoneIsLetGo() throws {
+        let root = try applications(["Helium Apps.localized/PairDrop.app"])
+        defer { try? FileManager.default.removeItem(at: root) }
+        let subfolder = root.appendingPathComponent("Helium Apps.localized")
+        let watcher = AppFolderWatcher { /* nothing to reload */ }
+        watcher.watch(AppEntry.folders(in: [root.path]))
+        #expect(watcher.watched.contains(subfolder.path))
+
+        try FileManager.default.removeItem(at: subfolder)
+        watcher.watch([root.path, subfolder.path])
+        #expect(!watcher.watched.contains(subfolder.path))
+        #expect(watcher.identity(watching: subfolder.path) == nil)
+    }
+
     @Test func aFolderThatIsNotThereIsNothingToScan() {
         let missing = "/floe-no-such-applications-\(UUID().uuidString)"
         #expect(AppEntry.folders(in: [missing]) == [missing])
