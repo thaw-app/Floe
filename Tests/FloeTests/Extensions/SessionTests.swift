@@ -322,6 +322,38 @@ struct ExtensionSessionTests {
         #expect(recorder.forwarded.compactMap { $0["type"] as? String } == ["crashed"])
     }
 
+    @Test func aHostThatEndsHasEnded() {
+        #expect(!session.hasEnded, "a host still starting counts as running")
+        session.processEnded(status: 0, wasSignalled: false)
+        #expect(session.hasEnded)
+    }
+
+    @Test func forceStopCancelsTheHostTaskBeforeTheProcessIsKnown() {
+        session.hostTask = Task { try? await Task.sleep(for: .seconds(30)) }
+        session.forceStop()
+        #expect(session.hostTask?.isCancelled == true)
+    }
+
+    @Test func aHostThatFinishesStartingAfterAStopIsKilled() async throws {
+        let sleeper = Process()
+        sleeper.executableURL = URL(fileURLWithPath: "/bin/sleep")
+        sleeper.arguments = ["30"]
+        try sleeper.run()
+        defer {
+            if sleeper.isRunning {
+                sleeper.terminate()
+            }
+        }
+        session.forceStop()
+        session.hostStarted(sleeper.processIdentifier)
+        for _ in 0 ..< 40 where sleeper.isRunning {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        #expect(!sleeper.isRunning)
+        #expect(session.processID == nil)
+        #expect(session.watchdog == nil)
+    }
+
     @Test func aProcessWeStoppedIsNotACrash() {
         session.isStopping = true
         session.processEnded(status: 15, wasSignalled: true)
@@ -329,11 +361,12 @@ struct ExtensionSessionTests {
         #expect(recorder.forwarded.isEmpty)
     }
 
-    @Test func aCrashAfterAnErrorKeepsTheError() {
+    @Test func aCrashAfterAnErrorKeepsTheErrorAndIsStillReported() {
         apply(["type": "error", "message": "Render failed", "fatal": true])
         session.processEnded(status: 1, wasSignalled: false)
         #expect(session.failure?.kind == .error)
-        #expect(recorder.forwarded.isEmpty)
+        #expect(session.failure?.message == "Render failed")
+        #expect(recorder.forwarded.compactMap { $0["type"] as? String } == ["crashed"])
     }
 
     @Test func theWatchdogPingsThenReportsAHostThatStopsAnswering() {
@@ -555,6 +588,56 @@ struct ExtensionSessionTests {
         session.processEnded(status: 0, wasSignalled: false)
         try? await Task.sleep(for: .milliseconds(100))
         #expect(recorder.sent.isEmpty)
+    }
+
+    // MARK: A session that is stopping
+
+    @Test func aStoppingSessionShowsNoAlertAndRefusesIt() {
+        session.isStopping = true
+        apply(["type": "request", "id": 30, "method": "alert.confirm", "params": ["title": "Sure?"]])
+        #expect(session.alert == nil)
+        #expect(recorder.sent.count == 1)
+        #expect(recorder.sent.first?["type"] as? String == "reply")
+        #expect(recorder.sent.first?["id"] as? Int == 30)
+        #expect(recorder.sent.first?["error"] as? String == "The command is ending.")
+    }
+
+    @Test func aStoppingSessionLaunchesNothing() {
+        session.isStopping = true
+        apply(["type": "request", "id": 31, "method": "command.launch", "params": ["name": "other"]])
+        #expect(recorder.sent.count == 1)
+        #expect(recorder.sent.first?["id"] as? Int == 31)
+        #expect(recorder.sent.first?["error"] as? String == "The command is ending.", "not the refusal of a launch from here")
+    }
+
+    @Test func aStoppingSessionStartsNoRequest() async {
+        session.isStopping = true
+        let asked = ThreadLog()
+        session.answer = { _, _ in
+            asked.note("answer")
+            return "unused"
+        }
+        apply(["type": "request", "id": 32, "method": "selectedText", "params": [:]])
+        // An address that cannot be read fails at once if the guard ever goes: no notice, no browser.
+        apply(["type": "request", "id": 33, "method": "oauth.authorize", "params": ["url": "", "state": "s-33", "providerName": "Example"]])
+        try? await Task.sleep(for: .milliseconds(50))
+        #expect(asked.onMain.isEmpty)
+        #expect(session.pendingRequests.isEmpty)
+        #expect(recorder.sent.compactMap { $0["id"] as? Int } == [32, 33])
+        #expect(recorder.sent.allSatisfy { $0["error"] as? String == "The command is ending." })
+    }
+
+    @Test func stoppingCancelsTheSessionsOwnRequestsWithoutAnswering() async {
+        session.answer = { _, _ in
+            try await Task.sleep(for: .seconds(30))
+            return "too late"
+        }
+        apply(["type": "request", "id": 34, "method": "selectedText", "params": [:]])
+        #expect(session.pendingRequests.count == 1)
+        session.stop()
+        #expect(session.pendingRequests.isEmpty)
+        try? await Task.sleep(for: .milliseconds(100))
+        #expect(!recorder.sent.contains { $0["type"] as? String == "reply" })
     }
 
     @Test func aRenderThatNamesWhatTheAppDoesNotHoldAsksForAWholeOneAndLeavesTheListAsItWas() {

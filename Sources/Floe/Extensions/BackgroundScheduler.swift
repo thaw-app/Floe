@@ -15,7 +15,9 @@ import Foundation
     private let menuBarCommands: MenuBarCommands
     private(set) var timers: [String: Timer] = [:]
     private var intervals: [String: TimeInterval] = [:]
-    private var runs: [String: ExtensionSession] = [:]
+    private(set) var runs: [String: ExtensionSession] = [:]
+    /// Starts a run's host. A test leaves it unstarted and plays the host's part.
+    var startsHost: (ExtensionSession) -> Void = { $0.start() }
 
     /// There is one, so it also answers `launchCommand`.
     init(model: LauncherModel, menuBarCommands: MenuBarCommands) {
@@ -89,16 +91,17 @@ import Foundation
         }
     }
 
-    /// One run of a no-view command, unless one is still going; stopped after a minute.
+    /// One run of a no-view command, unless one is still going or starting; stopped after a minute.
     private func start(_ command: ExtensionCommand, arguments: [String: Any] = [:], context: [String: Any]? = nil) {
-        if let run = runs[command.id], run.isRunning {
+        if let run = runs[command.id], !run.hasEnded, !run.isStopping {
             return
         }
         let session = ExtensionSession(command: command, arguments: arguments, launchType: "background", launchContext: context)
         session.onMessage = { [weak self, weak session] message in
             guard let self, let session else { return }
+            // In the background closeMainWindow has no window to close and the run goes on, as in Raycast.
             switch message["type"] as? String {
-            case "exit", "close", "crashed":
+            case "exit", "crashed":
                 session.forceStop()
                 if runs[command.id] === session {
                     runs.removeValue(forKey: command.id)
@@ -111,10 +114,10 @@ import Foundation
         }
         session.answer = ExtensionRunner.answer(withHistory: model.runner.host.clipboardHistory)
         runs[command.id] = session
-        session.start()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 60) { [weak self, weak session] in
+        startsHost(session)
+        DispatchQueue.main.asyncAfter(deadline: .now() + ExtensionSession.unattendedLimit) { [weak self, weak session] in
             guard let self, let session else { return }
-            if session.isRunning {
+            if !session.hasEnded {
                 session.forceStop()
             }
             if runs[command.id] === session {

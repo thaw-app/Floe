@@ -164,6 +164,109 @@ struct ExtensionRunnerTests {
         #expect(asked.calls == ["hud Greet failed"], "one launched in the background by another leaves the panel to the command on screen")
     }
 
+    @Test func anOpenNoViewCommandThatThrowsSaysItFailed() throws {
+        let runner = runner()
+        runner.startsHost = { _ in /* the test plays the host */ }
+        runner.run(command(mode: "no-view"))
+        let session = try #require(runner.session)
+        var kept = KeptRender()
+        let line = Data(#"{"type":"error","message":"boom","fatal":true}"#.utf8)
+        let message = try #require(DecodedHostMessage.decode(line, kept: &kept))
+        session.apply(message)
+        session.processEnded(status: 1, wasSignalled: false)
+        #expect(asked.calls.contains("hud Greet failed"))
+        #expect(runner.session == nil)
+    }
+
+    // MARK: A no-view command that leaves the panel
+
+    /// A runner whose open command is a no-view one, with no host started.
+    private func noViewRunner() throws -> (ExtensionRunner, ExtensionSession) {
+        let runner = runner()
+        runner.startsHost = { _ in /* the test plays the host */ }
+        runner.run(command(mode: "no-view"))
+        return try (runner, #require(runner.session))
+    }
+
+    @Test func endingTheOpenNoViewCommandLeavesItRunning() throws {
+        let (runner, session) = try noViewRunner()
+        runner.endOpenCommand()
+        #expect(runner.session == nil)
+        #expect(!session.isStopping)
+        #expect(runner.unattended.count == 1)
+        #expect(runner.unattended.first === session)
+        #expect(asked.calls.last == "refocus")
+        runner.stopAll()
+    }
+
+    @Test func endingTheOpenViewCommandStillStopsIt() throws {
+        let runner = runner()
+        runner.startsHost = { _ in /* the test plays the host */ }
+        runner.run(command())
+        let session = try #require(runner.session)
+        runner.endOpenCommand()
+        #expect(runner.session == nil)
+        #expect(session.isStopping)
+        #expect(runner.unattended.isEmpty)
+    }
+
+    @Test func anUnattendedCommandThatExitsIsLetGo() throws {
+        let (runner, session) = try noViewRunner()
+        runner.endOpenCommand()
+        asked.calls = []
+        runner.handle(["type": "exit"], from: session)
+        #expect(session.isStopping)
+        #expect(runner.unattended.isEmpty)
+        #expect(!asked.calls.contains("hide"), "the panel may be showing something else by now")
+    }
+
+    @Test func anUnattendedCommandThatCrashesSaysSo() throws {
+        let (runner, session) = try noViewRunner()
+        runner.endOpenCommand()
+        runner.handle(["type": "crashed"], from: session)
+        #expect(asked.calls.contains("hud Greet failed"))
+        #expect(runner.unattended.isEmpty)
+    }
+
+    @Test func runningAnotherCommandLeavesTheNoViewOneRunning() throws {
+        let (runner, first) = try noViewRunner()
+        runner.run(command())
+        #expect(runner.session !== first)
+        #expect(runner.unattended.first === first)
+        #expect(!first.isStopping)
+        runner.stopAll()
+    }
+
+    @Test func anUnattendedCommandIsStoppedAtTheLimit() async throws {
+        let (runner, session) = try noViewRunner()
+        runner.unattendedLimit = 0.1
+        runner.detach(session)
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(session.isStopping)
+        #expect(runner.unattended.isEmpty)
+    }
+
+    @Test func popToRootFromANoViewCommandLeavesItRunning() throws {
+        let (runner, session) = try noViewRunner()
+        runner.handle(["type": "popToRoot"], from: session)
+        #expect(!session.isStopping)
+        #expect(runner.unattended.first === session)
+        #expect(runner.session == nil)
+        #expect(asked.calls.contains("hide"))
+        runner.stopAll()
+    }
+
+    @Test func stopAllStopsTheOpenAndTheUnattended() throws {
+        let (runner, unattended) = try noViewRunner()
+        runner.endOpenCommand()
+        runner.run(command())
+        let open = try #require(runner.session)
+        runner.stopAll()
+        #expect(open.isStopping)
+        #expect(unattended.isStopping)
+        #expect(runner.unattended.isEmpty)
+    }
+
     @Test func whatACommandAsksForReachesTheHost() {
         let runner = runner()
         let session = ExtensionSession(command: command())

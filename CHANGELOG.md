@@ -29,6 +29,10 @@ these four.
 - **Extension passwords can't be read by other apps while a command runs.** Floe used to hand them to the extension in a way any program running as you could see.
 - **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it. ([#91](https://github.com/thaw-app/Floe/issues/91))
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
+- **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search.
+- **Background commands keep running after they close the launcher**, as they do in Raycast.
+- **Commands that run without opening anything now say when they fail** instead of failing silently.
+- **Signing in to an extension in the browser no longer fails when another of its commands refreshes or ends.**
 
 #### Security
 These come from a code review of Floe on 2026-11-15.

@@ -142,4 +142,6 @@ try {
   }
 } catch (error) {
   fail(error);
+  // A command without a view has no screen to show the error on: the app says it failed once the host is gone.
+  if (ctx.commandMode !== "view" && ctx.commandMode !== "menu-bar") setTimeout(() => process.exit(1), 50);
 }

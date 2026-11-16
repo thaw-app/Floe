@@ -136,7 +136,7 @@ nonisolated struct OAuthBrokerTests {
         let waiter = Waiter(name, state: state)
         try broker.complete(url: #require(URL(string: "floe://oauth")))
         #expect(waiter.outcomes.isEmpty)
-        broker.cancelAll(for: name)
+        broker.cancel(extensionName: name, state: state)
     }
 
     @Test(arguments: ["s1", "s2"])
@@ -163,18 +163,17 @@ nonisolated struct OAuthBrokerTests {
         #expect(waiter.outcomes == ["cancelled"])
     }
 
-    @Test func aStoppingSessionFailsItsOwnSignInsAndNoOneElses() throws {
-        let other = name + "-other"
-        let mine = Waiter(name, state: state)
-        let theirs = Waiter(other, state: state)
-        broker.cancelAll(for: name)
-        #expect(mine.outcomes == ["cancelled"])
-        #expect(theirs.outcomes.isEmpty)
+    @MainActor @Test func aSessionThatStopsLeavesAnotherSessionsSignInWaiting() throws {
+        let waiter = Waiter(name, state: state)
+        let session = ExtensionSession(command: Fixture.command("other", extension: name, mode: "menu-bar"))
+        session.forceStop()
+        session.processEnded(status: 0, wasSignalled: false)
+        #expect(waiter.outcomes.isEmpty)
 
-        let callback = try redirect("code=abc&state=\(state)&package_name=\(other)")
+        let callback = try redirect("code=abc&state=\(state)&package_name=\(name)")
         broker.complete(url: callback)
-        #expect(theirs.outcomes == [callback.absoluteString])
-        #expect(mine.outcomes == ["cancelled"])
+        #expect(waiter.outcomes == [callback.absoluteString])
+        broker.cancel(extensionName: name, state: state)
     }
 
     @Test(arguments: zip(

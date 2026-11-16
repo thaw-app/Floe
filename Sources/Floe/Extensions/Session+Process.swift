@@ -12,6 +12,9 @@ import System
 /// The half of a session that needs a real Bun process: spawning it, wiring its pipes, and stopping it.
 /// What the session does with the messages lives in Session.swift.
 extension ExtensionSession {
+    /// How long a command with no view runs unattended before it is stopped.
+    static let unattendedLimit: TimeInterval = 60
+
     func start() {
         guard let bun = Paths.bun else {
             toast = ToastState(id: 0, style: "failure", title: String(localized: "Bun isn't installed", bundle: .floe, comment: "Bun is the name of a tool."), message: "brew install bun")
@@ -138,7 +141,12 @@ extension ExtensionSession {
     }
 
     /// Every three seconds from here on, the host's memory is checked against its ceiling and the host is pinged.
-    private func hostStarted(_ identifier: pid_t) {
+    func hostStarted(_ identifier: pid_t) {
+        // A stop asked for while the host was starting had no process to signal.
+        guard !isStopping else {
+            kill(identifier, SIGKILL)
+            return
+        }
         processID = identifier
         watchdog = Timer.scheduledOnMain(withTimeInterval: 3, repeats: true) { [weak self] in
             guard let self, let processID, !stopsOverCeiling(holding: Processes.memory(of: processID)) else { return }
@@ -158,6 +166,7 @@ extension ExtensionSession {
 
     /// The host couldn't be launched, or reading from it broke off; stopping it on purpose also ends up here.
     private func hostFailed(_ error: Error) {
+        hasEnded = true
         let hadStarted = processID != nil
         processID = nil
         watchdog?.invalidate()
@@ -184,6 +193,8 @@ extension ExtensionSession {
         resolveAlert(false)
         watchdog?.invalidate()
         cancelRequests()
+        // Cancelling the task also ends a host whose process id has not reached the main actor yet.
+        hostTask?.cancel()
         if let processID {
             kill(processID, SIGKILL)
         }

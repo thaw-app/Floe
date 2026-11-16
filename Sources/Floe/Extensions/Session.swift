@@ -130,6 +130,9 @@ final class ExtensionSession: ObservableObject {
     /// The tail of the host's stderr, shown on the error screen.
     private(set) var log = ""
     var isStopping = false
+    /// Set once the host has exited or could not start. A host still starting has no process id yet and
+    /// still counts as running.
+    var hasEnded = false
     var watchdog: Timer?
     /// Answers what the extension asks the app for; tests replace it.
     var answer: @concurrent @Sendable (HostRequest, @Sendable (String) async -> Void) async throws -> Any = HostRequest.answer
@@ -144,11 +147,6 @@ final class ExtensionSession: ObservableObject {
         self.launchType = launchType
         self.launchContext = launchContext
         self.fallbackText = fallbackText
-    }
-
-    /// Set while the host is running.
-    var isRunning: Bool {
-        processID != nil
     }
 
     func send(_ message: [String: Any]) {
@@ -262,16 +260,18 @@ final class ExtensionSession: ObservableObject {
 
     /// Exit status 0 is a normal finish; anything else, or a signal, is a crash unless we asked it to stop.
     func processEnded(status: Int32, wasSignalled: Bool) {
+        hasEnded = true
         watchdog?.invalidate()
         cancelRequests()
         guard !isStopping else { return }
         if status == 0, !wasSignalled {
             onMessage(["type": "exit"])
-        } else if failure == nil {
+        } else {
             let message = wasSignalled
                 ? String(localized: "The extension stopped unexpectedly. It was killed by signal \(status).", bundle: .floe, comment: "The placeholder is a number.")
                 : String(localized: "The extension stopped unexpectedly. It exited with status \(status).", bundle: .floe, comment: "The placeholder is a number.")
-            failure = SessionFailure(kind: .crashed, message: message, details: log)
+            // A command that threw has told why already, and that stays the failure shown.
+            failure = failure ?? SessionFailure(kind: .crashed, message: message, details: log)
             onMessage(["type": "crashed"])
         }
     }

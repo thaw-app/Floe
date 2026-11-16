@@ -77,6 +77,10 @@ final class ExtensionRunner: ObservableObject {
     var startsHost: (ExtensionSession) -> Void = { $0.start() }
     /// The command started again after a save, until it shows something or fails: the one on screen stays meanwhile.
     private var reloading: (session: ExtensionSession, outcome: AnyCancellable)?
+    /// No-view commands that left the panel and run on until they exit, crash or reach the limit.
+    private(set) var unattended: [ExtensionSession] = []
+    /// How long a no-view command may run on after leaving the panel. Tests shorten it.
+    var unattendedLimit = ExtensionSession.unattendedLimit
 
     /// A command that first has to ask for preferences or arguments starts without `launchCommand`'s context.
     /// `fallbackText` is what was typed, when the command was chosen as a fallback.
@@ -86,9 +90,7 @@ final class ExtensionRunner: ObservableObject {
             host.toggleMenuBar(command)
             return
         }
-        if let session {
-            end(session)
-        }
+        endOpenCommand()
         if !missing.isEmpty {
             // The arguments wait in the form: once the preferences are saved, the command runs with them.
             host.beginSetup(SetupRequest(command: command, kind: .preferences, fields: command.preferences, arguments: arguments))
@@ -122,19 +124,27 @@ final class ExtensionRunner: ObservableObject {
     func end(_ session: ExtensionSession) {
         // Trailing messages (a HUD after closeMainWindow, say) still need to be read.
         session.stop(after: 0.5)
-        if self.session === session {
-            self.session = nil
-            sourceWatcher = nil
-            reloading?.session.stop()
-            reloading = nil
-            host.refocus()
-            host.commandEnded()
-        }
+        unattended.removeAll { $0 === session }
+        release(session)
     }
 
-    /// Ends the open command, if there is one.
+    /// The panel lets go of its command: the search takes the keys again.
+    fileprivate func release(_ session: ExtensionSession) {
+        guard self.session === session else { return }
+        self.session = nil
+        sourceWatcher = nil
+        reloading?.session.stop()
+        reloading = nil
+        host.refocus()
+        host.commandEnded()
+    }
+
+    /// Ends the open command, if there is one. A no-view command is left to finish.
     func endOpenCommand() {
-        if let session {
+        guard let session else { return }
+        if session.command.mode == "no-view" {
+            detach(session)
+        } else {
             end(session)
         }
     }
@@ -216,12 +226,7 @@ final class ExtensionRunner: ObservableObject {
     func handle(_ message: [String: Any], from session: ExtensionSession) {
         switch message["type"] as? String {
         case "exit", "popToRoot":
-            // A command launched in the background by another leaves the panel to the one on screen.
-            let wasBackground = session.command.mode != "view" && self.session === session
-            end(session)
-            if wasBackground {
-                host.hidePanel()
-            }
+            leave(session, poppingToRoot: message["type"] as? String == "popToRoot")
         case "crashed" where session.command.mode != "view":
             end(session)
             host.showHUD(String(localized: "\(session.command.title) failed", bundle: .floe, comment: "The placeholder is the name of a command."))
@@ -313,5 +318,43 @@ final class ExtensionRunner: ObservableObject {
         guard toastLine.map({ $0 == shown }) != true else { return }
         toastLine = shown
         host.showHUD(toast.line)
+    }
+}
+
+extension ExtensionRunner {
+    /// Takes the open no-view command off the panel without stopping it. Its messages still reach handle, which
+    /// treats it as a command that is not on screen.
+    func detach(_ session: ExtensionSession) {
+        guard self.session === session else { return }
+        unattended.append(session)
+        release(session)
+        DispatchQueue.main.asyncAfter(deadline: .now() + unattendedLimit) { [weak self, weak session] in
+            guard let self, let session, unattended.contains(where: { $0 === session }) else { return }
+            end(session)
+            session.forceStop()
+        }
+    }
+
+    /// A command that exited or went back to the root search. Going back leaves a no-view command running.
+    private func leave(_ session: ExtensionSession, poppingToRoot: Bool) {
+        // A command launched in the background by another leaves the panel to the one on screen.
+        let wasBackground = session.command.mode != "view" && self.session === session
+        if poppingToRoot, session.command.mode == "no-view" {
+            detach(session)
+        } else {
+            end(session)
+        }
+        if wasBackground {
+            host.hidePanel()
+        }
+    }
+
+    /// Stops every command, open or unattended, when Floe quits.
+    func stopAll() {
+        session?.forceStop()
+        for session in unattended {
+            session.forceStop()
+        }
+        unattended = []
     }
 }
