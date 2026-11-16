@@ -61,10 +61,7 @@ nonisolated enum LocalStorageReseal {
         sqlite3_exec(database, "PRAGMA secure_delete = ON", nil, nil, nil)
         let began = sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil)
         guard began == SQLITE_OK else { return failure(began) }
-        // A hard link from another extension's folder would have that extension's rows sealed with this one's key.
-        // Checked once the file is held, so the link cannot be made after the check, and not from URL's cache.
-        var info = stat()
-        guard lstat(file.path, &info) == 0, info.st_nlink == 1 else {
+        guard isOwnFile(file) else {
             sqlite3_exec(database, "ROLLBACK", nil, nil, nil)
             return .busy
         }
@@ -102,6 +99,23 @@ nonisolated enum LocalStorageReseal {
     }
 
     /// What a failed SQLite call means here. Anything but a file that is not a database keeps the rows for a later try.
+    /// Whether the path leads to a file of its own folder: a regular file with one name, in the folder the path names
+    /// and not one a link leads to. A link to another extension's file or folder would have that extension's rows
+    /// sealed with this one's key. Checked once SQLite holds the file, so a link made earlier is caught.
+    private static func isOwnFile(_ file: URL) -> Bool {
+        var info = stat()
+        guard lstat(file.path, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1 else { return false }
+        let folder = file.deletingLastPathComponent()
+        guard let real = realPath(file), let data = realPath(folder.deletingLastPathComponent()) else { return false }
+        return real == "\(data)/\(folder.lastPathComponent)/\(file.lastPathComponent)"
+    }
+
+    private static func realPath(_ url: URL) -> String? {
+        guard let resolved = realpath(url.path, nil) else { return nil }
+        defer { free(resolved) }
+        return String(cString: resolved)
+    }
+
     private static func failure(_ code: Int32) -> Outcome {
         switch code & 0xFF {
         case SQLITE_NOTADB, SQLITE_CORRUPT: .unreadable

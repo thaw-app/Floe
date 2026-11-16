@@ -156,6 +156,27 @@ struct LocalStorageResealTests {
         #expect(LocalStorageReseal.reseal(file: file, from: legacy, to: own) == .done(resealed: 1))
     }
 
+    @Test func aSymbolicLinkIsNotFollowed() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let old = try sealed("1", "old", legacy)
+        try items([("old", old)])
+        let link = folder.appendingPathComponent("other.sqlite")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: file)
+        #expect(LocalStorageReseal.reseal(file: link, from: legacy, to: own) == .busy)
+        #expect(stored()["old"] == old)
+    }
+
+    @Test func aFolderThatIsALinkToAnotherIsNotFollowed() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let old = try sealed("1", "old", legacy)
+        try items([("old", old)])
+        let linked = folder.deletingLastPathComponent().appendingPathComponent("floe-reseal-link-\(UUID().uuidString)")
+        try FileManager.default.createSymbolicLink(at: linked, withDestinationURL: folder)
+        defer { try? FileManager.default.removeItem(at: linked) }
+        #expect(LocalStorageReseal.reseal(file: linked.appendingPathComponent("local-storage.sqlite"), from: legacy, to: own) == .busy)
+        #expect(stored()["old"] == old)
+    }
+
     @Test func aDatabaseAnotherProcessHoldsIsLeftForLater() throws {
         defer { try? FileManager.default.removeItem(at: folder) }
         let old = try sealed("1", "old", legacy)
