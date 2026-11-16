@@ -32,6 +32,11 @@ nonisolated extension ShellCommand {
             let result = try await Shell.run(shell, ["-l", "-c", command], in: folder ?? FileManager.default.homeDirectoryForCurrentUser, environment: LoginEnvironment.current, timeout: timeout, outputLimit: 256 * 1024)
             let output = plain(String(bytes: result.stdout, encoding: .utf8) ?? "")
             let errors = plain(String(bytes: result.stderr, encoding: .utf8) ?? "")
+            if result.timedOut {
+                // Its status is the signal Floe stopped it with, so no exit code is shown.
+                let said = [output, errors, ShellResult.tookTooLong].map { $0.trimmingCharacters(in: .newlines) }.filter { !$0.isEmpty }
+                return (ShellResult.tookTooLong, said.joined(separator: "\n\n"))
+            }
             return (summary(status: result.status, output: output, errors: errors), transcript(status: result.status, output: output, errors: errors))
         } catch {
             return (error.localizedDescription, error.localizedDescription)

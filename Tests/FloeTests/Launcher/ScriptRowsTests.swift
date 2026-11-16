@@ -42,7 +42,7 @@ struct ScriptRowsTests {
 
     /// Makes the rows' runner answer as a script that printed this and ended with this status.
     @discardableResult
-    private func answering(status: Int32 = 0, stdout: String = "", stderr: String = "", on rows: ScriptRows) -> ScriptRows {
+    private func answering(status: Int32 = 0, stdout: String = "", stderr: String = "", timedOut: Bool = false, on rows: ScriptRows) -> ScriptRows {
         let asked = asked
         rows.host = RowHost(showHUD: { asked.huds.append($0) }, leave: { asked.left += 1 })
         rows.recordUse = { asked.used.append($0) }
@@ -52,7 +52,7 @@ struct ScriptRowsTests {
             return false
         }
         rows.runScript = { _, arguments, _ in
-            ShellResult(status: status, stdout: Data((stdout + arguments.joined(separator: ",")).utf8), stderr: Data(stderr.utf8))
+            ShellResult(status: status, stdout: Data((stdout + arguments.joined(separator: ",")).utf8), stderr: Data(stderr.utf8), timedOut: timedOut)
         }
         return rows
     }
@@ -98,6 +98,13 @@ struct ScriptRowsTests {
         #expect(asked.huds.first?.hasSuffix("broke") == true)
         #expect(asked.huds.last?.contains("3") == true)
         #expect(asked.windows.isEmpty)
+    }
+
+    @Test func aScriptStoppedAtItsDeadlineSaysItTookTooLong() async {
+        let rows = answering(status: 15, stderr: "partly\n", timedOut: true, on: ScriptRows())
+        rows.run(script(.compact))
+        await settle { asked.huds.count == 1 }
+        #expect(asked.huds == ["Deploy failed: \(ShellResult.tookTooLong)"])
     }
 
     /// Started from a hotkey or a link, a script that acts on results would be told nothing of what to act on.

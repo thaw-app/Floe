@@ -275,6 +275,7 @@
 		942C09E90795801F80547CBB /* PermissionsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A095A949E191252E89F6A9A /* PermissionsWindow.swift */; };
 		942FA2A2C4C701FAE3F1C117 /* ReturnRefusal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460AA22765A6962697DA6E1B /* ReturnRefusal.swift */; };
 		948B249A246AEED55B9EBF38 /* AppleNotesFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AB53C8033BDCCEEFCA7DBFE /* AppleNotesFolder.swift */; };
+		9504813A752D3685F123726C /* SnippetTyping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2570C487DD3C284AD8F3D851 /* SnippetTyping.swift */; };
 		95227000B5D08D69A24D8F6E /* SettingsSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = F50E9D3C5E5A2B3411933263 /* SettingsSync.swift */; };
 		96848551FAC428C8C578F0EE /* ClipboardHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E273FBD36E3C7B1016D6E96 /* ClipboardHistoryView.swift */; };
 		9691207E579805E7F46B802C /* SystemFacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70FA659DB1D34C5A796CE5B /* SystemFacts.swift */; };
@@ -522,6 +523,7 @@
 		24C1644B95C29BD57AED7224 /* MenuItemSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuItemSearchView.swift; sourceTree = "<group>"; };
 		2505656E388B4F78C6E04841 /* OpencodeTextStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpencodeTextStream.swift; sourceTree = "<group>"; };
 		256E2AB529436340BCA900F5 /* LauncherAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherAppearance.swift; sourceTree = "<group>"; };
+		2570C487DD3C284AD8F3D851 /* SnippetTyping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetTyping.swift; sourceTree = "<group>"; };
 		2586ADD4A7E5A2899FE239C7 /* Selection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Selection.swift; sourceTree = "<group>"; };
 		25F2DC8F8AD9102C51C395BF /* Notes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notes.swift; sourceTree = "<group>"; };
 		2609D6E7C4247E7397CA71E3 /* SSHConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConnection.swift; sourceTree = "<group>"; };
@@ -1115,6 +1117,7 @@
 				0F03DB2DE4EDE128532158D5 /* ShellSnapshots.swift */,
 				ED515CCCABAF96E696DF5D18 /* ShellSuggestions.swift */,
 				62EF04609C8CF763BA977245 /* Snippets.swift */,
+				2570C487DD3C284AD8F3D851 /* SnippetTyping.swift */,
 				19187452229CDBA698C4EBB7 /* SoundDevices.swift */,
 				2609D6E7C4247E7397CA71E3 /* SSHConnection.swift */,
 				FA6EFD0EAE310EE1C88BF029 /* SSHHosts.swift */,
@@ -2099,6 +2102,7 @@
 				98567844EDD7930E94C53A48 /* ShellSuggestions.swift in Sources */,
 				FFA27FDA237C792CB53FB09F /* ShortcutRows.swift in Sources */,
 				85C59D3C54D8BFE231EE5FA2 /* Shortcuts.swift in Sources */,
+				9504813A752D3685F123726C /* SnippetTyping.swift in Sources */,
 				E740D0C6E19CC54CE1FDBC1B /* Snippets.swift in Sources */,
 				A6364F799336535D87ABDCFE /* SnippetsSettingsPage.swift in Sources */,
 				12ED4372071031940B98F3E7 /* SoundDevices.swift in Sources */,

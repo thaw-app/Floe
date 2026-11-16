@@ -28,6 +28,9 @@ these four.
 - **Clipboard history and what extensions keep in their storage are encrypted**, with a key kept in your keychain, so another app can't read what you copied or a token an extension saved. What was there before is encrypted the next time Floe or the extension opens it.
 - **Extension passwords can't be read by other apps while a command runs.** Floe used to hand them to the extension in a way any program running as you could see.
 - **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it. ([#91](https://github.com/thaw-app/Floe/issues/91))
+- **Snippet keywords no longer expand after a click or an app switch**, so finishing a keyword in another field doesn't delete text there.
+- **Expanding a snippet leaves your clipboard as it was**, and the snippet no longer shows up in clipboard history.
+- **Backspace corrects a snippet keyword as you type it**, so a keyword fixed mid-word still expands.
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
 - **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search.
 - **Background commands keep running after they close the launcher**, as they do in Raycast.
@@ -39,6 +42,11 @@ these four.
 - **Changing an extension's settings no longer erases the rest** when Floe can't read the settings file or a save is cut short.
 - **Clearing an extension's setting on one Mac clears it on your other Macs**, instead of the old value staying there.
 - **iCloud sync stops resending a change that keeps conflicting** and reads iCloud's copy instead.
+- **Toggle Bluetooth says when macOS didn't let it change** instead of claiming it is on or off.
+- **Restart, Shut Down, Log Out, Empty Trash and Toggle Appearance show a message when they fail** instead of doing nothing.
+- **Reading text or a QR code from the screen no longer stops after two minutes**, and a shell command or script that runs past its time limit says it took too long.
+- **Floe no longer quits when the disk is full while diagnostic logging is on**; logging stops instead.
+- **Reminders finds your lists after you allow Floe in System Settings**, without restarting Floe.
 
 #### Security
 These come from a code review of Floe on 2026-11-15.

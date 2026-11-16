@@ -294,6 +294,29 @@ struct FileIndexServiceTests {
         #expect(fixture.sinces.last == 160)
     }
 
+    @Test func aFailedSaveIsTriedAgainAtQuit() async throws {
+        let fixture = try IndexFixture(files: ["docs/first.txt"])
+        // A plain file where the index's folder should be: the folder cannot be made, so the save fails.
+        let blocker = fixture.root.appendingPathExtension("blocker")
+        try Data().write(to: blocker)
+        defer { try? FileManager.default.removeItem(at: blocker) }
+        var environment = fixture.savingEnvironment
+        let saved = blocker.appendingPathComponent("files.index")
+        environment.saved = saved
+        let service = FileIndexService(environment: environment)
+        service.set(on: true)
+        await service.settled()
+        #expect(!FileManager.default.fileExists(atPath: saved.path))
+
+        try FileManager.default.removeItem(at: blocker)
+        service.flush()
+        #expect(FileManager.default.fileExists(atPath: saved.path), "the save at quit tried again")
+        let reopened = FileIndexService(environment: environment)
+        reopened.set(on: true)
+        await reopened.settled()
+        #expect(reopened.files(matching: "first")?.map(\.name) == ["first.txt"])
+    }
+
     @Test func anIndexSwitchedOffIsLetGoWithoutWaitingForItsSave() async throws {
         let fixture = try IndexFixture(files: ["first.txt"])
         var environment = fixture.savingEnvironment

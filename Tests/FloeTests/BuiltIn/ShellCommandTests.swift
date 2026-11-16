@@ -133,6 +133,12 @@ struct ShellCommandTests {
         #expect(failed.output == "printed\n\nnope\n\nThe command ended with code 7.")
     }
 
+    @Test func aCommandStoppedAtItsDeadlineSaysItTookTooLong() async {
+        let stopped = await ShellCommand.finished("sleep 5", timeout: 0.3, aliases: [:])
+        #expect(stopped.line == ShellResult.tookTooLong)
+        #expect(stopped.output == ShellResult.tookTooLong)
+    }
+
     @Test func scriptsHandedToATerminalAreClearedOutADayLater() throws {
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent("floe-scripts-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

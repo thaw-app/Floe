@@ -180,6 +180,29 @@ nonisolated enum ReminderDate {
     }
 }
 
+/// A store made again whenever access has changed since it was made. A store made before access was granted can go
+/// on finding no lists, and the user may grant access in System Settings while Floe runs.
+final class RemadeOnAccessChange<Store: AnyObject> {
+    private let make: () -> Store
+    private let access: () -> EKAuthorizationStatus
+    private var made: (store: Store, access: EKAuthorizationStatus)?
+
+    init(make: @escaping () -> Store, access: @escaping () -> EKAuthorizationStatus) {
+        self.make = make
+        self.access = access
+    }
+
+    var current: Store {
+        let now = access()
+        if let made, made.access == now {
+            return made.store
+        }
+        let store = make()
+        made = (store, now)
+        return store
+    }
+}
+
 /// Apple Reminders, as far as Floe reaches into it: one reminder added, and that one deleted again.
 enum Reminders {
     enum Failure: LocalizedError {
@@ -193,10 +216,11 @@ enum Reminders {
         }
     }
 
-    private static let store = EKEventStore()
+    private static let stores = RemadeOnAccessChange(make: EKEventStore.init, access: { EKEventStore.authorizationStatus(for: .reminder) })
 
     /// Whether Floe may write reminders. macOS asks the user the first time.
     static func requestAccess() async -> Bool {
+        let store = stores.current
         let granted: Bool = switch EKEventStore.authorizationStatus(for: .reminder) {
         case .fullAccess:
             true
@@ -217,11 +241,13 @@ enum Reminders {
     /// The names of the user's lists. Empty until Floe may use Reminders: reading them never asks.
     static func listNames() -> [String] {
         guard EKEventStore.authorizationStatus(for: .reminder) == .fullAccess else { return [] }
-        return store.calendars(for: .reminder).filter(\.allowsContentModifications).map(\.title)
+        return stores.current.calendars(for: .reminder).filter(\.allowsContentModifications).map(\.title)
     }
 
     /// Adds the reminder to the list its sentence named, or to the default one, and answers with its identifier.
     static func create(_ draft: ReminderDraft) throws -> String {
+        // One store for the whole call: a reminder is saved to the store it was made with.
+        let store = stores.current
         let named = draft.list.flatMap { name in
             store.calendars(for: .reminder).first { $0.allowsContentModifications && $0.title.caseInsensitiveCompare(name) == .orderedSame }
         }
@@ -240,6 +266,7 @@ enum Reminders {
     /// Deletes the reminder with that identifier. False when it is no longer there.
     static func delete(_ identifier: String) throws -> Bool {
         guard EKEventStore.authorizationStatus(for: .reminder) == .fullAccess else { throw Failure.notAllowed }
+        let store = stores.current
         guard let reminder = store.calendarItem(withIdentifier: identifier) as? EKReminder else { return false }
         try store.remove(reminder, commit: true)
         return true

@@ -17,22 +17,18 @@ import Combine
 
     /// Marks events this expander posts itself, so they are never treated as typed input.
     private static let magicUserData: Int64 = 0x466C_6F65
-    private static let maxBufferLength = 32
-    private static let deleteKeyCode: CGKeyCode = 51
+    /// Key presses, and the clicks that move the caret somewhere the typed keys were not.
+    private static let eventsOfInterest: CGEventMask = [CGEventType.keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown]
+        .reduce(0) { $0 | CGEventMask(1) << $1.rawValue }
 
     private var tap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
     private var retryTimer: Timer?
     private var following: AnyCancellable?
-    private var buffer = ""
-
-    /// Keycodes that end a word rather than extend it.
-    private static let resetKeyCodes: Set<CGKeyCode> = [
-        36, // Return
-        48, // Tab
-        53, // Escape
-        123, 124, 125, 126, // Arrow keys
-    ]
+    private var keys = KeywordBuffer()
+    private var lent: SnippetPasteboard.Loan?
+    private var giveBackTimer: Timer?
+    private var appSwitch: NSObjectProtocol?
 
     private init() {}
 
@@ -60,7 +56,12 @@ import Combine
     func stop() {
         retryTimer?.invalidate()
         retryTimer = nil
-        buffer = ""
+        keys.clear()
+        if let appSwitch {
+            NSWorkspace.shared.notificationCenter.removeObserver(appSwitch)
+            self.appSwitch = nil
+        }
+        giveBack()
         if let tap {
             CGEvent.tapEnable(tap: tap, enable: false)
             // Listening now starts and stops with the snippets, and a tap only disabled would stay registered each time.
@@ -79,7 +80,7 @@ import Combine
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
             options: .listenOnly,
-            eventsOfInterest: CGEventMask(1 << CGEventType.keyDown.rawValue),
+            eventsOfInterest: Self.eventsOfInterest,
             callback: tapCallback,
             userInfo: refcon
         ) else {
@@ -96,6 +97,14 @@ import Combine
             CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
         }
         CGEvent.tapEnable(tap: tap, enable: true)
+        if appSwitch == nil {
+            appSwitch = NSWorkspace.shared.notificationCenter.addMainObserver(
+                forName: NSWorkspace.didActivateApplicationNotification,
+                object: nil
+            ) { [weak self] in
+                self?.keys.clear()
+            }
+        }
     }
 
     /// Tries again every ten seconds. The timer calls straight in, with no task of its own, so a try can't
@@ -125,25 +134,22 @@ import Combine
     }
 
     private func handle(type: CGEventType, event: CGEvent) {
-        guard type == .keyDown else { return }
+        // A click may have moved the caret, so the keys typed before it are not next to it any more.
+        guard type == .keyDown else {
+            keys.clear()
+            return
+        }
         if event.getIntegerValueField(.eventSourceUserData) == Self.magicUserData {
             return
         }
         guard SnippetStore.shared.expansionEnabled else { return }
+        // A password field must not leave half a keyword behind.
         if IsSecureEventInputEnabled() {
+            keys.clear()
             return
         }
         if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == Bundle.main.bundleIdentifier {
-            buffer = ""
-            return
-        }
-        // Modifier shortcuts act on the app, they are not typed text.
-        if !event.flags.isDisjoint(with: [.maskCommand, .maskControl, .maskAlternate]) {
-            buffer = ""
-            return
-        }
-        if Self.resetKeyCodes.contains(CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))) {
-            buffer = ""
+            keys.clear()
             return
         }
         var chars = [UniChar](repeating: 0, count: 4)
@@ -153,24 +159,37 @@ import Combine
             guard length > 0, let base = pointer.baseAddress else { return nil }
             return String(utf16CodeUnits: base, count: length)
         }
-        guard let typed, !typed.isEmpty else { return }
-        buffer.append(typed)
-        if buffer.count > Self.maxBufferLength {
-            buffer = String(buffer.suffix(Self.maxBufferLength))
-        }
-        guard let match = Snippet.match(typed: buffer, in: SnippetStore.shared.snippets) else { return }
-        buffer = ""
+        let code = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
+        guard let key = KeywordBuffer.key(code: code, flags: event.flags, characters: typed), let text = keys.take(key) else { return }
+        guard let match = Snippet.match(typed: text, in: SnippetStore.shared.snippets) else { return }
+        keys.clear()
+        // Before the lend, so a clipboard placeholder reads what the person copied.
         let expanded = SnippetStore.shared.expanded(match)
         delete(count: match.keyword.count)
-        PasteboardContent.write(text: expanded, html: nil, file: nil)
+        giveBackTimer?.invalidate()
+        lent = SnippetPasteboard.lend(expanded, after: lent)
         // After the deletes land, or the paste arrives before them.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { KeySimulation.paste() }
+        // The app reads the pasteboard when Command-V arrives, which can be a moment after it was sent.
+        giveBackTimer = Timer.scheduledOnMain(withTimeInterval: 0.5, repeats: false) { [weak self] in
+            self?.giveBack()
+        }
+    }
+
+    /// Puts back what the pasteboard held before the last expansion, unless something was copied since.
+    private func giveBack() {
+        giveBackTimer?.invalidate()
+        giveBackTimer = nil
+        if let lent {
+            SnippetPasteboard.giveBack(lent)
+        }
+        lent = nil
     }
 
     private func delete(count: Int) {
         for _ in 0 ..< count {
             for keyDown in [true, false] {
-                let event = CGEvent(keyboardEventSource: nil, virtualKey: Self.deleteKeyCode, keyDown: keyDown)
+                let event = CGEvent(keyboardEventSource: nil, virtualKey: KeywordBuffer.backspaceKeyCode, keyDown: keyDown)
                 event?.setIntegerValueField(.eventSourceUserData, value: Self.magicUserData)
                 event?.post(tap: .cghidEventTap)
             }
@@ -189,7 +208,7 @@ private nonisolated func tapCallback(
         // Safe: the tap's source is on the main run loop.
         MainActor.assumeIsolated { expander.reenable() }
     }
-    if let refcon, type == .keyDown {
+    if let refcon, type == .keyDown || type == .leftMouseDown || type == .rightMouseDown || type == .otherMouseDown {
         Unmanaged<TextExpander>.fromOpaque(refcon).takeUnretainedValue().handleTap(type: type, event: event)
     }
     return Unmanaged.passUnretained(event)

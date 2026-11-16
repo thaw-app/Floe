@@ -66,7 +66,7 @@ final class ScriptRows {
 
     private func show(_ result: ShellResult, of script: ScriptCommand) {
         guard result.succeeded else {
-            let line = ScriptRunner.lastLine(result.errorOutput) ?? ScriptRunner.lastLine(result.output)
+            let line = result.timedOut ? ShellResult.tookTooLong : ScriptRunner.lastLine(result.errorOutput) ?? ScriptRunner.lastLine(result.output)
                 ?? String(localized: "exit code \(result.status)", bundle: .floe, comment: "The reason a script failed, when it printed nothing. The placeholder is a number.")
             host.showHUD(String(localized: "\(script.title) failed: \(line)", bundle: .floe, comment: "The first placeholder is the name of a script, the second is the reason."))
             return

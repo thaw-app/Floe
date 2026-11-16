@@ -70,6 +70,21 @@ struct SystemCommandTests {
         #expect(!SystemToggle.isKeepingAwake)
     }
 
+    @Test(arguments: [
+        (true, true, "Bluetooth On"), (false, false, "Bluetooth Off"),
+        (true, false, "Couldn't turn Bluetooth on"), (false, true, "Couldn't turn Bluetooth off"),
+    ])
+    func bluetoothSaysWhatItIsAfterTheFlip(turningOn: Bool, isOn: Bool, line: String) {
+        #expect(SystemToggle.bluetoothLine(turningOn: turningOn, isOn: isOn) == line)
+    }
+
+    @Test func aFailedScriptSaysSoWithOrWithoutAnErrorNumber() {
+        #expect(SystemCommand.failureMessage(for: AppleScript.Execution(text: "")) == nil)
+        #expect(SystemCommand.failureMessage(for: AppleScript.Execution(status: 1, output: "", errors: "osascript: something broke")) == "osascript: something broke")
+        #expect(SystemCommand.failureMessage(for: AppleScript.Execution(didRun: false, hasError: true)) == "The system command failed.")
+        #expect(SystemCommand.failureMessage(for: AppleScript.Execution(status: 1, output: "", errors: "0:5: execution error: Nope. (-128)")) == "Nope.")
+    }
+
     @Test func aKeywordFindsItsCommand() {
         let results = Ranking.search(
             SystemCommand.allCases.map(RootItem.system), query: "reboot", favorites: [], alias: { _ in nil }, frecency: { _ in 0 }
