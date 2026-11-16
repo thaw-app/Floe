@@ -325,13 +325,15 @@ final class SyncEngine {
 
     /// Sends back without it any record that holds what must not stay in the store: one just taken in, and one this
     /// Mac took in before it knew to clean it. One the store holds a newer record of, as one the app refused, waits.
+    /// The cleaned record is dated the smallest step after the one it cleans, not now: a Mac that was offline would
+    /// otherwise have its old value win over a change made since, which is dated at least a millisecond later.
     private func clean(_ outcome: inout SyncMerge.Outcome, against remote: [String: SyncRecord]) {
         for (key, record) in journal.records {
             if let theirs = remote[key], SyncMerge.wins(theirs, over: record) {
                 continue
             }
             guard let value = record.value, let cleaned = client.cleaned(key, value) else { continue }
-            journal.records[key] = SyncRecord(value: cleaned, time: stamp(after: record.time), device: journal.device)
+            journal.records[key] = SyncRecord(value: cleaned, time: record.time.nextUp, device: journal.device)
             outcome.push.insert(key)
         }
     }

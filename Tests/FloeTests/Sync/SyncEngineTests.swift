@@ -177,6 +177,44 @@ struct SyncEngineTests {
         #expect(updated.journal.records["ext/weather"]?.value?.contains("apiKey") == true, "kept to try the newer one again")
     }
 
+    @Test func aCleanupMadeOfflineDoesNotUndoANewerChange() {
+        let a = mac("a")
+        let b = mac("b")
+        let newer = "{\"city\":\"Lisbon\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        b.store.isOnline = false
+        a.edit("ext/weather", newer, at: 4000)
+        b.cleans = { _, value in value.contains("apiKey") ? "{\"city\":\"Oslo\"}" : nil }
+        b.time = 5000
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        b.store.isOnline = true
+        cloud.deliver()
+        #expect(a.values["ext/weather"] == newer, "a cleanup is not a newer change")
+        #expect(updated.journal.records["ext/weather"]?.value == newer)
+    }
+
+    @Test func aCleanupMadeOfflineLosesEvenToAChangeMadeTheSameMillisecond() {
+        let a = mac("a")
+        let b = mac("z")
+        let newer = "{\"city\":\"Lisbon\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        b.store.isOnline = false
+        a.edit("ext/weather", newer, at: 2000.0005)
+        b.cleans = { _, value in value.contains("apiKey") ? "{\"city\":\"Oslo\"}" : nil }
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        b.store.isOnline = true
+        cloud.deliver()
+        #expect(a.values["ext/weather"] == newer, "a device that sorts later does not tip it either")
+    }
+
     @Test func aDeletionIsNotBroughtBackByAnotherMac() {
         let a = mac("a", values: ["snippet": "\"hi\""])
         let b = mac("b", values: ["snippet": "\"hi\""])
