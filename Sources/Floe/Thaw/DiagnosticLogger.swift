@@ -190,7 +190,7 @@ final nonisolated class DiagnosticLogger: Sendable {
         ========================================\n\n
         """
         if let data = header.data(using: .utf8), !Self.append(data, to: handle) {
-            stopAfterFailedWrite()
+            stopAfterFailedWrite(handle)
             return
         }
 
@@ -222,12 +222,18 @@ final nonisolated class DiagnosticLogger: Sendable {
     }
 
     /// Lets the file go and leaves logging off until the user turns it on again. It takes fileHandleLock, so call it
-    /// outside that lock.
-    private func stopAfterFailedWrite() {
-        let handle = fileHandleLock.withLock { $0.take() }
-        try? handle?.close()
-        currentLogFileLock.withLock { $0 = nil }
-        isEnabledLock.withLock { $0 = false }
+    /// outside that lock. A file opened since the write failed, when logging was turned off and on, stays on: the
+    /// check and the switch happen under one lock, so a new file cannot come in between.
+    private func stopAfterFailedWrite(_ failed: FileHandle) {
+        let isCurrent = fileHandleLock.withLock { handle in
+            guard handle === failed else { return false }
+            handle = nil
+            currentLogFileLock.withLock { $0 = nil }
+            isEnabledLock.withLock { $0 = false }
+            return true
+        }
+        guard isCurrent else { return }
+        try? failed.close()
         osLog.error("Diagnostic logging stopped: the log file could not be written")
     }
 
@@ -290,10 +296,10 @@ final nonisolated class DiagnosticLogger: Sendable {
         writeQueue.async { [weak self] in
             guard let self else { return }
             let failed = fileHandleLock.withLock { handle in
-                handle.map { !Self.append(data, to: $0) } ?? false
+                handle.flatMap { Self.append(data, to: $0) ? nil : $0 }
             }
-            if failed {
-                stopAfterFailedWrite()
+            if let failed {
+                stopAfterFailedWrite(failed)
             }
         }
     }
