@@ -81,6 +81,11 @@ struct AIToolTests {
         #expect(AIEngine.resolve(model: nil, setup: blank, which: installed(.pi)) == .pi(executable: path(.pi), model: nil))
     }
 
+    @Test func aModelThatStartsWithADashIsNotPassedSinceTheToolWouldReadItAsAnOption() {
+        let setup = AIEngine.Setup(tool: .opencode, models: ["opencode": " --attach=https://example.com"])
+        #expect(AIEngine.resolve(model: nil, setup: setup, which: installed(.opencode)) == .opencode(executable: path(.opencode), model: nil))
+    }
+
     @Test func theModelAnExtensionAsksForIsNotHandedToOpencodeOrPi() {
         // Raycast's model names are not a provider and model as these tools take them.
         #expect(AIEngine.resolve(model: "Anthropic_Claude_Sonnet", setup: AIEngine.Setup(tool: .opencode), which: installed(.opencode)) == .opencode(executable: path(.opencode), model: nil))

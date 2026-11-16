@@ -84,7 +84,9 @@ nonisolated enum AIEngine {
         /// The model typed for a tool, as written; nil when the field is empty, which leaves the tool its own default.
         func model(for tool: AITool) -> String? {
             let model = (models[tool.rawValue] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            return model.isEmpty ? nil : model
+            // The name is passed after --model, where one starting with a dash would be read as another option, such
+            // as opencode's --attach, which sends the question to a server it names. An imported file may set it.
+            return model.isEmpty || model.hasPrefix("-") ? nil : model
         }
     }
 
