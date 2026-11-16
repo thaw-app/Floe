@@ -295,20 +295,37 @@ struct ExtensionRunnerTests {
         #expect(runner.unattended.isEmpty)
     }
 
-    @Test func whatACommandAsksForReachesTheHost() {
-        let runner = runner()
-        let session = ExtensionSession(command: command())
+    @Test func whatTheCommandOnScreenAsksForReachesTheHost() throws {
+        let (runner, _) = reloadingRunner()
+        let session = try #require(runner.session)
+        asked.calls = []
         runner.handle(["type": "close"], from: session)
         runner.handle(["type": "hud", "title": "Saved"], from: session)
         runner.handle(["type": "open", "target": "/tmp/file.txt"], from: session)
         runner.handle(["type": "signIn"], from: session)
-        #expect(asked.calls == ["hide", "hud Saved", "hide", "open /tmp/file.txt -", "preferences signIn"])
+        #expect(asked.calls == ["pop to root default", "hide", "hud Saved", "hide", "open /tmp/file.txt -", "preferences signIn"])
     }
 
-    @Test func aCommandThatIsNotTheOneOnScreenHasNoSayOverItsPopToRoot() {
+    @Test func aCommandThatIsNotTheOneOnScreenHasNoSayOverThePanel() {
         let runner = runner()
-        runner.handle(["type": "close", "popToRootType": "immediate"], from: ExtensionSession(command: command()))
-        #expect(asked.calls == ["hide"])
+        let session = ExtensionSession(command: command())
+        runner.handle(["type": "close", "popToRootType": "immediate"], from: session)
+        runner.handle(["type": "hud", "title": "Saved"], from: session)
+        runner.handle(["type": "signIn"], from: session)
+        #expect(asked.calls == ["hud Saved"])
+    }
+
+    @Test func aCommandThatExitedHasNoSayOverThePanelInWhatItSendsAfter() throws {
+        try withPasteboard { pasteboard in
+            let (runner, session) = try noViewRunner()
+            runner.pasteboard = pasteboard
+            runner.handle(["type": "exit"], from: session)
+            asked.calls = []
+            runner.handle(["type": "paste", "text": "hello"], from: session)
+            runner.handle(["type": "close"], from: session)
+            runner.handle(["type": "openPreferences"], from: session)
+            #expect(asked.calls == ["hud Copied. Press ⌘V to paste."])
+        }
     }
 
     @Test func theCommandOnScreenSaysHowItIsKeptBeforeThePanelHides() throws {

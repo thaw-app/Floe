@@ -234,7 +234,7 @@ final class ExtensionRunner: ObservableObject {
             end(session)
             host.showHUD(String(localized: "\(session.command.title) failed", bundle: .floe, comment: "The placeholder is the name of a command."))
         case "close":
-            close(message, from: session)
+            close(message)
         case "hud":
             host.showHUD(message["title"] as? String ?? "")
             host.hidePanel()
@@ -252,21 +252,18 @@ final class ExtensionRunner: ObservableObject {
         }
     }
 
-    /// A command left running off screen has no say over the panel, which may be showing another by now: what it asks
-    /// of the panel is handled as a background run's, and closing it or asking for preferences is ignored. False for
-    /// any other message.
+    /// The panel is the on-screen command's. Any other, such as one left running, one that just exited, one being
+    /// replaced or a change still starting, has no say over it: what it asks of the panel is handled as a background
+    /// run's, and closing it or asking for preferences is ignored. False for the command on screen and other messages.
     private func handledOffScreen(_ message: [String: Any], from session: ExtensionSession) -> Bool {
-        guard unattended.contains(where: { $0 === session }), let type = message["type"] as? String,
+        guard self.session !== session, let type = message["type"] as? String,
               ["close", "hud", "copy", "paste", "open", "openPreferences", "signIn"].contains(type) else { return false }
         handleBackgroundMessage(message)
         return true
     }
 
-    private func close(_ message: [String: Any], from session: ExtensionSession) {
-        // A command being replaced has no say over the one taking its place.
-        if self.session === session {
-            host.popToRootOnHide(PopToRoot(rawValue: message["popToRootType"] as? String ?? "") ?? .default)
-        }
+    private func close(_ message: [String: Any]) {
+        host.popToRootOnHide(PopToRoot(rawValue: message["popToRootType"] as? String ?? "") ?? .default)
         host.hidePanel()
     }
 
