@@ -20,6 +20,8 @@ final class TestMac {
     var unacceptable: Set<String> = []
     /// What the app holds after taking a value in. An app that knows the whole value keeps it as it came.
     var kept: (String) -> String = { $0 }
+    /// What the app says must not stay in the store, as SyncClient.cleaned. Nothing, unless a test says so.
+    var cleans: (_ key: String, _ value: String) -> String? = { _, _ in nil }
     private(set) var applied: [[String: String]] = []
     private(set) var storesMade = 0
     private(set) var timesTurnedOff = 0
@@ -48,7 +50,8 @@ final class TestMac {
                 removed.forEach { self.values[$0] = nil }
                 return Set(changed.keys).intersection(self.unacceptable)
             },
-            turnOff: { [unowned self] in self.timesTurnedOff += 1 }
+            turnOff: { [unowned self] in self.timesTurnedOff += 1 },
+            cleaned: { [unowned self] in self.cleans($0, $1) }
         )
         let engine = SyncEngine(
             client: client,
@@ -133,6 +136,83 @@ struct SyncEngineTests {
         cloud.deliver()
         #expect(a.values["tint"] == "{\"alpha\":1,\"new\":true}", "the newer version's field is still there")
         #expect(b.engine.journal.records["tint"]?.device == "a")
+    }
+
+    @Test func aRecordTakenInBeforeTheAppCleanedItIsCleanedAndSentBack() {
+        let a = mac("a")
+        let b = mac("b")
+        let clean = "{\"city\":\"Oslo\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        #expect(b.engine.journal.records["ext/weather"]?.value?.contains("apiKey") == true, "kept as it came, as before this version")
+        // The update: the same journal and store, and an app that now says the key must not stay in the store.
+        b.cleans = { _, value in value.contains("apiKey") ? clean : nil }
+        b.time = 3000
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        cloud.deliver()
+        #expect(updated.journal.records["ext/weather"]?.value == clean)
+        #expect(a.values["ext/weather"] == clean, "the store holds it without the key")
+    }
+
+    @Test func aRecordTheAppRefusedANewerValueOfIsNotCleanedOverIt() {
+        let a = mac("a")
+        let b = mac("b")
+        let newer = "{\"city\":\"Lisbon\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        b.unacceptable = ["ext/weather"]
+        a.edit("ext/weather", newer, at: 4000)
+        cloud.deliver()
+        b.cleans = { _, value in value.contains("apiKey") ? "{\"city\":\"Oslo\"}" : nil }
+        b.time = 5000
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        cloud.deliver()
+        #expect(a.values["ext/weather"] == newer, "the newer record stays in the store")
+        #expect(updated.journal.records["ext/weather"]?.value?.contains("apiKey") == true, "kept to try the newer one again")
+    }
+
+    @Test func aCleanupMadeOfflineDoesNotUndoANewerChange() {
+        let a = mac("a")
+        let b = mac("b")
+        let newer = "{\"city\":\"Lisbon\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        b.store.isOnline = false
+        a.edit("ext/weather", newer, at: 4000)
+        b.cleans = { _, value in value.contains("apiKey") ? "{\"city\":\"Oslo\"}" : nil }
+        b.time = 5000
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        b.store.isOnline = true
+        cloud.deliver()
+        #expect(a.values["ext/weather"] == newer, "a cleanup is not a newer change")
+        #expect(updated.journal.records["ext/weather"]?.value == newer)
+    }
+
+    @Test func aCleanupMadeOfflineLosesEvenToAChangeMadeTheSameMillisecond() {
+        let a = mac("a")
+        let b = mac("z")
+        let newer = "{\"city\":\"Lisbon\"}"
+        a.engine.setOn(true)
+        b.engine.setOn(true)
+        a.edit("ext/weather", "{\"apiKey\":\"abc\",\"city\":\"Oslo\"}", at: 2000)
+        cloud.deliver()
+        b.store.isOnline = false
+        a.edit("ext/weather", newer, at: 2000.0005)
+        b.cleans = { _, value in value.contains("apiKey") ? "{\"city\":\"Oslo\"}" : nil }
+        let updated = b.makeEngine()
+        updated.setOn(true)
+        b.store.isOnline = true
+        cloud.deliver()
+        #expect(a.values["ext/weather"] == newer, "a device that sorts later does not tip it either")
     }
 
     @Test func aDeletionIsNotBroughtBackByAnotherMac() {

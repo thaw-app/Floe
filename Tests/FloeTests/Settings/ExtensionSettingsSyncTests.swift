@@ -217,6 +217,33 @@ struct ExtensionSettingsSyncTests {
         #expect(b.installed.stored["weather"]?["apiKey"] == nil, "a record from an older Floe does not write it either")
     }
 
+    @Test func aCredentialAnOlderFloeLeftInTheStoreIsTakenOutOfIt() throws {
+        let a = try floe("a", installs: [weatherWithKey])
+        let b = try floe("b", installs: [weatherWithKey])
+        b.store.plant(["t": 5000.0, "d": "x", "v": "{\"city\":\"Oslo\",\"apiKey\":\"theirs\"}"], for: "ext/weather")
+        b.service.engine.refresh()
+        cloud.deliver()
+        #expect(record(in: b, of: "weather") == "{\"city\":\"Oslo\"}", "sent back without the key")
+        #expect(record(in: a, of: "weather") == "{\"city\":\"Oslo\"}")
+        #expect(b.installed.stored["weather"]?["city"] as? String == "Oslo")
+        #expect(b.installed.stored["weather"]?["apiKey"] == nil)
+    }
+
+    @Test func aCredentialIsTakenOutOfTheStoreWithExtensionSettingsLeftOutOfSyncHere() throws {
+        let b = try floe("b", installs: [weatherWithKey])
+        b.settings.syncsExtensionSettings = false
+        b.installed.stored["weather"] = ["city": "Bergen"]
+        b.store.plant(["t": 5000.0, "d": "x", "v": "{\"city\":\"Oslo\",\"apiKey\":\"theirs\"}"], for: "ext/weather")
+        b.service.engine.refresh()
+        cloud.deliver()
+        #expect(record(in: b, of: "weather") == "{\"city\":\"Oslo\"}", "sent back without the key")
+        #expect(b.installed.stored["weather"]?["city"] as? String == "Bergen", "nothing is taken in here")
+        b.changed(at: 6000)
+        b.service.engine.refresh()
+        cloud.deliver()
+        #expect(record(in: b, of: "weather") == "{\"city\":\"Oslo\"}", "the copy kept here does not send the key again")
+    }
+
     @Test func anAlreadySyncedSecretIsTakenOutOfTheRecord() {
         let installed = PretendExtensions()
         installed.commands = [weatherWithKey]

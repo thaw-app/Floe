@@ -21,8 +21,8 @@ struct StorageKeyTests {
     /// A keychain that holds the key but could not read it just now, as a locked one may.
     private final class Unreadable: KeychainAccess, @unchecked Sendable {
         var stored = "the real key"
-        /// What a listing shows: the accounts are there, their secrets cannot be read.
-        var listed: [KeychainEntry] = []
+        /// Whether the old item is there. Nil is no answer.
+        var present: Bool? = false
         func read(service _: String, account _: String, synchronizable _: Bool) -> String? {
             nil
         }
@@ -41,7 +41,11 @@ struct StorageKeyTests {
         }
 
         func list(service _: String, synchronizable _: Bool) -> [KeychainEntry] {
-            listed
+            []
+        }
+
+        func contains(service _: String, account _: String, synchronizable _: Bool) -> Bool? {
+            present
         }
     }
 
@@ -118,8 +122,10 @@ struct StorageKeyTests {
 
         let unreadable = Unreadable()
         #expect(StorageKey.legacy(in: unreadable) == .none)
-        unreadable.listed = [KeychainEntry(account: StorageKey.legacyAccount, modified: nil)]
+        unreadable.present = true
         #expect(StorageKey.legacy(in: unreadable) == .unreadable)
+        unreadable.present = nil
+        #expect(StorageKey.legacy(in: unreadable) == .unreadable, "a keychain that gave no answer may still hold the old key")
     }
 
     @Test func aHostIsGivenItsOwnKeyOnlyWhenAllowedAndNeverTheRoot() {

@@ -76,28 +76,37 @@ nonisolated struct ClipboardSeal: Sendable {
     }
 
     /// Seals again with the new key each file in the folder that opens only with the old one. False while the old key
-    /// may still be needed: the folder is locked, or a file could not be written.
+    /// may still be needed: the folder is locked, or it or a file in it could not be read or written.
     func resealLegacyFiles(in directory: URL) -> Bool {
         guard !isLocked else { return false }
         guard let legacy else { return true }
         // Without the new key the files would be written plainly.
         guard key != nil else { return false }
+        let files: [URL]
+        do {
+            files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isRegularFileKey])
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return true
+        } catch {
+            return false
+        }
         let current = ClipboardSeal(key: key)
         let old = ClipboardSeal(key: legacy)
-        var done = true
-        for url in (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isRegularFileKey])) ?? [] {
-            let name = url.lastPathComponent
-            // A link is not followed, as when plain files are sealed.
-            guard (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true,
-                  let data = try? Data(contentsOf: url), current.isSealed(data), current.open(data, name: name) == nil,
-                  let plain = old.open(data, name: name)
-            else { continue }
-            guard let sealed = try? current.seal(plain, name: name), (try? sealed.write(to: url, options: .atomic)) != nil else {
-                done = false
-                continue
-            }
-            PrivateStorage.restrict(url, to: 0o600)
-        }
-        return done
+        // Every file is tried, so one that fails does not keep the others on the old key.
+        return files.map { Self.reseal($0, from: old, to: current) }.allSatisfy(\.self)
+    }
+
+    /// Seals the file again with the new key when only the old one opens it. False when it could not be read or written.
+    private static func reseal(_ url: URL, from old: ClipboardSeal, to current: ClipboardSeal) -> Bool {
+        let name = url.lastPathComponent
+        guard let values = try? url.resourceValues(forKeys: [.isRegularFileKey]) else { return false }
+        // A link is not followed, as when plain files are sealed.
+        guard values.isRegularFile == true else { return true }
+        // A file that cannot be read may be one only the old key opens.
+        guard let data = try? Data(contentsOf: url) else { return false }
+        guard current.isSealed(data), current.open(data, name: name) == nil, let plain = old.open(data, name: name) else { return true }
+        guard let sealed = try? current.seal(plain, name: name), (try? sealed.write(to: url, options: .atomic)) != nil else { return false }
+        PrivateStorage.restrict(url, to: 0o600)
+        return true
     }
 }

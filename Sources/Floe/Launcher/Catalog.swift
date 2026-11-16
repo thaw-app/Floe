@@ -269,9 +269,14 @@ final class AppFolderWatcher {
         watch(AppEntry.folders())
     }
 
-    /// Watches each folder as it is now. A handle follows the folder it was opened on, not its path, so a folder that
-    /// was deleted or renamed since is let go, and one made at its path is watched in its place.
+    /// Watches each folder as it is now, and lets go of any not in the list. A handle follows the folder it was opened
+    /// on, not its path, so a folder that was deleted or renamed since is let go, and one made at its path is watched
+    /// in its place.
     func watch(_ folders: [String]) {
+        for (folder, watch) in watches where !folders.contains(folder) {
+            watch.source.cancel()
+            watches[folder] = nil
+        }
         for folder in folders {
             if let watch = watches[folder] {
                 if watch.identity == FileIdentity(path: folder) {

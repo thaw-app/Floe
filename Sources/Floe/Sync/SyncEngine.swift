@@ -97,6 +97,9 @@ struct SyncClient {
     var apply: (_ changed: [String: String], _ removed: Set<String>) -> Set<String>
     /// Switches sync off in the app, when another Mac removed the settings from iCloud.
     var turnOff: () -> Void = { /* an app without a switch has nothing to turn */ }
+    /// A value taken in without what must not stay in the store, such as a credential an older version sent, or nil
+    /// to keep it. The engine sends the cleaned value back.
+    var cleaned: (_ key: String, _ value: String) -> String? = { _, _ in nil }
 }
 
 /// Keeps the app's values and a store in step, one record per key, newest change winning.
@@ -191,6 +194,7 @@ final class SyncEngine {
         var (remote, skipped) = SyncWire.decode(contents.filter { $0.key != Self.clearedKey }, in: store.limits)
         var outcome = SyncMerge.merge(local: journal.records, remote: remote)
         skipped += take(&outcome, from: remote)
+        clean(&outcome, against: remote)
         send(outcome.push, to: store, holding: &remote)
         forgetOldRemovals(in: store, holding: remote)
         if journal != before {
@@ -317,6 +321,21 @@ final class SyncEngine {
             journal.seen[key] = snapshot[key].map(SyncWire.digest)
         }
         return refused.count
+    }
+
+    /// Sends back without it any record that holds what must not stay in the store: one just taken in, and one this
+    /// Mac took in before it knew to clean it. One the store holds a newer record of, as one the app refused, waits.
+    /// The cleaned record is dated the smallest step after the one it cleans, not now: a Mac that was offline would
+    /// otherwise have its old value win over a change made since, which is dated at least a millisecond later.
+    private func clean(_ outcome: inout SyncMerge.Outcome, against remote: [String: SyncRecord]) {
+        for (key, record) in journal.records {
+            if let theirs = remote[key], SyncMerge.wins(theirs, over: record) {
+                continue
+            }
+            guard let value = record.value, let cleaned = client.cleaned(key, value) else { continue }
+            journal.records[key] = SyncRecord(value: cleaned, time: record.time.nextUp, device: journal.device)
+            outcome.push.insert(key)
+        }
     }
 
     private func send(_ keys: Set<String>, to store: any SyncStore, holding remote: inout [String: SyncRecord]) {

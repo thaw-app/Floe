@@ -193,6 +193,26 @@ struct ClipboardSealTests {
         #expect(answers.given.withLock { $0 } == [false])
     }
 
+    @Test func aFileOrFolderThatCannotBeReadKeepsTheOldKey() throws {
+        let unreadable = folder.appendingPathComponent("1.png")
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: unreadable.path)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: folder.path)
+            try? FileManager.default.removeItem(at: folder)
+        }
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try ClipboardSeal(key: old).seal(Data("from before".utf8), name: "1.png").write(to: unreadable)
+        let moving = ClipboardSeal(key: seal.key, legacy: old)
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: unreadable.path)
+        #expect(!moving.resealLegacyFiles(in: folder), "a file that cannot be read may open only with the old key")
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: unreadable.path)
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: folder.path)
+        #expect(!moving.resealLegacyFiles(in: folder), "nor can a folder that cannot be listed")
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: folder.path)
+        #expect(moving.resealLegacyFiles(in: folder))
+        #expect(moving.resealLegacyFiles(in: folder.appendingPathComponent("never-made")), "no folder has nothing sealed in it")
+    }
+
     @Test func aReadableCopyFolderLeftWithWiderPermissionsIsMadePrivate() throws {
         defer { try? FileManager.default.removeItem(at: folder) }
         PasteboardContent.removeReadableCopies()

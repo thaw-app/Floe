@@ -27,7 +27,8 @@ final class SystemRows {
     private func perform(_ command: SystemCommand) {
         host.leave()
         if let flip = command.flip {
-            host.showHUD(flip())
+            let host = host
+            Task { host.showHUD(await flip()) }
             return
         }
         if let control = command.music {

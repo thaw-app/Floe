@@ -70,9 +70,14 @@ nonisolated enum StorageKey {
         return legacy
     }
 
-    /// Whether the old item is there is asked by listing the service's accounts, which reads no secret.
+    /// Whether the old item is there is asked without reading its secret. A keychain that gives no answer is not one
+    /// without the old key: what it sealed stays locked until the keychain answers.
     static func legacy(in keychain: some KeychainAccess) -> Legacy {
-        guard keychain.list(service: service, synchronizable: false).contains(where: { $0.account == legacyAccount }) else { return .none }
+        switch keychain.contains(service: service, account: legacyAccount, synchronizable: false) {
+        case false?: return .none
+        case nil: return .unreadable
+        case true?: break
+        }
         guard let key = keychain.read(service: service, account: legacyAccount, synchronizable: false) else { return .unreadable }
         // The app never sealed anything with a value that is not 32 bytes, so such a value is no old key.
         return Data(base64Encoded: key)?.count == 32 ? .key(key) : .none

@@ -34,6 +34,7 @@ these four.
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
 - **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search.
 - **Background commands keep running after they close the launcher**, as they do in Raycast.
+- **A command still running after you go back to the search can't close the launcher or paste into the app in front.** What it copies stays on the clipboard for you to paste.
 - **Commands that run without opening anything now say when they fail** instead of failing silently.
 - **Signing in to an extension in the browser no longer fails when another of its commands refreshes or ends.**
 - **A command opened by its hotkey or a link while clipboard history or another search is open now gets your typing**, so Return runs the command's action instead of pasting the clipboard item behind it.
@@ -52,8 +53,9 @@ these four.
 These come from a code review of Floe on 2026-11-15.
 - **Each extension's saved data is encrypted with a key of its own**, so one extension can't read what another saved or your clipboard history.
 - **Clipboard images an extension read are deleted when Floe quits.**
-- **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log or extension settings sync.**
+- **Importing a settings file can't switch on clipboard history, extensions or commands you turned off, menu bar commands, receipts, search history, the diagnostic log, extension settings sync or shell commands without the prefix**, even when the file's shell settings are damaged.
 - **A password saved before Floe was renamed is no longer lost when the keychain refuses its new copy.**
+- **An AI model name, typed or imported, can't add options to the AI tool's command**, so a settings file can't send your questions to a server it names.
 - **Extension text fields that look like a token, key, secret or password stay on this Mac** and are taken out of iCloud the next time Floe syncs. Update Floe on each of your Macs, since an older version still sends them.
 
 ## [0.4.0-rc.3] - 2026-11-13

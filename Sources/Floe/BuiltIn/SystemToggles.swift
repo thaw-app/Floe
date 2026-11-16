@@ -90,14 +90,14 @@ enum SystemToggle {
         return (unsafeBitCast(get, to: (@convention(c) () -> Int32).self), unsafeBitCast(set, to: (@convention(c) (Int32) -> Int32).self))
     }()
 
-    static func flipBluetooth() -> String {
+    static func flipBluetooth() async -> String {
         guard let power = bluetoothPower else { return String(localized: "Couldn't change Bluetooth", bundle: .floe) }
         let turnOn = power.get() == 0
         _ = power.set(turnOn ? 1 : 0)
-        // The controller can take a moment to report the new state. The panel is already gone, so a short wait is unseen.
+        // The controller can take a moment to report the new state; the wait sleeps, so the main thread stays free.
         var isOn = power.get() != 0
         for _ in 0 ..< 10 where isOn != turnOn {
-            usleep(50000)
+            try? await Task.sleep(for: .milliseconds(50))
             isOn = power.get() != 0
         }
         return bluetoothLine(turningOn: turnOn, isOn: isOn)

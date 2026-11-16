@@ -16,7 +16,8 @@ nonisolated enum LocalStorageReseal {
 
     enum Outcome: Equatable, Sendable {
         case done(resealed: Int)
-        /// Another process held the file, or SQLite failed otherwise: the rows stay as they are, to be done later.
+        /// Another process held the file, it has a second name, or SQLite failed otherwise: the rows stay as they
+        /// are, to be done later.
         case busy
         /// Not a database: the runtime moves such a file aside, so there is nothing to keep.
         case unreadable
@@ -60,6 +61,10 @@ nonisolated enum LocalStorageReseal {
         sqlite3_exec(database, "PRAGMA secure_delete = ON", nil, nil, nil)
         let began = sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil)
         guard began == SQLITE_OK else { return failure(began) }
+        guard isOwnFile(file) else {
+            sqlite3_exec(database, "ROLLBACK", nil, nil, nil)
+            return .busy
+        }
         guard let rows = sealedRows(in: database) else {
             let code = sqlite3_errcode(database)
             let missingTable = String(cString: sqlite3_errmsg(database)).contains("no such table")
@@ -94,6 +99,23 @@ nonisolated enum LocalStorageReseal {
     }
 
     /// What a failed SQLite call means here. Anything but a file that is not a database keeps the rows for a later try.
+    /// Whether the path leads to a file of its own folder: a regular file with one name, in the folder the path names
+    /// and not one a link leads to. A link to another extension's file or folder would have that extension's rows
+    /// sealed with this one's key. Checked once SQLite holds the file, so a link made earlier is caught.
+    private static func isOwnFile(_ file: URL) -> Bool {
+        var info = stat()
+        guard lstat(file.path, &info) == 0, info.st_mode & S_IFMT == S_IFREG, info.st_nlink == 1 else { return false }
+        let folder = file.deletingLastPathComponent()
+        guard let real = realPath(file), let data = realPath(folder.deletingLastPathComponent()) else { return false }
+        return real == "\(data)/\(folder.lastPathComponent)/\(file.lastPathComponent)"
+    }
+
+    private static func realPath(_ url: URL) -> String? {
+        guard let resolved = realpath(url.path, nil) else { return nil }
+        defer { free(resolved) }
+        return String(cString: resolved)
+    }
+
     private static func failure(_ code: Int32) -> Outcome {
         switch code & 0xFF {
         case SQLITE_NOTADB, SQLITE_CORRUPT: .unreadable
@@ -110,14 +132,26 @@ nonisolated enum LocalStorageReseal {
         while true {
             switch sqlite3_step(statement) {
             case SQLITE_ROW:
-                guard let key = sqlite3_column_text(statement, 0), let value = sqlite3_column_text(statement, 1) else { continue }
-                rows.append(Row(key: String(cString: key), value: String(cString: value)))
+                guard let key = text(statement, column: 0), let value = text(statement, column: 1) else { continue }
+                rows.append(Row(key: key, value: value))
             case SQLITE_DONE:
                 return rows
             default:
                 return nil
             }
         }
+    }
+
+    /// A column's text by its length, so a key with a NUL inside is read whole, as the runtime wrote it.
+    private static func text(_ statement: OpaquePointer?, column: Int32) -> String? {
+        guard let bytes = sqlite3_column_text(statement, column) else { return nil }
+        return String(bytes: UnsafeBufferPointer(start: bytes, count: Int(sqlite3_column_bytes(statement, column))), encoding: .utf8)
+    }
+
+    /// Binds the text by its length, for the same reason.
+    private static func bind(_ text: String, at index: Int32, in statement: OpaquePointer?) {
+        let bytes = text.utf8CString
+        _ = bytes.withUnsafeBufferPointer { sqlite3_bind_text(statement, index, $0.baseAddress, Int32($0.count - 1), transient) }
     }
 
     /// The row sealed under the new key, when it opens under the old one and not already under the new one.
@@ -131,9 +165,9 @@ nonisolated enum LocalStorageReseal {
         var statement: OpaquePointer?
         defer { sqlite3_finalize(statement) }
         guard sqlite3_prepare_v2(database, "UPDATE items SET value = ? WHERE key = ? AND value = ?", -1, &statement, nil) == SQLITE_OK else { return false }
-        sqlite3_bind_text(statement, 1, value, -1, transient)
-        sqlite3_bind_text(statement, 2, row.key, -1, transient)
-        sqlite3_bind_text(statement, 3, row.value, -1, transient)
+        bind(value, at: 1, in: statement)
+        bind(row.key, at: 2, in: statement)
+        bind(row.value, at: 3, in: statement)
         return sqlite3_step(statement) == SQLITE_DONE
     }
 }

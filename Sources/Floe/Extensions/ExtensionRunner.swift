@@ -224,6 +224,9 @@ final class ExtensionRunner: ObservableObject {
     // MARK: What a command asks for
 
     func handle(_ message: [String: Any], from session: ExtensionSession) {
+        if handledOffScreen(message, from: session) {
+            return
+        }
         switch message["type"] as? String {
         case "exit", "popToRoot":
             leave(session, poppingToRoot: message["type"] as? String == "popToRoot")
@@ -231,7 +234,7 @@ final class ExtensionRunner: ObservableObject {
             end(session)
             host.showHUD(String(localized: "\(session.command.title) failed", bundle: .floe, comment: "The placeholder is the name of a command."))
         case "close":
-            close(message, from: session)
+            close(message)
         case "hud":
             host.showHUD(message["title"] as? String ?? "")
             host.hidePanel()
@@ -249,11 +252,18 @@ final class ExtensionRunner: ObservableObject {
         }
     }
 
-    private func close(_ message: [String: Any], from session: ExtensionSession) {
-        // A command being replaced has no say over the one taking its place.
-        if self.session === session {
-            host.popToRootOnHide(PopToRoot(rawValue: message["popToRootType"] as? String ?? "") ?? .default)
-        }
+    /// The panel is the on-screen command's. Any other, such as one left running, one that just exited, one being
+    /// replaced or a change still starting, has no say over it: what it asks of the panel is handled as a background
+    /// run's, and closing it or asking for preferences is ignored. False for the command on screen and other messages.
+    private func handledOffScreen(_ message: [String: Any], from session: ExtensionSession) -> Bool {
+        guard self.session !== session, let type = message["type"] as? String,
+              ["close", "hud", "copy", "paste", "open", "openPreferences", "signIn"].contains(type) else { return false }
+        handleBackgroundMessage(message)
+        return true
+    }
+
+    private func close(_ message: [String: Any]) {
+        host.popToRootOnHide(PopToRoot(rawValue: message["popToRootType"] as? String ?? "") ?? .default)
         host.hidePanel()
     }
 
@@ -323,7 +333,7 @@ final class ExtensionRunner: ObservableObject {
 
 extension ExtensionRunner {
     /// Takes the open no-view command off the panel without stopping it. Its messages still reach handle, which
-    /// treats it as a command that is not on screen.
+    /// treats it as a background run.
     func detach(_ session: ExtensionSession) {
         guard self.session === session else { return }
         unattended.append(session)
@@ -352,6 +362,8 @@ extension ExtensionRunner {
     /// Stops every command, open or unattended, when Floe quits.
     func stopAll() {
         session?.forceStop()
+        reloading?.session.forceStop()
+        reloading = nil
         for session in unattended {
             session.forceStop()
         }

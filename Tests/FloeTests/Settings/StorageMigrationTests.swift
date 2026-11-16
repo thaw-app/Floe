@@ -21,7 +21,8 @@ struct StorageMigrationTests {
         struct State {
             var legacy: StorageKey.Legacy = .key(StorageMigrationTests.old)
             var root: StorageKey.Access = .key(StorageMigrationTests.root)
-            var files: [StorageMigration.StorageFile] = []
+            /// Nil is a data folder that could not be read.
+            var files: [StorageMigration.StorageFile]? = []
             var outcomes: [String: LocalStorageReseal.Outcome] = [:]
             var resealed: [(file: URL, from: SymmetricKey, to: SymmetricKey)] = []
             var retired = 0
@@ -176,7 +177,7 @@ struct StorageMigrationTests {
         #expect(migration.allows("github"))
     }
 
-    @Test func aWaiterThatIsCancelledStopsWaitingAtOnce() async {
+    @Test(.timeLimit(.minutes(2))) func aWaiterThatIsCancelledStopsWaitingAtOnce() async {
         let release = DispatchSemaphore(value: 0)
         let (old, root) = (Self.old, Self.root)
         let migration = StorageMigration(environment: StorageMigration.Environment(
@@ -191,14 +192,11 @@ struct StorageMigrationTests {
         ))
         defer { release.signal() }
         migration.begin()
-        let clock = ContinuousClock()
-        let start = clock.now
-        // The limit is long and the bound loose, so a busy test run does not fail it; a waiter that ignored
-        // cancellation would keep polling until the limit.
-        let waiter = Task { await migration.settled(within: .seconds(30)) }
+        // Not timed, since a busy test run stalls for seconds: a waiter that ignored cancellation would poll past the
+        // test's time limit.
+        let waiter = Task { await migration.settled(within: .seconds(600)) }
         waiter.cancel()
         await waiter.value
-        #expect(clock.now - start < .seconds(20))
         #expect(!migration.allows("github"), "the move is still running")
     }
 
@@ -218,8 +216,35 @@ struct StorageMigrationTests {
             at: data.appendingPathComponent("linked-file/local-storage.sqlite"),
             withDestinationURL: outside.appendingPathComponent("local-storage.sqlite")
         )
-        let found = StorageMigration.storageFiles(in: data)
+        let found = try #require(StorageMigration.storageFiles(in: data))
         #expect(found.map(\.name) == ["github"])
         #expect(found.first?.file.lastPathComponent == "local-storage.sqlite")
+    }
+
+    @Test func aDataFolderThatCannotBeReadIsNoListAtAll() throws {
+        let data = FileManager.default.temporaryDirectory.appendingPathComponent("floe-data-\(UUID().uuidString)")
+        let github = data.appendingPathComponent("github")
+        try FileManager.default.createDirectory(at: github, withIntermediateDirectories: true)
+        try Data().write(to: github.appendingPathComponent("local-storage.sqlite"))
+        defer {
+            try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: github.path)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: data.path)
+            try? FileManager.default.removeItem(at: data)
+        }
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: github.path)
+        #expect(StorageMigration.storageFiles(in: data) == nil, "a folder in it that cannot be read")
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: github.path)
+        try FileManager.default.setAttributes([.posixPermissions: 0], ofItemAtPath: data.path)
+        #expect(StorageMigration.storageFiles(in: data) == nil, "the data folder itself")
+        #expect(StorageMigration.storageFiles(in: data.deletingLastPathComponent().appendingPathComponent("floe-never-made-\(UUID().uuidString)")) == [], "no data folder has nothing in it")
+    }
+
+    @Test func aDataFolderThatCouldNotBeReadKeepsTheOldKeyAndEveryExtensionLocked() {
+        fake.state.withLock { $0.files = nil }
+        let migration = fake.migration
+        migration.run()
+        migration.clipboardSettled(true)
+        #expect(!migration.allows("github"))
+        #expect(fake.retired == 0)
     }
 }

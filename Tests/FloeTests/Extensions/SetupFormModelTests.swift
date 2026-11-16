@@ -110,7 +110,9 @@ struct SetupFormModelTests {
         let settings = AppSettings(defaults: MemoryDefaults())
         let search = notion([Fixture.field("token", type: "password"), Fixture.field("open_in")])
         let launcher = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: [search]), scopes: [], sources: [])
-        let session = ExtensionSession(command: search, arguments: ["query": "notes"])
+        launcher.runner.startsHost = { _ in /* the test plays the host */ }
+        launcher.runner.run(search, arguments: ["query": "notes"])
+        let session = try #require(launcher.runner.session, "only the command on screen may ask")
 
         launcher.runner.handle(["type": "signIn", "preference": "nothing-by-this-name", "provider": "Notion"], from: session)
         #expect(launcher.setup == nil, "a preference the command does not declare asks for nothing")

@@ -46,7 +46,8 @@ final class SettingsSyncService {
                 Self.apply(changed, removed: removed, settings: settings, snippets: snippets, quicklinks: quicklinks)
                     .union(extensions?.apply(changed, removed: removed) ?? [])
             },
-            turnOff: { settings.syncsWithICloud = false }
+            turnOff: { settings.syncsWithICloud = false },
+            cleaned: { key, value in extensions?.withoutCredentials(key, value) }
         )
         engine = SyncEngine(client: client, storage: storage, availability: setup.availability, makeStore: setup.makeStore, now: now)
         self.now = now
