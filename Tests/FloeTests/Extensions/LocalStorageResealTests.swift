@@ -144,6 +144,18 @@ struct LocalStorageResealTests {
         #expect(LocalStorageReseal.reseal(file: file, from: legacy, to: own) == .done(resealed: 0))
     }
 
+    @Test func aFileWithASecondNameIsLeftAsItIs() throws {
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let old = try sealed("1", "old", legacy)
+        try items([("old", old)])
+        let link = folder.appendingPathComponent("other.sqlite")
+        try FileManager.default.linkItem(at: file, to: link)
+        #expect(LocalStorageReseal.reseal(file: link, from: legacy, to: own) == .busy, "another extension's folder may hold the other name")
+        #expect(stored()["old"] == old)
+        try FileManager.default.removeItem(at: link)
+        #expect(LocalStorageReseal.reseal(file: file, from: legacy, to: own) == .done(resealed: 1))
+    }
+
     @Test func aDatabaseAnotherProcessHoldsIsLeftForLater() throws {
         defer { try? FileManager.default.removeItem(at: folder) }
         let old = try sealed("1", "old", legacy)

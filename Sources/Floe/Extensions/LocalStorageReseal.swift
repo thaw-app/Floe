@@ -16,7 +16,8 @@ nonisolated enum LocalStorageReseal {
 
     enum Outcome: Equatable, Sendable {
         case done(resealed: Int)
-        /// Another process held the file, or SQLite failed otherwise: the rows stay as they are, to be done later.
+        /// Another process held the file, it has a second name, or SQLite failed otherwise: the rows stay as they
+        /// are, to be done later.
         case busy
         /// Not a database: the runtime moves such a file aside, so there is nothing to keep.
         case unreadable
@@ -60,6 +61,13 @@ nonisolated enum LocalStorageReseal {
         sqlite3_exec(database, "PRAGMA secure_delete = ON", nil, nil, nil)
         let began = sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil)
         guard began == SQLITE_OK else { return failure(began) }
+        // A hard link from another extension's folder would have that extension's rows sealed with this one's key.
+        // Checked once the file is held, so the link cannot be made after the check, and not from URL's cache.
+        var info = stat()
+        guard lstat(file.path, &info) == 0, info.st_nlink == 1 else {
+            sqlite3_exec(database, "ROLLBACK", nil, nil, nil)
+            return .busy
+        }
         guard let rows = sealedRows(in: database) else {
             let code = sqlite3_errcode(database)
             let missingTable = String(cString: sqlite3_errmsg(database)).contains("no such table")

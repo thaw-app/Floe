@@ -162,8 +162,8 @@ nonisolated final class StorageMigration: Sendable {
         }
     }
 
-    /// Each extension's LocalStorage file under the data folder, named by its folder. Links are skipped, so one
-    /// cannot make the app write somewhere else. Nil when the folder or one in it could not be read: a file missed
+    /// Each extension's LocalStorage file under the data folder, named by its folder. Symbolic links are skipped, so
+    /// one cannot make the app write somewhere else; a hard link is refused when the file is sealed again. Nil when the folder or one in it could not be read: a file missed
     /// would keep rows only the old key opens.
     static func storageFiles(in data: URL) -> [StorageFile]? {
         let keys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey]
