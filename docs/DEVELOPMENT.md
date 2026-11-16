@@ -256,6 +256,9 @@ Floe updates itself with [Sparkle](https://sparkle-project.org), the same way Th
   item for it with the `SPARKLE_ED25519_PRIVATE_KEY` secret (`prod` environment), attaches the ZIP to the
   GitHub Release beside the DMG, and pushes `appcast.xml` to `gh-pages` after the release is published.
   A tag whose Info.plist has no key skips the Sparkle steps and ships the DMG alone.
+- Once the release is published, its last job comments on each issue that the tag's New, Changed or Fixed
+  entries name, saying which release shipped it, and closes the open issues a Fixed entry names (org-ci's
+  `shipped-comments`). A dry run, or a release left as a draft, only logs the comments and closes in that job.
 
 Switching updates on, once:
 

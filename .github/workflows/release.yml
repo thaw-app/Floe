@@ -722,3 +722,30 @@ jobs:
             *
             !appcast.xml
             !.gitignore
+
+  # A dry run or a draft release only logs. A job of its own keeps issues: write out of the others.
+  comment-shipped:
+    needs: [meta, release, attach-provenance]
+    if: >-
+      ${{ !cancelled() && github.repository == 'thaw-app/Floe' && needs.release.result == 'success'
+      && (needs.attach-provenance.result == 'success' || needs.attach-provenance.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout the changelog
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ needs.meta.outputs.tag }}
+          sparse-checkout: CHANGELOG.md
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Comment on shipped issues
+        uses: thaw-app/org-ci/actions/shipped-comments@4859cc6384ad3620e7b634ff67723cedae25797d
+        with:
+          tag: ${{ needs.meta.outputs.tag }}
+          product-name: Floe
+          close-issues: "true"
+          dry-run: ${{ inputs.dry_run || !inputs.publish_release }}
