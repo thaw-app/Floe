@@ -23,6 +23,10 @@ these four.
 
 ## [Unreleased]
 
+### Changed
+
+- **Updates download only what changed** instead of the whole app, usually a few megabytes instead of about 80.
+
 ### Fixed
 
 - **Clipboard history and what extensions keep in their storage are encrypted**, with a key kept in your keychain, so another app can't read what you copied or a token an extension saved. What was there before is encrypted the next time Floe or the extension opens it.
