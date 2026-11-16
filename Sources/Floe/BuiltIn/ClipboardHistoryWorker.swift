@@ -21,8 +21,13 @@ nonisolated struct ClipboardFiles: Sendable {
     var remove: @Sendable (_ name: String) -> Void
 
     /// The real folder: private to the user, 0700 with 0600 files, left out of Time Machine, and sealed with the
-    /// storage key. Files from before are sealed the first time the folder loads.
-    static func onDisk(_ directory: URL, seal provide: @autoclosure @escaping @Sendable () -> ClipboardSeal = .app) -> ClipboardFiles {
+    /// storage key. Files from before are sealed the first time the folder loads, plain ones and those sealed with the
+    /// old key alike, and report hears whether every one of the latter was done.
+    static func onDisk(
+        _ directory: URL,
+        seal provide: @autoclosure @escaping @Sendable () -> ClipboardSeal = .app,
+        settled report: @escaping @Sendable (Bool) -> Void = { StorageMigration.shared.clipboardSettled($0) }
+    ) -> ClipboardFiles {
         // The seal is settled once, when the folder loads. One that loaded locked stays locked until the next
         // launch, so a key found later cannot write over a history that was never read.
         let settled = Mutex<ClipboardSeal?>(nil)
@@ -46,6 +51,7 @@ nonisolated struct ClipboardFiles: Sendable {
             sizes: {
                 ensureDirectory()
                 sealPlainFiles(in: directory, with: seal())
+                report(seal().resealLegacyFiles(in: directory))
                 let items = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.fileSizeKey])) ?? []
                 return Dictionary(
                     items.map { ($0.lastPathComponent, (try? $0.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) },

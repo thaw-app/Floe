@@ -179,6 +179,26 @@ struct WhatLeavesTheMainActorTests {
         #expect(left > 0)
     }
 
+    @Test func extensionsStorageMovesOffTheOldKeyOffTheMainThread() async {
+        let key = Data(repeating: 1, count: 32).base64EncodedString()
+        let migration = StorageMigration(environment: StorageMigration.Environment(
+            legacy: { [log] in
+                log.note("keychain")
+                return .key(key)
+            },
+            root: { .key(key) },
+            storageFiles: { [StorageMigration.StorageFile(name: "github", file: URL(fileURLWithPath: "/nowhere/local-storage.sqlite"))] },
+            reseal: { [log] _, _, _ in
+                log.note("reseal")
+                return .missing
+            },
+            retire: { /* nothing is stored here */ }
+        ))
+        migration.begin()
+        await migration.settled(within: .seconds(5))
+        #expect(log.onMain == ["keychain": false, "reseal": false])
+    }
+
     // MARK: Answers
 
     @Test func aPromptIsAnsweredOffTheMainThread() async throws {

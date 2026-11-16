@@ -61,12 +61,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Starts the services, the launcher's window and the routes into it. The window itself is made on its first show.
     func applicationDidFinishLaunching(_: Notification) {
+        // Only this process moves the storage off the old key; Settings and the self-test never do.
+        StorageMigration.shared.begin()
         Log.follow(settings).store(in: &cancellables)
         settings.$fetchesExchangeRates.removeDuplicates()
             .filter { !$0 }
             .sink { _ in ExchangeRateStore.remove() }
             .store(in: &cancellables)
         NSApp.setActivationPolicy(settings.showInDock ? .regular : .accessory)
+        // Copies left by a launch that crashed are plain images, and no extension of this launch has asked for them.
+        PasteboardContent.removeReadableCopies()
 
         launcher.start()
         // Settings' changes reach the search at once: they are this process's own settings, read again.
@@ -193,6 +197,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarCommands?.stopAll()
         backgroundScheduler?.stopAll()
         settingsLink.terminate()
+        // The extensions that read the plain copies of clipboard images have stopped.
+        PasteboardContent.removeReadableCopies()
         clipboard.flush()
         UsageStore.shared.flush()
         FileIndexService.shared.flush()

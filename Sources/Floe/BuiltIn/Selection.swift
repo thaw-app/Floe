@@ -282,6 +282,8 @@ extension PasteboardContent {
         keepLatestReadableCopies(5)
         let folder = readableFolder
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        // The folder may be left from before with wider permissions, which creating it again would not change.
+        PrivateStorage.restrict(folder, to: 0o700)
         let file = folder.appendingPathComponent(name)
         guard (try? data.write(to: file, options: .atomic)) != nil else { return nil }
         PrivateStorage.restrict(file, to: 0o600)
