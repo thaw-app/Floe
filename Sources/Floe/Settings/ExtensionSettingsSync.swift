@@ -158,8 +158,9 @@ final class ExtensionSettingsSync {
 
     /// A record taken in from the store without the credentials an older Floe put in it, or nil when it holds none.
     /// Only an installed extension's manifest says which fields hold one, so a record for another is left as it is.
+    /// It runs with this Mac's extension settings left out of sync too: it only takes a value out of the store.
     func withoutCredentials(_ key: String, _ text: String) -> String? {
-        guard key.hasPrefix(Self.prefix), access.includes(), let values = Self.object(text) else { return nil }
+        guard key.hasPrefix(Self.prefix), let values = Self.object(text) else { return nil }
         let name = String(key.dropFirst(Self.prefix.count))
         let credentials = Self.credentialKeys(of: access.commands().filter { $0.extensionName == name })
         let kept = values.filter { !credentials.contains($0.key) }
