@@ -123,7 +123,7 @@ struct ClaudeTextStreamTests {
 
     /// Not timed, since a busy test run stalls for seconds: a run that waited for the tool would pass the time limit.
     @Test(.timeLimit(.minutes(2))) func cancellingTheTaskStopsTheTool() async throws {
-        let tool = try fakeTool("printf '%s\\n' '\(delta("start"))'\nsleep 600")
+        let tool = try fakeTool("printf '%s\\n' '\(delta("start"))'\nexec sleep 600")
         defer { try? FileManager.default.removeItem(at: tool) }
         let (started, signal) = AsyncStream.makeStream(of: Void.self)
         let run = Task {
