@@ -21,25 +21,39 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.4.0-rc.3] - 2026-11-16
+
+**macOS 26 and later · Build 11**
+
+### New
+
+- **Import your Raycast quicklinks** from Settings › Quicklinks or the welcome window. Floe reads a Quicklinks export or a full Raycast backup, gives each link a keyword, and lists any it couldn't bring over ([#74](https://github.com/thaw-app/Floe/issues/74)).
+- **Quicklinks can use `{selection}` and `{clipboard}`**, as in Raycast. The selection needs Accessibility access ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- **A quicklink can open in an app of its own**, such as a second browser for work links. Choose it under Open with.
 
 ### Changed
 
+- **Extensions no longer get your whole shell environment**, only what tools need, such as `PATH` and `HOME`. If an extension relied on a token from your `.zshrc`, turn on "Pass on everything your shell exports" on its page in Settings.
+- **An app's hotkey runs its Primary Action**, set in Settings › Actions ([#40](https://github.com/thaw-app/Floe/issues/40)).
+- **⌘K opens the Actions menu inside the launcher**, with a search field, as it does in extensions.
+- **Actions has its own page in Settings.**
+- **Extensions show more of their interface:** light and dark colors, section subtitles in lists, icons on confirmations, sections in form dropdowns, and shortcuts in menu bar commands.
 - **Updating from any of the last three releases downloads only what changed**, a few megabytes instead of about 80.
 
 ### Fixed
 
+- **What's New opens at the version you have**, not the newest release.
+- **Buttons and tabs in Settings line up**, and switching tabs no longer leaks memory.
 - **Clipboard history and what extensions keep in their storage are encrypted**, with a key kept in your keychain, so another app can't read what you copied or a token an extension saved. What was there before is encrypted the next time Floe or the extension opens it.
 - **Extension passwords can't be read by other apps while a command runs.** Floe used to hand them to the extension in a way any program running as you could see.
-- **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it. ([#91](https://github.com/thaw-app/Floe/issues/91))
+- **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in** instead of leaving it closed, and the 1Password CLI's settings from your shell, such as `OP_BIOMETRIC_UNLOCK_ENABLED`, now reach it ([#91](https://github.com/thaw-app/Floe/issues/91)).
 - **Snippet keywords no longer expand after a click or an app switch**, so finishing a keyword in another field doesn't delete text there.
 - **Expanding a snippet leaves your clipboard as it was**, and the snippet no longer shows up in clipboard history.
 - **Backspace corrects a snippet keyword as you type it**, so a keyword fixed mid-word still expands.
 - **Clipboard history and the commands you run stay out of Time Machine**, and only your account can read them. Extensions' data folders are private to your account too.
-- **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search.
+- **Commands that run without opening anything now finish** instead of stopping when the launcher goes back to its main search, and they say when they fail.
 - **Background commands keep running after they close the launcher**, as they do in Raycast.
 - **A command still running after you go back to the search can't close the launcher or paste into the app in front.** What it copies stays on the clipboard for you to paste.
-- **Commands that run without opening anything now say when they fail** instead of failing silently.
 - **Signing in to an extension in the browser no longer fails when another of its commands refreshes or ends.**
 - **A command opened by its hotkey or a link while clipboard history or another search is open now gets your typing**, so Return runs the command's action instead of pasting the clipboard item behind it.
 - **The search shows your changes as soon as you close Settings**, including an extension you installed just before.
@@ -62,33 +76,11 @@ These come from a code review of Floe on 2026-11-15.
 - **An AI model name, typed or imported, can't add options to the AI tool's command**, so a settings file can't send your questions to a server it names.
 - **Extension text fields that look like a token, key, secret or password stay on this Mac** and are taken out of iCloud the next time Floe syncs. Update Floe on each of your Macs, since an older version still sends them.
 
-## [0.4.0-rc.3] - 2026-11-13
-
-**macOS 26 and later · Build 11**
-
-### New
-
-- **Import your Raycast quicklinks** from Settings › Quicklinks or the welcome window. Floe reads a Quicklinks export or a full Raycast backup, gives each link a keyword, and lists any it couldn't bring over ([#74](https://github.com/thaw-app/Floe/issues/74)).
-- **Quicklinks can use `{selection}` and `{clipboard}`**, as in Raycast. The selection needs Accessibility access ([#43](https://github.com/thaw-app/Floe/issues/43)).
-- **A quicklink can open in an app of its own**, such as a second browser for work links. Choose it under Open with.
-
-### Changed
-
-- **Extensions no longer get your whole shell environment**, only what tools need, such as `PATH` and `HOME`. If an extension relied on a token from your `.zshrc`, turn on "Pass on everything your shell exports" on its page in Settings.
-- **An app's hotkey runs its Primary Action**, set in Settings › Actions ([#40](https://github.com/thaw-app/Floe/issues/40)).
-- **⌘K opens the Actions menu inside the launcher**, with a search field, as it does in extensions.
-- **Actions has its own page in Settings.**
-- **Extensions show more of their interface:** light and dark colors, section subtitles in lists, icons on confirmations, sections in form dropdowns, and shortcuts in menu bar commands.
-
-### Fixed
-
-- **What's New opens at the version you have**, not the newest release.
-- **Buttons and tabs in Settings line up**, and switching tabs no longer leaks memory.
-
 ### Contributors
 
 - @KingMob asked for the Raycast quicklinks import ([#74](https://github.com/thaw-app/Floe/issues/74)).
 - @nuTTeLLo asked for acting on the selected text ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- @christian90875-bit reported that the 1Password CLI didn't work in Floe ([#91](https://github.com/thaw-app/Floe/issues/91)).
 - @MintCollector made app hotkeys run the Primary Action and brought the Actions menu into the launcher ([#81](https://github.com/thaw-app/Floe/pull/81), [#82](https://github.com/thaw-app/Floe/pull/82)).
 
 ## [0.4.0-rc.2] - 2026-11-09
