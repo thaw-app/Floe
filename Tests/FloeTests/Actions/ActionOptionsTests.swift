@@ -227,6 +227,24 @@ struct ActionChoiceEditingTests {
         #expect(choices == KindActions())
     }
 
+    @Test func aRowIsMovedUpAndDownAndBackToFloesOrder() {
+        var choices = KindActions()
+        #expect(choices.ordered(rows).map(\.id) == rows.map(\.id))
+        choices.move(.quickLook, by: -1, among: rows)
+        let moved = choices.ordered(rows).map(\.id)
+        #expect(moved.firstIndex(of: .quickLook).map { moved[$0 + 1] } == .showInFinder, "Quick Look comes before Show in Finder now")
+        #expect(choices.order == moved)
+        choices.move(.quickLook, by: 1, among: rows)
+        #expect(choices == KindActions(), "Floe's order again is nothing chosen")
+    }
+
+    @Test func theFirstRowGoesNoHigherAndTheLastNoLower() {
+        var choices = KindActions()
+        choices.move(rows[0].id, by: -1, among: rows)
+        choices.move(rows[rows.count - 1].id, by: 1, among: rows)
+        #expect(choices == KindActions())
+    }
+
     private let commandY = FloeKeys.commandY
     private let commandReturn = KeyCombination(key: .returnKey, modifiers: .command)
 

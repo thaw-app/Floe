@@ -2463,9 +2463,6 @@
     "Keys" : {
       "comment" : "Spoken for the control that records the keys that run an action."
     },
-    "Keys run an action while a result of this kind is selected. Floe gives some actions keys, which you can change or clear; keys you choose need Command. An action left out of the menu keeps its keys." : {
-
-    },
     "Keyword" : {
       "comment" : "The kind of a result, shown beside its title. Here a word the search answers to.\nThe word typed in the search to use a quicklink or a snippet."
     },
@@ -4589,6 +4586,9 @@
 
     },
     "The link that opens your clipboard app's history." : {
+
+    },
+    "The menu lists actions in this order. Keys run an action while a result of this kind is selected. Floe gives some actions keys, which you can change or clear; keys you choose need Command. An action left out of the menu keeps its keys." : {
 
     },
     "The microphone is %@" : {

@@ -18,13 +18,15 @@ nonisolated struct KindActions: Codable, Equatable, Sendable {
     var shortcuts: [ActionID: KeyCombination] = [:]
     /// Rows whose keys from Floe the user took off. Such a row has none unless the user gave it some.
     var clearedKeys: Set<ActionID> = []
+    /// The Actions menu's rows in the order the user put them. Empty is Floe's order.
+    var order: [ActionID] = []
 
     init() {
         // Nothing chosen.
     }
 
     private enum CodingKeys: String, CodingKey {
-        case defaults, hidden, shortcuts, clearedKeys
+        case defaults, hidden, shortcuts, clearedKeys, order
     }
 
     /// A key that is missing reads as nothing chosen, so what an older version wrote still reads.
@@ -34,16 +36,21 @@ nonisolated struct KindActions: Codable, Equatable, Sendable {
         hidden = try container.decodeIfPresent(Set<ActionID>.self, forKey: .hidden) ?? []
         shortcuts = try container.decodeIfPresent([ActionID: KeyCombination].self, forKey: .shortcuts) ?? [:]
         clearedKeys = try container.decodeIfPresent(Set<ActionID>.self, forKey: .clearedKeys) ?? []
+        order = try container.decodeIfPresent([ActionID].self, forKey: .order) ?? []
     }
 
     /// Hidden rows and cleared keys are written in order: a set's order changes from one launch to the next, and
-    /// sync would read each change as an edit.
+    /// sync would read each change as an edit. Floe's own order is not written, so choices made before there was an
+    /// order read as they were written.
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(defaults, forKey: .defaults)
         try container.encode(hidden.map(\.rawValue).sorted(), forKey: .hidden)
         try container.encode(shortcuts, forKey: .shortcuts)
         try container.encode(clearedKeys.map(\.rawValue).sorted(), forKey: .clearedKeys)
+        if !order.isEmpty {
+            try container.encode(order, forKey: .order)
+        }
     }
 }
 
@@ -126,15 +133,61 @@ enum AlternativeActionRules {
     }
 
     /// The Actions menu after the Return row. When a default took Return, `own` is what Floe does, listed first;
-    /// the default's own row is left out, being the Return row now. Hidden rows are left out.
+    /// the default's own row is left out, being the Return row now. The rows follow the user's order, and hidden
+    /// rows are left out.
     static func arranged(_ actions: [ItemAction?], own: ItemAction?, primaryID: ActionID?, choices: KindActions) -> [ItemAction?] {
         guard own != nil || choices != KindActions() else { return actions }
-        // Floe's own Return is parted from the Return row above it; without it, the rows start as Floe has them.
-        let rows = (own.map { [nil, $0] } ?? []) + actions
-        return tidied(rows.compactMap { row -> ItemAction?? in
+        // Rows left out go first, so a separator is only put between rows that are shown.
+        let shown = actions.compactMap { row -> ItemAction?? in
             guard let row else { return .some(nil) }
             return kept(row, primaryID: primaryID, choices: choices).map { .some($0) }
-        })
+        }
+        // Floe's own Return is parted from the Return row above it; without it, the rows start as Floe has them.
+        return tidied((own.map { [nil, $0] } ?? []) + ordered(shown, by: choices.order))
+    }
+
+    /// The rows in the user's order. A separator parts two rows next to each other that Floe's menu has in
+    /// different groups, so with Floe's order the menu is Floe's. A submenu's rows keep Floe's order.
+    static func ordered(_ rows: [ItemAction?], by order: [ActionID]) -> [ItemAction?] {
+        guard !order.isEmpty else { return rows }
+        var group = 0
+        var grouped: [(row: ItemAction, group: Int)] = []
+        for row in rows {
+            if let row {
+                grouped.append((row, group))
+            } else {
+                group += 1
+            }
+        }
+        let sorted = ordered(grouped, by: order) { $0.row.id }
+        // A separator at the start parts the rows from the Return row above them, so it stays.
+        var result: [ItemAction?] = rows.first.map { $0 == nil } == true ? [nil] : []
+        for (index, entry) in sorted.enumerated() {
+            if index > 0, sorted[index - 1].group != entry.group {
+                result.append(nil)
+            }
+            result.append(entry.row)
+        }
+        return result
+    }
+
+    /// Items in the user's order. One the order does not name, such as a script added since, stays after the item it
+    /// follows in Floe's order, or first when it is first there.
+    static func ordered<Item>(_ items: [Item], by order: [ActionID], id: (Item) -> ActionID?) -> [Item] {
+        guard !order.isEmpty else { return items }
+        let rank = Dictionary(order.enumerated().map { ($1, $0) }) { first, _ in first }
+        var placed = -1
+        var after = 0
+        let keyed = items.map { item -> (item: Item, place: Int, after: Int) in
+            if let place = id(item).flatMap({ rank[$0] }) {
+                placed = place
+                after = 0
+            } else {
+                after += 1
+            }
+            return (item, placed, after)
+        }
+        return keyed.sorted { ($0.place, $0.after) < ($1.place, $1.after) }.map(\.item)
     }
 
     /// One separator at most between groups, and none at the end. A separator at the start stays: it parts the
