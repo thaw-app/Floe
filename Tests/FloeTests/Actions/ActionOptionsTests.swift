@@ -238,6 +238,26 @@ struct ActionChoiceEditingTests {
         #expect(choices == KindActions(), "Floe's order again is nothing chosen")
     }
 
+    @Test func aRowNotListedNowKeepsItsPlaceWhenAnotherMoves() {
+        let editor = ActionOption(id: .openIn(.editor), title: "Open in Zed")
+        // As Floe lists a file's rows with an editor found: its row comes after Open With.
+        let withEditor = [rows[0], editor] + rows.dropFirst()
+        var choices = KindActions()
+        for _ in withEditor {
+            choices.move(editor.id, by: 1, among: withEditor)
+        }
+        #expect(choices.ordered(withEditor).last?.id == editor.id)
+        // The editor is gone for now, and another row moves.
+        choices.move(.quickLook, by: -1, among: rows)
+        let shown = choices.ordered(rows).map(\.id)
+        #expect(shown.firstIndex(of: .quickLook).map { shown[$0 + 1] } == .showInFinder)
+        #expect(choices.order.last == editor.id, "the editor's place is kept while it isn't listed")
+        // The editor is back, still last.
+        #expect(choices.ordered(withEditor).last?.id == editor.id)
+        choices.move(.quickLook, by: 1, among: rows)
+        #expect(choices.order != [], "Floe's order among the rows listed isn't Floe's order while the editor is moved")
+    }
+
     @Test func theFirstRowGoesNoHigherAndTheLastNoLower() {
         var choices = KindActions()
         choices.move(rows[0].id, by: -1, among: rows)
