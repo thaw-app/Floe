@@ -117,6 +117,25 @@ extension KindActions {
         }
     }
 
+    /// The rows in the order the Actions menu has them.
+    func ordered(_ rows: [ActionOption]) -> [ActionOption] {
+        AlternativeActionRules.ordered(rows, by: order) { $0.id }
+    }
+
+    /// Moves a row up, with -1, or down, with 1, past the next row listed. A row in the order that isn't listed now,
+    /// such as the editor's while no editor is found, keeps its place, so it is back there once it is listed again.
+    /// Floe's own order is stored as nothing chosen.
+    mutating func move(_ id: ActionID, by offset: Int, among rows: [ActionOption]) {
+        let listed = rows.map(\.id)
+        let shown = ordered(rows).map(\.id)
+        guard let from = shown.firstIndex(of: id), shown.indices.contains(from + offset) else { return }
+        let unlisted = order.filter { !listed.contains($0) }
+        var ids = AlternativeActionRules.ordered(listed + unlisted, by: order) { $0 }
+        guard let here = ids.firstIndex(of: id), let there = ids.firstIndex(of: shown[from + offset]) else { return }
+        ids.swapAt(here, there)
+        order = ids == listed ? [] : ids
+    }
+
     /// The keys that run a row: Floe's for the kind, with the user's laid over them and none of Floe's hotkeys, as
     /// the launcher has them.
     /// `rows` are those listed, the user's scripts among them.

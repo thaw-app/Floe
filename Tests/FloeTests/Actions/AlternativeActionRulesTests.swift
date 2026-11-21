@@ -99,6 +99,35 @@ struct AlternativeActionRulesTests {
         #expect(!rows.contains { $0.id == .showInFinder })
     }
 
+    @Test func aMenuInFloesOrderStaysAsFloeHasIt() {
+        var choices = KindActions()
+        choices.order = [.openWith, .showInFinder, .copyPath, .copyName]
+        #expect(titles(AlternativeActionRules.arranged(menu, own: nil, primaryID: nil, choices: choices)) == titles(menu))
+    }
+
+    @Test func rowsFollowTheUsersOrderWithSeparatorsBetweenFloesGroups() {
+        var choices = KindActions()
+        choices.order = [.copyName, .openWith, .showInFinder, .copyPath]
+        let rows = AlternativeActionRules.arranged(menu, own: nil, primaryID: nil, choices: choices)
+        #expect(titles(rows) == ["Copy Name", "-", "Open With", "Show in Finder", "-", "Copy Path"])
+        #expect(rows[2]?.children.map(\.title) == ["Zed"], "a submenu moves with its rows")
+    }
+
+    @Test func aRowTheOrderDoesNotNameStaysAfterTheRowItFollows() {
+        var choices = KindActions()
+        choices.order = [.copyName, .showInFinder]
+        let rows = AlternativeActionRules.arranged(menu, own: nil, primaryID: nil, choices: choices)
+        #expect(titles(rows) == ["Open With", "-", "Copy Name", "-", "Show in Finder", "-", "Copy Path"], "Open With is first in Floe's menu, so it stays first")
+    }
+
+    @Test func theUsersOrderKeepsFloesOwnReturnFirstAndTheSeparatorAboveIt() {
+        var choices = KindActions()
+        choices.defaults = [.copyPath]
+        choices.order = [.copyName, .showInFinder, .openWith]
+        let rows = AlternativeActionRules.arranged([nil] + menu, own: row(.own, "Open"), primaryID: .copyPath, choices: choices)
+        #expect(titles(rows) == ["-", "Open", "-", "Copy Name", "-", "Show in Finder", "Open With"])
+    }
+
     @Test func separatorsAreTidied() {
         let rows = AlternativeActionRules.tidied([nil, nil, row(.copyPath, "Copy Path"), nil, nil, row(.copyName, "Copy Name"), nil])
         #expect(titles(rows) == ["-", "Copy Path", "-", "Copy Name"])
@@ -225,9 +254,20 @@ struct AlternativeActionRulesTests {
         #expect(try JSONDecoder().decode(KindActions.self, from: Data(text.utf8)) == choices)
     }
 
+    @Test func anOrderIsWrittenOnlyWhenTheUserChoseOne() throws {
+        var choices = KindActions()
+        choices.hidden = [.copyName]
+        let unordered = try #require(String(bytes: JSONEncoder().encode(choices), encoding: .utf8))
+        #expect(!unordered.contains("order"), "Floe's order is not written, so choices read as before there was one")
+        choices.order = [.copyName, .copyPath]
+        let read = try JSONDecoder().decode(KindActions.self, from: JSONEncoder().encode(choices))
+        #expect(read.order == [.copyName, .copyPath])
+        #expect(read == choices)
+    }
+
     @Test func choicesWithKeysMissingStillRead() throws {
         let read = try JSONDecoder().decode(KindActions.self, from: Data(#"{"defaults":["floe:copyPath"]}"#.utf8))
         #expect(read.defaults == [.copyPath])
-        #expect(read.hidden.isEmpty && read.shortcuts.isEmpty && read.clearedKeys.isEmpty)
+        #expect(read.hidden.isEmpty && read.shortcuts.isEmpty && read.clearedKeys.isEmpty && read.order.isEmpty)
     }
 }

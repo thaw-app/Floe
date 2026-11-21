@@ -9,7 +9,8 @@ import SwiftUI
 import ThawUI
 
 /// The Actions page: for each kind of result, what Return does, and for each of Floe's rows of its
-/// Actions menu and each of the user's scripts that acts on the kind, keys that run it and whether the menu shows it.
+/// Actions menu and each of the user's scripts that acts on the kind, keys that run it, whether the menu shows it,
+/// and where.
 /// What is offered and what is refused is decided in ActionOptions.swift.
 struct ActionsSettingsSection: View {
     @ObservedObject var settings: AppSettings
@@ -20,13 +21,14 @@ struct ActionsSettingsSection: View {
     /// Keys just refused, shown under the row they were recorded for.
     @State private var refusal: (row: ActionID, text: String)?
 
-    /// The kind's rows, a role's named after the app it opens in now.
+    /// The kind's rows in Floe's order, a role's named after the app it opens in now.
     private var options: [ActionOption] {
         ActionOption.rows(for: kind, roleApps: PreferredApps.apps(choice: settings.appChoice, installed: installed), scripts: scripts)
     }
 
     var body: some View {
         let options = options
+        let ordered = settings.actionChoices[kind: kind].ordered(options)
         let results = String(localized: "Results", bundle: .floe, comment: "The label of the buttons that pick the kind of result whose actions are set: apps, files, folders, links or text.")
         ThawSection("Actions on Results") {
             LabeledContent {
@@ -38,7 +40,7 @@ struct ActionsSettingsSection: View {
             ThawPicker(selection: returnChoice(among: options)) {
                 Text(kind.floeActionTitle(browser: BrowserMenu(choice: settings.browserApp, installed: installed)))
                     .tag(ActionID?.none)
-                ForEach(options.filter { !$0.isSubmenu }) { option in
+                ForEach(ordered.filter { !$0.isSubmenu }) { option in
                     Text(option.title).tag(ActionID?.some(option.id))
                 }
             } label: {
@@ -52,10 +54,10 @@ struct ActionsSettingsSection: View {
         }
         .onChange(of: kind) { refusal = nil }
         ThawSection("Actions Menu") {
-            Text("Keys run an action while a result of this kind is selected. Floe gives some actions keys, which you can change or clear; keys you choose need Command. An action left out of the menu keeps its keys.")
+            Text("The menu lists actions in this order. Keys run an action while a result of this kind is selected. Floe gives some actions keys, which you can change or clear; keys you choose need Command. An action left out of the menu keeps its keys.")
                 .foregroundStyle(ThawInk.supporting)
-            ForEach(options) { option in
-                row(option, among: options)
+            ForEach(ordered) { option in
+                row(option, among: options, ordered: ordered)
                 if let refusal, refusal.row == option.id {
                     Text(refusal.text).foregroundStyle(.red)
                 }
@@ -65,7 +67,7 @@ struct ActionsSettingsSection: View {
         .id(kind)
     }
 
-    private func row(_ option: ActionOption, among options: [ActionOption]) -> some View {
+    private func row(_ option: ActionOption, among options: [ActionOption], ordered: [ActionOption]) -> some View {
         LabeledContent {
             HStack(spacing: ThawSpacing.compact) {
                 // A submenu does nothing itself, so there is nothing for keys to run.
@@ -83,6 +85,20 @@ struct ActionsSettingsSection: View {
                 }
                 .labelsHidden()
                 .help(Text("Show in the Actions menu"))
+                ThawActionGroup {
+                    Button { move(option, by: -1, among: options) } label: {
+                        Label("Move Up", systemImage: "chevron.up")
+                    }
+                    .disabled(ordered.first?.id == option.id)
+                    .help("Move Up")
+                    Button { move(option, by: 1, among: options) } label: {
+                        Label("Move Down", systemImage: "chevron.down")
+                    }
+                    .disabled(ordered.last?.id == option.id)
+                    .help("Move Down")
+                }
+                .buttonStyle(.thawGrouped)
+                .labelStyle(.iconOnly)
             }
         } label: {
             Text(option.title)
@@ -96,6 +112,10 @@ struct ActionsSettingsSection: View {
         } set: { id in
             settings.actionChoices[kind: kind].setReturnChoice(id)
         }
+    }
+
+    private func move(_ option: ActionOption, by offset: Int, among options: [ActionOption]) {
+        settings.actionChoices[kind: kind].move(option.id, by: offset, among: options)
     }
 
     private func shown(_ option: ActionOption) -> Binding<Bool> {

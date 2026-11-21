@@ -21,6 +21,12 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### New
+
+- **Put the Actions menu in your own order.** In Settings › Actions, move an action up or down, and the Actions menu (⌘K) lists it there for that kind of result ([#40](https://github.com/thaw-app/Floe/issues/40)).
+
 ## [0.4.0-rc.3] - 2026-11-16
 
 **macOS 26 and later · Build 11**
