@@ -257,16 +257,14 @@ struct ActionMenu: View {
 /// The extension's ActionPanel, as the action panel lists and drives it.
 extension ExtensionSession: ActionPanelDriver {
     var panelEntries: [ActionPanelEntry] {
-        // Return runs the first action and ⌘Return the second, so they show those keys unless they declared their own.
-        let returnKeys = Dictionary(zip(actions.prefix(2).map(\.id), ["↩", "⌘↩"]), uniquingKeysWith: { first, _ in first })
-        return menuEntries.map { entry in
+        menuEntries.map { entry in
             let action = entry.node
             return ActionPanelEntry(
                 id: entry.id,
                 title: action.string("title") ?? String(localized: "Action", bundle: .floe, comment: "Stands in for an action's title when the extension gave none."),
                 icon: .icon(action.props["icon"], assetsPath: command.assetsPath),
                 section: entry.section,
-                keys: (Shortcuts.label(action.props["shortcut"]) ?? returnKeys[action.id]).map(ActionPanelEntry.Keys.label),
+                keys: Shortcuts.label(action.props["shortcut"]).map(ActionPanelEntry.Keys.label),
                 isSubmenu: entry.isSubmenu,
                 isDestructive: action.props["style"] as? String == "destructive"
             )

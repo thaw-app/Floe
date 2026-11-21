@@ -34,7 +34,6 @@ these four.
 - **Paths and copied links use a monospaced font** in file search, clipboard history and Settings, so they're easier to read.
 - **A command's short status messages now crossfade with the title they replace** in the bottom bar, instead of swapping abruptly.
 - **An extension's command shows the extension's name at the right of its row**, so two commands with the same name can be told apart.
-- **An extension's Actions menu shows ↩ and ⌘↩** beside the two actions those keys run.
 - **Lists fade out at the bottom edge** instead of cutting the last row off.
 
 ### Fixed

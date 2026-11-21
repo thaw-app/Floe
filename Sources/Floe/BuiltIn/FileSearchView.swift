@@ -159,13 +159,13 @@ struct FilePreview: View {
                 }
             }
             Spacer(minLength: 0)
-            // Return's action is in the bottom bar already; these two keys are not.
-            HStack(spacing: ThawSpacing.base) {
+            // The bottom bar shows Return's action but not these keys; one per line, so each wraps in the full width.
+            VStack(alignment: .leading, spacing: ThawSpacing.compact) {
                 if let quickLook = rowKeys.key(for: .quickLook) {
-                    Text("\(quickLook.displayValue) Quick Look", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary).fixedSize()
+                    Text("\(quickLook.displayValue) Quick Look", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary)
                 }
                 if let copyPath = rowKeys.key(for: .copyPath) {
-                    Text("\(copyPath.displayValue) Copy Path", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary).fixedSize()
+                    Text("\(copyPath.displayValue) Copy Path", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary)
                 }
             }
             .font(ThawType.sublabel)

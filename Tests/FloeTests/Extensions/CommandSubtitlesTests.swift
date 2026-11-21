@@ -22,7 +22,7 @@ struct CommandSubtitlesTests {
         #expect(CommandSubtitles.subtitle(for: "weather/now", in: defaults) == nil, "an empty one clears it too")
     }
 
-    @Test func theRowShowsTheSetSubtitleThenTheManifestsThenTheExtensionsName() throws {
+    @Test func theRowShowsTheSetSubtitleThenTheManifestsThenTheExtensionsTitle() throws {
         let manifest = Fixture.manifest([
             "name": "mail-\(UUID().uuidString)", "title": "Mail",
             "commands": [["name": "inbox", "title": "Inbox", "subtitle": "Gmail"], ["name": "compose", "title": "Compose"]],
@@ -31,7 +31,7 @@ struct CommandSubtitlesTests {
         let inbox = try #require(commands.first { $0.name == "inbox" })
         let compose = try #require(commands.first { $0.name == "compose" })
         #expect(RootItem.command(inbox).rowLabel == "Gmail")
-        #expect(RootItem.command(compose).rowLabel == "Mail", "the extension's name, not the kind, so two commands of one name tell apart")
+        #expect(RootItem.command(compose).rowLabel == "Mail", "the extension's title, not the kind, so two commands of one name tell apart")
 
         CommandSubtitles.set("3 unread", for: inbox.id)
         defer { CommandSubtitles.set(nil, for: inbox.id) }

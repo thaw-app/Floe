@@ -44,6 +44,16 @@ struct SearchBarTests {
         func layout() {
             host.layoutSubtreeIfNeeded()
         }
+
+        /// Lays the view out first, so what is checked is what is drawn now.
+        func showsSpinner() -> Bool {
+            layout()
+            return Self.hasSpinner(host)
+        }
+
+        private static func hasSpinner(_ view: NSView) -> Bool {
+            view is NSProgressIndicator || view.subviews.contains { hasSpinner($0) }
+        }
     }
 
     /// Waits until the condition holds, since a busy test run delays the main actor's turns.
@@ -53,19 +63,21 @@ struct SearchBarTests {
         }
     }
 
-    private func hasSpinner(_ view: NSView) -> Bool {
-        view is NSProgressIndicator || view.subviews.contains { hasSpinner($0) }
-    }
-
     @Test func loadingShowsTheSpinnerOnlyAfterTheWait() async {
         let harness = Harness()
         harness.layout()
 
+        let start = ContinuousClock.now
         harness.probe.isLoading = true
         harness.layout()
-        #expect(!hasSpinner(harness.host), "a spinner waits for loading to hold before it shows")
-        await settle(until: { hasSpinner(harness.host) })
-        #expect(hasSpinner(harness.host))
+        try? await Task.sleep(for: .milliseconds(100))
+        let early = harness.showsSpinner()
+        // A busy run only makes the spinner later, so its absence is checked only while the wait can't have passed.
+        if ContinuousClock.now - start < .milliseconds(200) {
+            #expect(!early, "the spinner waits for loading to hold before it shows")
+        }
+        await settle(until: { harness.showsSpinner() })
+        #expect(harness.showsSpinner())
     }
 
     @Test func theEndOfLoadingTakesTheSpinnerAwayAtOnce() async {
@@ -73,10 +85,10 @@ struct SearchBarTests {
         harness.layout()
 
         harness.probe.isLoading = true
-        await settle(until: { hasSpinner(harness.host) })
-        #expect(hasSpinner(harness.host), "the spinner showed before loading ended")
+        await settle(until: { harness.showsSpinner() })
+        #expect(harness.showsSpinner(), "the spinner shows while loading holds")
         harness.probe.isLoading = false
-        await settle(until: { !hasSpinner(harness.host) })
-        #expect(!hasSpinner(harness.host), "loading's end takes the spinner away at once")
+        await settle(until: { !harness.showsSpinner() })
+        #expect(!harness.showsSpinner(), "loading's end takes the spinner away at once")
     }
 }
