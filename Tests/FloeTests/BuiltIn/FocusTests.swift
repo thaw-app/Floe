@@ -113,7 +113,7 @@ struct FocusTests {
 
         let hour = RootItem.focus(FocusRequest(change: .minutes(60)), shortcut: "")
         #expect(hour.title == "Focus for \(TimeLength.text(3600))")
-        #expect(hour.rowLabel == "No Shortcut named in Settings")
+        #expect(hour.rowLabel == "Choose a Shortcut in Settings")
         #expect(hour.id == "focus-request")
         #expect(hour.settingsKey == nil)
         #expect(hour.isScopeResult)
@@ -133,7 +133,7 @@ struct FocusTests {
 
         let typed = RootSearch.results(for: SearchContext(query: "focus 1 hour"))
         #expect(typed.first?.id == "focus-request")
-        #expect(typed.first?.item.rowLabel == "No Shortcut named in Settings")
+        #expect(typed.first?.item.rowLabel == "Choose a Shortcut in Settings")
         #expect(RootSearch.results(for: SearchContext(query: "focus")).first?.id == "focus-toggle")
     }
 
@@ -223,7 +223,7 @@ struct FocusTests {
         model.query = "focus off"
         let row = try #require(model.results.first?.item)
         #expect(row.title == "Turn Focus Off")
-        #expect(row.rowLabel == "No Shortcut named in Settings")
+        #expect(row.rowLabel == "Choose a Shortcut in Settings")
         #expect(model.primaryActionTitle(for: row) == "Open Shortcuts")
         model.activate(row)
         #expect(stand.opened == ["/System/Applications/Shortcuts.app"])
@@ -232,7 +232,7 @@ struct FocusTests {
 
         model.query = "toggle focus"
         let toggle = try #require(model.results.first?.item)
-        #expect(toggle.rowLabel == "No Shortcut named in Settings")
+        #expect(toggle.rowLabel == "Choose a Shortcut in Settings")
         #expect(model.primaryActionTitle(for: toggle) == "Open Shortcuts")
         #expect(model.features.focus.setFocus(.toggle, shortcut: "") == nil)
         #expect(stand.opened.count == 2)

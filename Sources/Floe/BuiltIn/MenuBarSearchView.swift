@@ -85,7 +85,7 @@ struct MenuBarSearchView: View {
                     }
                 }
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .onChange(of: search.selection) {
                 if results.indices.contains(search.selection) {

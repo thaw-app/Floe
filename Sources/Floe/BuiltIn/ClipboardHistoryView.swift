@@ -40,7 +40,9 @@ struct ClipboardHistoryView: View {
             ThawEmptyState(
                 systemImage: "doc.on.clipboard",
                 title: "Clipboard history is off",
-                caption: "Choose Floe for Clipboard in Settings → Applications to keep copies here."
+                caption: "Choose Floe for Clipboard in Settings › Applications to keep copies here.",
+                actionTitle: "Open Settings",
+                action: { launcher.panelHost.openSettings(.applications) }
             )
         } else {
             let entries = clipboard.filteredEntries()
@@ -83,7 +85,7 @@ struct ClipboardHistoryView: View {
                     }
                 }
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .onChange(of: history.entries.map(\.id)) { clipboard.entriesChanged() }
             .onChange(of: clipboard.selection) {
@@ -122,7 +124,7 @@ struct ClipboardHistoryView: View {
                     } else if let text = entry.text {
                         Text(text)
                             .textSelection(.enabled)
-                            .font(ThawType.detail)
+                            .font(entry.kind == .link ? ThawType.detail.monospaced() : ThawType.detail)
                     }
                     if entry.kind == .file {
                         ForEach(entry.filePaths ?? [], id: \.self) { path in
@@ -142,7 +144,7 @@ struct ClipboardHistoryView: View {
                 .padding(ThawSpacing.inset)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .task(id: entry.id) {
                 guard let file = history.imageURL(for: entry) else { return }
                 let preview = await ClipboardHistoryStore.preview(of: file, maxPixels: Int(250 * displayScale))

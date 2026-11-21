@@ -232,7 +232,7 @@ struct ActionChoiceEditingTests {
         #expect(choices.ordered(rows).map(\.id) == rows.map(\.id))
         choices.move(.quickLook, by: -1, among: rows)
         let moved = choices.ordered(rows).map(\.id)
-        #expect(moved.firstIndex(of: .quickLook).map { moved[$0 + 1] } == .showInFinder, "Quick Look comes before Show in Finder now")
+        #expect(moved.firstIndex(of: .quickLook).flatMap { moved.dropFirst($0 + 1).first } == .showInFinder, "Quick Look comes before Show in Finder now")
         #expect(choices.order == moved)
         choices.move(.quickLook, by: 1, among: rows)
         #expect(choices == KindActions(), "Floe's order again is nothing chosen")
@@ -250,12 +250,14 @@ struct ActionChoiceEditingTests {
         // The editor is gone for now, and another row moves.
         choices.move(.quickLook, by: -1, among: rows)
         let shown = choices.ordered(rows).map(\.id)
-        #expect(shown.firstIndex(of: .quickLook).map { shown[$0 + 1] } == .showInFinder)
+        #expect(shown.firstIndex(of: .quickLook).flatMap { shown.dropFirst($0 + 1).first } == .showInFinder)
         #expect(choices.order.last == editor.id, "the editor's place is kept while it isn't listed")
         // The editor is back, still last.
         #expect(choices.ordered(withEditor).last?.id == editor.id)
         choices.move(.quickLook, by: 1, among: rows)
         #expect(choices.order != [], "Floe's order among the rows listed isn't Floe's order while the editor is moved")
+        #expect(choices.ordered(rows).map(\.id) == rows.map(\.id), "Quick Look is back in Floe's place")
+        #expect(choices.ordered(withEditor).last?.id == editor.id, "and the editor is still last")
     }
 
     @Test func theFirstRowGoesNoHigherAndTheLastNoLower() {

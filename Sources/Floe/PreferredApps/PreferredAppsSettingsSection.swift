@@ -74,7 +74,11 @@ struct NotesAppPicker: View {
                 }
                 .fixedSize()
             } label: {
-                Text(settings.notesFolder.isEmpty ? String(localized: "No folder chosen", bundle: .floe) : (settings.notesFolder as NSString).abbreviatingWithTildeInPath)
+                if settings.notesFolder.isEmpty {
+                    Text(String(localized: "No folder chosen", bundle: .floe))
+                } else {
+                    Text(verbatim: (settings.notesFolder as NSString).abbreviatingWithTildeInPath).font(.body.monospaced())
+                }
                 Text("“note” makes a Markdown file here and “append” adds a line to the day’s note. Obsidian and Octarine read the same files.")
             }
         }

@@ -253,3 +253,8 @@ struct TakesTheSearchFieldsFocus: ViewModifier {
         return field
     }
 }
+
+extension AnyTransition {
+    /// How an Actions menu comes and goes: on screen at once, as Mac menus are, with only its closing faded.
+    static let actionMenu = AnyTransition.asymmetric(insertion: .identity, removal: .opacity)
+}

@@ -196,7 +196,7 @@ enum RootItem: Identifiable {
         case .fileSearch: String(localized: "Search Files", bundle: .floe)
         case .noteDesk: String(localized: "Browse Notes", bundle: .floe, comment: "The command that shows the user's notes in the panel, to read and write them.")
         case .floatingNote: String(localized: "Floating Note", bundle: .floe, comment: "The command, and the window, that keep a note on top of other apps.")
-        case let .searchFiles(query): String(localized: "Search Files for \"\(query)\"", bundle: .floe, comment: "The placeholder is what the user typed.")
+        case let .searchFiles(query): String(localized: "Search Files for \u{201C}\(query)\u{201D}", bundle: .floe, comment: "The placeholder is what the user typed.")
         case .settings: String(localized: "Floe Settings", bundle: .floe)
         case .extensionStore: SearchPaneLabel.extensionStore.title
         case let .calculator(_, result, error, _):

@@ -83,7 +83,7 @@ struct NoteDeskView: View {
                     }
                 }
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .onChange(of: desk.selection) {
                 if notes.indices.contains(desk.selection) {

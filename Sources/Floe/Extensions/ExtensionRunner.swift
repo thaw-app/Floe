@@ -36,8 +36,6 @@ final class ExtensionRunner: ObservableObject {
         var commandEnded: () -> Void = { /* set by the launcher's model */ }
         /// Whether the panel is on screen, so a toast is drawn in the command's footer rather than said as a HUD.
         var isPanelShown: () -> Bool = { false }
-        /// Whether the panel is hidden with the command kept for the user to come back to.
-        var isWaitingToResume: () -> Bool = { false }
         /// Asks for what a command needs before it can run: its required preferences, or its arguments.
         var beginSetup: (SetupRequest) -> Void = { _ in
             // Set by the launcher's model.

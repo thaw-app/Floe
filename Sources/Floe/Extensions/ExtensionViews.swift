@@ -62,7 +62,7 @@ struct ExtensionView: View {
                 case "List", "Grid": ListBody(session: session, view: view)
                 case "Detail": DetailBody(node: view, assetsPath: session.command.assetsPath).equatable()
                 case "Form": FormBody(session: session, focusToken: model.focusToken)
-                default: Placeholder(title: String(localized: "\(view.type) isn't supported yet", bundle: .floe, comment: "The placeholder is the name of a kind of view, such as Grid."), detail: String(localized: "Floe renders List, Grid, Detail and Form.", bundle: .floe, comment: "List, Grid, Detail and Form are names from the extension API and stay as written."), systemImage: "hammer")
+                default: Placeholder(title: String(localized: "Floe can't show this view yet", bundle: .floe, comment: "Shown when an extension command uses a kind of view Floe doesn't draw."), detail: String(localized: "It's a \(view.type) view. Tell us with Report a Bug in Settings › About.", bundle: .floe, comment: "The placeholder is the name of a kind of view from the extension API, such as Grid, and stays as written."), systemImage: "hammer")
                 }
             } else {
                 Color.clear
@@ -72,6 +72,7 @@ struct ExtensionView: View {
         .overlay(alignment: .bottomTrailing) {
             if session.actionMenuOpen {
                 ActionMenu(session: session)
+                    .transition(.actionMenu)
             }
         }
         .thawAnimation(ThawMotion.quick, value: session.actionMenuOpen)
@@ -85,12 +86,20 @@ struct ExtensionView: View {
             },
             showActions: actions.count > 1 ? { session.actionMenuOpen = true } : nil,
             leading: {
-                if let toast = session.toast {
-                    ToastView(session: session, toast: toast)
-                } else {
-                    IconView(value: session.command.icon ?? "icon:Terminal", assetsPath: session.command.assetsPath, size: 16)
-                    Text(view?.string("navigationTitle") ?? session.command.title).foregroundStyle(.secondary).lineLimit(1)
+                // A toast takes the title's place with a crossfade, not a jump.
+                ZStack(alignment: .leading) {
+                    if let toast = session.toast {
+                        ToastView(session: session, toast: toast)
+                            .transition(.opacity)
+                    } else {
+                        HStack(spacing: ThawSpacing.row) {
+                            IconView(value: session.command.icon ?? "icon:Terminal", assetsPath: session.command.assetsPath, size: 16)
+                            Text(view?.string("navigationTitle") ?? session.command.title).foregroundStyle(.secondary).lineLimit(1)
+                        }
+                        .transition(.opacity)
+                    }
                 }
+                .thawAnimation(ThawMotion.quick, value: session.toast != nil, reduced: .fade)
             }
         )
     }

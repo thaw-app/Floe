@@ -110,7 +110,7 @@ struct RootResultList: View, Equatable {
                     }
                 }
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
             .background { SelectionFollower(model: model, results: results, proxy: proxy) }
         }
