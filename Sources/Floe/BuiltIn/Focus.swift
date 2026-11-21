@@ -53,7 +53,7 @@ nonisolated struct FocusRequest: Hashable, Sendable {
 
     /// Beside the title: the Shortcut that runs, or that none is named yet.
     static func label(shortcut: String) -> String {
-        shortcut.isEmpty ? String(localized: "No Shortcut named in Settings", bundle: .floe, comment: "Beside a Focus row while the user has not said which Shortcut sets their Focus.") : shortcut
+        shortcut.isEmpty ? String(localized: "Choose a Shortcut in Settings", bundle: .floe, comment: "Beside a Focus row while the user has not said which Shortcut sets their Focus.") : shortcut
     }
 
     static let keywords = String(localized: "focus, do not disturb, dnd, quiet, silence notifications", bundle: .floe, comment: "Words that find the Toggle Focus command, separated by commas.")

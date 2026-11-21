@@ -221,7 +221,7 @@ struct AppearanceSettingsPane: View {
                 Text(style.title).tag(GlassChoice.style(style))
             }
         }
-        .help("Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear.")
+        .help("Match System follows Liquid Glass in System Settings › Appearance: Regular while it's Tinted, Clear while it's Clear.")
     }
 
     @ViewBuilder

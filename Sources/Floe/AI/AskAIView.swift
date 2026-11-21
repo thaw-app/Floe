@@ -22,7 +22,8 @@ struct AskAIView: View {
                 placeholder: String(localized: "Ask a follow-up…", bundle: .floe, comment: "The prompt of the field above an AI answer, where the next question about it is typed."),
                 text: $asking.draft,
                 focusToken: asking.focus,
-                isLoading: asking.isWorking
+                // Until the first words come, the transcript shows its own spinner; one is enough.
+                isLoading: asking.isWorking && !asking.shown.text.isEmpty
             ) { EmptyView() }
         } content: {
             // Compared by its values, so typing in the field draws none of the conversation again.

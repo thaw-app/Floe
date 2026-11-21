@@ -27,6 +27,24 @@ these four.
 
 - **Put the Actions menu in your own order.** In Settings › Actions, move an action up or down, and the Actions menu (⌘K) lists it there for that kind of result ([#40](https://github.com/thaw-app/Floe/issues/40)).
 
+### Changed
+
+- **Clipboard history has an Open Settings button when it's off**, which takes you to Settings › Applications to turn it on.
+- **A command whose view Floe can't show yet says how to tell us**, with Report a Bug in Settings › About.
+- **Paths and copied links use a monospaced font** in file search, clipboard history and Settings, so they're easier to read.
+- **A command's short status messages now crossfade with the title they replace** in the bottom bar, instead of swapping abruptly.
+- **An extension's command shows the extension's name at the right of its row**, so two commands with the same name can be told apart.
+- **An extension's Actions menu shows ↩ and ⌘↩** beside the two actions those keys run.
+- **Lists fade out at the bottom edge** instead of cutting the last row off.
+
+### Fixed
+
+- **A larger system text size now reaches more of Floe:** file names in file search, headings in AI answers, and rows in clipboard history, notes, the Actions menu and extension lists no longer stay small or get cut off.
+- **The Actions menu opens at once** and keeps its short fade for closing, like the Mac's own menus.
+- **Ask AI shows one spinner while it waits**, not one in the field and one in the answer.
+- **The file preview no longer wraps its key hints** or repeats the Return hint from the bottom bar.
+- **The search bar's spinner no longer blinks while you type:** it waits a moment for searches that take a while, and goes as soon as an answer arrives.
+
 ## [0.4.0-rc.3] - 2026-11-16
 
 **macOS 26 and later · Build 11**

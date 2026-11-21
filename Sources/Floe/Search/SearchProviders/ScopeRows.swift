@@ -42,7 +42,8 @@ extension RootItem {
         case let .focus(_, shortcut): FocusRequest.label(shortcut: shortcut)
         case let .keyword(hint): hint.detail
         case let .app(app): app.origin ?? kind
-        case let .command(command): CommandSubtitles.subtitle(for: command.id) ?? command.subtitle ?? kind
+        // The extension's name, as Raycast shows it, so two commands of the same name tell apart.
+        case let .command(command): CommandSubtitles.subtitle(for: command.id) ?? command.subtitle ?? (command.extensionTitle.isEmpty ? kind : command.extensionTitle)
         default: kind
         }
     }

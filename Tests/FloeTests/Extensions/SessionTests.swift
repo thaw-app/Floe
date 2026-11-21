@@ -104,6 +104,17 @@ struct ExtensionSessionTests {
         #expect(session.actions.map(\.id) == [11, 12])
     }
 
+    @Test func theMenuShowsReturnAndCommandReturnBesideTheActionsTheyRun() {
+        render(Fixture.node("List", id: 62, children: [
+            Fixture.item("Mercury", id: 1, actions: [
+                Fixture.action("Show", id: 11),
+                Fixture.action("Copy", id: 12, shortcut: ["key": "c", "modifiers": ["cmd", "shift"]]),
+                Fixture.action("Delete", id: 13),
+            ]),
+        ]))
+        #expect(session.panelEntries.map(\.spokenKeys) == ["↩", "⌘⇧C", nil], "a declared shortcut stays, and only the first two answer to Return")
+    }
+
     @Test func typingFiltersRowsAndResetsTheSelection() {
         render(planets)
         session.selection = 2

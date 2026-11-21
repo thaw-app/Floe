@@ -102,7 +102,7 @@ struct LocalizedTextTests {
 
     @Test func valuesGoIntoAWholeSentence() {
         #expect(PickList.countLabel(shown: 3, total: 40, isFiltered: true) == "3 of 40")
-        #expect(RootItem.searchFiles("tax 100%").title == "Search Files for \"tax 100%\"")
+        #expect(RootItem.searchFiles("tax 100%").title == "Search Files for \u{201C}tax 100%\u{201D}")
         #expect(RootItem.askAI("is %@ a word").title == "Ask AI \u{201C}is %@ a word\u{201D}")
     }
 
