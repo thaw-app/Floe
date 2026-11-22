@@ -59,7 +59,7 @@ This collects the 0.4.0 betas and release candidates for anyone updating from 0.
 - **`define` lists matching words and shows the whole entry in Floe**; the Dictionary app moved to ⌘K, and Settings › Commands can rename `define` ([#57](https://github.com/thaw-app/Floe/issues/57)).
 - **Extensions show more of their interface**, such as light and dark colors, section subtitles, icons on confirmations and shortcuts in menu bar commands.
 - **Extensions build long lists in about half the time.**
-- **An extension's command shows the extension's name at the right of its row**, so two commands with the same name can be told apart.
+- **An extension's command with no subtitle shows the extension's name at the right of its row**, so two commands with the same name can be told apart.
 - **Floe does less work and holds less memory**: fast typing runs fewer searches, and calendar and emoji data load the first time you need them.
 - **Floe leaves the keyboard and clipboard alone** when you have no snippets and clipboard history is off.
 - **Updates download only what changed** when they can, a few megabytes instead of about 80.
