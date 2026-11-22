@@ -132,9 +132,6 @@
     "%@ isn't responding" : {
       "comment" : "The placeholder is the name of a command."
     },
-    "%@ isn't supported yet" : {
-      "comment" : "The placeholder is the name of a kind of view, such as Grid."
-    },
     "%@ left" : {
       "comment" : "About the battery. The placeholder is a length of time, such as 3 hr 10 min.\nBeside a running timer. The placeholder is the time left on its clock, such as 4:12."
     },
@@ -1197,7 +1194,7 @@
     "Choose Command" : {
       "comment" : "A button that runs the selected command of an app's menus."
     },
-    "Choose Floe for Clipboard in Settings → Applications to keep copies here." : {
+    "Choose Floe for Clipboard in Settings › Applications to keep copies here." : {
 
     },
     "Choose Icon…" : {
@@ -1205,6 +1202,9 @@
     },
     "Choose a Raycast quicklinks export or a .rayconfig backup." : {
 
+    },
+    "Choose a Shortcut in Settings" : {
+      "comment" : "Beside a Focus row while the user has not said which Shortcut sets their Focus."
     },
     "Choose a clipboard app in Settings" : {
 
@@ -2022,6 +2022,9 @@
     "Floe can't fill {%@}." : {
       "comment" : "Why a quicklink was left out of an import. The placeholder is a Raycast placeholder such as clipboard."
     },
+    "Floe can't show this view yet" : {
+      "comment" : "Shown when an extension command uses a kind of view Floe doesn't draw."
+    },
     "Floe can't sign in to %@ in the browser yet. %@ works with this instead. Change it later in Floe Settings." : {
       "comment" : "Under a field that takes a token. The first placeholder is a service, the second an extension's name.",
       "localizations" : {
@@ -2101,9 +2104,6 @@
     },
     "Floe records the hosts, folders and programs each extension reaches. Its page in Settings shows them, and off forgets them." : {
 
-    },
-    "Floe renders List, Grid, Detail and Form." : {
-      "comment" : "List, Grid, Detail and Form are names from the extension API and stay as written."
     },
     "Floe sees only part of what an extension does, files least of all. Extensions run with everything your account may do." : {
 
@@ -2398,6 +2398,9 @@
     "It replaced an older checkpoint of the same name. Deleting this one does not bring the older one back." : {
 
     },
+    "It's a %@ view. Tell us with Report a Bug in Settings › About." : {
+      "comment" : "The placeholder is the name of a kind of view from the extension API, such as Grid, and stays as written."
+    },
     "Italic" : {
 
     },
@@ -2657,7 +2660,7 @@
     "Match System" : {
       "comment" : "A theme for the Settings window: it follows macOS between light and dark."
     },
-    "Match System follows Liquid Glass in System Settings → Appearance: Regular while it's Tinted, Clear while it's Clear." : {
+    "Match System follows Liquid Glass in System Settings › Appearance: Regular while it's Tinted, Clear while it's Clear." : {
 
     },
     "Maximize Window" : {
@@ -2839,9 +2842,6 @@
     },
     "No SSH hosts match" : {
 
-    },
-    "No Shortcut named in Settings" : {
-      "comment" : "Beside a Focus row while the user has not said which Shortcut sets their Focus."
     },
     "No View" : {
 
@@ -3561,7 +3561,7 @@
     "Record Shortcut" : {
 
     },
-    "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts." : {
+    "Record a different one, or turn this one off in System Settings › Keyboard › Keyboard Shortcuts." : {
 
     },
     "Record what extensions reach" : {
@@ -3901,7 +3901,7 @@
     "Search Files" : {
 
     },
-    "Search Files for \"%@\"" : {
+    "Search Files for “%@”" : {
       "comment" : "The placeholder is what the user typed."
     },
     "Search History" : {
@@ -5882,9 +5882,6 @@
     },
     "“remind” and a sentence adds a reminder. Floe reads the names of your lists and none of your reminders." : {
 
-    },
-    "↵ %@" : {
-      "comment" : "A hint under a file's preview: the Return key, then what it does, such as Open."
     }
   },
   "version" : "1.0"

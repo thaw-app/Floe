@@ -18,7 +18,7 @@ nonisolated extension HotkeyRecorderStrings {
         record: LocalizedStringResource("Record", bundle: .floe, comment: "Spoken for the button that starts recording a keyboard shortcut."),
         spaceKey: LocalizedStringResource("Space", bundle: .floe, comment: "The name of the space bar in a keyboard shortcut."),
         reservedTitle: "macOS already uses this shortcut",
-        reservedMessage: "Record a different one, or turn this one off in System Settings → Keyboard → Keyboard Shortcuts.",
+        reservedMessage: "Record a different one, or turn this one off in System Settings › Keyboard › Keyboard Shortcuts.",
         chooseAnother: "Choose Another"
     )
 }

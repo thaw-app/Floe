@@ -18,7 +18,6 @@ extension LauncherModel {
             refocus: { [weak self] in self?.focusToken += 1 },
             commandEnded: { [weak self] in self?.commandEnded() },
             isPanelShown: { [weak self] in self?.isPanelShown ?? false },
-            isWaitingToResume: { [weak self] in self?.isWaitingToResume ?? false },
             beginSetup: { [weak self] in self?.beginSetup($0) },
             toggleMenuBar: { [weak self] in self?.toggleMenuBarCommand($0) },
             open: { [weak self] in self?.open($0, application: $1) },

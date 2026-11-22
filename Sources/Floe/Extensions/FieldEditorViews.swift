@@ -34,6 +34,7 @@ struct FieldEditor: View {
                 LabeledContent {
                     HStack {
                         Text(value.isEmpty ? String(localized: "None", bundle: .floe, comment: "Shown where a file or folder would be, when none is chosen.") : (value as NSString).abbreviatingWithTildeInPath)
+                            .font(value.isEmpty ? nil : .body.monospaced())
                             .foregroundStyle(value.isEmpty ? .secondary : .primary)
                             .lineLimit(1)
                             .truncationMode(.middle)

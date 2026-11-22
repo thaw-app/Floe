@@ -62,7 +62,7 @@ struct FileSearchView: View {
                             }
                         }
                     }
-                    .scrollEdgeEffectStyle(.soft, for: .top)
+                    .scrollEdgeEffectStyle(.soft, for: .vertical)
                     .contentMargins(.all, ThawSpacing.base, for: .scrollContent)
                     .onChange(of: search.selection) {
                         if results.indices.contains(search.selection) {
@@ -72,7 +72,7 @@ struct FileSearchView: View {
                 }
                 Divider()
                 if let file = search.selectedFile {
-                    FilePreview(file: file, returnTitle: search.returnTitle, rowKeys: search.rowKeys(for: file))
+                    FilePreview(file: file, rowKeys: search.rowKeys(for: file))
                         .frame(width: 250)
                 } else {
                     Color.clear.frame(width: 250)
@@ -122,7 +122,6 @@ struct FileSearchRow: View {
 struct FilePreview: View {
     let file: FileResult
     /// What Return does on the file, as the bottom bar says it.
-    let returnTitle: String
     let rowKeys: ActionKeys
 
     private var values: URLResourceValues {
@@ -134,7 +133,7 @@ struct FilePreview: View {
         VStack(alignment: .leading, spacing: ThawSpacing.inset) {
             FileThumbnail(url: file.url, maxHeight: 180)
             Text(file.name)
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(.title3, weight: .semibold))
                 .lineLimit(2)
             VStack(alignment: .leading, spacing: ThawSpacing.compact) {
                 if let kind = values.localizedTypeDescription {
@@ -156,12 +155,12 @@ struct FilePreview: View {
                     }
                 }
                 FileMetaRow(label: "Where") {
-                    Text(file.displayPath).lineLimit(1).truncationMode(.middle).textSelection(.enabled)
+                    Text(file.displayPath).font(ThawType.detail.monospaced()).lineLimit(1).truncationMode(.middle).textSelection(.enabled)
                 }
             }
             Spacer(minLength: 0)
-            HStack(spacing: ThawSpacing.base) {
-                Text("↵ \(returnTitle)", comment: "A hint under a file's preview: the Return key, then what it does, such as Open.").foregroundStyle(.secondary)
+            // The bottom bar shows Return's action but not these keys; one per line, so each wraps in the full width.
+            VStack(alignment: .leading, spacing: ThawSpacing.compact) {
                 if let quickLook = rowKeys.key(for: .quickLook) {
                     Text("\(quickLook.displayValue) Quick Look", comment: "A hint under a file's preview: keys, then what they do.").foregroundStyle(.secondary)
                 }

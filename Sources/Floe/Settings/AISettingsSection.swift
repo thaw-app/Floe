@@ -98,7 +98,7 @@ struct AISettingsSection: View {
         }
         if let engine = AIEngine.resolve(model: nil, setup: AIEngine.Setup(settings), which: which) {
             LabeledContent("Path") {
-                Text(engine.executable.path).foregroundStyle(ThawInk.supporting).textSelection(.enabled)
+                Text(engine.executable.path).font(.body.monospaced()).foregroundStyle(ThawInk.supporting).textSelection(.enabled)
             }
             if engine.tool.takesModel {
                 TextField("Model", text: toolModel(engine.tool), prompt: Text("provider/model, or empty for the default set in \(engine.toolName)"))

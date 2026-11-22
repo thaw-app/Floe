@@ -83,7 +83,7 @@ struct ListRows: View, Equatable {
                 }
                 .padding(ThawSpacing.base)
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .onChange(of: selectedID) {
                 if let selectedID {
                     proxy.scrollTo(selectedID)
@@ -181,7 +181,7 @@ struct DetailBody: View, Equatable {
                     .padding(18)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             if let metadata = node.slot("metadata") {
                 Divider()
                 ScrollView {
@@ -191,7 +191,7 @@ struct DetailBody: View, Equatable {
                     .padding(14)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .scrollEdgeEffectStyle(.soft, for: .top)
+                .scrollEdgeEffectStyle(.soft, for: .vertical)
                 .frame(width: 210)
             }
         }

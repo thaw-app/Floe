@@ -167,6 +167,7 @@ struct ActionPanelOverlay: ViewModifier {
                             ItemActionPanelCard(panel: panel, room: space.size.height)
                         }
                     }
+                    .transition(.actionMenu)
                 }
             }
             .thawAnimation(ThawMotion.quick, value: presenter.panel != nil)

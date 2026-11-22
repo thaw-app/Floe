@@ -80,8 +80,21 @@ struct SearchBar<Accessory: View>: View {
     var isRefused = false
     @ViewBuilder var accessory: Accessory
 
+    @State private var showsSpinner = false
+
     var body: some View {
-        SearchQueryField(prompt: placeholder, text: $text, focusToken: focusToken, isLoading: isLoading, isRefused: isRefused) { accessory }
+        SearchQueryField(prompt: placeholder, text: $text, focusToken: focusToken, isLoading: showsSpinner, isRefused: isRefused) { accessory }
+            // The spinner waits 200 ms, so a fast answer never blinks it; the task restarting on each change cancels the wait.
+            .task(id: isLoading) {
+                guard isLoading else {
+                    showsSpinner = false
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(200))
+                if !Task.isCancelled {
+                    showsSpinner = true
+                }
+            }
     }
 }
 
@@ -91,7 +104,7 @@ struct RowBackground: ViewModifier {
     func body(content: Content) -> some View {
         content
             .padding(.horizontal, ThawSpacing.row)
-            .frame(height: PanelRow.height)
+            .frame(minHeight: PanelRow.height)
             .modifier(SearchRowBackground(selected: selected))
     }
 }

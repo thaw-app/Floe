@@ -40,7 +40,7 @@ struct GridRows: View, Equatable {
                 }
                 .padding(ThawSpacing.inset)
             }
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: .vertical)
             .onChange(of: selectedID) {
                 if let selectedID {
                     proxy.scrollTo(selectedID)

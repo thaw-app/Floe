@@ -70,7 +70,7 @@ private struct MarkdownBlocks: View {
             ForEach(Array(pieces.enumerated()), id: \.offset) { _, piece in
                 switch piece {
                 case let .heading(level, text):
-                    Text(text).font(.system(size: [22, 18, 15][min(level, 3) - 1], weight: .semibold))
+                    Text(text).font(.system([.title, .title2, .title3][min(level, 3) - 1], weight: .semibold))
                 case let .paragraph(text):
                     paragraph(text)
                 case let .bullet(text):
