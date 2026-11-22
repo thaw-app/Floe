@@ -21,28 +21,115 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.4.0] - 2026-11-21
+
+**macOS 26 and later · Build 12**
+
+Everything from the 0.4.0 betas and release candidates, for anyone updating from 0.3.0.
 
 ### New
 
-- **Put the Actions menu in your own order.** In Settings › Actions, move an action up or down, and the Actions menu (⌘K) lists it there for that kind of result ([#40](https://github.com/thaw-app/Floe/issues/40)).
+#### Actions
+
+- **Choose what Return does on a result.** Settings › Actions sets, for apps, files, folders and links, what Return does, which rows the Actions menu (⌘K) shows and in what order, and the keys that run them ([#40](https://github.com/thaw-app/Floe/issues/40)). By @MintCollector in [#68](https://github.com/thaw-app/Floe/pull/68) and [#105](https://github.com/thaw-app/Floe/pull/105).
+- **An app's hotkey runs its Primary Action**, set in Settings › Actions ([#40](https://github.com/thaw-app/Floe/issues/40)). By @MintCollector in [#81](https://github.com/thaw-app/Floe/pull/81).
+- **Run your scripts on a result.** A script command with a line such as `# @floe.subjects file, folder` or `# @floe.subjects text` shows in the Actions menu of those results and gets what it acts on in variables such as `FLOE_PATH` and `FLOE_TEXT` ([INTERFACES.md](docs/INTERFACES.md#actions-on-results)).
+
+#### Quicklinks
+
+- **Import your Raycast quicklinks** from Settings › Quicklinks or the welcome window ([#74](https://github.com/thaw-app/Floe/issues/74)).
+- **Quicklinks can use `{selection}` and `{clipboard}`**, as in Raycast. The selection needs Accessibility access ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- **A quicklink can open in an app of its own**, such as a second browser for work links, chosen under Open with.
+
+#### Windows
+
+- **Tile the window in front from the search** with Tile Window Left, Right, Top and Bottom, Maximize Window and Center Window. By @unsecretised in [#67](https://github.com/thaw-app/Floe/pull/67).
+- **Raycast extensions can manage windows**, such as Window Layouts. Floe needs Accessibility access for both.
+
+#### Everywhere else
+
+- **A checkpoint can clear your desk.** Type `pause` and a name, press ⌘K, and choose Save and Hide Apps or Save and Quit Apps.
+- **Choose a theme for Settings** in Settings › General: Match System, Light, Dark, or Black for OLED displays.
+- **Hide Floe's icon in the menu bar** with Show in Menu Bar in Settings › General ([#71](https://github.com/thaw-app/Floe/issues/71)). By @unsecretised in [#72](https://github.com/thaw-app/Floe/pull/72).
 
 ### Changed
 
-- **Clipboard history has an Open Settings button when it's off**, which takes you to Settings › Applications to turn it on.
-- **A command whose view Floe can't show yet says how to tell us**, with Report a Bug in Settings › About.
-- **Paths and copied links use a monospaced font** in file search, clipboard history and Settings, so they're easier to read.
-- **A command's short status messages now crossfade with the title they replace** in the bottom bar, instead of swapping abruptly.
+- **Extensions no longer get your whole shell environment**, only what tools need, such as `PATH` and `HOME`. If an extension relied on a token from your `.zshrc`, turn on "Pass on everything your shell exports" on its page in Settings.
+- **⌘K opens the Actions menu inside the launcher**, with a search field and the keys that run each row. By @MintCollector in [#64](https://github.com/thaw-app/Floe/pull/64) and [#82](https://github.com/thaw-app/Floe/pull/82).
+- **`define` lists matching words and shows the whole entry in Floe.** The Dictionary app moved to ⌘K, and Settings › Commands can rename `define` ([#57](https://github.com/thaw-app/Floe/issues/57)).
+- **Extensions show more of their interface**, such as light and dark colors, section subtitles, icons on confirmations and shortcuts in menu bar commands, and draw long lists in about half the time.
 - **An extension's command shows the extension's name at the right of its row**, so two commands with the same name can be told apart.
-- **Lists fade out at the bottom edge** instead of cutting the last row off.
+- **Floe does less work and holds less memory:** fast typing runs fewer searches, the keyboard and clipboard are left alone when snippets and clipboard history are off, and calendar and emoji data load the first time you need them.
+- **Updates download only what changed** when they can, a few megabytes instead of about 80.
+- **Paths and links use a monospaced font**, lists fade out at the bottom edge, and a command's status messages crossfade with its title.
+- **Clipboard history has an Open Settings button when it's off.**
+- **A command whose view Floe can't show yet says how to tell us**, with Report a Bug in Settings › About.
+- **Tabs and pickers in Settings** are the system's tabs control on macOS 27 and a glass lens on macOS 26.
 
 ### Fixed
 
-- **A larger system text size now reaches more of Floe:** file names in file search, headings in AI answers, and rows in clipboard history, notes, the Actions menu and extension lists no longer stay small or get cut off.
-- **The Actions menu opens at once** and keeps its short fade for closing, like the Mac's own menus.
-- **Ask AI shows one spinner while it waits**, not one in the field and one in the answer.
-- **The file preview no longer wraps its key hints** or repeats the Return hint from the bottom bar.
-- **The search bar's spinner no longer blinks while you type:** it waits a moment for searches that take a while, and goes as soon as an answer arrives.
+#### Search and launcher
+
+- **What's New opens at the version you have**, not the newest release.
+- **The search shows your changes as soon as you close Settings**, including an extension you just installed, and finds apps in a folder you deleted and recreated.
+- **A command opened by its hotkey or a link while another search is open gets your typing**, so Return runs the command instead of pasting.
+- **Return with a key held reaches a shell command in the search**, so ⌘Return, ⌥Return and ⇧Return work there. By @MintCollector in [#63](https://github.com/thaw-app/Floe/pull/63).
+- **A larger system text size reaches more of Floe**, so file names, AI answer headings and list rows no longer stay small or get cut off.
+- **The Actions menu opens at once**, and Ask AI and the search bar show one steady spinner.
+- **The file preview no longer wraps its key hints.**
+- **The calculator groups large numbers the way your region writes them** and puts no comma after a minus sign.
+- **Floe frees memory after you close it**, even when a command or dialog was still open.
+
+#### Extensions and commands
+
+- **Commands that run without opening anything finish**, keep running after they close the launcher, and say when they fail.
+- **A command still running after you go back to the search can't close the launcher or paste into the app in front.**
+- **Signing in to an extension in the browser no longer fails** when another of its commands refreshes or ends.
+- **1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in**, and the 1Password CLI's settings from your shell reach it ([#91](https://github.com/thaw-app/Floe/issues/91)).
+- **Changing an extension's settings no longer erases the rest.**
+- **Restart, Shut Down, Log Out, Empty Trash, Toggle Appearance and Toggle Bluetooth say when they fail.**
+- **Reading text or a QR code from the screen no longer stops after two minutes**, and a script that runs too long says so.
+- **Reminders finds your lists after you allow Floe in System Settings**, without restarting Floe.
+
+#### Snippets
+
+- **Snippet keywords no longer expand after a click or an app switch**, and Backspace corrects a keyword as you type it.
+- **Expanding a snippet leaves your clipboard as it was** and stays out of clipboard history.
+
+#### Settings and sync
+
+- **Buttons and tabs in Settings line up**, and switching tabs no longer leaks memory.
+- **The quicklink editor says why it won't save**, and empty lists say they're empty.
+- **The Settings search finds more**, under the names the pages use.
+- **Clearing an extension's setting on one Mac clears it on your other Macs**, and iCloud sync stops resending a change that keeps conflicting.
+- **Floe no longer quits when the disk is full while diagnostic logging is on.**
+
+#### Privacy
+
+- **Clipboard history and extensions' saved data are encrypted**, with a key in your keychain, and stay out of Time Machine.
+- **Extension passwords can't be read by other apps while a command runs.**
+
+#### Security
+
+These come from a code review of Floe on 2026-11-15.
+
+- **Each extension's saved data is encrypted with a key of its own**, so one extension can't read another's or your clipboard history.
+- **Clipboard images an extension read are deleted when Floe quits.**
+- **Importing a settings file can't switch on features you turned off**, such as clipboard history, extensions, shell commands or the diagnostic log.
+- **A password saved before Floe was renamed is no longer lost** when the keychain refuses its new copy.
+- **An AI model name can't add options to the AI tool's command**, so a settings file can't send your questions to a server it names.
+- **Extension text fields that look like a token, key, secret or password stay on this Mac** and leave iCloud the next time Floe syncs. Update Floe on each of your Macs, since an older version still sends them.
+
+### Contributors
+
+- @MintCollector added choosing what Return does and the order of the Actions menu, made app hotkeys run the Primary Action, brought the Actions menu into the launcher with its keys, and fixed Return on shell commands ([#40](https://github.com/thaw-app/Floe/issues/40), [#63](https://github.com/thaw-app/Floe/pull/63), [#64](https://github.com/thaw-app/Floe/pull/64), [#68](https://github.com/thaw-app/Floe/pull/68), [#81](https://github.com/thaw-app/Floe/pull/81), [#82](https://github.com/thaw-app/Floe/pull/82), [#105](https://github.com/thaw-app/Floe/pull/105)).
+- @unsecretised added the window tiling commands and hiding the menu bar icon ([#67](https://github.com/thaw-app/Floe/pull/67), [#72](https://github.com/thaw-app/Floe/pull/72)).
+- @KingMob asked for the Raycast quicklinks import ([#74](https://github.com/thaw-app/Floe/issues/74)).
+- @nuTTeLLo asked for acting on the selected text ([#43](https://github.com/thaw-app/Floe/issues/43)).
+- @christian90875-bit reported that the 1Password CLI didn't work in Floe ([#91](https://github.com/thaw-app/Floe/issues/91)).
+- @raumzeit77 asked for window management ([#52](https://github.com/thaw-app/Floe/issues/52)).
+- @Evolinox asked for hiding the menu bar icon ([#71](https://github.com/thaw-app/Floe/issues/71)).
+- @dotvhs asked for a better dictionary ([#57](https://github.com/thaw-app/Floe/issues/57)).
 
 ## [0.4.0-rc.3] - 2026-11-16
 
