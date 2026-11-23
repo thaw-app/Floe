@@ -5,6 +5,132 @@
         <language>en</language>
         <item>
             <title>0.4.0</title>
+            <pubDate>Mon, 23 Nov 2026 11:30:47 +0000</pubDate>
+            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0</link>
+            <sparkle:version>12</sparkle:version>
+            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <description><![CDATA[<p><strong>macOS 26 and later · Build 12</strong></p>
+<p>This collects the 0.4.0 betas and release candidates for anyone updating from 0.3.0.</p>
+<h3>New</h3>
+<h4>Actions</h4>
+<ul>
+<li><strong>Choose what Return does on a result</strong>, and which rows the Actions menu (⌘K) shows, in what order and on which keys, in Settings › Actions (<a href="https://github.com/thaw-app/Floe/issues/40" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/40/hovercard">#40</a>). By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/MintCollector/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/MintCollector">@MintCollector</a> in <a href="https://github.com/thaw-app/Floe/pull/68" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/68/hovercard">#68</a> and <a href="https://github.com/thaw-app/Floe/pull/105" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/105/hovercard">#105</a>.</li>
+<li><strong>An app's hotkey runs its Primary Action</strong>, set in Settings › Actions (<a href="https://github.com/thaw-app/Floe/issues/40" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/40/hovercard">#40</a>). By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/MintCollector/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/MintCollector">@MintCollector</a> in <a href="https://github.com/thaw-app/Floe/pull/81" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/81/hovercard">#81</a>.</li>
+<li><strong>Scripts can act on a result:</strong> add <code class="notranslate"># @floe.subjects file, folder</code> or <code class="notranslate"># @floe.subjects text</code> and the script shows in that result's Actions menu (<a href="docs/INTERFACES.md#actions-on-results">INTERFACES.md</a>).</li>
+</ul>
+<h4>Quicklinks</h4>
+<ul>
+<li><strong>Import your Raycast quicklinks</strong> from Settings › Quicklinks or the welcome window (<a href="https://github.com/thaw-app/Floe/issues/74" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/74/hovercard">#74</a>).</li>
+<li><strong>Quicklinks can use <code class="notranslate">{selection}</code> and <code class="notranslate">{clipboard}</code></strong> as in Raycast, and the selection needs Accessibility access (<a href="https://github.com/thaw-app/Floe/issues/43" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/43/hovercard">#43</a>).</li>
+<li><strong>A quicklink can open in an app of its own</strong>, chosen under Open with.</li>
+</ul>
+<h4>Windows</h4>
+<ul>
+<li><strong>Tile the window in front from the search</strong> with Tile Window Left, Right, Top and Bottom, Maximize Window and Center Window (needs Accessibility access). By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> in <a href="https://github.com/thaw-app/Floe/pull/67" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/67/hovercard">#67</a>.</li>
+<li><strong>Raycast extensions such as Window Layouts can move your windows</strong> once Floe has Accessibility access.</li>
+</ul>
+<h4>Checkpoints and Settings</h4>
+<ul>
+<li><strong>A checkpoint can clear your desk:</strong> type <code class="notranslate">pause</code> and a name, press ⌘K, and choose Save and Hide Apps or Save and Quit Apps.</li>
+<li><strong>Choose a theme for Settings</strong> in Settings › General: Match System, Light, Dark, or Black for OLED displays.</li>
+<li><strong>Hide Floe's icon in the menu bar</strong> with Show in Menu Bar in Settings › General (<a href="https://github.com/thaw-app/Floe/issues/71" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/71/hovercard">#71</a>). By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> in <a href="https://github.com/thaw-app/Floe/pull/72" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/72/hovercard">#72</a>.</li>
+</ul>
+<h3>Changed</h3>
+<ul>
+<li><strong>Extensions get only the shell variables tools need</strong>, such as <code class="notranslate">PATH</code> and <code class="notranslate">HOME</code>, so turn on "Pass on everything your shell exports" on an extension's page in Settings if it read a token from your <code class="notranslate">.zshrc</code>.</li>
+<li><strong>⌘K opens the Actions menu inside the launcher</strong>, with a search field and the keys that run each row. By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/MintCollector/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/MintCollector">@MintCollector</a> in <a href="https://github.com/thaw-app/Floe/pull/64" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/64/hovercard">#64</a> and <a href="https://github.com/thaw-app/Floe/pull/82" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/82/hovercard">#82</a>.</li>
+<li><strong><code class="notranslate">define</code> lists matching words and shows the whole entry in Floe</strong>; the Dictionary app moved to ⌘K, and Settings › Commands can rename <code class="notranslate">define</code> (<a href="https://github.com/thaw-app/Floe/issues/57" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/57/hovercard">#57</a>).</li>
+<li><strong>Extensions show more of their interface</strong>, such as light and dark colors, section subtitles, icons on confirmations and shortcuts in menu bar commands.</li>
+<li><strong>Extensions build long lists in about half the time.</strong></li>
+<li><strong>An extension's command with no subtitle shows the extension's name at the right of its row</strong>, so two commands with the same name can be told apart.</li>
+<li><strong>Floe does less work and holds less memory</strong>: fast typing runs fewer searches, and calendar and emoji data load the first time you need them.</li>
+<li><strong>Floe leaves the keyboard and clipboard alone</strong> when you have no snippets and clipboard history is off.</li>
+<li><strong>Updates download only what changed</strong> when they can, a few megabytes instead of about 80.</li>
+<li><strong>Paths and links use a monospaced font.</strong></li>
+<li><strong>Lists fade out at the bottom edge</strong> instead of cutting the last row off.</li>
+<li><strong>A command's status messages crossfade with its title</strong> in the bottom bar.</li>
+<li><strong>Clipboard history has an Open Settings button when it's off.</strong></li>
+<li><strong>A command whose view Floe can't show yet says how to tell us</strong>, with Report a Bug in Settings › About.</li>
+<li><strong>Tabs and pickers in Settings use the system's tabs control on macOS 27</strong> and a glass selection on macOS 26.</li>
+</ul>
+<h3>Fixed</h3>
+<h4>Launcher</h4>
+<ul>
+<li><strong>What's New opens at the version you have</strong>, not the newest release.</li>
+<li><strong>The search shows your changes as soon as you close Settings</strong>, including an extension you just installed.</li>
+<li><strong>Apps in a folder you deleted and recreated show up</strong> without restarting Floe.</li>
+<li><strong>A command opened by its hotkey or a link while another search is open gets your typing</strong>, so Return runs the command instead of pasting.</li>
+<li><strong>⌘Return, ⌥Return and ⇧Return work on a shell command in the search.</strong> By <a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/MintCollector/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/MintCollector">@MintCollector</a> in <a href="https://github.com/thaw-app/Floe/pull/63" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/63/hovercard">#63</a>.</li>
+<li><strong>A larger system text size reaches more of Floe</strong>, so file names, AI answer headings and list rows stop staying small or getting cut off.</li>
+<li><strong>The Actions menu opens at once.</strong></li>
+<li><strong>Ask AI and the search bar show one steady spinner</strong> while they wait.</li>
+<li><strong>The file preview no longer wraps its key hints.</strong></li>
+<li><strong>The calculator groups large numbers the way your region writes them</strong> and puts no comma after a minus sign.</li>
+<li><strong>Floe frees memory after you close it</strong>, even when a command or dialog was still open.</li>
+<li><strong>Floe keeps running when the disk fills up while diagnostic logging is on</strong>, and stops logging.</li>
+</ul>
+<h4>Commands</h4>
+<ul>
+<li><strong>Commands that run without opening anything finish</strong> and say when they fail.</li>
+<li><strong>Background commands keep running after they close the launcher</strong>, as in Raycast.</li>
+<li><strong>A command still running after you go back to the search can't close the launcher or paste into the app in front.</strong></li>
+<li><strong>Signing in to an extension in the browser keeps working</strong> when another of its commands refreshes or ends.</li>
+<li><strong>1Password's My Passwords and My Vaults bring the launcher back after you approve sign-in</strong>, and the 1Password CLI gets its settings from your shell (<a href="https://github.com/thaw-app/Floe/issues/91" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/91/hovercard">#91</a>).</li>
+<li><strong>Changing an extension's settings keeps the rest of them.</strong></li>
+<li><strong>Restart, Shut Down, Log Out, Empty Trash, Toggle Appearance and Toggle Bluetooth say when they fail.</strong></li>
+<li><strong>Reading text or a QR code from the screen keeps going past two minutes</strong>, and a script that runs too long says so.</li>
+<li><strong>Reminders finds your lists after you allow Floe in System Settings</strong>, without restarting Floe.</li>
+</ul>
+<h4>Snippets</h4>
+<ul>
+<li><strong>Snippet keywords stay put after a click or an app switch</strong>, and Backspace corrects a keyword as you type it.</li>
+<li><strong>Expanding a snippet leaves your clipboard as it was</strong> and stays out of clipboard history.</li>
+</ul>
+<h4>Settings and sync</h4>
+<ul>
+<li><strong>Buttons and tabs in Settings line up</strong>, and switching tabs no longer leaks memory.</li>
+<li><strong>The quicklink editor says why it won't save.</strong></li>
+<li><strong>Empty lists in Settings say they're empty.</strong></li>
+<li><strong>The Settings search finds more</strong>, under the names the pages use.</li>
+<li><strong>Clearing an extension's setting on one Mac clears it on your other Macs.</strong></li>
+<li><strong>iCloud sync stops resending a change that keeps conflicting</strong> and reads iCloud's copy instead.</li>
+</ul>
+<h4>Privacy</h4>
+<ul>
+<li><strong>Clipboard history and extensions' saved data are encrypted</strong> with a key in your keychain and stay out of Time Machine.</li>
+<li><strong>Extension passwords stay hidden from other apps while a command runs.</strong></li>
+</ul>
+<h4>Security</h4>
+<p>These come from a code review of Floe on 2026-11-15.</p>
+<ul>
+<li><strong>Each extension's saved data has a key of its own</strong>, so one extension can't read another's or your clipboard history.</li>
+<li><strong>Clipboard images an extension read are deleted when Floe quits.</strong></li>
+<li><strong>Importing a settings file can't switch on features you turned off</strong>, such as clipboard history, extensions, shell commands or the diagnostic log.</li>
+<li><strong>A password saved before Floe was renamed survives</strong> when the keychain refuses its new copy.</li>
+<li><strong>An AI model name can't add options to the AI tool's command</strong>, so a settings file can't send your questions to a server it names.</li>
+<li><strong>Extension text fields that look like a token, key, secret or password stay on this Mac</strong> and leave iCloud at the next sync, once each of your Macs runs 0.4.0.</li>
+</ul>
+<h3>Contributors</h3>
+<ul>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/MintCollector/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/MintCollector">@MintCollector</a> added choosing what Return does and the order of the Actions menu, made app hotkeys run the Primary Action, brought the Actions menu into the launcher with its keys, and fixed Return on shell commands (<a href="https://github.com/thaw-app/Floe/issues/40" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/40/hovercard">#40</a>, <a href="https://github.com/thaw-app/Floe/pull/63" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/63/hovercard">#63</a>, <a href="https://github.com/thaw-app/Floe/pull/64" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/64/hovercard">#64</a>, <a href="https://github.com/thaw-app/Floe/pull/68" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/68/hovercard">#68</a>, <a href="https://github.com/thaw-app/Floe/pull/81" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/81/hovercard">#81</a>, <a href="https://github.com/thaw-app/Floe/pull/82" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/82/hovercard">#82</a>, <a href="https://github.com/thaw-app/Floe/pull/105" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/105/hovercard">#105</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/unsecretised/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/unsecretised">@unsecretised</a> added the window tiling commands and hiding the menu bar icon (<a href="https://github.com/thaw-app/Floe/pull/67" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/67/hovercard">#67</a>, <a href="https://github.com/thaw-app/Floe/pull/72" data-hovercard-type="pull_request" data-hovercard-url="/thaw-app/Floe/pull/72/hovercard">#72</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/KingMob/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/KingMob">@KingMob</a> asked for the Raycast quicklinks import (<a href="https://github.com/thaw-app/Floe/issues/74" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/74/hovercard">#74</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/nuTTeLLo/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/nuTTeLLo">@nuTTeLLo</a> asked for acting on the selected text (<a href="https://github.com/thaw-app/Floe/issues/43" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/43/hovercard">#43</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/christian90875-bit/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/christian90875-bit">@christian90875-bit</a> reported that the 1Password CLI didn't work in Floe (<a href="https://github.com/thaw-app/Floe/issues/91" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/91/hovercard">#91</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/raumzeit77/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/raumzeit77">@raumzeit77</a> asked for window management (<a href="https://github.com/thaw-app/Floe/issues/52" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/52/hovercard">#52</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/Evolinox/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/Evolinox">@Evolinox</a> asked for hiding the menu bar icon (<a href="https://github.com/thaw-app/Floe/issues/71" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/71/hovercard">#71</a>).</li>
+<li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/dotvhs/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/dotvhs">@dotvhs</a> asked for a better dictionary (<a href="https://github.com/thaw-app/Floe/issues/57" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/57/hovercard">#57</a>).</li>
+</ul>]]></description>
+            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0/Floe_0.4.0.zip" length="81571582" type="application/octet-stream" sparkle:edSignature="OrHPgw8YDDCwSK3xPJIFmcEnc8XxNm2qojbH7HUOhj00T3nIfSgEfkeagMAiFWFiIyFl319hDQDe9C0WSeS/DA=="/>
+            <sparkle:deltas>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0/Floe12-5.delta" sparkle:deltaFrom="5" length="3936882" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="kEsi69An7m0D05r7OSc6yu+NSvsuNlKNwf7ZzcKWyoxUQdntPpgDOSdxyZrQPh9bGmhW7PsgRbioewsw4XDeCw=="/>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0/Floe12-4.delta" sparkle:deltaFrom="4" length="4777014" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="LUeRX4YAEe5BNFA2ILSz905kHdqUgp4LIXzhLD6kLkA7AeUnMlrFtaeuvbTkoTLGqeC2L7fxV4Vc5KepH9dXDg=="/>
+                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0/Floe12-3.delta" sparkle:deltaFrom="3" length="4976154" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="LGIAesrEl4M9S3OaFPeHXl3iRGK2oApBWGc4ov8mcEepE/EvCKRbhmMLfi2PPs9PYs31AeWy2tf3z7s4vAagDw=="/>
+            </sparkle:deltas>
+        </item>
+        <item>
+            <title>0.4.0</title>
             <pubDate>Tue, 17 Nov 2026 07:56:26 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-rc.3</link>
             <sparkle:channel>beta</sparkle:channel>
@@ -79,42 +205,6 @@
             </sparkle:deltas>
         </item>
         <item>
-            <title>0.4.0</title>
-            <pubDate>Tue, 10 Nov 2026 07:59:40 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-rc.2</link>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>10</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <description><![CDATA[<p><strong>macOS 26 and later · Build 10</strong></p>
-<h3>Changed</h3>
-<ul>
-<li><strong>Extensions draw faster.</strong> Installed extensions now run on React's production build, which builds a list of several thousand rows in about half the time.</li>
-<li><strong>Floe does less in the background.</strong> It no longer listens to the keyboard when there are no snippets to expand, or checks the clipboard when its history is off.</li>
-<li><strong>Typing in the launcher does less work.</strong> Each key draws the results once, where it used to draw them twice, and rows that can't match are dropped sooner.</li>
-<li><strong>Settings does less while it is open.</strong> It looks for your commands once when it opens, the AI page asks the Keychain for your key once, and moving between pages no longer makes the launcher search again.</li>
-<li><strong>Tabs and pickers in Settings look different.</strong> On macOS 27 they are the system's own tabs control, whose glass selection follows a press and a drag. On macOS 26 the selection is drawn as a glass lens.</li>
-</ul>
-]]></description>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.2/Floe_0.4.0-rc.2.zip" length="81249979" type="application/octet-stream" sparkle:edSignature="LBQlG8zJqEMLnahucxlJCRinE/YaZbGrAIIUSAj66aSy4xtpIhbQYsskTxyRNHHHX4cxBb3Qy9e5SbYeNbE4Aw=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.2/Floe10-9.delta" sparkle:deltaFrom="9" length="2238938" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="GKox5STEgFWV3Bkm3uCgnmj6Lt4Hypl4OG8dGFGuEl7I8r0/COFHvwAaV23E0Q5rLaxqTf3vgvoEY7tdpKAABg=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.4.0</title>
-            <pubDate>Sun, 08 Nov 2026 21:10:15 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.4.0-rc.1</link>
-            <sparkle:channel>beta</sparkle:channel>
-            <sparkle:version>9</sparkle:version>
-            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.1/Floe_0.4.0-rc.1.zip" length="81129389" type="application/octet-stream" sparkle:edSignature="hDB+N4SRi8a2lWtVr/bsC+Cr2HnqbRK3lJEBbaI+kYwWfiQn1+l/n7pScFnrdcMkCa/fHj/q5waptiKeWvRGBQ=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.4.0-rc.1/Floe9-8.delta" sparkle:deltaFrom="8" length="1858018" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="0lewBifO8s8pvKN+eXBuvet9TWKamYVcNRSeiwh/K6lTFRr2wAeoRQh22UvCBt687JXUwvg6X23p/5SM0RNUAQ=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
             <title>0.3.0</title>
             <pubDate>Sun, 01 Nov 2026 01:21:36 +0000</pubDate>
             <link>https://github.com/thaw-app/Floe/releases/tag/0.3.0</link>
@@ -150,7 +240,8 @@
 <h3>Contributors</h3>
 <ul>
 <li><a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/matthrz/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/matthrz">@matthrz</a> asked to search iCloud Drive (<a href="https://github.com/thaw-app/Floe/issues/59" data-hovercard-type="issue" data-hovercard-url="/thaw-app/Floe/issues/59/hovercard">#59</a>).</li>
-</ul>]]></description>
+</ul>
+]]></description>
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.3.0/Floe_0.3.0.zip" length="80616398" type="application/octet-stream" sparkle:edSignature="aD98aJW6WYQ2V1tG8Kj26t0x1J/Efg92ZltOL0KAsBnMAu3+Mwg23Jirnrx+yrzL6kvvMWH1EZJOIsMMH92oBA=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.3.0/Floe5-4.delta" sparkle:deltaFrom="4" length="3190930" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="9FpuaF2qE5nnCN9l5S16NxRU+/j9fy9anmiqECYjMZ5jEZsDbDVP6/xM8oSanXeto0RKblDr3p2ehR+dwwyzCQ=="/>
@@ -166,19 +257,6 @@
             <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.1/Floe_0.2.1.zip" length="80042072" type="application/octet-stream" sparkle:edSignature="SA/q4oSyIWIr2gd8PO+bzeGwO9dV9HT9rLNnmSQ0LmIbjHDkAgm6fP5y0/r66TF4SDo/fMD66cTY7QegM5chAQ=="/>
             <sparkle:deltas>
                 <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.1/Floe4-3.delta" sparkle:deltaFrom="3" length="1905290" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="aphIs+TqFbA7EeOb2u3f++t+Z73fot8OYSMdZ7XLA4rp7CgEM+bEQeD9f+5tkzIjM1RuXQvH6sVhiZr3+i6cBg=="/>
-            </sparkle:deltas>
-        </item>
-        <item>
-            <title>0.2.0</title>
-            <pubDate>Thu, 29 Oct 2026 01:48:38 +0000</pubDate>
-            <link>https://github.com/thaw-app/Floe/releases/tag/0.2.0</link>
-            <sparkle:version>3</sparkle:version>
-            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe_0.2.0.zip" length="79995147" type="application/octet-stream" sparkle:edSignature="WDJCS66zHJCj0sno7QDGQCXjIMyehdWIcp8AaqUfBUSkuAtogSAtWt28yPHJqbh0yJo15XMwsxuX4JZBa4pUCQ=="/>
-            <sparkle:deltas>
-                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe3-2.delta" sparkle:deltaFrom="2" length="23580314" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="HE6W4PixYoQNGvd+valpjLY/vHvxRD62VY7j/2E9DEkqmqAQ3rLJ+FQ89lq/OvyNlWjhLxgwiZgDkan6ZGFyAQ=="/>
-                <enclosure url="https://github.com/thaw-app/Floe/releases/download/0.2.0/Floe3-1.delta" sparkle:deltaFrom="1" length="24094346" type="application/octet-stream" sparkle:deltaFromSparkleExecutableSize="976464" sparkle:deltaFromSparkleLocales="de,he,ar,el,ja,fa,uk" sparkle:edSignature="KGHuW3CS9VMouKclKerE3O46yryItimrMVetJUdCdsyzhbNOggx3ethEbrzdZp8hTR9RyhlPTnizEu0vD90gDw=="/>
             </sparkle:deltas>
         </item>
     </channel>
