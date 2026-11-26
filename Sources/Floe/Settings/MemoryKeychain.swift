@@ -53,6 +53,9 @@ final nonisolated class MemoryKeychain: KeychainAccess {
         set { state.withLock { $0.deleteFailure = newValue } }
     }
 
+    /// Runs after each local write, outside the lock, as another device changing iCloud Keychain meanwhile would.
+    nonisolated(unsafe) var afterLocalWrite: ((_ account: String) -> Void)?
+
     /// The time the next writes are dated with.
     var time: Date {
         get { state.withLock { $0.time } }
@@ -79,7 +82,7 @@ final nonisolated class MemoryKeychain: KeychainAccess {
 
     @discardableResult
     func write(_ value: String, service: String, account: String, synchronizable: Bool) -> OSStatus {
-        state.withLock {
+        let status = state.withLock {
             note(synchronizable, in: &$0)
             if let failure = synchronizable ? $0.failure : $0.localFailure {
                 return failure
@@ -87,6 +90,10 @@ final nonisolated class MemoryKeychain: KeychainAccess {
             $0.items[Key(service: service, account: account, synchronizable: synchronizable)] = (value, $0.time)
             return errSecSuccess
         }
+        if !synchronizable, status == errSecSuccess {
+            afterLocalWrite?(account)
+        }
+        return status
     }
 
     @discardableResult

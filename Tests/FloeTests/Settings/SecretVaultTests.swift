@@ -200,6 +200,24 @@ struct SecretVaultTests {
         #expect(SettingsSyncText.passwordLine(for: vault.status).contains("The last change failed: "))
     }
 
+    @Test func removingEverywhereLeavesWhatAnotherDeviceAddedOrChangedMeanwhile() {
+        vault.write("gh", account: "github/token")
+        vault.write("lin", account: "linear/key")
+        _ = vault.turnOn()
+        // The copies are made in account order: once the last is made, another device adds one and changes the first.
+        keychain.afterLocalWrite = { [keychain, service] account in
+            guard account == "linear/key" else { return }
+            keychain.afterLocalWrite = nil
+            keychain.write("arrived", service: service, account: "new/key", synchronizable: true)
+            keychain.write("changed elsewhere", service: service, account: "github/token", synchronizable: true)
+        }
+        #expect(vault.removeEverywhere())
+        #expect(shared("linear/key") == nil)
+        #expect(shared("new/key") == "arrived", "never copied here, so it is not deleted")
+        #expect(shared("github/token") == "changed elsewhere", "changed since it was copied, so it is not deleted")
+        #expect(local("github/token") == "gh")
+    }
+
     @Test func removingEverywhereSaysWhenADeletionFailed() {
         vault.write("gh", account: "github/token")
         _ = vault.turnOn()
