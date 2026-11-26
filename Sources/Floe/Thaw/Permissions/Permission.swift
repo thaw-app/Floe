@@ -29,20 +29,45 @@ class Permission: Identifiable {
             // actual transition should notify the owner.
             guard oldValue != hasPermission else { return }
             if hasPermission {
-                wasDeclined = false
-                awaitingPromptAnswer = false
+                requestState = .idle
             }
             onChange?()
         }
     }
 
+    /// Where the latest request stands, from the press until the grant lands.
+    enum RequestState: Equatable {
+        /// Nothing asked yet, or the grant landed.
+        case idle
+        /// A prompt is up, and the next poll tick turns it into a decline if still ungranted.
+        case awaitingAnswer(afterDecline: Bool)
+        /// No prompt to answer: System Settings is open, and the poll watches for the grant.
+        case waiting
+        /// A shown prompt went ungranted. Waiting while the person may still grant it in System Settings.
+        case declined(waiting: Bool)
+    }
+
+    private(set) var requestState = RequestState.idle
+
     /// A shown prompt remained ungranted, so surfaces may offer System Settings instead of waiting.
     /// Persists across ungranted requests until a grant; requests without a prompt open Settings directly and do not count.
-    private(set) var wasDeclined = false
+    var wasDeclined: Bool {
+        if case .declined = requestState { return true }
+        return requestState == .awaitingAnswer(afterDecline: true)
+    }
 
-    /// Set by a request that showed the system prompt, cleared by the poll
-    /// tick that turns it into wasDeclined or by the grant landing.
-    private var awaitingPromptAnswer = false
+    /// A prompt is up; the permissions list shows the row as waiting.
+    var awaitingPromptAnswer: Bool {
+        if case .awaitingAnswer = requestState { true } else { false }
+    }
+
+    /// Until the grant lands or the poll gives up; the permissions list shows a spinner meanwhile.
+    var isWaitingForGrant: Bool {
+        switch requestState {
+        case .awaitingAnswer, .waiting, .declined(waiting: true): true
+        case .idle, .declined(waiting: false): false
+        }
+    }
 
     /// Notify owners only after a changed permission value is stored.
     @ObservationIgnored
@@ -59,8 +84,16 @@ class Permission: Identifiable {
 
     let details: [String]
 
-    /// One line for a card in the welcome, where the details would not fit.
+    /// One line for the permissions list, where the details would not fit.
     let summary: String
+
+    /// The line that replaces the summary after a decline: where to turn the permission on. Nil keeps the summary.
+    let declinedHint: String?
+
+    /// The line under the title in the permissions list.
+    var rowSubtitle: String {
+        hasPermission || !wasDeclined ? summary : declinedHint ?? summary
+    }
 
     /// Whether menu bar search needs this permission. Floe itself runs without any of them.
     let isRequired: Bool
@@ -110,6 +143,8 @@ class Permission: Identifiable {
     ///   - key: A name for the permission that never changes.
     ///   - title: The title of the permission.
     ///   - details: Descriptive details for the permission.
+    ///   - summary: The line under the title in the permissions list; the first detail when nil.
+    ///   - declinedHint: The line that replaces the summary after a decline.
     ///   - isRequired: A Boolean value that indicates if menu bar search needs this permission.
     ///   - settingsURL: The URL of the settings pane to open.
     ///   - check: A function that checks permissions.
@@ -126,6 +161,7 @@ class Permission: Identifiable {
         iconColor: Color,
         details: [String],
         summary: String? = nil,
+        declinedHint: String? = nil,
         isRequired: Bool,
         settingsURL: URL?,
         check: @escaping () -> Bool,
@@ -140,6 +176,7 @@ class Permission: Identifiable {
         self.iconColor = iconColor
         self.details = details
         self.summary = summary ?? details.first ?? ""
+        self.declinedHint = declinedHint
         self.isRequired = isRequired
         self.settingsURL = settingsURL
         self.check = check
@@ -175,12 +212,12 @@ class Permission: Identifiable {
         }
         ungrantedTickCount += 1
         if awaitingPromptAnswer {
-            awaitingPromptAnswer = false
-            wasDeclined = true
+            requestState = .declined(waiting: true)
         }
         if ungrantedTickCount >= ungrantedPollBudget {
             timerCancellable?.cancel()
             timerCancellable = nil
+            stopWaiting()
             // Keep the settings-return observer armed to catch grants after the polling budget expires.
         }
     }
@@ -206,6 +243,7 @@ class Permission: Identifiable {
     /// Arm preflight-only activation checks either way to recognize later grants without prompting.
     func performRequest() {
         configureCancellables()
+        beginWaiting()
         if settingsURL != nil {
             armSettingsReturnObserver()
         }
@@ -218,7 +256,7 @@ class Permission: Identifiable {
             }
             if prompted {
                 // Prompt requests return before the user's answer; defer the ungranted verdict to the next poll tick.
-                awaitingPromptAnswer = true
+                requestState = .awaitingAnswer(afterDecline: wasDeclined)
             } else {
                 openSettingsPane()
             }
@@ -229,7 +267,22 @@ class Permission: Identifiable {
     /// Never open Settings alongside a prompt or automatically after decline.
     func openSettingsPane() {
         guard let settingsURL else { return }
+        resumePollingIfNeeded()
+        beginWaiting()
         openURL(settingsURL)
+    }
+
+    /// A decline stays a decline while waiting, so surfaces keep offering System Settings.
+    private func beginWaiting() {
+        guard !hasPermission else { return }
+        requestState = wasDeclined ? .declined(waiting: true) : .waiting
+    }
+
+    private func stopWaiting() {
+        requestState = switch requestState {
+        case .declined, .awaitingAnswer(afterDecline: true): .declined(waiting: false)
+        case .idle, .waiting, .awaitingAnswer(afterDecline: false): .idle
+        }
     }
 
     /// Re-checks (preflight only) whenever the app becomes active again, so
@@ -257,6 +310,7 @@ class Permission: Identifiable {
 
     /// Stops running the permission check.
     func stopCheck() {
+        stopWaiting()
         timerCancellable?.cancel()
         timerCancellable = nil
         settingsReturnCancellable?.cancel()
@@ -282,6 +336,11 @@ final class AccessibilityPermission: Permission {
                 String(localized: "Move and resize the window in front when you tile it.", bundle: .floe),
             ],
             summary: String(localized: "Search the menu bar and app menus, and switch windows.", bundle: .floe, comment: "One line on a permission card in the welcome."),
+            declinedHint: String(
+                localized: "Turn on \(AppInfo.displayName) in Privacy & Security › Accessibility.",
+                bundle: .floe,
+                comment: "Shown after the Accessibility request went unanswered. The placeholder is the name of this app; Privacy & Security and Accessibility are names in System Settings."
+            ),
             isRequired: true,
             // Ungranted AX trust checks always report prompted, so this URL is only for explicit Settings choices and return checks.
             settingsURL: URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"),
