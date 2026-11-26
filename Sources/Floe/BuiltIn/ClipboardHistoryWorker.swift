@@ -344,7 +344,8 @@ final nonisolated class ClipboardHistoryWorker: Sendable {
         }
     }
 
-    /// The saved history, without the images whose file is gone, and what the folder holds.
+    /// The saved history, without the images whose file is gone, and what the folder holds. An image saved by an earlier
+    /// Floe gets its hash from its file, so a later copy of the same image merges with it and a different one never does.
     private static func load(_ files: ClipboardFiles) -> Event {
         let sizes = files.sizes()
         let stored = files.read(ClipboardFiles.historyName).flatMap { try? JSONDecoder().decode([ClipboardEntry].self, from: $0) } ?? []
@@ -353,7 +354,11 @@ final nonisolated class ClipboardHistoryWorker: Sendable {
             // A formatted copy whose file is gone leaves the text, which is in the list itself.
             entry.formats = entry.formats?.filter { sizes[$0.value] != nil }
             guard entry.kind == .image, let name = entry.imageFile else { return entry }
-            return sizes[name] == nil ? nil : entry
+            guard sizes[name] != nil else { return nil }
+            if entry.hasEarlierImageIdentity, let png = files.read(name) {
+                entry.text = ClipboardEntry.imageIdentity(of: png)
+            }
+            return entry
         }
         return .loaded(entries, sizes: sizes)
     }
