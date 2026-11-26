@@ -7,7 +7,7 @@
 
 import AppKit
 
-/// What acts on the Mac itself: system commands, panes of System Settings, Thaw's actions and SSH hosts.
+/// What acts on the Mac itself: system commands, panes of System Settings, Thaw's and Punkto's actions and SSH hosts.
 final class SystemRows {
     var host = RowHost()
     /// Plays, pauses or skips the music, for the commands that control it.
@@ -58,6 +58,11 @@ extension SystemRows: RowOwner {
             host.leave()
             if !Thaw.perform(action) {
                 host.showHUD(String(localized: "Thaw isn't installed", bundle: .floe))
+            }
+        case let .punkto(action):
+            host.leave()
+            if !Punkto.perform(action) {
+                host.showHUD(String(localized: "Punkto isn't installed", bundle: .floe))
             }
         case let .sshHost(sshHost, terminal):
             host.leave()

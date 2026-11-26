@@ -21,6 +21,12 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### New
+
+- **Show or hide Punkto's apps from the launcher.** Type “punkto” to show the menu bar apps it hides or hide them again. With Thaw installed too, choose Punkto in Settings › Commands.
+
 ## [0.4.0] - 2026-11-22
 
 **macOS 26 and later · Build 12**

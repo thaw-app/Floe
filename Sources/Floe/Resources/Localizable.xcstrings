@@ -2294,6 +2294,9 @@
     "Hide from Search" : {
 
     },
+    "Hide the Apps Again" : {
+      "comment" : "A command of the app Punkto, which hides the menu bar items of apps the user chose."
+    },
     "History" : {
       "comment" : "The kind of a result, shown beside its title. Here a command the user ran before."
     },
@@ -2364,6 +2367,9 @@
     },
     "Install" : {
       "comment" : "A button that installs an extension."
+    },
+    "Install Punkto and its actions appear in the search." : {
+      "comment" : "Punkto is the name of an app."
     },
     "Install Thaw and its actions appear in the search." : {
 
@@ -3441,6 +3447,12 @@
     "Processes" : {
 
     },
+    "Punkto isn't installed" : {
+
+    },
+    "Punkto's actions are in the search: type “punkto” to see them." : {
+      "comment" : "Punkto is the name of an app. The word in quotation marks is typed as it is and stays in English."
+    },
     "Put %@ back" : {
       "comment" : "The placeholder is a file name."
     },
@@ -4137,8 +4149,14 @@
     "Show larger" : {
 
     },
+    "Show or Hide the Hidden Apps" : {
+      "comment" : "A command of the app Punkto, which hides the menu bar items of apps the user chose."
+    },
     "Show the Floe launcher." : {
 
+    },
+    "Show the Hidden Apps" : {
+      "comment" : "A command of the app Punkto, which hides the menu bar items of apps the user chose."
     },
     "Show your upcoming events and meeting links in the search." : {
 
@@ -4430,8 +4448,8 @@
     "Thaw isn't installed" : {
 
     },
-    "Thaw's actions are in the search: type “thaw” to see them." : {
-      "comment" : "The word in quotation marks is typed as it is and stays in English."
+    "Thaw or Punkto" : {
+      "comment" : "The setting that chooses between two apps, Thaw and Punkto, whose actions the search lists."
     },
     "Thaw's actions are in the search: type “thaw” to see them. The ones that change a Thaw setting need Automation turned on in Thaw." : {
       "comment" : "The word in quotation marks is typed as it is and stays in English."
@@ -4628,6 +4646,9 @@
 
     },
     "The search field is its own piece of glass, and the results are a second piece below it." : {
+
+    },
+    "The search lists the actions of this app. Punkto does nothing while Thaw is running." : {
 
     },
     "The source chosen on the AI page" : {
@@ -5625,6 +5646,15 @@
     "provider/model, or empty for the default set in %@" : {
       "comment" : "Example text in a field for a model name. The placeholder is the name of a command line tool."
     },
+    "punkto, menu bar, hidden apps, reveal" : {
+      "comment" : "Words that find the Show the Hidden Apps command of the app Punkto, separated by commas."
+    },
+    "punkto, menu bar, hidden apps, toggle" : {
+      "comment" : "Words that find the Show or Hide the Hidden Apps command of the app Punkto, separated by commas."
+    },
+    "punkto, menu bar, hide apps" : {
+      "comment" : "Words that find the Hide the Apps Again command of the app Punkto, separated by commas."
+    },
     "quicklink, keyword, link, name, url, list, edit, delete" : {
       "comment" : "Words that find the Quicklinks setting in the settings search, separated by commas."
     },
@@ -5766,9 +5796,6 @@
     "thaw, follow, match, mirror, sync, same look" : {
       "comment" : "Words that find the Follow Thaw's appearance setting in the settings search, separated by commas."
     },
-    "thaw, hidden items, thaw bar, menu bar manager" : {
-      "comment" : "Words that find the Thaw setting in the settings search, separated by commas."
-    },
     "thaw, hide menus" : {
       "comment" : "Words that find the Toggle Hiding Application Menus command of the app Thaw, separated by commas."
     },
@@ -5792,6 +5819,9 @@
     },
     "thaw, preferences, open settings" : {
       "comment" : "Words that find the Thaw Settings command of the app Thaw, separated by commas."
+    },
+    "thaw, punkto, hidden items, thaw bar, menu bar manager" : {
+      "comment" : "Words that find the Thaw or Punkto setting in the settings search, separated by commas. Thaw and Punkto are the names of apps."
     },
     "thaw, rehide, auto hide" : {
       "comment" : "Words that find the Toggle Automatic Rehiding command of the app Thaw, separated by commas."

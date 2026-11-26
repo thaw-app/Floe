@@ -39,7 +39,9 @@ extension LauncherModel {
         context.commands = commands
         context.scripts = catalog.searchedScripts
         context.apps = catalog.apps
-        context.thawActions = Thaw.actions()
+        let menuBarApp = MenuBarApp.resolved(chosen: settings.menuBarApp)
+        context.thawActions = menuBarApp == .thaw ? Thaw.actions() : []
+        context.punktoActions = menuBarApp == .punkto ? Punkto.actions() : []
         context.preferredApps = resolvedApps.apps
         context.clipboardDestination = clipboardDestination
         context.settingsPanes = catalog.settingsPanes

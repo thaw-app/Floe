@@ -15,6 +15,7 @@ struct CatalogSearchProvider: SearchProvider {
         let found = context.commands.map(RootItem.command) + context.scripts.map(RootItem.script) + context.apps.map(RootItem.app)
         let own = builtIns + SystemCommand.allCases.map(RootItem.system) + context.snippets.map(RootItem.snippet)
             + context.notesApp.actions.filter(\.standsAlone).map { RootItem.note($0, text: "") } + context.thawActions.map(RootItem.thaw)
+            + context.punktoActions.map(RootItem.punkto)
         return SearchContribution(ranked: found + own, searchOnly: context.settingsPanes.map(RootItem.settingsPane))
     }
 }

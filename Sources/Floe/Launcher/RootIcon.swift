@@ -45,6 +45,8 @@ struct RootIcon: View {
         case .thaw:
             // Thaw's own icon, so its rows read as that app's and not as one more system command.
             AppIconView(path: Thaw.applicationURL?.path ?? "", size: 24)
+        case .punkto:
+            AppIconView(path: Punkto.applicationURL?.path ?? "", size: 24)
         case let .finderSelection(_, app):
             AppIconView(path: app.url.path, size: 24)
         case let .settingsPane(pane):

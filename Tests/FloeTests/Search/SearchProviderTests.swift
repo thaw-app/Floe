@@ -60,13 +60,14 @@ struct SearchProviderTests {
             $0.snippets = [snippet]
             $0.notesApp = .antinote
             $0.thawActions = [.toggleSwap]
+            $0.punktoActions = [.show]
         })
         let ids = contribution.ranked.map(\.id)
         #expect(ids.prefix(3) == ["command:sample/planets", "script:deploy.sh", "app:/Applications/Safari.app"])
         #expect(Array(ids.dropFirst(3).prefix(8)) == [
             "builtin:menubar-search", "builtin:menu-item-search", "builtin:emoji-search", "builtin:clipboard-history", "builtin:file-search", "builtin:notes", "builtin:floating-note", "settings",
         ])
-        #expect(ids.suffix(4) == ["snippet:\(snippet.id.uuidString)", "note:new", "note:append", "thaw:toggleSwap"])
+        #expect(ids.suffix(5) == ["snippet:\(snippet.id.uuidString)", "note:new", "note:append", "thaw:toggleSwap", "punkto:show"])
         #expect(ids.contains("system:\(SystemCommand.allCases[0].rawValue)"))
         #expect(contribution.searchOnly.map(\.id) == ["settings-pane:com.apple.Displays"])
         #expect(contribution.pinned.isEmpty && contribution.sectioned.isEmpty && contribution.appended.isEmpty)

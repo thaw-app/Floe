@@ -36,6 +36,7 @@ extension RootItem {
         case let .settingsPane(pane): pane.keywords
         case let .note(action, _): action == .new ? AppRole.notes.keywords : [String(localized: "add to note", bundle: .floe, comment: "A search keyword for the row that adds text to a note. Lowercase.")]
         case let .thaw(action): action.keywords
+        case let .punkto(action): action.keywords
         case let .finderSelection(role, _): role.keywords
         case .clipboardApp: AppRole.clipboard.keywords
         case let .snippet(snippet): [snippet.keyword]
