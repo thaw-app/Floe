@@ -53,25 +53,42 @@ function unseal(itemKey: string, stored: string, key: Buffer | undefined): strin
     }
 }
 
+/// user_version 2 marks a file with nothing plain in it: sealed, and vacuumed since. Opening one reads no row. A plain
+/// write, which only a storage without a key makes, and an import of the file from before both take the mark away.
+const sealedVersion = 2;
+
+function userVersion(database: Database): number {
+    return (database.query("PRAGMA user_version").get() as { user_version: number }).user_version;
+}
+
 /// Seals what an older Floe stored plainly. Secure delete overwrites the plain text's pages from here on, and
 /// a vacuum rewrites the file, so text deleted before then is gone too.
 async function sealPlainRows(database: Database, key: Buffer) {
     database.run("PRAGMA secure_delete = ON");
-    const update = database.prepare("UPDATE items SET value = ? WHERE key = ? AND value = ?");
-    const sealed = await patiently(() =>
-        database.transaction(() => {
-            const plain = database.query(`SELECT key, value FROM items WHERE value NOT LIKE '${sealedPrefix}%'`).all() as { key: string; value: string }[];
-            for (const row of plain) update.run(seal(row.key, row.value, key), row.key, row.value);
-            return plain.length;
-        })(),
-    );
-    // user_version 1 marks a file that was vacuumed once sealed. Checked on its own, since text deleted before
-    // may be there with no plain row left, and a vacuum cut short by a quit is done at the next opening.
-    const { user_version: version } = database.query("PRAGMA user_version").get() as { user_version: number };
-    if (sealed > 0 || version < 1) {
+    // Without the mark every opening would read the whole table to look for plain rows.
+    if (userVersion(database) >= sealedVersion) return;
+    // user_version 1, from an earlier Floe, marks a file that was vacuumed once sealed. Checked on its own, since text
+    // deleted before may be there with no plain row left, and a vacuum cut short by a quit is done at the next opening.
+    const needsVacuum = userVersion(database) < 1;
+    const sealed = await patiently(() => sealPass(database, key, !needsVacuum));
+    if (sealed > 0 || needsVacuum) {
         await patiently(() => database.run("VACUUM"));
-        database.run("PRAGMA user_version = 1");
+        // Another process may have written a plain row while the file was rewritten: one more look seals it, and the
+        // mark goes with that look.
+        await patiently(() => sealPass(database, key, true));
     }
+}
+
+/// Seals every plain row, and with marks sets the mark in the same transaction: a plain write from another process
+/// then comes before the look, and is sealed, or after the mark, and takes it away again.
+function sealPass(database: Database, key: Buffer, marks: boolean): number {
+    const update = database.prepare("UPDATE items SET value = ? WHERE key = ? AND value = ?");
+    return database.transaction(() => {
+        const plain = database.query(`SELECT key, value FROM items WHERE value NOT LIKE '${sealedPrefix}%'`).all() as { key: string; value: string }[];
+        for (const row of plain) update.run(seal(row.key, row.value, key), row.key, row.value);
+        if (marks) database.run(`PRAGMA user_version = ${sealedVersion}`);
+        return plain.length;
+    })();
 }
 
 /// The file operations, replaceable so a test can count them or make one fail.
@@ -185,6 +202,8 @@ async function migrate(database: Database, file: string) {
         const claimed = database.prepare("INSERT OR IGNORE INTO migration (done) VALUES (1)").run();
         if (claimed.changes === 0) return;
         for (const [key, value] of Object.entries(items)) insert.run(key, JSON.stringify(value));
+        // What came in is plain, so the next opening with a key seals it.
+        database.run("PRAGMA user_version = 0");
     });
     await patiently(claim);
     fs.rmSync(former, { force: true });
@@ -240,6 +259,8 @@ export function createLocalStorage(file: () => string, storageKey: () => Buffer 
                     // JSON has no undefined: that write fails on the table's NOT NULL, as it always did.
                     if (json !== undefined && plain !== undefined) checkRoom(db, key, plain, json, sealing !== undefined);
                     db.query("INSERT INTO items (key, value) VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET value = excluded.value").run(key, json);
+                    // A plain row is in the file now, so the next opening with a key looks for it again.
+                    if (!sealing) db.run("PRAGMA user_version = 0");
                 })();
             });
         },

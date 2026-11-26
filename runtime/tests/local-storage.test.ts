@@ -311,6 +311,76 @@ describe("LocalStorage sealed with the storage key", () => {
         expect(raw().token).not.toContain("secret-abc");
     });
 
+    test("a storage with nothing plain left opens without reading its whole table, until a plain row is written", async () => {
+        const real = storagePersistence.open;
+        const scans: string[] = [];
+        storagePersistence.open = (target) => {
+            const database = real(target);
+            const query = database.query.bind(database);
+            database.query = ((sql: string) => {
+                if (sql.includes("NOT LIKE")) scans.push(sql);
+                return query(sql);
+            }) as typeof database.query;
+            return database;
+        };
+        try {
+            // A first opening looks before its vacuum and once after it.
+            await createLocalStorage(() => file, () => key).setItem("token", "secret-abc");
+            expect(scans).toHaveLength(2);
+            expect(await createLocalStorage(() => file, () => key).getItem("token")).toBe("secret-abc");
+            expect(scans, "a second opening scans nothing").toHaveLength(2);
+            await createLocalStorage(() => file).setItem("plain", "written without a key");
+            await createLocalStorage(() => file, () => key).getItem("plain");
+            expect(scans).toHaveLength(4);
+            expect(raw().plain).not.toContain("written without a key");
+        } finally {
+            storagePersistence.open = real;
+        }
+    });
+
+    test("a plain row another process writes during the vacuum is sealed before the file is marked", async () => {
+        await createLocalStorage(() => file).setItem("before", "plain");
+        const real = storagePersistence.open;
+        storagePersistence.open = (target) => {
+            const database = real(target);
+            const run = database.run.bind(database);
+            database.run = ((sql: string, ...rest: unknown[]) => {
+                const result = (run as (...arguments_: unknown[]) => unknown)(sql, ...rest);
+                if (sql === "VACUUM") {
+                    const other = new Database(target);
+                    try {
+                        other.run("INSERT INTO items (key, value) VALUES (?, ?)", ["during", JSON.stringify("written meanwhile")]);
+                        other.run("PRAGMA user_version = 0");
+                    } finally {
+                        other.close();
+                    }
+                }
+                return result;
+            }) as typeof database.run;
+            return database;
+        };
+        try {
+            await createLocalStorage(() => file, () => key).getItem("before");
+        } finally {
+            storagePersistence.open = real;
+        }
+        expect(raw().during).not.toContain("written meanwhile");
+        expect(await createLocalStorage(() => file, () => key).getItem("during")).toBe("written meanwhile");
+    });
+
+    test("a file an earlier Floe sealed is looked over once more, then not again", async () => {
+        await createLocalStorage(() => file, () => key).setItem("token", "secret-abc");
+        const database = new Database(file);
+        try {
+            database.run("INSERT OR REPLACE INTO items (key, value) VALUES (?, ?)", ["left", JSON.stringify("plain")]);
+            database.run("PRAGMA user_version = 1");
+        } finally {
+            database.close();
+        }
+        expect(await createLocalStorage(() => file, () => key).getItem("left")).toBe("plain");
+        expect(raw().left).not.toContain("plain");
+    });
+
     test("a value sealed under another key reads as missing", async () => {
         await createLocalStorage(() => file, () => otherKey).setItem("token", "secret-abc");
         const storage = createLocalStorage(() => file, () => key);
