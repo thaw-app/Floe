@@ -527,6 +527,15 @@ describe("getPreferenceValues", () => {
     delete process.env.FLOE_PREFERENCES;
   });
 
+  test("the command's arguments come with the secrets, and are gone once taken without the app", () => {
+    fromApp({ arguments: JSON.stringify({ password: "hunter2" }) });
+    expect(ctx.arguments).toBe(JSON.stringify({ password: "hunter2" }));
+    takeSecrets(() => {
+      throw new Error("without the app nothing is read from the input");
+    });
+    expect(ctx.arguments).toBeUndefined();
+  });
+
   test("only a 32-byte storage key is taken, and a key the app could not read locks the storage", () => {
     fromApp({ storageKey: Buffer.alloc(16, 1).toString("base64") });
     expect(ctx.storageKey).toBeUndefined();

@@ -31,6 +31,9 @@ export const ctx = {
   manifest: { name: "" } as Manifest,
   // The command's preferences as the app resolved them, as JSON, or nothing when the host runs without the app.
   preferences: undefined as string | undefined,
+  // The arguments the command was run with, as JSON. They come with the secrets, since a password argument must not be
+  // on the host's command line; the command line has them only when the host runs without the app.
+  arguments: undefined as string | undefined,
   // The extension's own key, which LocalStorage seals its values with: the app derives it from its storage key, which
   // never leaves the app. Nothing when the host runs without the app.
   storageKey: undefined as Buffer | undefined,
@@ -46,7 +49,7 @@ export const ctx = {
 export function takeSecrets(readLine: () => string = () => firstLine(0)): void {
   const onInput = process.env.FLOE_SECRETS === "input";
   delete process.env.FLOE_SECRETS;
-  let secrets: { preferences?: unknown; storageKey?: unknown; storageLocked?: unknown } = {};
+  let secrets: { preferences?: unknown; arguments?: unknown; storageKey?: unknown; storageLocked?: unknown } = {};
   if (onInput) {
     try {
       secrets = JSON.parse(readLine());
@@ -56,6 +59,7 @@ export function takeSecrets(readLine: () => string = () => firstLine(0)): void {
     }
   }
   ctx.preferences = typeof secrets.preferences === "string" ? secrets.preferences : undefined;
+  ctx.arguments = typeof secrets.arguments === "string" ? secrets.arguments : undefined;
   const key = Buffer.from(typeof secrets.storageKey === "string" ? secrets.storageKey : "", "base64");
   ctx.storageKey = key.length === 32 ? key : undefined;
   ctx.storageLocked = secrets.storageLocked === true;

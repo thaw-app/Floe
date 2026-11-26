@@ -5,7 +5,8 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-// Extension host. Usage: bun host.ts <extensionDir> <commandName> [argumentsJSON]
+// Extension host. Usage: bun host.ts <extensionDir> <commandName> [argumentsJSON]. The app sends the arguments on the
+// host's input instead, with its secrets; the command line carries them only when the host runs without the app.
 // Loads one Raycast command, renders it with the custom reconciler, and talks NDJSON with the Swift app.
 import fs from "node:fs";
 import os from "node:os";
@@ -97,7 +98,7 @@ process.stdin.on("end", () => process.exit(0));
 
 const launchProps = {
   launchType: ctx.launchType,
-  arguments: argumentsJSON ? JSON.parse(argumentsJSON) : {},
+  arguments: JSON.parse(ctx.arguments || argumentsJSON || "{}"),
   // What the command that called launchCommand handed on.
   launchContext: process.env.FLOE_LAUNCH_CONTEXT ? JSON.parse(process.env.FLOE_LAUNCH_CONTEXT) : undefined,
   // What was typed, when the command was chosen as a fallback.
