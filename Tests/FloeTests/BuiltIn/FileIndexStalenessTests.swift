@@ -53,6 +53,19 @@ struct FileIndexStalenessTests {
         service.set(on: false)
     }
 
+    @Test func whileOneOfTwoIndexesCannotFollowTheDiskBothLeaveTheAnswerToSpotlight() async throws {
+        let home = try IndexFixture(files: ["invoice.pdf"])
+        let iCloud = try IndexFixture(files: ["drive-invoice.pdf"])
+        var refused = iCloud.environment
+        refused.watch = { _, _, _ in nil }
+        refused.watchRetryDelay = 3600
+        let service = FileIndexService(environment: home.environment, alongside: FileIndexService(environment: refused))
+        service.set(on: true)
+        await service.settled()
+        #expect(service.files(matching: "invoice") == nil, "the home index alone would leave iCloud Drive's files out")
+        service.set(on: false)
+    }
+
     @Test func emptyingTheFieldDropsTheAnswerToWhatWasTypedBefore() async throws {
         let fixture = try IndexFixture(files: ["invoice.pdf"])
         let search = await FileSearch(index: ready(fixture))

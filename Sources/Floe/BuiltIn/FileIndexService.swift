@@ -317,12 +317,18 @@ final nonisolated class FileIndexService: Sendable {
         }
     }
 
-    /// The files whose names match, best first; nil while there is no finished index to ask.
+    /// The files whose names match, best first; nil while either index is not ready to ask, so Spotlight answers
+    /// rather than one index alone leaving the other folder's files out.
     func files(matching query: String, limit: Int = 50) -> [FileResult]? {
         // Asked for more than is shown, since the apps among the hits are dropped.
         guard let hits = hits(matching: query, limit: limit * 2) else { return nil }
+        var others: [FileIndex.Hit] = []
+        if let alongside {
+            guard let found = alongside.hits(matching: query, limit: limit * 2) else { return nil }
+            others = found
+        }
         let home = NSHomeDirectory()
-        let ranked = Self.ranked(hits + (alongside?.hits(matching: query, limit: limit * 2) ?? []), lastUsed: environment.lastUsed)
+        let ranked = Self.ranked(hits + others, lastUsed: environment.lastUsed)
         return Array(ranked.lazy.compactMap { Self.result(for: $0.hit, home: home, lastUsed: $0.lastUsed) }.prefix(limit))
     }
 
