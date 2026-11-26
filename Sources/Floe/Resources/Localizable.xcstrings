@@ -109,6 +109,9 @@
     "%@ is one of Floe's hotkeys, so it can't also run an action." : {
       "comment" : "The placeholder is a key combination, such as ⌥ ⇧ Space, that opens Floe or runs a command from anywhere."
     },
+    "%@ is ready" : {
+      "comment" : "The placeholder is the name of this app."
+    },
     "%@ is still running, so it was not restarted" : {
       "comment" : "The placeholder is an app's name."
     },
@@ -731,9 +734,6 @@
     "Add to Menu Bar" : {
 
     },
-    "Add to Notes" : {
-      "comment" : "A result row in a demo of the welcome tour."
-    },
     "Add to or Remove from Favorites" : {
       "comment" : "An action on an app, as Settings lists it. The Actions menu shows Add to Favorites or Remove from Favorites, whichever the app needs."
     },
@@ -955,9 +955,6 @@
     },
     "Ask" : {
       "comment" : "A verb on a button: send the question to AI."
-    },
-    "Ask AI" : {
-
     },
     "Ask AI a question" : {
 
@@ -1284,11 +1281,11 @@
     "Clone failed" : {
       "comment" : "What went wrong while installing an extension. Clone is the git operation."
     },
+    "Close" : {
+      "comment" : "The button that closes the welcome window when it was opened again from Settings."
+    },
     "Close Window" : {
 
-    },
-    "Close this window and start using %@" : {
-      "comment" : "The placeholder is the name of this app."
     },
     "Code" : {
 
@@ -1342,7 +1339,7 @@
       "comment" : "A section title. Contacts are the people in Apple's Contacts app.\nApple's Contacts app, as the title of a section in Privacy.\nThe macOS permission named Contacts."
     },
     "Continue" : {
-      "comment" : "The button that goes to the next step of the welcome window."
+      "comment" : "The button that goes to the next page of the welcome window."
     },
     "Continue Without Accessibility" : {
       "comment" : "The button that leaves the permission step while Accessibility is not granted."
@@ -1726,9 +1723,6 @@
         }
       }
     },
-    "Docs" : {
-      "comment" : "A result row in a demo of the welcome tour: a quicklink."
-    },
     "Done" : {
       "comment" : "A button that ends writing a note.\nSaid after a command finished and printed nothing.\nThe button that closes the welcome window."
     },
@@ -1764,9 +1758,6 @@
     },
     "Dynamic Glass" : {
       "comment" : "A kind of glass material for the launcher, as a choice in a picker."
-    },
-    "Each card says what its permission switches on. The launcher and your extensions work without any of them." : {
-
     },
     "Each extension makes its own requests, and the images it shows are loaded from wherever it points." : {
 
@@ -1889,7 +1880,7 @@
 
     },
     "Extensions" : {
-      "comment" : "A heading in the settings sidebar, over the installed extensions.\nA tile of the welcome tour: Raycast extensions.\nThe heading over the settings for extensions."
+      "comment" : "A heading in the settings sidebar, over the installed extensions.\nThe heading over the settings for extensions."
     },
     "Extensions Folder" : {
 
@@ -1947,9 +1938,6 @@
     },
     "Files" : {
       "comment" : "Files on this Mac, as a source of search results.\nResults that are files, as one of the kinds of result whose actions are chosen in Settings.\nThe kind of a result, shown beside its title."
-    },
-    "Files open in your editor and links in your browser." : {
-      "comment" : "A tile of the welcome tour."
     },
     "Files you open will show up here." : {
 
@@ -2141,6 +2129,12 @@
     "For an extension that handles private text, a source on this Mac keeps its questions here." : {
 
     },
+    "For menu bar search" : {
+      "comment" : "Above the permission that menu bar search needs, in the welcome window."
+    },
+    "For other features" : {
+      "comment" : "Above the optional permissions in the welcome window."
+    },
     "Force Quit" : {
       "comment" : "An action that ends a process at once."
     },
@@ -2165,8 +2159,8 @@
     "Formula, installed" : {
       "comment" : "Beside a Homebrew package that is on this Mac."
     },
-    "Free and open source" : {
-
+    "Free under AGPL-3.0, with no tracking and no account." : {
+      "comment" : "AGPL-3.0 is the name of a license."
     },
     "Frequency" : {
       "comment" : "A kind of unit, named in a calculator error."
@@ -2699,9 +2693,6 @@
     "Menu Items" : {
 
     },
-    "Menus" : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Message" : {
       "comment" : "A verb on a button: write the person a message.\nThe kind of a result, shown beside its title. Here a row that opens a message draft."
     },
@@ -2855,12 +2846,6 @@
     "No analytics" : {
 
     },
-    "No analytics or tracking" : {
-
-    },
-    "No analytics, no tracking" : {
-
-    },
     "No answer" : {
 
     },
@@ -2987,12 +2972,6 @@
     "No shortcuts match" : {
 
     },
-    "No sign-up" : {
-
-    },
-    "No sign-up and no account" : {
-
-    },
     "No snippets yet." : {
 
     },
@@ -3063,7 +3042,7 @@
       "comment" : "The heading of a note in the release notes."
     },
     "Notes" : {
-      "comment" : "A tile of the welcome tour.\nThe kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one.\nThe name of Apple's notes app, on a button that opens a note in it."
+      "comment" : "The kind of a result, shown beside its title. Here a row that writes a note.\nThe kind of app that keeps notes, as the label of the picker that chooses one.\nThe name of Apple's notes app, on a button that opens a note in it."
     },
     "Notes didn’t answer" : {
       "comment" : "Notes is Apple's notes app."
@@ -3075,9 +3054,6 @@
 
     },
     "Nothing has been recorded for this extension yet." : {
-
-    },
-    "Nothing is asked until you click Grant Access" : {
 
     },
     "Nothing is listening on that port" : {
@@ -3184,9 +3160,6 @@
     "Open Floe" : {
 
     },
-    "Open Floe from its menu bar icon, or set a hotkey." : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Open Floe's search of the menu bar's items." : {
 
     },
@@ -3252,9 +3225,6 @@
     },
     "Open in Shortcuts" : {
       "comment" : "Shortcuts is the name of Apple's app."
-    },
-    "Open source" : {
-
     },
     "Open the launcher from an app to search its menus." : {
 
@@ -3339,9 +3309,6 @@
     "Percentage" : {
       "comment" : "A label on the calculator result that says what kind of calculation it is."
     },
-    "Permission checks stay on your Mac" : {
-
-    },
     "Permissions" : {
       "comment" : "What the app is allowed to do on this Mac."
     },
@@ -3390,8 +3357,8 @@
     "Prefix" : {
 
     },
-    "Press %@ in any app. Change it in Settings." : {
-      "comment" : "A tile of the welcome tour. The placeholder is a keyboard shortcut."
+    "Press your shortcut from anywhere to open the launcher." : {
+
     },
     "Press ⌘N to make one." : {
 
@@ -3493,7 +3460,7 @@
       "comment" : "Quick Look is the macOS preview. The placeholder is the name of a file."
     },
     "Quicklink" : {
-      "comment" : "A result row in a demo of the welcome tour.\nThe heading of the form that edits one quicklink.\nThe kind of a result, shown beside its title. A quicklink is a saved link or search."
+      "comment" : "The heading of the form that edits one quicklink.\nThe kind of a result, shown beside its title. A quicklink is a saved link or search."
     },
     "Quicklinks" : {
       "comment" : "The name of a settings page."
@@ -3502,7 +3469,13 @@
       "comment" : "An action that quits a running app.\nThe menu item that quits Floe."
     },
     "Quit %@" : {
-      "comment" : "A receipt. The placeholder is a program's name."
+      "comment" : "A receipt. The placeholder is a program's name.\nThe placeholder is the name of this app."
+    },
+    "Quit %@ without granting access" : {
+      "comment" : "The placeholder is the name of this app."
+    },
+    "Quit %@ without setting it up" : {
+      "comment" : "The placeholder is the name of this app."
     },
     "Quit All Apps" : {
       "comment" : "A command that quits every open app."
@@ -3786,9 +3759,6 @@
     "Running a command in Finder’s folder asks Finder which folder is in front, which macOS lets you allow or refuse." : {
 
     },
-    "Runs Raycast extensions, yours included." : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Runs on this Mac. Nothing is sent anywhere." : {
 
     },
@@ -3961,9 +3931,6 @@
     "Search menu items…" : {
 
     },
-    "Search menus and windows. Uses Accessibility." : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Search notes, or name a new one…" : {
 
     },
@@ -4047,9 +4014,6 @@
     "Set a link for your clipboard app in Settings" : {
 
     },
-    "Settings and aliases, the same on every Mac." : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Settings file" : {
 
     },
@@ -4082,9 +4046,6 @@
     },
     "Shell Commands" : {
 
-    },
-    "Shell commands" : {
-      "comment" : "A tile of the welcome tour."
     },
     "Shell environment" : {
 
@@ -4188,9 +4149,6 @@
     "Size" : {
       "comment" : "A label before the size of a file."
     },
-    "Skip Setup" : {
-
-    },
     "Sleep" : {
       "comment" : "A command that puts the Mac to sleep."
     },
@@ -4201,7 +4159,7 @@
       "comment" : "The kind of a result, shown beside its title. A snippet is a saved piece of text."
     },
     "Snippets" : {
-      "comment" : "A tile of the welcome tour.\nThe name of a settings page."
+      "comment" : "The name of a settings page."
     },
     "Software Update (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -4287,17 +4245,6 @@
     "Status" : {
 
     },
-    "Step %lld of %lld" : {
-      "comment" : "Spoken for the dots that show how far the welcome window has got. Both placeholders are numbers.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Step %1$lld of %2$lld"
-          }
-        }
-      }
-    },
     "Stop Timer" : {
 
     },
@@ -4327,9 +4274,6 @@
     },
     "Suggestions" : {
       "comment" : "A section title above results Floe suggests."
-    },
-    "Sums, units and dates as you type them." : {
-      "comment" : "A tile of the welcome tour."
     },
     "Sunset" : {
       "comment" : "A beam around the search field in oranges, pinks and reds."
@@ -4403,9 +4347,6 @@
     "Text" : {
       "comment" : "A kind of copied thing.\nResults that are text, such as clipboard entries and snippets, as one of the kinds of result whose actions are chosen in Settings."
     },
-    "Text that expands as you type, and quicklinks." : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Text you paste or type by keyword." : {
 
     },
@@ -4456,9 +4397,6 @@
     },
     "Thaw's actions are in the search: type “thaw” to see them. The ones that change a Thaw setting need Automation turned on in Thaw." : {
       "comment" : "The word in quotation marks is typed as it is and stays in English."
-    },
-    "Thaw's actions in the search, and its look." : {
-      "comment" : "A tile of the welcome tour."
     },
     "Thaw's background follows the wallpaper, which the launcher cannot copy, so it is left out." : {
 
@@ -4590,6 +4528,9 @@
     },
     "The last change failed: %@" : {
       "comment" : "The placeholder is the system's description of an error."
+    },
+    "The launcher and your extensions work without any of these. Nothing is asked until you click Grant Access, and the checks stay on your Mac." : {
+
     },
     "The launcher is following Thaw's border." : {
 
@@ -4919,8 +4860,8 @@
     "Turn a Focus on for a while" : {
       "comment" : "Focus is the macOS feature that silences notifications."
     },
-    "Turn any off later in System Settings" : {
-
+    "Turn on %@ in Privacy & Security › Accessibility." : {
+      "comment" : "Shown after the Accessibility request went unanswered. The placeholder is the name of this app; Privacy & Security and Accessibility are names in System Settings."
     },
     "Turn on Apple Intelligence in System Settings to use it here." : {
 
@@ -5073,8 +5014,14 @@
     "Volume Up" : {
       "comment" : "A command that makes the sound louder."
     },
+    "Waiting for access" : {
+
+    },
     "Waiting for the answer…" : {
 
+    },
+    "Waiting…" : {
+      "comment" : "Beside a permission while macOS asks for it."
     },
     "Wallet & Apple Pay (System Settings)" : {
       "comment" : "The name of a pane of System Settings.",
@@ -5113,9 +5060,6 @@
       "comment" : "The placeholder is the name of this app."
     },
     "Welcome window" : {
-
-    },
-    "What Floe does" : {
 
     },
     "What It Has Reached" : {
@@ -5160,9 +5104,6 @@
     "Window" : {
       "comment" : "The kind of a result, shown beside its title. Here an open window of an app.\nThe title of the Window menu in the menu bar."
     },
-    "Works with Thaw" : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Write" : {
       "comment" : "A verb on a button: start changing the note on screen."
     },
@@ -5177,9 +5118,6 @@
     },
     "Yesterday" : {
       "comment" : "The heading over what was copied yesterday."
-    },
-    "You can grant any of these later in Settings, under Privacy." : {
-
     },
     "You can put it back from the Trash until you empty it." : {
 
@@ -5196,29 +5134,14 @@
     "Your iCloud storage is full. Changes made on this Mac are not uploaded." : {
 
     },
-    "Your last 300 copies. Return pastes one." : {
-      "comment" : "A tile of the welcome tour."
-    },
     "Your next events in the search, and `event` adds one." : {
       "comment" : "One line on a permission card in the welcome. event is a command the user types and stays in English."
     },
     "Your notes are kept in %@" : {
 
     },
-    "Your own apps" : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "`>` and a command runs it in your shell." : {
-      "comment" : "A tile of the welcome tour."
-    },
-    "`ask` and a question. It can stay on your Mac." : {
-      "comment" : "A tile of the welcome tour. ask is the keyword typed in the search."
-    },
     "`contact` and a name finds a person." : {
       "comment" : "One line on a permission card in the welcome. contact is a command the user types and stays in English."
-    },
-    "`note` writes to your notes app." : {
-      "comment" : "A tile of the welcome tour. note is the keyword typed in the search."
     },
     "`remind` and a sentence adds a reminder." : {
       "comment" : "One line on a permission card in the welcome. remind is a command the user types and stays in English."
@@ -5516,9 +5439,6 @@
     },
     "iCloud copy" : {
 
-    },
-    "iCloud sync" : {
-      "comment" : "A tile of the welcome tour."
     },
     "iCloud sync and settings files." : {
 

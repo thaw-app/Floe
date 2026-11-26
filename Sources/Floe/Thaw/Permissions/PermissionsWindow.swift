@@ -8,7 +8,8 @@
 //  Floe changes © 2026 René Jiménez, under the same license.
 //
 //  Ported to Floe from Thaw 3: Floe has no SwiftUI scene, so the window is an NSWindow owned by a
-//  controller. It always has a close button, because nothing in Floe depends on finishing the flow.
+//  controller, as tall as the page its hosting controller holds. It always has a close button, because
+//  nothing in Floe depends on finishing the flow.
 
 import AppKit
 import SwiftUI
@@ -60,16 +61,38 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         return true
     }
 
-    private func present(isReplay: Bool, startsAtAccess: Bool = false) {
-        window?.close()
-        let size = NSSize(width: ThawOnboardingWindowMetrics.width, height: ThawOnboardingWindowMetrics.height)
-        // Resizable so the window can grow with Larger Text instead of clipping it.
+    /// The window for a page, as tall as the page and following it as the pages change: the hosting controller hands
+    /// the page's own size to the window.
+    static func makeWindow(for view: some View) -> NSWindow {
         let window = NSWindow(
-            contentRect: NSRect(origin: .zero, size: size),
-            styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
+            contentRect: NSRect(origin: .zero, size: NSSize(width: ThawOnboardingWindowMetrics.width, height: 400)),
+            styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
+        let controller = NSHostingController(rootView: view.thawTheme(.floe))
+        controller.sizingOptions = [.preferredContentSize]
+        window.contentViewController = controller
+        return window
+    }
+
+    private func present(isReplay: Bool, startsAtAccess: Bool = false) {
+        window?.close()
+        let view = ThawOnboardingView(
+            settings: settings,
+            permissions: permissions,
+            isReplay: isReplay,
+            startsAtAccess: startsAtAccess,
+            importFromRaycast: { [weak self] in self?.importFromRaycast?() },
+            onFinish: { [weak self] in self?.finish(opensLauncher: !isReplay) },
+            onClose: { [weak self] in self?.finish(opensLauncher: false) }
+        )
+        .ignoresSafeArea()
+        // Light or Dark from the Settings theme. Black's background is for Settings, so this window keeps its own.
+        .heldToSettingsTheme(settings)
+        // Glass buttons are capsules here too, as in Settings.
+        .buttonBorderShape(.capsule)
+        let window = Self.makeWindow(for: view)
         window.title = String(localized: "Welcome to \(AppInfo.displayName)", bundle: .floe, comment: "The placeholder is the name of this app.")
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
@@ -77,23 +100,6 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.standardWindowButton(.miniaturizeButton)?.isHidden = true
         window.standardWindowButton(.zoomButton)?.isHidden = true
-        let view = ThawOnboardingView(
-            settings: settings,
-            permissions: permissions,
-            isReplay: isReplay,
-            startsAtAccess: startsAtAccess,
-            importFromRaycast: { [weak self] in self?.importFromRaycast?() },
-            onFinish: { [weak self] in self?.finish(opensLauncher: !isReplay) }
-        )
-        .frame(minWidth: size.width, idealWidth: size.width, minHeight: size.height, idealHeight: size.height)
-        .ignoresSafeArea()
-        // Light or Dark from the Settings theme. Black's background is for Settings, so this window keeps its own.
-        .heldToSettingsTheme(settings)
-        // Glass buttons are capsules here too, as in Settings.
-        .buttonBorderShape(.capsule)
-        .thawTheme(.floe)
-        window.contentView = NSHostingView(rootView: view)
-        window.setContentSize(size)
         window.center()
         window.delegate = self
         self.window = window
@@ -108,7 +114,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         }
     }
 
-    /// Closing counts as seen, whether by the last button, Skip Setup or the close button.
+    /// Closing counts as seen, whether by the last button, Close or the close button.
     func windowWillClose(_ notification: Notification) {
         guard notification.object as? NSWindow === window else { return }
         window = nil

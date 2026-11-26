@@ -27,6 +27,10 @@ these four.
 
 - **Show or hide Punkto's apps from the launcher.** Type “punkto” to show the menu bar apps it hides or hide them again. With Thaw installed too, choose Punkto in Settings › Commands.
 
+### Changed
+
+- **A shorter welcome**: one list of permissions, each with its own Grant Access button, then a last page with your shortcut, Launch at Login and the Raycast import.
+
 ### Fixed
 
 - **Remove Passwords from iCloud Keychain no longer deletes a password this Mac has no copy of**, and with sync off it keeps the passwords as you changed or deleted them on this Mac.
