@@ -13,7 +13,7 @@ import Synchronization
 import Testing
 
 /// A folder of its own in the temporary folder, and file system events that only a test sends.
-private final class IndexFixture: Sendable {
+final class IndexFixture: Sendable {
     let root: URL
     /// Where a service that saves keeps its index: beside the folder, never in it.
     let saved: URL
