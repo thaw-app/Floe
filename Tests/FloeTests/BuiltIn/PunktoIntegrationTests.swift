@@ -27,10 +27,11 @@ struct PunktoIntegrationTests {
             opened.append(url.absoluteString)
             return true
         }
-        #expect(!Punkto.perform(.show, isInstalled: false, open: open))
+        #expect(Punkto.perform(.show, isInstalled: false, open: open) == .notInstalled)
         #expect(opened.isEmpty)
-        #expect(Punkto.perform(.hide, isInstalled: true, open: open))
+        #expect(Punkto.perform(.hide, isInstalled: true, open: open) == .opened)
         #expect(opened == ["punkto://hide"])
+        #expect(Punkto.perform(.toggle, isInstalled: true, open: { _ in false }) == .notOpened, "installed, but the link did not open")
         #expect(PunktoAction.allCases.map(\.id) == ["toggle", "show", "hide"])
     }
 
