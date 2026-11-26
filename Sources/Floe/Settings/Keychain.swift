@@ -238,12 +238,12 @@ final nonisolated class SecretVault: Sendable {
     @discardableResult
     func turnOff() -> Bool {
         guard isOn else { return true }
-        return copyBackAndStop()
+        return copyBackAndStop(needsEvery: false)
     }
 
     /// Gives this Mac its own copies and switches sync off. False, and nothing switched, when a copy could not be made.
-    private func copyBackAndStop() -> Bool {
-        let failure = copyBack()
+    private func copyBackAndStop(needsEvery: Bool) -> Bool {
+        let failure = copyBack(needsEvery: needsEvery)
         guard failure == errSecSuccess else {
             defaults.set(Int(failure), forKey: Self.failureKey)
             return false
@@ -253,14 +253,29 @@ final nonisolated class SecretVault: Sendable {
         return true
     }
 
-    /// Deletes Floe's synchronizable secrets on every device, after this Mac has its own copies.
-    /// Works with sync off too, for a Mac that left them behind.
+    /// Deletes Floe's synchronizable secrets on every device. With sync on, this Mac first takes its own copy of
+    /// every one, and nothing is deleted unless each copy reads back. With sync off, this Mac already uses its own
+    /// items, edits and deletions included, so they stay as they are and nothing is copied over them.
+    /// False when a copy or a deletion failed; the failure is kept for Settings to show.
     @discardableResult
     func removeEverywhere() -> Bool {
-        guard isAvailable, copyBackAndStop() else { return false }
-        for entry in shared() {
-            keychain.delete(service: Self.service, account: entry.account, synchronizable: true)
+        guard isAvailable else { return false }
+        if isOn {
+            guard copyBackAndStop(needsEvery: true) else { return false }
         }
+        var failure = errSecSuccess
+        for entry in shared() {
+            let status = keychain.delete(service: Self.service, account: entry.account, synchronizable: true)
+            // One already gone, deleted from another device meanwhile, is what was asked for.
+            if status != errSecSuccess, status != errSecItemNotFound {
+                failure = status
+            }
+        }
+        guard failure == errSecSuccess else {
+            defaults.set(Int(failure), forKey: Self.failureKey)
+            return false
+        }
+        defaults.removeObject(forKey: Self.failureKey)
         return true
     }
 
@@ -281,10 +296,18 @@ final nonisolated class SecretVault: Sendable {
         return errSecSuccess
     }
 
-    private func copyBack() -> OSStatus {
+    /// - Parameter needsEvery: True before the synchronizable items are deleted. A listed secret whose value cannot
+    ///   be read is then a failure, since this Mac would be left without it. Switching off deletes nothing, so it
+    ///   skips one and leaves it in iCloud Keychain.
+    private func copyBack(needsEvery: Bool) -> OSStatus {
         var failure = errSecSuccess
         for entry in shared() {
-            guard let value = keychain.read(service: Self.service, account: entry.account, synchronizable: true) else { continue }
+            guard let value = keychain.read(service: Self.service, account: entry.account, synchronizable: true) else {
+                if needsEvery {
+                    failure = errSecItemNotFound
+                }
+                continue
+            }
             let status = keychain.write(value, service: Self.service, account: entry.account, synchronizable: false)
             if status != errSecSuccess {
                 failure = status

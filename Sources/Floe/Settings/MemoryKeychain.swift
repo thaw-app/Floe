@@ -22,6 +22,8 @@ final nonisolated class MemoryKeychain: KeychainAccess {
         var synchronizableCalls = 0
         var failure: OSStatus?
         var localFailure: OSStatus?
+        var unreadable: Set<String> = []
+        var deleteFailure: OSStatus?
         var time = Date(timeIntervalSince1970: 1000)
     }
 
@@ -37,6 +39,18 @@ final nonisolated class MemoryKeychain: KeychainAccess {
     var localFailure: OSStatus? {
         get { state.withLock { $0.localFailure } }
         set { state.withLock { $0.localFailure = newValue } }
+    }
+
+    /// Synchronizable items that are listed but whose value cannot be read, as a keychain that will not hand it over.
+    var unreadable: Set<String> {
+        get { state.withLock { $0.unreadable } }
+        set { state.withLock { $0.unreadable = newValue } }
+    }
+
+    /// The status every synchronizable delete answers with, leaving the item. Nil lets them through.
+    var deleteFailure: OSStatus? {
+        get { state.withLock { $0.deleteFailure } }
+        set { state.withLock { $0.deleteFailure = newValue } }
     }
 
     /// The time the next writes are dated with.
@@ -56,6 +70,9 @@ final nonisolated class MemoryKeychain: KeychainAccess {
     func read(service: String, account: String, synchronizable: Bool) -> String? {
         state.withLock {
             note(synchronizable, in: &$0)
+            if synchronizable, $0.unreadable.contains(account) {
+                return nil
+            }
             return $0.items[Key(service: service, account: account, synchronizable: synchronizable)]?.value
         }
     }
@@ -89,6 +106,9 @@ final nonisolated class MemoryKeychain: KeychainAccess {
     func delete(service: String, account: String, synchronizable: Bool) -> OSStatus {
         state.withLock {
             note(synchronizable, in: &$0)
+            if synchronizable, let failure = $0.deleteFailure {
+                return failure
+            }
             return $0.items.removeValue(forKey: Key(service: service, account: account, synchronizable: synchronizable)) == nil ? errSecItemNotFound : errSecSuccess
         }
     }
