@@ -5,9 +5,12 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
 @testable import Floe
 import Foundation
+import SwiftUI
 import Testing
+import ThawUI
 
 struct PunktoIntegrationTests {
     @Test func everyActionIsALinkPunktoAnswers() {
@@ -16,6 +19,24 @@ struct PunktoIntegrationTests {
         #expect(links[.show] == "punkto://show")
         #expect(links[.hide] == "punkto://hide")
         #expect(links.count == PunktoAction.allCases.count, "an action added later needs its link checked here")
+    }
+
+    @Test func performingHandsTheLinkToPunktoOnlyWhenItIsInstalled() {
+        var opened: [String] = []
+        let open = { (url: URL) -> Bool in
+            opened.append(url.absoluteString)
+            return true
+        }
+        #expect(!Punkto.perform(.show, isInstalled: false, open: open))
+        #expect(opened.isEmpty)
+        #expect(Punkto.perform(.hide, isInstalled: true, open: open))
+        #expect(opened == ["punkto://hide"])
+        #expect(PunktoAction.allCases.map(\.id) == ["toggle", "show", "hide"])
+    }
+
+    @Test func eachMenuBarAppIsNamedAsItsMakerNamesIt() {
+        #expect(MenuBarApp.allCases.map(\.name) == ["Thaw", "Punkto"])
+        #expect(MenuBarApp.allCases.map(\.id) == ["thaw", "punkto"])
     }
 
     @Test func titlesAreDistinctFromEachOtherAndFromThaws() {
@@ -54,6 +75,18 @@ struct PunktoIntegrationTests {
         let context = model.searchContext()
         #expect(context.thawActions.isEmpty, "a choice changed while Floe is open applies to the next search")
         #expect(context.punktoActions == Punkto.actions())
+    }
+
+    @MainActor @Test(arguments: [MenuBarApp.thaw, .punkto, nil])
+    func theSettingDrawsForEitherAppInstalledOrNot(chosen: MenuBarApp?) {
+        let settings = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
+        settings.menuBarApp = chosen
+        let punkto = URL(fileURLWithPath: "/Applications/Punkto.app")
+        let row = Form { MenuBarAppSetting(settings: settings, thawURL: nil, punktoURL: punkto) }.formStyle(.grouped)
+        let view = NSHostingView(rootView: row.thawTheme(.floe))
+        view.frame = NSRect(x: 0, y: 0, width: 520, height: 200)
+        view.layoutSubtreeIfNeeded()
+        #expect(view.fittingSize.height > 0)
     }
 
     @Test func settingsSayWhereTheActionsAreOrHowToGetThem() {

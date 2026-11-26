@@ -17,6 +17,8 @@ final class SystemRows {
 
     /// How a host's connection is opened. Tests replace it, so they open nothing.
     var sshConnector = SSHConnector.system
+    /// How a Punkto row asks Punkto. Tests replace it, so no link reaches the Punkto on the Mac they run on.
+    var performPunkto: (PunktoAction) -> Bool = { Punkto.perform($0) }
 
     /// Risky commands ask first, in the panel; the panel goes away before anything runs.
     func run(_ command: SystemCommand) {
@@ -61,7 +63,7 @@ extension SystemRows: RowOwner {
             }
         case let .punkto(action):
             host.leave()
-            if !Punkto.perform(action) {
+            if !performPunkto(action) {
                 host.showHUD(String(localized: "Punkto isn't installed", bundle: .floe))
             }
         case let .sshHost(sshHost, terminal):

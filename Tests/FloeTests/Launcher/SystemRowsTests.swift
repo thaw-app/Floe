@@ -52,6 +52,16 @@ struct SystemRowsTests {
         #expect(rows.actions(for: .sshHost(host, terminal: nil))?.compactMap { $0?.title } == ["Copy Host Name", "Copy SSH Command"])
     }
 
+    @Test func aPunktoRowLeavesTheLauncherAndSaysWhenPunktoIsGone() {
+        rows.performPunkto = { action in
+            asked.note("punkto: \(action.rawValue)")
+            return action != .hide
+        }
+        #expect(rows.open(.punkto(.show), flags: []))
+        #expect(rows.open(.punkto(.hide), flags: []))
+        #expect(asked.all == ["leave", "punkto: show", "leave", "punkto: hide", "hud: Punkto isn't installed"])
+    }
+
     @Test func aRowThatIsNotTheSystemsIsLeftToOthers() {
         #expect(!rows.open(.emojiSearch, flags: []))
         #expect(rows.returnTitle(for: .system(.playPause)) == nil)
