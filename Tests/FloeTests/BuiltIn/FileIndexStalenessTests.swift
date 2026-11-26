@@ -7,6 +7,7 @@
 
 @testable import Floe
 import Foundation
+import Synchronization
 import Testing
 
 /// When Floe's index must not answer: for a query typed past, and while it cannot follow changes on disk.
@@ -27,6 +28,29 @@ struct FileIndexStalenessTests {
         service.set(on: true)
         await service.settled()
         return service
+    }
+
+    @Test func anIndexThatCannotFollowTheDiskLeavesTheAnswersToSpotlightUntilItCan() async throws {
+        let fixture = try IndexFixture(files: ["invoice.pdf"])
+        let attempts = Mutex(0)
+        let starts = Mutex(false)
+        var environment = fixture.environment
+        let watch = environment.watch
+        environment.watch = { root, since, deliver in
+            // Each watch fails, as a stream FSEvents refuses, until the test lets the next one start.
+            attempts.withLock { $0 += 1 }
+            return starts.withLock(\.self) ? watch(root, since, deliver) : nil
+        }
+        environment.watchRetryDelay = 0.01
+        let service = FileIndexService(environment: environment)
+        service.set(on: true)
+        await waitFor("the watch is tried again") { attempts.withLock(\.self) >= 2 }
+        #expect(service.state == .building)
+        #expect(service.files(matching: "invoice") == nil, "nil sends the search to Spotlight")
+        starts.withLock { $0 = true }
+        await waitFor("a watch starts and the index answers") { service.files(matching: "invoice") != nil }
+        #expect(service.files(matching: "invoice")?.map(\.name) == ["invoice.pdf"])
+        service.set(on: false)
     }
 
     @Test func emptyingTheFieldDropsTheAnswerToWhatWasTypedBefore() async throws {

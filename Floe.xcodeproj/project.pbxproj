@@ -220,6 +220,7 @@
 		78E48285BBC07E7630EFC732 /* Model+RowKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0125C5A6869D3F1DBC17EF7 /* Model+RowKeys.swift */; };
 		78F8654E8B4932217F58DBE4 /* UbiquitousSyncStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B0296EF99F18C6CCF239BBF /* UbiquitousSyncStore.swift */; };
 		7A26FA1C0601C3019A1B841B /* Timers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95F42770ECB0255BA11434C8 /* Timers.swift */; };
+		7A5AAC6EF25F66E675D4CF77 /* FileIndexService+State.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CD3797489824D5661D641D /* FileIndexService+State.swift */; };
 		7AA8462C1633C42D19EC665F /* SearchRanker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF4D81C831111FE2EA1FE13 /* SearchRanker.swift */; };
 		7ABA9D77550DB393509E29BF /* Model+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A9C5204320291154A5B328 /* Model+Actions.swift */; };
 		7ACACBE38F00956CD7375599 /* ClipboardSearchScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B265CA4F57A71164C101922 /* ClipboardSearchScope.swift */; };
@@ -796,6 +797,7 @@
 		C15A85A96CBCFE6C204186C6 /* MarkdownStyling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownStyling.swift; sourceTree = "<group>"; };
 		C1F0E8A487C104CE55B6B8CE /* ExchangeRates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExchangeRates.swift; sourceTree = "<group>"; };
 		C24A859168C53D6A06385E2E /* RaycastExport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaycastExport.swift; sourceTree = "<group>"; };
+		C2CD3797489824D5661D641D /* FileIndexService+State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FileIndexService+State.swift"; sourceTree = "<group>"; };
 		C2E2C5C29CB5FB6EA6176046 /* IncomingURLRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IncomingURLRouter.swift; sourceTree = "<group>"; };
 		C328265568FF1ADA014F00C2 /* ScreenTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTools.swift; sourceTree = "<group>"; };
 		C4791DC4C059AED96BCEC4BD /* MemorySyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemorySyncStore.swift; sourceTree = "<group>"; };
@@ -1077,6 +1079,7 @@
 				C1F0E8A487C104CE55B6B8CE /* ExchangeRates.swift */,
 				A1BDADD8C6A8F863BF5CC131 /* FileIndexEvents.swift */,
 				D89C5EFB95473737E5AA9C0F /* FileIndexService.swift */,
+				C2CD3797489824D5661D641D /* FileIndexService+State.swift */,
 				69E8E3E3826ED3A89F5B30E3 /* FileSearch.swift */,
 				2E17F7D69F39146CD5157F46 /* FileSearchModel.swift */,
 				2D1677EB1C22495EA2049A1A /* FileSearchView.swift */,
@@ -1882,6 +1885,7 @@
 				0CB816FF5580B6B0AB86711C /* FeaturePermissions.swift in Sources */,
 				E910E6D401DDDD0BF53881F9 /* FieldEditorViews.swift in Sources */,
 				6FB5A85461A29E383BD139B9 /* FileIndexEvents.swift in Sources */,
+				7A5AAC6EF25F66E675D4CF77 /* FileIndexService+State.swift in Sources */,
 				3B7FD273F492D447BCDCD253 /* FileIndexService.swift in Sources */,
 				FDC9DFBE52D2FAF5FC3FE248 /* FileSearch.swift in Sources */,
 				9C6A95F786F524AEC815D4F3 /* FileSearchModel.swift in Sources */,

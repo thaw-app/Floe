@@ -24,8 +24,11 @@ final nonisolated class FileIndexService: Sendable {
     struct Environment: Sendable {
         /// The folder to index, as file system events name it.
         var root: @Sendable () -> String = { DirectoryWatcher.real(NSHomeDirectory()) }
-        /// Starts reporting changes under a folder, from now on or since an earlier event, and returns what stops the reports.
-        var watch: @Sendable (String, UInt64?, @escaping @Sendable ([FileIndexChange], UInt64) -> Void) -> (@Sendable () -> Void) = FileIndexEvents.watch
+        /// Starts reporting changes under a folder, from now on or since an earlier event, and returns what stops the
+        /// reports. Nil when the reports could not start.
+        var watch: @Sendable (String, UInt64?, @escaping @Sendable ([FileIndexChange], UInt64) -> Void) -> (@Sendable () -> Void)? = FileIndexEvents.watch
+        /// How long after a watch that could not start it is tried again. Spotlight answers meanwhile.
+        var watchRetryDelay: TimeInterval = 60
         /// Where the index is kept between launches. Nil keeps it in memory only, and every launch walks the folder.
         var saved: URL?
         /// Off for a copy that reads the saved cache but must leave it alone, as a test's does.
@@ -156,9 +159,18 @@ final nonisolated class FileIndexService: Sendable {
         let root = environment.root()
         let stamp = stamp(for: root)
         let event = stamp?.event ?? environment.currentEvent()
-        let stop = environment.watch(root, stamp?.event) { [weak self, weak index] changes, event in
+        let watching = environment.watch(root, stamp?.event) { [weak self, weak index] changes, event in
             guard let self, let index else { return }
             work.async { self.apply(changes, upTo: event, to: index) }
+        }
+        // An index that cannot hear of changes would answer from the disk as it was, for the rest of the session. It is
+        // not made ready, so Spotlight answers, and the watch is tried again later.
+        guard let stop = watching else {
+            work.asyncAfter(deadline: .now() + environment.watchRetryDelay) { [weak self, weak index] in
+                guard let index else { return }
+                self?.initialize(index)
+            }
+            return
         }
         let started = running.withLock { running in
             guard running?.index === index else { return false }
@@ -349,52 +361,5 @@ nonisolated extension FileIndexService {
             lastUsed: lastUsed,
             matched: hit.matched
         )
-    }
-}
-
-nonisolated extension FileIndexService.State {
-    /// Two indexes as one: building until both are ready, with their names and bytes added up.
-    func joined(with other: Self) -> Self {
-        switch (self, other) {
-        case let (.ready(names, bytes), .ready(otherNames, otherBytes)): .ready(names: names + otherNames, bytes: bytes + otherBytes)
-        case (.off, _): other
-        case (_, .off): self
-        default: .building
-        }
-    }
-
-    /// What the Privacy page shows under the switch; nil when there is nothing to say.
-    var line: String? {
-        switch self {
-        case .off: nil
-        case .building: String(localized: "Reading the names of your files…", bundle: .floe)
-        case let .ready(names, bytes):
-            String(
-                localized: "\(names) names, \(ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .memory))",
-                bundle: .floe,
-                comment: "How many file names Floe holds and the memory they take, such as “203,000 names, 8 MB”."
-            )
-        }
-    }
-
-    /// The state as one word and two numbers, for the message that tells the settings process.
-    var text: String {
-        switch self {
-        case .off: "off"
-        case .building: "building"
-        case let .ready(names, bytes): "ready \(names) \(bytes)"
-        }
-    }
-
-    init?(text: String) {
-        let words = text.split(separator: " ")
-        switch (words.first, words.count) {
-        case ("off", 1): self = .off
-        case ("building", 1): self = .building
-        case ("ready", 3):
-            guard let names = Int(words[1]), let bytes = Int(words[2]), names >= 0, bytes >= 0 else { return nil }
-            self = .ready(names: names, bytes: bytes)
-        default: return nil
-        }
     }
 }
