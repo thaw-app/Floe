@@ -57,14 +57,23 @@ enum Punkto {
         isInstalled ? PunktoAction.allCases : []
     }
 
-    /// Hands the link to Punkto and answers whether there was an app to take it. Tests pass their own opener.
+    /// What became of a link handed to Punkto.
+    enum Outcome: Equatable {
+        case opened
+        case notInstalled
+        /// Punkto is there, but macOS did not open the link.
+        case notOpened
+    }
+
+    /// Hands the link to Punkto. Tests pass their own opener.
     @discardableResult
     static func perform(
         _ action: PunktoAction,
         isInstalled: Bool = applicationURL != nil,
         open: (URL) -> Bool = { NSWorkspace.shared.open($0) }
-    ) -> Bool {
-        guard let url = action.url, isInstalled else { return false }
-        return open(url)
+    ) -> Outcome {
+        guard isInstalled else { return .notInstalled }
+        guard let url = action.url, open(url) else { return .notOpened }
+        return .opened
     }
 }

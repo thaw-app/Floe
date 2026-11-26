@@ -55,11 +55,20 @@ struct SystemRowsTests {
     @Test func aPunktoRowLeavesTheLauncherAndSaysWhenPunktoIsGone() {
         rows.performPunkto = { action in
             asked.note("punkto: \(action.rawValue)")
-            return action != .hide
+            return switch action {
+            case .show: .opened
+            case .hide: .notInstalled
+            case .toggle: .notOpened
+            }
         }
         #expect(rows.open(.punkto(.show), flags: []))
         #expect(rows.open(.punkto(.hide), flags: []))
-        #expect(asked.all == ["leave", "punkto: show", "leave", "punkto: hide", "hud: Punkto isn't installed"])
+        #expect(rows.open(.punkto(.toggle), flags: []))
+        #expect(asked.all == [
+            "leave", "punkto: show",
+            "leave", "punkto: hide", "hud: Punkto isn't installed",
+            "leave", "punkto: toggle", "hud: Punkto didn't open",
+        ])
     }
 
     @Test func aRowThatIsNotTheSystemsIsLeftToOthers() {
