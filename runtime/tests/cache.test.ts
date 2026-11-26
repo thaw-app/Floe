@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { dlopen, FFIType } from "bun:ffi";
 import fs from "node:fs";
 import path from "node:path";
 import { Cache, cachePersistence, flushCaches } from "../cache";
@@ -293,6 +294,89 @@ describe("restore safety", () => {
         cache.set("k", "v");
         cache.clear();
         expect(entriesOf("cleared")).toEqual([]);
+    });
+});
+
+/// The lock the cache takes, taken here as another process of the extension would.
+const flock = dlopen("/usr/lib/libSystem.B.dylib", { flock: { args: [FFIType.i32, FFIType.i32], returns: FFIType.i32 } }).symbols.flock;
+
+// Two commands of one extension can run at once, each with its own instance, in one host or in two.
+describe("several writers", () => {
+    test("two live instances over one namespace keep each other's writes", () => {
+        const first = new Cache({ namespace: "two-writers" });
+        const second = new Cache({ namespace: "two-writers" });
+        first.set("from-first", "1");
+        second.set("from-second", "2");
+        flushCaches();
+        expect(new Map(entriesOf("two-writers"))).toEqual(new Map([["from-first", "1"], ["from-second", "2"]]));
+        const reopened = new Cache({ namespace: "two-writers" });
+        expect(reopened.get("from-first")).toBe("1");
+        expect(reopened.get("from-second")).toBe("2");
+    });
+
+    test("a key one instance removed or changed is not brought back by another's write", () => {
+        const first = new Cache({ namespace: "removed" });
+        first.set("gone", "old");
+        first.set("changed", "old");
+        flushCaches();
+        const second = new Cache({ namespace: "removed" });
+        second.remove("gone");
+        second.set("changed", "new");
+        flushCaches();
+        first.set("other", "1");
+        flushCaches();
+        expect(new Map(entriesOf("removed"))).toEqual(new Map([["changed", "new"], ["other", "1"]]));
+    });
+
+    test("a clear wins over keys on disk, and a later write keeps its budget", () => {
+        const budget = 2 * (bytes("a") + bytes("v"));
+        const first = new Cache({ namespace: "clear-and-budget", capacity: budget });
+        const second = new Cache({ namespace: "clear-and-budget", capacity: budget });
+        first.set("a", "v");
+        flushCaches();
+        second.clear();
+        flushCaches();
+        expect(entriesOf("clear-and-budget")).toEqual([]);
+        first.set("b", "v");
+        second.set("c", "v");
+        second.set("d", "v");
+        flushCaches();
+        expect(entriesOf("clear-and-budget")).toHaveLength(2);
+    });
+
+    test("two processes writing at once lose nothing", async () => {
+        const writer = path.join(import.meta.dir, "cache-writer.ts");
+        const writers = ["view", "menu"].map((prefix) => Bun.spawn(["bun", writer, support.dataPath, prefix, "40"], { stderr: "pipe" }));
+        await Promise.all(writers.map((process) => process.exited));
+        const keys = new Set(new Cache({ namespace: "shared" }).isEmpty ? [] : entriesOf("shared").map(([key]) => key));
+        expect(keys.size).toBe(80);
+        const lock = fs.openSync(path.join(support.dataPath, "cache", "shared.json.lock"), "a");
+        try {
+            expect(flock(lock, 2 | 4), "the lock is let go").toBe(0);
+        } finally {
+            fs.closeSync(lock);
+        }
+    });
+
+    test("a write waits while another process holds the snapshot, and is not lost", async () => {
+        const waited = cachePersistence.lockWait;
+        cachePersistence.lockWait = 20;
+        const cache = new Cache({ namespace: "held" });
+        const lock = fs.openSync(path.join(support.dataPath, "cache", "held.json.lock"), "a");
+        try {
+            expect(flock(lock, 2 | 4)).toBe(0);
+            cache.set("k", "v");
+            flushCaches();
+            expect(fs.existsSync(path.join(support.dataPath, "cache", "held.json")), "nothing is written over the holder").toBe(false);
+            fs.closeSync(lock);
+            await Bun.sleep(150);
+            expect(entriesOf("held")).toEqual([["k", "v"]]);
+        } finally {
+            cachePersistence.lockWait = waited;
+            try {
+                fs.closeSync(lock);
+            } catch {}
+        }
     });
 });
 

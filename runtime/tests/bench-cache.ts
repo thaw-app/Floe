@@ -39,7 +39,7 @@ function sample(label: string) {
 
 function persistedEntries(): [string, string][] {
     flushCaches();
-    const file = path.join(support, "cache-bounded.json");
+    const file = path.join(support, "cache", "bounded.json");
     const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
     return parsed.entries ?? Object.entries(parsed);
 }
@@ -68,12 +68,12 @@ sample("after reconstruction from disk");
 const persisted = persistedEntries();
 console.log(
     `[cache] persisted entries=${persisted.length} accountedBytes=${accountedBytes(persisted)} ` +
-        `fileBytes=${fs.statSync(path.join(support, "cache-bounded.json")).size} bun=${Bun.version} baseline=${baseline}`,
+        `fileBytes=${fs.statSync(path.join(support, "cache", "bounded.json")).size} bun=${Bun.version} baseline=${baseline}`,
 );
 
 cache.clear();
 flushCaches();
-console.log(`[cache] after clear fileBytes=${fs.statSync(path.join(support, "cache-bounded.json")).size}`);
+console.log(`[cache] after clear fileBytes=${fs.statSync(path.join(support, "cache", "bounded.json")).size}`);
 
 if (!baseline) {
     if (!reopened.has(`k-${valueCount - 1}`)) throw new Error("the newest value did not survive eviction and reopen");
