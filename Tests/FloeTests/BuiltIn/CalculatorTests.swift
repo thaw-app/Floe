@@ -21,6 +21,11 @@ struct CalculatorTests {
         #expect(calculator.evaluatePreview("file://localhost/Users/me/Downloads/") == nil)
     }
 
+    @Test(arguments: ["https://youtube.com", "http://example.com/a/b", "youtube.com/watch", "localhost:3000/api"])
+    func aWebAddressIsAPlaceAndNotASum(address: String) {
+        #expect(calculator.evaluatePreview(address) == nil)
+    }
+
     @Test func everyOperatorIsSpacedWhenOneReplacementChangesTheLength() {
         // A pass that makes the string longer must not hide the operators after it from the passes behind:
         // the range each pass reads is the string as the pass before it left it.

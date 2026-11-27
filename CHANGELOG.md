@@ -21,6 +21,12 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### Fixed
+
+- Typing a web address with a slash in it, such as `https://youtube.com`, offers to open it again instead of showing a calculator result.
+
 ## [0.4.0] - 2026-11-22
 
 **macOS 26 and later · Build 12**
