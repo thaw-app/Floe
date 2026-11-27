@@ -3,7 +3,7 @@
 
 Prototype macOS launcher that runs unmodified Raycast extensions: one process that stays running and holds the launcher, a Settings process started when Settings opens, and a Bun process per running extension command.
 
-Contribution requirements, review expectations, and security reporting are in the shared [Thaw/Floe policies](https://github.com/thaw-app/.github). [Architecture](ARCHITECTURE.md) maps the processes and the code, and [Coding standards](CODING_STANDARDS.md) says how code is written here.
+Contribution requirements, review expectations, and security reporting are in the shared [organization policies](https://github.com/thaw-app/.github). [Architecture](ARCHITECTURE.md) maps the processes and the code, and [Coding standards](CODING_STANDARDS.md) says how code is written here.
 
 Requires macOS 26 or later, Bun, Rust/Cargo, and Xcode 27 for the vendored ThawUI Swift 6.4 manifest. Extensions run under your user account without sandboxing; only install extensions you trust.
 
