@@ -5,6 +5,7 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
+import AppKit
 @testable import Floe
 import Testing
 
@@ -12,17 +13,39 @@ import Testing
     private func launcher(idleTrimDelay: Duration = .seconds(300), outsideClicks: OutsideClickWatch = OutsideClickWatch()) -> (LauncherWindow, LauncherModel) {
         let settings = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
         let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        return (LauncherWindow(model: model, settings: settings, idleTrimDelay: idleTrimDelay, outsideClicks: outsideClicks) { _ in }, model)
+        _ = NSApplication.shared
+        let window = LauncherWindow(
+            model: model, settings: settings, idleTrimDelay: idleTrimDelay, outsideClicks: outsideClicks,
+            present: { panel in
+                panel.setFrameOrigin(NSPoint(x: -4000, y: -4000))
+                panel.orderFrontRegardless()
+            }
+        ) { _ in }
+        return (window, model)
     }
 
-    @Test func closingStopsWatchingClicksInOtherApps() {
+    @Test func aClickInAnotherAppClosesTheLauncher() {
         let monitors = MonitorStub()
         let watch = monitors.watch()
         let (launcher, _) = launcher(outsideClicks: watch)
-        watch.start { launcher.clickedOutside() }
+        launcher.show()
+        #expect(launcher.isVisible)
+        #expect(watch.isWatching, "showing the launcher watches other apps' clicks")
         monitors.click()
-        #expect(!watch.isWatching, "a click outside closes the launcher, and a closed launcher watches nothing")
         #expect(!launcher.isVisible)
+        #expect(!watch.isWatching, "a closed launcher watches nothing")
+    }
+
+    @Test func aClickWhileAChooserIsOpenLeavesTheLauncherOpen() {
+        let monitors = MonitorStub()
+        let watch = monitors.watch()
+        let (launcher, _) = launcher(outsideClicks: watch)
+        launcher.show()
+        ModalGuard.run { monitors.click() }
+        #expect(launcher.isVisible, "a click in a file or app chooser is not a click away from the launcher")
+        #expect(watch.isWatching)
+        launcher.hide()
+        #expect(!watch.isWatching)
     }
 
     @Test func aLauncherLeftClosedTrimsItselfOnceTheDelayHasPassed() async throws {
