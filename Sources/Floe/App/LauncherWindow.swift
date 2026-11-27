@@ -32,6 +32,8 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
     private var panel: LauncherPanel?
     private var keyMonitor: Any?
     private let outsideClicks: OutsideClickWatch
+    /// Puts the panel on screen and makes it key. Tests keep it off screen instead.
+    private let present: @MainActor (NSPanel) -> Void
     private var pressureWatch: DispatchSourceMemoryPressure?
     /// Memory ran short while the launcher was on screen: it lets go of what it can once it closes.
     private var trimsWhenHidden = false
@@ -49,12 +51,14 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         settings: AppSettings,
         idleTrimDelay: Duration = .seconds(300),
         outsideClicks: OutsideClickWatch = OutsideClickWatch(),
+        present: @escaping @MainActor (NSPanel) -> Void = LauncherWindow.present,
         openSettings: @escaping (SettingsPage?) -> Void
     ) {
         self.model = model
         self.settings = settings
         self.idleTrimDelay = idleTrimDelay
         self.outsideClicks = outsideClicks
+        self.present = present
         self.openSettings = openSettings
     }
 
@@ -177,14 +181,18 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
             panel.contentView?.layoutSubtreeIfNeeded()
             panel.displayIfNeeded()
         } else {
-            panel.makeKeyAndOrderFront(nil)
-            // Drawn and sent to the screen now, before the reloads below take their turn on the main thread.
-            panel.displayIfNeeded()
-            CATransaction.flush()
+            present(panel)
             outsideClicks.start { [weak self] in self?.clickedOutside() }
         }
         model.focusToken += 1
         model.panelDidShow()
+    }
+
+    private static func present(_ panel: NSPanel) {
+        panel.makeKeyAndOrderFront(nil)
+        // Drawn and sent to the screen now, before the reloads in show take their turn on the main thread.
+        panel.displayIfNeeded()
+        CATransaction.flush()
     }
 
     func hide() {
