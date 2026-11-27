@@ -23,6 +23,9 @@ private final class SystemStub {
     var requestAnswer = (granted: false, prompted: true)
     var requestCount = 0
     var openedURLs: [URL] = []
+    /// When set, a request keeps its answer here until the test gives it, as macOS does until the user answers.
+    var holdsAnswer = false
+    var heldAnswer: (@MainActor @Sendable (Bool, Bool) -> Void)?
 
     func makePermission(
         budget: Int = 10, isRequired: Bool = true, settingsURL: URL? = URL(string: "floe-tests://settings"), declinedHint: String? = nil
@@ -39,7 +42,11 @@ private final class SystemStub {
             check: { [unowned self] in granted },
             request: { [unowned self] completion in
                 requestCount += 1
-                completion(requestAnswer.granted, requestAnswer.prompted)
+                if holdsAnswer {
+                    heldAnswer = completion
+                } else {
+                    completion(requestAnswer.granted, requestAnswer.prompted)
+                }
             },
             openURL: { [unowned self] in openedURLs.append($0) },
             pollInterval: 3600,
@@ -180,6 +187,18 @@ struct PermissionRequestTests {
 
         permission.handlePollTick()
         #expect(permission.wasDeclined)
+    }
+
+    @Test func aDeclineAnsweredAfterTheChecksStoppedShowsTheButtonAgain() throws {
+        stub.holdsAnswer = true
+        let permission = stub.makePermission(budget: 2)
+        permission.performRequest()
+        permission.handlePollTick()
+        #expect(!permission.isPolling, "the user left the prompt up past the checks")
+        let answer = try #require(stub.heldAnswer)
+        answer(false, true)
+        #expect(permission.requestState == .declined(waiting: false))
+        #expect(!permission.awaitingPromptAnswer, "no tick is left to clear the Waiting line")
     }
 
     @Test func eachRequestMovesThroughOneStateThatTheRowReads() {

@@ -254,9 +254,12 @@ class Permission: Identifiable {
                 stopCheck()
                 return
             }
-            if prompted {
+            if prompted, isPolling {
                 // Prompt requests return before the user's answer; defer the ungranted verdict to the next poll tick.
                 requestState = .awaitingAnswer(afterDecline: wasDeclined)
+            } else if prompted {
+                // An answer that came after the checks stopped is already in, and no tick is left to read it.
+                requestState = .declined(waiting: false)
             } else {
                 openSettingsPane()
             }
