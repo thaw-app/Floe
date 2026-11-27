@@ -31,6 +31,7 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
     private lazy var floatingNote = FloatingNoteWindowController(settings: settings) { [weak self] in self?.model.record($0) }
     private var panel: LauncherPanel?
     private var keyMonitor: Any?
+    private let outsideClicks: OutsideClickWatch
     private var pressureWatch: DispatchSourceMemoryPressure?
     /// Memory ran short while the launcher was on screen: it lets go of what it can once it closes.
     private var trimsWhenHidden = false
@@ -43,10 +44,17 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
         panel?.isVisible == true
     }
 
-    init(model: LauncherModel, settings: AppSettings, idleTrimDelay: Duration = .seconds(300), openSettings: @escaping (SettingsPage?) -> Void) {
+    init(
+        model: LauncherModel,
+        settings: AppSettings,
+        idleTrimDelay: Duration = .seconds(300),
+        outsideClicks: OutsideClickWatch = OutsideClickWatch(),
+        openSettings: @escaping (SettingsPage?) -> Void
+    ) {
         self.model = model
         self.settings = settings
         self.idleTrimDelay = idleTrimDelay
+        self.outsideClicks = outsideClicks
         self.openSettings = openSettings
     }
 
@@ -173,12 +181,14 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
             // Drawn and sent to the screen now, before the reloads below take their turn on the main thread.
             panel.displayIfNeeded()
             CATransaction.flush()
+            outsideClicks.start { [weak self] in self?.clickedOutside() }
         }
         model.focusToken += 1
         model.panelDidShow()
     }
 
     func hide() {
+        outsideClicks.stop()
         guard let panel, panel.isVisible else { return }
         panel.orderOut(nil)
         model.panelDidHide()
@@ -196,6 +206,12 @@ final class LauncherWindow: NSObject, NSWindowDelegate {
             guard !Task.isCancelled else { return }
             self?.trim()
         }
+    }
+
+    /// A click in another app closes the launcher, as losing focus does, unless a file or app chooser is open.
+    func clickedOutside() {
+        guard !ModalGuard.isActive else { return }
+        hide()
     }
 
     /// Defers dismissal so AppKit can finish transferring focus to any modal surface.

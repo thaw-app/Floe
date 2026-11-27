@@ -9,10 +9,20 @@
 import Testing
 
 @MainActor struct LauncherWindowTests {
-    private func launcher(idleTrimDelay: Duration = .seconds(300)) -> (LauncherWindow, LauncherModel) {
+    private func launcher(idleTrimDelay: Duration = .seconds(300), outsideClicks: OutsideClickWatch = OutsideClickWatch()) -> (LauncherWindow, LauncherModel) {
         let settings = AppSettings(defaults: MemoryDefaults(), savesAfterEdits: false)
         let model = LauncherModel(settings: settings, snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        return (LauncherWindow(model: model, settings: settings, idleTrimDelay: idleTrimDelay) { _ in }, model)
+        return (LauncherWindow(model: model, settings: settings, idleTrimDelay: idleTrimDelay, outsideClicks: outsideClicks) { _ in }, model)
+    }
+
+    @Test func closingStopsWatchingClicksInOtherApps() {
+        let monitors = MonitorStub()
+        let watch = monitors.watch()
+        let (launcher, _) = launcher(outsideClicks: watch)
+        watch.start { launcher.clickedOutside() }
+        monitors.click()
+        #expect(!watch.isWatching, "a click outside closes the launcher, and a closed launcher watches nothing")
+        #expect(!launcher.isVisible)
     }
 
     @Test func aLauncherLeftClosedTrimsItselfOnceTheDelayHasPassed() async throws {

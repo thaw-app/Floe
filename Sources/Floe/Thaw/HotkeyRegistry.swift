@@ -8,7 +8,7 @@
 //  Floe changes © 2026 René Jiménez, under the same license.
 //
 //  Ported to the launcher: takes a KeyCombination directly instead of Thaw's Hotkey model,
-//  handles key-down only, and drops diagnostics logging.
+//  handles key-down only, stands back while a modifier it doesn't use is held, and drops diagnostics logging.
 
 import Carbon.HIToolbox
 import Cocoa
@@ -176,6 +176,13 @@ final class HotkeyRegistry {
         }
     }
 
+    /// Whether a modifier the binding doesn't use is held. macOS can report a hotkey while another modifier is held
+    /// too, so Control-Option-Space, which switches input sources, would open the launcher set to Control-Space. A
+    /// modifier let go early still fires, and Caps Lock and the mouse button don't count.
+    static func holdsExtraModifier(_ held: UInt32, beyond registered: UInt32) -> Bool {
+        held & UInt32(cmdKey | shiftKey | optionKey | controlKey) & ~registered != 0
+    }
+
     private func dispatch(_ event: EventRef) -> OSStatus {
         var identifier = EventHotKeyID()
         let status = GetEventParameter(
@@ -188,6 +195,10 @@ final class HotkeyRegistry {
             &identifier
         )
         guard status == noErr, identifier.signature == signature, let binding = bindings[identifier.id] else {
+            return OSStatus(eventNotHandledErr)
+        }
+        // The keys held now, not the state of Floe's own event queue, which is stale while another app is in front.
+        guard !Self.holdsExtraModifier(GetCurrentKeyModifiers(), beyond: binding.carbonModifiers) else {
             return OSStatus(eventNotHandledErr)
         }
         binding.perform()
