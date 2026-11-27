@@ -26,6 +26,8 @@ these four.
 ### New
 
 - **Show or hide Punkto's apps from the launcher.** Type “punkto” to show the menu bar apps it hides or hide them again. With Thaw installed too, choose Punkto in Settings › Commands.
+- **Apps answer to a typo or two**: `slakc` finds Slack and `chorme` finds Chrome, ranked below results with no typo ([#112](https://github.com/thaw-app/Floe/issues/112)).
+- **Apps answer to their names in your Mac's language**, to Spotlight's other names such as Settings for System Settings, and to a Latin spelling such as `weixin` for 微信 ([#109](https://github.com/thaw-app/Floe/issues/109)).
 
 ### Changed
 

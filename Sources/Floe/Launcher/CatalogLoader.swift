@@ -44,7 +44,9 @@ nonisolated struct CatalogSnapshot: Sendable {
 /// scans; ordering, filtering and error behavior stay with the scanners themselves, and support-folder
 /// preparation can never interleave with a command scan.
 actor CatalogLoader: CatalogScanning {
-    func scanApps() async -> [AppEntry] {
+    /// Not queued with the other scans: reading the apps' other names from Spotlight takes a moment, and an app scan
+    /// touches nothing the other scans share, so the commands needn't wait for it.
+    @concurrent nonisolated func scanApps() async -> [AppEntry] {
         AppEntry.scan()
     }
 

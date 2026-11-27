@@ -28,6 +28,14 @@ extension RootItem {
         return false
     }
 
+    /// Other names a result has, matched as fully as its title: an app's name in the Mac's language.
+    var otherTitles: [String] {
+        if case let .app(app) = self {
+            return app.otherNames
+        }
+        return []
+    }
+
     /// Other words a result answers to, matched like its title.
     var keywords: [String] {
         switch self {
@@ -40,6 +48,7 @@ extension RootItem {
         case let .finderSelection(role, _): role.keywords
         case .clipboardApp: AppRole.clipboard.keywords
         case let .snippet(snippet): [snippet.keyword]
+        case let .app(app): app.spellings
         // A search's keyword is the start of a query. Alone it is a word the row answers to, under a name that starts with it.
         case let .quicklink(link, _, _, _): link.takesQuery ? [link.keyword] : []
         case let .sshHost(host, _): host.keywords
@@ -108,12 +117,22 @@ enum Ranking {
     ) -> [RootResult] {
         // A set, so the favorite check inside the loop is one hash lookup and not a walk of the list.
         let favoriteIDs = Set(favorites)
+        let typos = TypoMatch(query)
         return all.compactMap { item -> (RootItem, Double)? in
             var best = score(query: query, title: item.title, alias: alias(item))
+            for title in item.otherTitles {
+                if let found = Fuzzy.score(query, title), found > best ?? Int.min {
+                    best = found
+                }
+            }
             for keyword in item.keywords {
                 if let found = keywordScore(query, keyword), found > best ?? Int.min {
                     best = found
                 }
+            }
+            // An app the query only misses by a typo or two, ranked under everything that matched without one.
+            if best == nil, item.isApp, let typos {
+                best = ([item.title] + item.otherTitles).compactMap(typos.score).max()
             }
             guard let match = best else { return nil }
             // The id is built from the row each time it is asked for, so it is asked for once.
