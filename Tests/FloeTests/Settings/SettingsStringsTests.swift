@@ -58,7 +58,7 @@ struct SettingsStringsTests {
             "applications.terminalApp", "applications.editorApp", "applications.browserApp", "applications.notesApp", "applications.clipboardApp", "applications.clearClipboardHistory",
             "ai.aiSource", "ai.aiTool", "ai.aiAddress", "ai.aiModel", "ai.aiKey",
             "sync.syncsWithICloud", "sync.syncsExtensionSettings", "sync.syncsPasswords", "sync.transferSettings", "privacy.diagnosticLogging",
-            "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.floatingNoteHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.definitionKeyword", "commands.thawSupport",
+            "commands.builtInHotkeys", "commands.menuBarSearchHotkey", "commands.menuItemSearchHotkey", "commands.floatingNoteHotkey", "commands.emojiSkinTone", "commands.focusShortcut", "commands.definitionKeyword", "commands.menuBarApp",
             "commands.runsShellCommands", "commands.suggestsShellCommands", "commands.recognizesCommands",
             "commands.includeRaycastExtensions", "commands.extensionsFolder", "commands.runtime", "commands.scriptsFolder", "commands.menuBarCommands",
             "pane.actions", "actions.actionChoices",
@@ -80,7 +80,7 @@ struct SettingsStringsTests {
         #expect(found("autostart") == ["general.launchAtLogin"], "a keyword finds it too")
         // The section's name finds the entries whose own text carries it; the section is shown, not matched.
         let underMenuBarItems = found("Menu Bar Items")
-        #expect(underMenuBarItems == ["commands.menuBarSearchHotkey", "commands.thawSupport"])
+        #expect(underMenuBarItems == ["commands.menuBarSearchHotkey", "commands.menuBarApp"])
         for id in underMenuBarItems {
             #expect(try #require(SearchIndex.staticEntries.first { $0.id == id }).section == "Built-in Commands")
         }
@@ -126,8 +126,8 @@ struct SettingsStringsTests {
                 + "A development build of Floe has to be allowed first: run \"\(ThawAction.authorize.title)\" from the search.",
         ])
         #expect(ThawAppearanceNote.lines(status: .notRunning, mirror: nil) == ["Thaw is not running. The launcher keeps the last look it had and asks again when Thaw opens."])
-        #expect(ThawSupportNotice.detail(isInstalled: false) == "Install Thaw and its actions appear in the search.")
-        #expect(ThawSupportNotice.detail(isInstalled: true).hasPrefix("Thaw's actions are in the search: type “thaw” to see them."))
+        #expect(MenuBarAppSetting.detail(for: .thaw, isInstalled: false) == "Install Thaw and its actions appear in the search.")
+        #expect(MenuBarAppSetting.detail(for: .thaw, isInstalled: true).hasPrefix("Thaw's actions are in the search: type “thaw” to see them."))
     }
 
     @Test func aNameGoesIntoItsSentence() {

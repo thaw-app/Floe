@@ -48,7 +48,7 @@ struct ThawIntegrationTests {
     }
 
     @Test func settingsSayWhereTheActionsAreOrHowToGetThem() {
-        #expect(ThawSupportNotice.detail(isInstalled: true).contains("type “thaw”"))
-        #expect(ThawSupportNotice.detail(isInstalled: false) == "Install Thaw and its actions appear in the search.")
+        #expect(MenuBarAppSetting.detail(for: .thaw, isInstalled: true).contains("type “thaw”"))
+        #expect(MenuBarAppSetting.detail(for: .thaw, isInstalled: false) == "Install Thaw and its actions appear in the search.")
     }
 }

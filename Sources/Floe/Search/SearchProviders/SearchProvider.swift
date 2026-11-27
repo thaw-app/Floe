@@ -41,6 +41,8 @@ struct SearchContext {
     var apps: [AppEntry] = []
     /// What Thaw can be asked to do; empty when Thaw is not installed.
     var thawActions: [ThawAction] = []
+    /// What Punkto can be asked to do; empty when Punkto is not installed.
+    var punktoActions: [PunktoAction] = []
     /// The terminal and the editor as they resolve now; empty when neither has an app.
     var preferredApps: [RoleApp] = []
     /// Where the Clipboard History command goes: Floe's own history, or the app chosen for the role.

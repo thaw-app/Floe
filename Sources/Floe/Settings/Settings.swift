@@ -30,6 +30,8 @@ final class AppSettings: ObservableObject {
     /// What Return, the Actions menu and keys do on each kind of result, by `SubjectKind` raw value.
     @Published var actionChoices: [String: KindActions] = [:]
     @Published var emojiSkinTone = EmojiSkinTone.none
+    /// Whose actions the search lists; nil until the user chooses, which follows what is installed.
+    @Published var menuBarApp: MenuBarApp?
     /// Extension names.
     @Published var disabledExtensions: Set<String> = []
     /// Command IDs switched one by one, inside an extension that is on: those switched off, and those off by default switched on.
@@ -140,75 +142,6 @@ final class AppSettings: ObservableObject {
     /// Whether extension preferences are among what syncs. Only matters while `syncsWithICloud` is on.
     @Published var syncsExtensionSettings = true
 
-    private struct Stored: Codable {
-        var toggleHotkey: KeyCombination?
-        var commandHotkeys: [String: KeyCombination]?
-        var aliases: [String: String]?
-        var disabledExtensions: Set<String>?
-        var disabledCommands: Set<String>?
-        var enabledCommands: Set<String>?
-        var includeRaycastExtensions: Bool?
-        var popToRootDelay: Int?
-        var favorites: [String]?
-        var fallbacks: [String]?
-        var hiddenResults: [String: String]?
-        var actionChoices: [String: KindActions]?
-        var emojiSkinTone: EmojiSkinTone?
-        var rememberMenuBarQuery: Bool?
-        var clipboardHistoryEnabled: Bool?
-        var diagnosticLogging: Bool?
-        var searchSources: Set<String>?
-        var indexesFileNames: Bool?
-        var menuBarCommands: Set<String>?
-        var notesApp: NotesApp?
-        var notesURLTemplate: String?
-        var notesFolder: String?
-        var terminalApp: AppChoice?
-        var editorApp: AppChoice?
-        var browserApp: AppChoice?
-        var clipboardHandler: ClipboardHandler?
-        var clipboardApp: AppChoice?
-        var clipboardURL: String?
-        var menuBarItemNames: [String: String]?
-        var showInDock: Bool?
-        var showInMenuBar: Bool?
-        var settingsTheme: SettingsTheme?
-        var hasSeenOnboarding: Bool?
-        var launcherTintIsDynamic: Bool?
-        var launcherTintLight: LauncherTint?
-        var launcherTintDark: LauncherTint?
-        var launcherBorder: LauncherBorder?
-        var launcherShowsBorder: Bool?
-        var launcherShowsShadow: Bool?
-        var launcherGlass: LauncherGlass?
-        var followsThawAppearance: Bool?
-        var launcherLayout: LauncherLayout?
-        var searchFieldShape: SearchFieldShape?
-        var searchFieldCorners: SearchFieldCorners?
-        var searchFieldBeam: SearchFieldBeam?
-        var searchFieldBeamFrameRate: Double?
-        var separatesSearchField: Bool?
-        var launcherScreen: String?
-        var aiSource: AISource?
-        var aiBaseURL: String?
-        var aiModel: String?
-        var aiTool: AITool?
-        var aiToolModels: [String: String]?
-        var aiOnThisMacOnly: Bool?
-        var remembersSearches: Bool?
-        var keepsReceipts: Bool?
-        var recordsExtensionAccess: Bool?
-        var lentSignIns: Set<String>?
-        var shellEnvironmentExtensions: Set<String>?
-        var shell: ShellSettings?
-        var fetchesExchangeRates: Bool?
-        var focusShortcut: String?
-        var definitionKeyword: String?
-        var aiSourceByExtension: [String: AISource]?
-        var syncsWithICloud: Bool?
-        var syncsExtensionSettings: Bool?
-    }
-
     private static let defaultsKey = "settings"
     private let defaults: UserDefaults
     private var cancellable: AnyCancellable?
@@ -314,12 +247,7 @@ final class AppSettings: ObservableObject {
         notesApp = stored.notesApp ?? notesApp
         notesURLTemplate = stored.notesURLTemplate ?? notesURLTemplate
         notesFolder = stored.notesFolder ?? ""
-        terminalApp = stored.terminalApp
-        editorApp = stored.editorApp
-        browserApp = stored.browserApp
-        clipboardHandler = stored.clipboardHandler ?? .floe
-        clipboardApp = stored.clipboardApp
-        clipboardURL = stored.clipboardURL ?? ""
+        applyApps(stored)
         menuBarItemNames = stored.menuBarItemNames ?? [:]
         applyPresence(stored)
         hasSeenOnboarding = stored.hasSeenOnboarding ?? false
@@ -342,6 +270,17 @@ final class AppSettings: ObservableObject {
         aiSourceByExtension = stored.aiSourceByExtension ?? aiSourceByExtension
         syncsWithICloud = stored.syncsWithICloud ?? false
         syncsExtensionSettings = stored.syncsExtensionSettings ?? true
+    }
+
+    /// The other apps Floe hands things to or asks things of.
+    private func applyApps(_ stored: Stored) {
+        terminalApp = stored.terminalApp
+        editorApp = stored.editorApp
+        browserApp = stored.browserApp
+        clipboardHandler = stored.clipboardHandler ?? .floe
+        clipboardApp = stored.clipboardApp
+        clipboardURL = stored.clipboardURL ?? ""
+        menuBarApp = stored.menuBarApp
     }
 
     /// Where Floe shows itself on this Mac and how Settings looks.
@@ -385,6 +324,7 @@ final class AppSettings: ObservableObject {
             hiddenResults: hiddenResults,
             actionChoices: actionChoices,
             emojiSkinTone: emojiSkinTone,
+            menuBarApp: menuBarApp,
             rememberMenuBarQuery: rememberMenuBarQuery,
             clipboardHistoryEnabled: clipboardHistoryEnabled,
             diagnosticLogging: diagnosticLogging,

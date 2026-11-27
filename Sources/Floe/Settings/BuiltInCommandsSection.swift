@@ -42,7 +42,7 @@ struct BuiltInCommandsSection: View {
                     Text("Type this word, then the word you want to look up.")
                 }
             }
-            ThawSupportNotice()
+            MenuBarAppSetting(settings: settings)
         }
     }
 

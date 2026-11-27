@@ -44,6 +44,8 @@ enum RootItem: Identifiable {
     case settingsPane(SystemSettingsPane)
     /// Something Thaw does when asked through its `thaw://` links.
     case thaw(ThawAction)
+    /// Something Punkto does when asked through its punkto:// links.
+    case punkto(PunktoAction)
     /// The Finder selection, opened in the app a role stands for.
     case finderSelection(AppRole, app: ResolvedApp)
     /// A note for the user's notes app; `text` is what was typed after the action's keyword.
@@ -142,6 +144,7 @@ enum RootItem: Identifiable {
         case let .settingsPane(pane): "settings-pane:\(pane.identifier)"
         case let .note(action, _): "note:\(action.rawValue)"
         case let .thaw(action): "thaw:\(action.rawValue)"
+        case let .punkto(action): "punkto:\(action.rawValue)"
         case let .finderSelection(role, _): "finder-selection:\(role.rawValue)"
         case let .event(event): "event:\(event.identifier)"
         case let .snippet(snippet): "snippet:\(snippet.id.uuidString)"
@@ -205,6 +208,7 @@ enum RootItem: Identifiable {
         case let .settingsPane(pane): pane.title
         case let .note(action, text): action.title(text: text)
         case let .thaw(action): action.title
+        case let .punkto(action): action.title
         case let .finderSelection(_, app): String(localized: "Open Finder Selection in \(app.name)", bundle: .floe, comment: "The placeholder is an app's name.")
         case let .event(event): event.title
         case let .snippet(snippet): snippet.name
@@ -284,7 +288,7 @@ enum RootItem: Identifiable {
         case let .command(command): command.id
         case let .script(script): script.id
         case let .focus(request, _): request == .toggle ? id : nil
-        case .settings, .extensionStore, .settingsPane, .note, .thaw, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event, .fallbackCommand: nil
+        case .settings, .extensionStore, .settingsPane, .note, .thaw, .punkto, .finderSelection, .calculator, .emoji, .quicklink, .searchFiles, .event, .fallbackCommand: nil
         case .file, .clipboardEntry, .menuBarItem, .menuBarAccess, .browserTab, .askAI, .webAddress, .shell, .process, .receipt, .checkpoint, .checkpointDraft, .reminderDraft, .eventDraft, .timer, .contact, .outgoing, .keyword, .definition, .answer, .menuItem, .window, .bookmark, .brew, .soundDevice, .qrCode, .place: nil
         }
     }
@@ -305,6 +309,7 @@ extension RootItem {
         case .settingsPane: String(localized: "System Settings", bundle: .floe)
         case .note: String(localized: "Notes", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a row that writes a note.")
         case .thaw: "Thaw"
+        case .punkto: "Punkto"
         case .finderSelection: "Finder"
         case .event, .eventDraft: String(localized: "Event", bundle: .floe, comment: "The kind of a result, shown beside its title. Here a calendar event.")
         case .snippet: String(localized: "Snippet", bundle: .floe, comment: "The kind of a result, shown beside its title. A snippet is a saved piece of text.")

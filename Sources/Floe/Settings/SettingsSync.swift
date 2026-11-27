@@ -129,6 +129,7 @@ enum SettingsSync {
         "lentSignIns": Local(.keepsThisMac, "sign-ins lent to extensions on this Mac"),
         "shellEnvironmentExtensions": Local(.keepsThisMac, "hands an extension this Mac's shell environment, tokens included, so it is decided on each Mac"),
         "aiSource": Local(.takesFile, "what answers depends on what is installed and signed in here"),
+        "menuBarApp": Local(.takesFile, "goes with the menu bar apps installed on this Mac"),
         "aiBaseURL": Local(.takesFile, "goes with a key in this Mac's Keychain"),
         "aiModel": Local(.takesFile, "goes with the AI source of this Mac"),
         "aiTool": Local(.takesFile, "a command line tool installed on this Mac"),

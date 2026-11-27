@@ -107,14 +107,14 @@ extension SearchIndex {
             ).searchTerms
         ),
         .commands(
-            "thawSupport",
-            String(localized: "Thaw", bundle: .floe, comment: "Thaw is the name of an app."),
-            description: String(localized: "Thaw's actions are in the search: type “thaw” to see them.", bundle: .floe, comment: "The word in quotation marks is typed as it is and stays in English."),
+            "menuBarApp",
+            String(localized: "Thaw or Punkto", bundle: .floe, comment: "The setting that chooses between two apps, Thaw and Punkto, whose actions the search lists."),
+            description: String(localized: "The search lists the actions of this app. Punkto does nothing while Thaw is running.", bundle: .floe),
             section: String(localized: "Built-in Commands", bundle: .floe),
             keywords: String(
-                localized: "thaw, hidden items, thaw bar, menu bar manager",
+                localized: "thaw, punkto, hidden items, thaw bar, menu bar manager",
                 bundle: .floe,
-                comment: "Words that find the Thaw setting in the settings search, separated by commas."
+                comment: "Words that find the Thaw or Punkto setting in the settings search, separated by commas. Thaw and Punkto are the names of apps."
             ).searchTerms
         ),
         .commands(

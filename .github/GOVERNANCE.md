@@ -21,7 +21,7 @@ Forking remains always available under the AGPL-3.0 license; governance here onl
 | **Maintainer** | [@diazdesandi](https://github.com/diazdesandi) | Product and roadmap decisions; review and merge of pull requests; issue triage; CI; Code of Conduct enforcement |
 | **Organization owner** | [@stonerl](https://github.com/stonerl), [@nightah](https://github.com/nightah), [@diazdesandi](https://github.com/diazdesandi) | Admin of [`thaw-app`](https://github.com/thaw-app): org settings, membership, org-owned repositories |
 | **Write collaborator** | Everyone else with write access to [thaw-app/Floe](https://github.com/thaw-app/Floe) | Code and docs only: no secret read, and can't approve the `prod` Environment |
-| **Contributor** | Anyone submitting issues, pull requests or docs | Follow [Thaw/Floe contribution policy](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md) and the [organization Code of Conduct](https://github.com/thaw-app/.github/blob/main/.github/CODE_OF_CONDUCT.md) |
+| **Contributor** | Anyone submitting issues, pull requests or docs | Follow [organization contribution policy](https://github.com/thaw-app/.github/blob/main/.github/CONTRIBUTING.md) and the [organization Code of Conduct](https://github.com/thaw-app/.github/blob/main/.github/CODE_OF_CONDUCT.md) |
 | **Security contact** | Maintainer (via [private vulnerability reporting](https://github.com/thaw-app/Floe/security/advisories/new)) | Acknowledge and coordinate vulnerability reports |
 
 ## Community channels
