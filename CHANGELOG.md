@@ -41,6 +41,9 @@ these four.
 - **File search asks Spotlight when Floe's index can't follow changes on disk**, instead of showing files as they were.
 - **Searches no longer stall while a folder with thousands of files changes, and extensions open their stored data faster.**
 - **A permission in the welcome no longer stays on “Waiting…” when you decline its prompt after a few minutes.**
+### Fixed
+
+- Typing a web address with a slash in it, such as `https://youtube.com`, offers to open it again instead of showing a calculator result.
 
 ## [0.4.0] - 2026-11-22
 
