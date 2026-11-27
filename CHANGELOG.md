@@ -26,6 +26,9 @@ these four.
 ### New
 
 - **Show or hide Punkto's apps from the launcher.** Type “punkto” to show the menu bar apps it hides or hide them again. With Thaw installed too, choose Punkto in Settings › Commands.
+### Fixed
+
+- Typing a web address with a slash in it, such as `https://youtube.com`, offers to open it again instead of showing a calculator result.
 
 ## [0.4.0] - 2026-11-22
 
