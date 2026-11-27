@@ -62,7 +62,8 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
     }
 
     /// The window for a page, as tall as the page and following it as the pages change: the hosting controller hands
-    /// the page's own size to the window.
+    /// the page's own size to the window. The page fills the window under the title bar, as Thaw's does, so it reaches
+    /// the rounded bottom corners instead of stopping a title bar's height above them.
     static func makeWindow(for view: some View) -> NSWindow {
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: NSSize(width: ThawOnboardingWindowMetrics.width, height: 400)),
@@ -72,6 +73,7 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
         )
         let controller = NSHostingController(rootView: view.thawTheme(.floe))
         controller.sizingOptions = [.preferredContentSize]
+        controller.safeAreaRegions = []
         window.contentViewController = controller
         return window
     }
@@ -87,7 +89,6 @@ final class OnboardingWindowController: NSObject, NSWindowDelegate {
             onFinish: { [weak self] in self?.finish(opensLauncher: !isReplay) },
             onClose: { [weak self] in self?.finish(opensLauncher: false) }
         )
-        .ignoresSafeArea()
         // Light or Dark from the Settings theme. Black's background is for Settings, so this window keeps its own.
         .heldToSettingsTheme(settings)
         // Glass buttons are capsules here too, as in Settings.

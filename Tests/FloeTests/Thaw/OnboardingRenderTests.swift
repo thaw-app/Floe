@@ -88,10 +88,11 @@ struct OnboardingRenderTests {
                 window.contentView?.layoutSubtreeIfNeeded()
                 try? await Task.sleep(for: .milliseconds(5))
             }
-            heights.append(window.contentLayoutRect.height)
+            heights.append(window.frame.height)
         }
+        // The whole window, title bar included: a page that stopped short would leave a clear band above the bottom corners.
         #expect(heights == [200, 500, 300])
-        #expect(window.contentLayoutRect.width == ThawOnboardingWindowMetrics.width)
+        #expect(window.frame.width == ThawOnboardingWindowMetrics.width)
     }
 
     @Test func theAccessButtonSaysWhatIsLeftOutAndEndsRecoveryWithTheFlowsLastWord() {
