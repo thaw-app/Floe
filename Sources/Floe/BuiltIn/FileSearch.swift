@@ -92,14 +92,15 @@ final class FileSearch: ObservableObject {
     }
 
     func search(_ query: String) {
+        // Every edit moves the round on, the field emptied included, so a query still waiting for its pause is dropped
+        // and an index answer to an earlier one does not land late over this one.
+        round += 1
+        answering?.cancel()
         guard Self.asksIndex(query, isOn: index.isOn) else {
             queries.continuation.yield((round, query))
             return
         }
-        // The round moves on, so a query still waiting for its pause is dropped and an older answer does not land late.
-        round += 1
         let asked = round
-        answering?.cancel()
         answering = Task { [weak self, index] in
             let files = await Self.files(matching: query, in: index)
             guard let self, asked == round else { return }

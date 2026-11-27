@@ -185,6 +185,76 @@ struct SecretVaultTests {
         #expect(vault.read(account: AIEndpoint.keychainAccount) == "key")
     }
 
+    @Test func removingEverywhereDeletesNothingWhileASecretHasNoCopyHere() {
+        vault.write("gh", account: "github/token")
+        vault.write("lin", account: "linear/key")
+        _ = vault.turnOn()
+        keychain.unreadable = ["linear/key"]
+        let removed = vault.removeEverywhere()
+        #expect(!removed)
+        #expect(vault.isOn, "sync stays on, so the secret is still read from iCloud Keychain")
+        keychain.unreadable = []
+        #expect(shared("github/token") == "gh")
+        #expect(shared("linear/key") == "lin", "the last copy is not deleted")
+        #expect(vault.status.failure != nil)
+        #expect(SettingsSyncText.passwordLine(for: vault.status).contains("The last change failed: "))
+    }
+
+    @Test func removingEverywhereLeavesWhatAnotherDeviceAddedOrChangedMeanwhile() {
+        vault.write("gh", account: "github/token")
+        vault.write("lin", account: "linear/key")
+        _ = vault.turnOn()
+        // The copies are made in account order: once the last is made, another device adds one and changes the first.
+        keychain.afterLocalWrite = { [keychain, service] account in
+            guard account == "linear/key" else { return }
+            keychain.afterLocalWrite = nil
+            keychain.write("arrived", service: service, account: "new/key", synchronizable: true)
+            keychain.write("changed elsewhere", service: service, account: "github/token", synchronizable: true)
+        }
+        #expect(vault.removeEverywhere())
+        #expect(shared("linear/key") == nil)
+        #expect(shared("new/key") == "arrived", "never copied here, so it is not deleted")
+        #expect(shared("github/token") == "changed elsewhere", "changed since it was copied, so it is not deleted")
+        #expect(local("github/token") == "gh")
+    }
+
+    @Test func removingEverywhereSaysWhenADeletionFailed() {
+        vault.write("gh", account: "github/token")
+        _ = vault.turnOn()
+        keychain.deleteFailure = errSecInteractionNotAllowed
+        #expect(!vault.removeEverywhere())
+        #expect(vault.status.failure == errSecInteractionNotAllowed)
+        #expect(local("github/token") == "gh")
+        keychain.deleteFailure = nil
+        #expect(vault.removeEverywhere(), "trying again finishes the job")
+        #expect(vault.status.failure == nil)
+        #expect(keychain.list(service: service, synchronizable: true).isEmpty)
+    }
+
+    @Test func removingEverywhereWithSyncOffKeepsThisMacsEditsAndDeletions() {
+        vault.write("gh", account: "github/token")
+        vault.write("lin", account: "linear/key")
+        _ = vault.turnOn()
+        _ = vault.turnOff()
+        vault.write("changed here", account: "github/token")
+        vault.delete(account: "linear/key")
+        #expect(vault.removeEverywhere())
+        #expect(keychain.list(service: service, synchronizable: true).isEmpty)
+        #expect(vault.read(account: "github/token") == "changed here", "the iCloud value is not copied over the newer one")
+        #expect(vault.read(account: "linear/key") == nil, "a secret deleted here does not come back")
+    }
+
+    @Test func switchingOffSkipsASecretItCannotReadAndLeavesItInICloud() {
+        vault.write("gh", account: "github/token")
+        vault.write("lin", account: "linear/key")
+        _ = vault.turnOn()
+        keychain.unreadable = ["linear/key"]
+        #expect(vault.turnOff(), "switching off deletes nothing, so one unreadable secret does not hold it up")
+        keychain.unreadable = []
+        #expect(local("github/token") == "gh")
+        #expect(shared("linear/key") == "lin")
+    }
+
     @Test func joiningKeepsTheNewerOfTwoDifferentSecrets() {
         keychain.time = Date(timeIntervalSince1970: 2000)
         keychain.write("older here", service: service, account: "a/x", synchronizable: false)

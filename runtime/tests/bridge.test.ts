@@ -81,6 +81,33 @@ describe("send", () => {
       fs.rmSync(home, { recursive: true, force: true });
     }
   });
+
+  test("the real host takes the command's arguments from its input, as the app sends them", async () => {
+    const home = makeTempDir("home");
+    const extDir = path.join(home, "extension");
+    fs.mkdirSync(path.join(extDir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(extDir, "package.json"), JSON.stringify({ name: "login-sample", commands: [{ name: "login", mode: "no-view" }] }));
+    fs.writeFileSync(
+      path.join(extDir, "src/login.ts"),
+      'import { showHUD } from "@raycast/api";\nexport default async function Command(props) { await showHUD(props.arguments.password); }',
+    );
+    try {
+      const proc = Bun.spawn(["bun", path.join(import.meta.dir, "../host.ts"), extDir, "login"], {
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+        env: { ...process.env, HOME: home, FLOE_SECRETS: "input" },
+      });
+      // Left open: the host ends on its own once a command without a view is done, and at once when its input closes.
+      proc.stdin.write(JSON.stringify({ type: "secrets", arguments: JSON.stringify({ password: "hunter2" }) }) + "\n");
+      proc.stdin.flush();
+      const out = await new Response(proc.stdout).text();
+      const hud = out.split("\n").filter(Boolean).map((line) => JSON.parse(line)).find((message) => message.type === "hud");
+      expect(hud?.title).toBe("hunter2");
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("pop handlers", () => {

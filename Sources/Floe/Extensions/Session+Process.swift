@@ -20,7 +20,6 @@ extension ExtensionSession {
             toast = ToastState(id: 0, style: "failure", title: String(localized: "Bun isn't installed", bundle: .floe, comment: "Bun is the name of a tool."), message: "brew install bun")
             return
         }
-        let argumentsJSON = (try? JSONSerialization.data(withJSONObject: arguments)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         let environment = hostEnvironment()
         // Cancelling the task sends SIGTERM, then SIGKILL: a host stuck in synchronous code ignores SIGTERM.
         var options = PlatformOptions()
@@ -35,7 +34,8 @@ extension ExtensionSession {
         // --smol trades some GC headroom for a smaller footprint: extension trees stay mounted for
         // Back and resume, so the allocator's retention is the host's biggest memory cost.
         // --no-install: an import left for run time must never make Bun fetch a package.
-        let hostArguments = Arguments(["--smol", "--no-install", Paths.host.path, command.extensionDir.path, command.name, argumentsJSON])
+        // The command's arguments go with its secrets on the host's input: a password argument must not be on its command line.
+        let hostArguments = Arguments(["--smol", "--no-install", Paths.host.path, command.extensionDir.path, command.name])
         // One decoder per host: it owns the partial bytes between chunks and keeps decoding off the main actor.
         let decoder = HostMessageDecoder()
         let started: @Sendable (pid_t) async -> Void = { [weak self] identifier in
@@ -78,10 +78,11 @@ extension ExtensionSession {
     /// shared key, which the host waits for while it reads.
     private func secretsWhenReady() -> @Sendable () async -> [UInt8] {
         let preferences = try? JSONSerialization.data(withJSONObject: PreferenceStore.resolvedValues(for: command))
+        let arguments = try? JSONSerialization.data(withJSONObject: arguments)
         let extensionName = command.extensionName
         return {
             await StorageMigration.shared.settled(within: .seconds(10))
-            return Self.secretsLine(preferences: preferences, storage: StorageKey.forExtension(extensionName))
+            return Self.secretsLine(preferences: preferences, arguments: arguments, storage: StorageKey.forExtension(extensionName))
         }
     }
 

@@ -1,7 +1,7 @@
 //! The names of the files under one folder, held in memory and matched fuzzily.
 
 use std::cell::RefCell;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::ffi::{CStr, OsStr};
 use std::os::raw::c_char;
 use std::panic::{catch_unwind, AssertUnwindSafe};
@@ -273,13 +273,17 @@ impl Tree {
         id
     }
 
-    /// Takes an entry out, with everything inside it.
-    fn remove(&mut self, id: u32) {
-        let parent = self.entries[id as usize].parent;
-        if let Some(siblings) = self.children.get_mut(&parent) {
-            siblings.retain(|sibling| *sibling != id);
+    /// Takes entries of one folder out, with everything inside them. The folder's list is gone over once for all of
+    /// them: once for each would make a rescan that replaces a folder's thousands of names quadratic.
+    fn remove_inside(&mut self, parent: u32, ids: &[u32]) {
+        if ids.is_empty() {
+            return;
         }
-        let mut pending = vec![id];
+        let gone: HashSet<u32> = ids.iter().copied().collect();
+        if let Some(siblings) = self.children.get_mut(&parent) {
+            siblings.retain(|sibling| !gone.contains(sibling));
+        }
+        let mut pending = ids.to_vec();
         while let Some(current) = pending.pop() {
             self.entries[current as usize].flags |= DEAD;
             self.dead += 1;
@@ -519,9 +523,7 @@ impl FileIndex {
         };
         let mut state = self.write();
         let tree = &mut state.tree;
-        for id in change.removed {
-            tree.remove(id);
-        }
+        tree.remove_inside(change.folder, &change.removed);
         for ((name, kind), walked) in change.added.into_iter().zip(walked) {
             match walked {
                 Some(walked) => tree.graft(change.folder, &name, walked),

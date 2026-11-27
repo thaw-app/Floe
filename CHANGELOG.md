@@ -26,6 +26,16 @@ these four.
 ### New
 
 - **Show or hide Punkto's apps from the launcher.** Type “punkto” to show the menu bar apps it hides or hide them again. With Thaw installed too, choose Punkto in Settings › Commands.
+
+### Fixed
+
+- **Remove Passwords from iCloud Keychain no longer deletes a password this Mac has no copy of**, and with sync off it keeps the passwords as you changed or deleted them on this Mac.
+- **A password you type as a command's argument no longer shows in the list of running processes.**
+- **Clipboard history keeps two different images that start alike**, each with its own pin.
+- **Two commands of one extension running at once no longer erase each other's cached data.**
+- **Emptying the file search shows your recent files**, not what you searched for before.
+- **File search asks Spotlight when Floe's index can't follow changes on disk**, instead of showing files as they were.
+- **Searches no longer stall while a folder with thousands of files changes, and extensions open their stored data faster.**
 ### Fixed
 
 - Typing a web address with a slash in it, such as `https://youtube.com`, offers to open it again instead of showing a calculator result.

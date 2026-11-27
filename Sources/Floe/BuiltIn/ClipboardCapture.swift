@@ -6,6 +6,7 @@
 //  Licensed under the GNU AGPLv3
 
 import AppKit
+import CryptoKit
 
 /// What one copy put on the pasteboard, read on the main thread and still unprocessed.
 nonisolated struct ClipboardCapture: Sendable {
@@ -156,10 +157,20 @@ nonisolated extension ClipboardEntry {
         return ClipboardEntry(id: UUID(), kind: kind, text: string, date: date, pinned: false, sourceApp: sourceApp)
     }
 
-    /// The entry for a stored image; duplicates are told apart by the start of the PNG.
+    /// The entry for a stored image; duplicates are told apart by a hash of the whole PNG.
     static func image(named name: String, png: Data, date: Date, sourceApp: String?) -> ClipboardEntry {
-        ClipboardEntry(
-            id: UUID(), kind: .image, text: png.prefix(64).base64EncodedString(), imageFile: name, date: date, pinned: false, sourceApp: sourceApp
-        )
+        ClipboardEntry(id: UUID(), kind: .image, text: imageIdentity(of: png), imageFile: name, date: date, pinned: false, sourceApp: sourceApp)
+    }
+
+    /// What an image entry keeps as its text. Two images that start alike are two images: the whole PNG is hashed.
+    static func imageIdentity(of png: Data) -> String {
+        imageIdentityPrefix + SHA256.hash(data: png).map { String(format: "%02x", $0) }.joined()
+    }
+
+    static let imageIdentityPrefix = "sha256:"
+
+    /// Whether an image entry was saved by an earlier Floe, which kept only the start of the PNG as its text.
+    var hasEarlierImageIdentity: Bool {
+        kind == .image && !(text ?? "").hasPrefix(Self.imageIdentityPrefix)
     }
 }

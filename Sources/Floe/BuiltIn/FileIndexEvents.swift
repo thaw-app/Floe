@@ -49,11 +49,12 @@ nonisolated enum FileIndexEvents {
         return CFUUIDCreateString(nil, identifier) as String?
     }
 
-    /// Starts a stream over `root`, from now on or with everything since an earlier event first. Each report comes
-    /// with the event it ends at. The returned closure stops the stream; it does nothing when none could start.
-    static let watch: @Sendable (String, UInt64?, @escaping @Sendable ([FileIndexChange], UInt64) -> Void) -> (@Sendable () -> Void) = { root, since, deliver in
+    /// Starts a stream over root, from now on or with everything since an earlier event first. Each report comes
+    /// with the event it ends at. The returned closure stops the stream; nil when none could start, so the index
+    /// knows it cannot follow the disk.
+    static let watch: @Sendable (String, UInt64?, @escaping @Sendable ([FileIndexChange], UInt64) -> Void) -> (@Sendable () -> Void)? = { root, since, deliver in
         let stream = Stream(root: root, since: since, deliver: deliver)
-        guard stream.start() else { return { /* nothing was started */ } }
+        guard stream.start() else { return nil }
         return { stream.stop() }
     }
 

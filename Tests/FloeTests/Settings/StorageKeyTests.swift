@@ -64,11 +64,14 @@ struct StorageKeyTests {
     }
 
     @Test func passwordsAndTheKeyGoOnTheHostsInputAndNotInItsEnvironment() throws {
-        let line = ExtensionSession.secretsLine(preferences: Data(#"{"token":"secret"}"#.utf8), storage: .key("a2V5"))
+        let line = ExtensionSession.secretsLine(
+            preferences: Data(#"{"token":"secret"}"#.utf8), arguments: Data(#"{"password":"hunter2"}"#.utf8), storage: .key("a2V5")
+        )
         #expect(line.last == 0x0A)
         let message = try #require(JSONSerialization.jsonObject(with: Data(line.dropLast())) as? [String: Any])
         #expect(message["type"] as? String == "secrets")
         #expect(message["preferences"] as? String == #"{"token":"secret"}"#)
+        #expect(message["arguments"] as? String == #"{"password":"hunter2"}"#, "a password argument is not on the command line")
         #expect(message["storageKey"] as? String == "a2V5")
         #expect(message["storageLocked"] as? Bool == false)
         let locked = try #require(JSONSerialization.jsonObject(with: Data(ExtensionSession.secretsLine(preferences: nil, storage: .unavailable).dropLast())) as? [String: Any])

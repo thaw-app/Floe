@@ -430,7 +430,7 @@ fn removed_entries_are_dropped_once_they_pile_up() {
         tree.push(churn, &format!("temp-{number}"), false);
     }
     let before = tree.byte_size();
-    tree.remove(churn);
+    tree.remove_inside(0, &[churn]);
     assert_eq!(tree.count(), 2);
     assert_eq!(tree.entries.len(), 5004);
     tree.compact_if_due();
@@ -439,6 +439,23 @@ fn removed_entries_are_dropped_once_they_pile_up() {
     assert!(tree.names.len() < 20 && before > 0);
     assert_eq!(tree.search("kept", 10)[0].path, "/root/keep/kept.txt");
     assert!(tree.search("temp", 10).is_empty());
+}
+
+#[test]
+fn a_folder_losing_thousands_of_names_keeps_the_rest_and_drops_what_was_inside() {
+    let mut tree = Tree::empty("/root");
+    let folder = tree.push(0, "folder", true);
+    let ids: Vec<u32> = (0..10_000).map(|number| tree.push(folder, &format!("old-{number}"), number == 0)).collect();
+    tree.push(ids[0], "inside.txt", false);
+    let kept = tree.push(folder, "kept.txt", false);
+    tree.remove_inside(folder, &ids);
+    assert_eq!(tree.children.get(&folder), Some(&vec![kept]));
+    assert_eq!(tree.count(), 2, "the folder and the one name left in it");
+    assert!(!tree.children.contains_key(&ids[0]), "the list of a removed folder goes with it");
+    assert!(tree.search("inside", 10).is_empty());
+    assert_eq!(tree.search("kept", 10)[0].path, "/root/folder/kept.txt");
+    tree.remove_inside(folder, &[]);
+    assert_eq!(tree.count(), 2);
 }
 
 fn number(block: &[u8], at: &mut usize) -> usize {

@@ -186,11 +186,13 @@ extension ExtensionSession {
         static let windows = HostGrants(rawValue: 1 << 1)
     }
 
-    /// The host's first line of input: the command's preferences, with their Keychain values, and the extension's own
-    /// storage key. They never go in the environment, which another program running as the user can read with ps.
-    nonisolated static func secretsLine(preferences: Data?, storage: StorageKey.Access) -> [UInt8] {
+    /// The host's first line of input: the command's preferences, with their Keychain values, the arguments it was run
+    /// with, password arguments among them, and the extension's own storage key. None of them goes in the environment
+    /// or on the command line, which another program running as the user can read with ps.
+    nonisolated static func secretsLine(preferences: Data?, arguments: Data? = nil, storage: StorageKey.Access) -> [UInt8] {
         var message: [String: Any] = ["type": "secrets"]
         message["preferences"] = preferences.flatMap { String(bytes: $0, encoding: .utf8) }
+        message["arguments"] = arguments.flatMap { String(bytes: $0, encoding: .utf8) }
         if case let .key(key) = storage {
             message["storageKey"] = key
         }
