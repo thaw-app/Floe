@@ -8,7 +8,7 @@
 //  Floe changes © 2026 René Jiménez, under the same license.
 //
 //  Ported to Floe from Thaw 3: no tour version, and the recovery stage is the access step alone,
-//  shown while a permission is unanswered. The step order and indicator numbers moved here to be tested.
+//  shown while a permission is unanswered. The step order moved here to be tested.
 
 /// The one decision about what the onboarding window shows when it opens.
 ///
@@ -62,30 +62,15 @@ enum OnboardingSequencer {
 /// The screens of the onboarding flow, in order.
 enum OnboardingStep: Equatable, Sendable {
     case welcome
-    case tour
     case access
-
-    /// A position for the step indicator.
-    struct Progress: Equatable, Sendable {
-        let step: Int
-        let total: Int
-    }
+    case done
 
     /// The step after this one, or nil when this one ends the flow.
     var next: OnboardingStep? {
         switch self {
-        case .welcome: .tour
-        case .tour: .access
-        case .access: nil
-        }
-    }
-
-    /// The welcome is not numbered: the steps it leads to are.
-    var progress: Progress? {
-        switch self {
-        case .welcome: nil
-        case .tour: Progress(step: 1, total: 2)
-        case .access: Progress(step: 2, total: 2)
+        case .welcome: .access
+        case .access: .done
+        case .done: nil
         }
     }
 }

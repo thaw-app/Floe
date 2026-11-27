@@ -23,20 +23,30 @@ private final class SystemStub {
     var requestAnswer = (granted: false, prompted: true)
     var requestCount = 0
     var openedURLs: [URL] = []
+    /// When set, a request keeps its answer here until the test gives it, as macOS does until the user answers.
+    var holdsAnswer = false
+    var heldAnswer: (@MainActor @Sendable (Bool, Bool) -> Void)?
 
-    func makePermission(budget: Int = 10, isRequired: Bool = true, settingsURL: URL? = URL(string: "floe-tests://settings")) -> Permission {
+    func makePermission(
+        budget: Int = 10, isRequired: Bool = true, settingsURL: URL? = URL(string: "floe-tests://settings"), declinedHint: String? = nil
+    ) -> Permission {
         Permission(
             key: "test",
             title: "Test Permission",
             iconName: "star",
             iconColor: .blue,
             details: ["One detail"],
+            declinedHint: declinedHint,
             isRequired: isRequired,
             settingsURL: settingsURL,
             check: { [unowned self] in granted },
             request: { [unowned self] completion in
                 requestCount += 1
-                completion(requestAnswer.granted, requestAnswer.prompted)
+                if holdsAnswer {
+                    heldAnswer = completion
+                } else {
+                    completion(requestAnswer.granted, requestAnswer.prompted)
+                }
             },
             openURL: { [unowned self] in openedURLs.append($0) },
             pollInterval: 3600,
@@ -177,6 +187,50 @@ struct PermissionRequestTests {
 
         permission.handlePollTick()
         #expect(permission.wasDeclined)
+    }
+
+    @Test func aDeclineAnsweredAfterTheChecksStoppedShowsTheButtonAgain() throws {
+        stub.holdsAnswer = true
+        let permission = stub.makePermission(budget: 2)
+        permission.performRequest()
+        permission.handlePollTick()
+        #expect(!permission.isPolling, "the user left the prompt up past the checks")
+        let answer = try #require(stub.heldAnswer)
+        answer(false, true)
+        #expect(permission.requestState == .declined(waiting: false))
+        #expect(!permission.awaitingPromptAnswer, "no tick is left to clear the Waiting line")
+    }
+
+    @Test func eachRequestMovesThroughOneStateThatTheRowReads() {
+        let permission = stub.makePermission(budget: 3, declinedHint: "Turn it on in System Settings.")
+        #expect(permission.requestState == .idle)
+        #expect(permission.rowSubtitle == "One detail")
+        permission.performRequest()
+        #expect(permission.requestState == .awaitingAnswer(afterDecline: false))
+        #expect(permission.awaitingPromptAnswer && permission.isWaitingForGrant)
+        permission.handlePollTick()
+        #expect(permission.requestState == .declined(waiting: true))
+        #expect(permission.rowSubtitle == "Turn it on in System Settings.", "a decline says where to turn it on")
+        permission.handlePollTick()
+        #expect(permission.requestState == .declined(waiting: false), "the spent poll stops the waiting, not the decline")
+        #expect(!permission.isWaitingForGrant && permission.wasDeclined)
+        permission.performRequest()
+        #expect(permission.requestState == .awaitingAnswer(afterDecline: true))
+        #expect(permission.wasDeclined, "asking again keeps offering System Settings")
+        stub.granted = true
+        permission.handlePollTick()
+        #expect(permission.requestState == .idle)
+        #expect(permission.rowSubtitle == "One detail")
+    }
+
+    @Test func openingSystemSettingsWaitsForTheGrantUntilTheChecksStop() {
+        let permission = stub.makePermission()
+        permission.openSettingsPane()
+        #expect(permission.requestState == .waiting)
+        #expect(permission.isWaitingForGrant && !permission.awaitingPromptAnswer)
+        permission.stopCheck()
+        #expect(permission.requestState == .idle)
+        #expect(permission.rowSubtitle == "One detail", "nothing was declined, so the summary stays")
     }
 
     @Test func aGrantClearsAnEarlierDecline() {

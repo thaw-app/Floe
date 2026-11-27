@@ -76,9 +76,6 @@ DEPENDENCIES = [
     Dependency("CMD-Z", "cmdz", "MIT",
                "CMD-Z by Toni Förster. Floe reads the menus of the app in front and chooses a command in them "
                "with its menu scanner", group="origin"),
-    Dependency("Simple Icons", "simpleIcons", "CC0-1.0",
-               "The marks of the AI services and tools in the welcome tour. Each mark belongs to its owner"),
-    Dependency("Lobe Icons", "lobeIcons", "MIT", "The mark of Z.ai in the welcome tour"),
     Dependency("CompactSlider", "compactSlider", "MIT", "Used by ThawUI", "swift", "compactslider"),
     Dependency("Sparkle", "sparkle", "MIT", "Checks for updates and installs them", "swift", "sparkle",
                optional=True),

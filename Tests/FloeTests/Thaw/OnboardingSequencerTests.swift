@@ -55,15 +55,9 @@ struct OnboardingSequencerTests {
 }
 
 struct OnboardingStepTests {
-    @Test func theFlowAlwaysRunsWelcomeTourAccess() {
-        #expect(OnboardingStep.welcome.next == .tour)
-        #expect(OnboardingStep.tour.next == .access)
-        #expect(OnboardingStep.access.next == nil)
-    }
-
-    @Test func theTourAndAccessAreNumberedOneAndTwoOfTwoAndTheWelcomeIsNot() {
-        #expect(OnboardingStep.welcome.progress == nil)
-        #expect(OnboardingStep.tour.progress == OnboardingStep.Progress(step: 1, total: 2))
-        #expect(OnboardingStep.access.progress == OnboardingStep.Progress(step: 2, total: 2))
+    @Test func theFlowRunsWelcomeAccessThenTheLastPage() {
+        #expect(OnboardingStep.welcome.next == .access)
+        #expect(OnboardingStep.access.next == .done)
+        #expect(OnboardingStep.done.next == nil)
     }
 }
