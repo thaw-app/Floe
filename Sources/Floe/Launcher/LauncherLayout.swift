@@ -90,37 +90,18 @@ struct LauncherPanelState: Equatable {
 
 extension LauncherModel {
     var panelState: LauncherPanelState {
-        LauncherPanelState(
-            showingSetup: setup != nil,
-            showingCommand: runner.session?.command.mode == "view",
-            menuBarSearch: isSearchingMenuBar || menuItemSearch != nil,
-            clipboardHistory: isShowingClipboardHistory,
-            fileSearch: isSearchingFiles || noteDesk != nil,
-            queryIsEmpty: query.isEmpty,
-            askingAI: askAI != nil || question != nil
-        )
+        LauncherPanelState(setup: setup, session: runner.session, mode: mode, question: question, queryIsEmpty: query.isEmpty)
     }
 
     /// The panel's window size, sent again whenever the view on screen, the query or the layout changes it.
     func panelWindowSizes(settings: AppSettings) -> AnyPublisher<NSSize, Never> {
-        // Published values arrive before they are stored, so the state is built from what is sent.
-        // Either menu search fills the panel the same way.
-        let menuSearches = $isSearchingMenuBar.combineLatest($menuItemSearch.map { $0 != nil }).map { $0 || $1 }
-        let views = $setup.map { $0 != nil }
-            .combineLatest(runner.$session.map { $0?.command.mode == "view" }, menuSearches, $isShowingClipboardHistory)
-        let searches = $isSearchingFiles.combineLatest($noteDesk.map { $0 != nil }).map { $0 || $1 }.combineLatest($askAI.combineLatest($question).map { $0 != nil || $1 != nil })
-        return views.combineLatest(searches, $query.map(\.isEmpty), settings.$launcherLayout)
-            .map { views, searches, queryIsEmpty, layout in
-                LauncherPanelState(
-                    showingSetup: views.0,
-                    showingCommand: views.1,
-                    menuBarSearch: views.2,
-                    clipboardHistory: views.3,
-                    fileSearch: searches.0,
-                    queryIsEmpty: queryIsEmpty,
-                    askingAI: searches.1
-                )
-                .windowSize(in: layout)
+        // Published values arrive before they are stored, so the state is built from what is sent, the same way
+        // panelState builds it from what is stored.
+        $setup.combineLatest(runner.$session, $modes, $question)
+            .combineLatest($query.map(\.isEmpty), settings.$launcherLayout)
+            .map { views, queryIsEmpty, layout in
+                LauncherPanelState(setup: views.0, session: views.1, mode: views.2.top, question: views.3, queryIsEmpty: queryIsEmpty)
+                    .windowSize(in: layout)
             }
             .removeDuplicates()
             .eraseToAnyPublisher()
@@ -153,6 +134,7 @@ extension LauncherModel {
 
 /// The one view the panel shows. It is picked here only, so what is drawn and what takes the keys never differ: a
 /// command started by a hotkey or a link while a mode is open is drawn in front, and so it must also get Return.
+/// Of the modes, the one entered last is shown (ModeStack).
 enum OnScreen {
     /// A command's preferences or arguments, in front of everything.
     case setup(SetupRequest)
@@ -176,30 +158,34 @@ extension LauncherModel {
         if let session = runner.session, session.command.mode == "view" {
             return .command(session)
         }
-        if isSearchingMenuBar {
-            return .menuBarSearch
+        return switch mode {
+        case .menuBarSearch: .menuBarSearch
+        case let .menuItemSearch(search): .menuItemSearch(search)
+        case .clipboardHistory: .clipboardHistory
+        case .fileSearch: .fileSearch
+        case let .noteDesk(desk): .noteDesk(desk)
+        case let .askAI(asking): .askAI(asking)
+        case nil: .rootSearch
         }
-        if let menuItemSearch {
-            return .menuItemSearch(menuItemSearch)
-        }
-        if isShowingClipboardHistory {
-            return .clipboardHistory
-        }
-        if isSearchingFiles {
-            return .fileSearch
-        }
-        if let noteDesk {
-            return .noteDesk(noteDesk)
-        }
-        if let askAI {
-            return .askAI(askAI)
-        }
-        return .rootSearch
     }
 }
 
 extension LauncherPanelState {
-    /// Any view but the root search fills the panel, whichever of them is on top.
+    /// Any view but the root search fills the panel, whichever of them is on top. The menu searches size the panel
+    /// for their rows even with a setup form or a command's view in front.
+    init(setup: SetupRequest?, session: ExtensionSession?, mode: LauncherMode?, question: PanelQuestion?, queryIsEmpty: Bool) {
+        let kind = mode?.kind
+        self.init(
+            showingSetup: setup != nil,
+            showingCommand: session?.command.mode == "view",
+            menuBarSearch: kind == .menuBarSearch || kind == .menuItemSearch,
+            clipboardHistory: kind == .clipboardHistory,
+            fileSearch: kind == .fileSearch || kind == .noteDesk,
+            queryIsEmpty: queryIsEmpty,
+            askingAI: kind == .askAI || question != nil
+        )
+    }
+
     init(
         showingSetup: Bool,
         showingCommand: Bool,

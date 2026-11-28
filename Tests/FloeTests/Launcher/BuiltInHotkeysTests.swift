@@ -54,7 +54,7 @@ struct BuiltInHotkeysTests {
         #expect(shown == 2)
 
         model.runFromHotkey(.menuBarSearch)
-        #expect(model.isSearchingMenuBar)
+        #expect(model.mode?.kind == .menuBarSearch)
         #expect(shown == 3)
     }
 }

@@ -55,8 +55,8 @@ final class LauncherModel: ObservableObject {
     /// The apps, commands, scripts, panes and hosts the search finds; the model refreshes when a part changes.
     let catalog: CatalogStore
 
-    /// True while the panel shows the file search instead of the root search.
-    @Published var isSearchingFiles = false
+    /// The views open instead of the root search, the one on screen last. Changed through enter and leave only.
+    @Published var modes = ModeStack()
     /// The file search's own state. Not published: its changes redraw its view only.
     var fileSearch: FileSearchModel {
         if let madeFileSearch {
@@ -70,20 +70,12 @@ final class LauncherModel: ObservableObject {
     /// Nil until the file search is first used, so a reset does not make one only to cancel it.
     private var madeFileSearch: FileSearchModel?
 
-    /// True while the panel shows the menu bar item search instead of the root search.
-    @Published var isSearchingMenuBar = false
-    /// True while the panel shows the clipboard history instead of the root search.
-    @Published var isShowingClipboardHistory = false
     /// The clipboard history view's own state. Not published: its changes redraw its view only.
     lazy var clipboardHistory = makeClipboardHistory()
     /// The clipboard history the panel shows, recorded since Floe started.
     let clipboard: ClipboardHistoryStore
-    /// The notes of the user's folder, while the panel shows them instead of the root search.
-    @Published var noteDesk: NoteDeskModel?
     /// The last save of the notes view closed last: true once it is written.
     var noteDeskSave: Task<Bool, Never>?
-    /// The question on screen and its answer, while the panel shows them instead of the root search.
-    @Published var askAI: AskAIModel?
     /// A question asked before something that cannot be taken back, over whatever the panel shows.
     @Published var question: PanelQuestion?
     /// Answers the question. A test replaces it: the real thing reaches the chosen AI source.
@@ -92,8 +84,6 @@ final class LauncherModel: ObservableObject {
     var canAskAI: () -> Bool = { false }
     /// The menu bar item search's own state. Not published: its changes redraw its view only.
     lazy var menuBarSearch = makeMenuBarSearch()
-    /// The front app's menu commands, while the panel shows them instead of the root search.
-    @Published var menuItemSearch: MenuItemSearchModel?
     /// What that search asks of the system. A test replaces it: the real thing reads another app's menus.
     var menuItemEnvironment = MenuItemSearchModel.Environment()
 
@@ -323,13 +313,8 @@ final class LauncherModel: ObservableObject {
         isHeldUntilShown = false
         runner.endOpenCommand()
         setup = nil
-        isSearchingMenuBar = false
-        menuItemSearch = nil
-        isShowingClipboardHistory = false
-        isSearchingFiles = false
+        leaveAllModes()
         madeFileSearch?.cancel()
-        closeNoteDesk()
-        closeAskAI()
         recalledQuery = nil
         actionPanel.close()
         query = ""

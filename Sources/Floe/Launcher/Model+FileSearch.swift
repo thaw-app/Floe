@@ -13,15 +13,14 @@ extension LauncherModel {
     func openFileSearch(with text: String) {
         runner.endOpenCommand()
         setup = nil
-        isSearchingFiles = true
+        enter(.fileSearch)
         fileSearch.query = text
         panelHost.showPanel()
         focusToken += 1
     }
 
     func closeFileSearch() {
-        isSearchingFiles = false
-        fileSearch.cancel()
+        leave(.fileSearch)
         focusToken += 1
     }
 }

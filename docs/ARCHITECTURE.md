@@ -45,9 +45,11 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     `SearchCommand.swift`, `SearchBench.swift`), the update rules and the generated credits. Also the launcher's side
     of Settings: the process handle (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the
     launcher does with them.
-  - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
-    and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the action panel an extension's ⌘K and Floe's own Actions menu share
-    (`ActionPanel.swift`, with Floe's rows in `ItemActionPanel.swift`), the catalog
+  - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys),
+    the views it shows instead of the root search as a stack of `LauncherMode`s (`LauncherMode.swift`, entered and
+    left in `Model+Mode.swift`; one opened over another waits underneath until it is left), its root views
+    (`Views.swift`, `IconView.swift`), its layout and appearance, the action panel an extension's ⌘K and Floe's own
+    Actions menu share (`ActionPanel.swift`, with Floe's rows in `ItemActionPanel.swift`), the catalog
     of apps and commands with its scans (`Catalog.swift`, which also holds `Paths`), and Markdown.
   - `Actions`: the keys and the user's choices for a result's Actions menu, by kind of result (app, file, folder or
     link). Floe's own keys for its rows (`ActionKeys.swift`, with `SubjectKind` and `KeyLayout`), the choices for one

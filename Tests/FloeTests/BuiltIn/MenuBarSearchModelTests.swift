@@ -137,7 +137,7 @@ struct MenuBarSearchModelTests {
         var changes = 0
         let subscription = launcher.objectWillChange.sink { changes += 1 }
         defer { subscription.cancel() }
-        launcher.isSearchingMenuBar = true
+        launcher.enter(.menuBarSearch)
         let before = changes
         launcher.menuBarSearch.query = "bat"
         launcher.menuBarSearch.selection = 0
@@ -145,9 +145,9 @@ struct MenuBarSearchModelTests {
 
         #expect(try launcher.handleKey(key(53)))
         #expect(launcher.menuBarSearch.query.isEmpty)
-        #expect(launcher.isSearchingMenuBar)
+        #expect(launcher.mode?.kind == .menuBarSearch)
         #expect(try launcher.handleKey(key(53)))
-        #expect(!launcher.isSearchingMenuBar)
+        #expect(launcher.mode?.kind != .menuBarSearch)
     }
 
     @Test func askingForAccessGoesToWhatKeepsCheckingForTheAnswer() {
