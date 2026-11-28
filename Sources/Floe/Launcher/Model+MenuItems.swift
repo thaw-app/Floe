@@ -25,7 +25,10 @@ extension LauncherModel {
     /// other apps read them now.
     func accessibilityWasGranted() {
         menuBarSearch.accessWasGranted()
-        menuItemSearch?.scan()
+        // Also a search under another mode, so it shows the menus when it is back on screen.
+        for case let .menuItemSearch(search) in modes.modes {
+            search.scan()
+        }
         refresh()
     }
 

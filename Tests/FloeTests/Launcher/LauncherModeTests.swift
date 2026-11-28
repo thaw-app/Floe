@@ -108,6 +108,37 @@ struct LauncherModeTests {
         #expect(model.fileSearch.query == "invoice", "the file search comes back as it was left")
     }
 
+    @Test func theFileSearchShortcutOpensOverTheViewOnScreenAndEscGoesBackToIt() throws {
+        model.enter(.clipboardHistory)
+        model.runFromHotkey(.fileSearch)
+        #expect(model.isSearchingFiles)
+        #expect(model.handleKey(try escape()))
+        #expect(model.mode?.kind == .clipboardHistory)
+    }
+
+    @Test func theNotesShortcutOpensOverTheViewOnScreen() {
+        // A desk with no store of its own, so no other app is asked for notes.
+        model.settings.notesApp = .antinote
+        model.enter(.clipboardHistory)
+        model.runFromHotkey(.noteDesk)
+        #expect(model.noteDesk != nil)
+        model.closeNoteDesk()
+        #expect(model.mode?.kind == .clipboardHistory)
+    }
+
+    @Test func aMenuSearchUnderAnotherModeReadsTheMenusOnceAccessIsGranted() {
+        var trusted = false
+        model.menuItemEnvironment = MenuItemSearchModel.Environment(
+            frontApp: { nil }, isTrusted: { trusted }, askForAccess: {}, scan: { _ in [] }, choose: { _, _ in }
+        )
+        model.openMenuItemSearch()
+        let search = model.menuItemSearch
+        model.enter(.clipboardHistory)
+        trusted = true
+        model.accessibilityWasGranted()
+        #expect(search?.accessGranted == true, "it shows the menus, not the request for access, when it is back")
+    }
+
     @Test func theModeEnteredLastIsOnScreenWhicheverItIs() {
         model.enter(.menuBarSearch)
         model.openFileSearch(with: "")

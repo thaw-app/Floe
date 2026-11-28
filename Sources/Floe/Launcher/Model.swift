@@ -322,6 +322,11 @@ final class LauncherModel: ObservableObject {
         setup = nil
         leaveAllModes()
         madeFileSearch?.cancel()
+        clearRootSearch()
+    }
+
+    /// An empty root search with its Actions menu closed. The views open over it stay.
+    func clearRootSearch() {
         recalledQuery = nil
         actionPanel.close()
         query = ""

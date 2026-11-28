@@ -36,11 +36,12 @@ extension LauncherModel {
             focusToken += 1
         case .clipboardHistory:
             openClipboardHistory()
+        // These open over the view on screen, which Esc goes back to.
         case .fileSearch:
-            reset()
+            clearRootSearch()
             openFileSearch(with: "")
         case .noteDesk:
-            reset()
+            clearRootSearch()
             openNoteDesk()
         case .floatingNote:
             openFloatingNote()
