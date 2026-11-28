@@ -21,16 +21,6 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
-
-### Changed
-
-- **Esc takes you back to the view you came from**, such as your file search after you open Clipboard History over it by its shortcut.
-
-### Fixed
-
-- **The file search opens by its shortcut** even while the menu bar search or Clipboard History is on screen.
-
 ## [0.5.0] - 2026-11-27
 
 **macOS 26 and later · Build 13**
@@ -44,6 +34,7 @@ these four.
 ### Changed
 
 - **A shorter welcome**: one list of permissions, each with its own Grant Access button, then a last page with your shortcut, Launch at Login and the Raycast import.
+- **Esc takes you back to the view you came from**, such as your file search after you open Clipboard History over it by its shortcut.
 
 ### Fixed
 
@@ -55,6 +46,7 @@ these four.
 - **Emptying the file search shows your recent files**, not what you searched for before.
 - **File search asks Spotlight when Floe's index can't follow changes on disk**, instead of showing files as they were.
 - **Searches no longer stall while a folder with thousands of files changes.**
+- **The file search opens by its shortcut** even while the menu bar search or Clipboard History is on screen.
 
 #### Extensions and passwords
 
