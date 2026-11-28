@@ -73,26 +73,28 @@ import Testing
     }
 
     @Test func aWindowOffersMinimizeOnlyWhileItIsNotMinimized() {
+        let windows = WindowRows()
         let open = OpenWindow(id: "1:0", title: "Inbox", appName: "Mail")
         let minimized = OpenWindow(id: "1:1", title: "Draft", appName: "Mail", isMinimized: true)
-        #expect(model.features.windows.windowActions(for: open).compactMap { $0?.title } == ["Minimize Window", "Close Window"])
-        #expect(model.features.windows.windowActions(for: minimized).compactMap { $0?.title } == ["Close Window"])
+        #expect(windows.windowActions(for: open).compactMap { $0?.title } == ["Minimize Window", "Close Window"])
+        #expect(windows.windowActions(for: minimized).compactMap { $0?.title } == ["Close Window"])
         #expect(WindowRows.title(for: .window(open)) == "Switch to Window")
         #expect(WindowRows.title(for: .access) == "Open Privacy Settings")
     }
 
     @Test func aWindowThatWasNotReadFromAnAppIsLeftAlone() {
+        let windows = WindowRows()
         let window = OpenWindow(id: "1:0", title: "Inbox", appName: "Mail")
         #expect(!OpenWindows.focus(window))
         #expect(!OpenWindows.minimize(window))
         #expect(!OpenWindows.close(window))
-        for action in model.features.windows.windowActions(for: window) {
+        for action in windows.windowActions(for: window) {
             action?.run()
         }
     }
 
     @Test func returnOnAWindowLeavesTheLauncherAndOtherRowsAreLeftToOthers() {
-        let windows = model.features.windows
+        let windows = WindowRows()
         let left = CallLog()
         windows.host.leave = { left.note("leave") }
         let row = RootItem.window(.window(OpenWindow(id: "1:0", title: "Inbox", appName: "Mail")))

@@ -321,9 +321,7 @@ private nonisolated enum Menus {
     }
 
     @Test func returnOnACommandLeavesTheLauncherThenChoosesIt() {
-        let defaults = MemoryDefaults()
-        let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        let rows = model.features.menuItems
+        let rows = MenuItemRows()
         let log = CallLog()
         rows.host.leave = { log.note("leave") }
         rows.choose = { item, target in log.note("\(target.name): \(item.title)") }
