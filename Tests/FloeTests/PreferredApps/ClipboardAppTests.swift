@@ -172,7 +172,7 @@ struct ClipboardAppTests {
         settings.clipboardHistoryIsParked = true
         let model = makeModel()
         model.openClipboardHistory()
-        #expect(!model.isShowingClipboardHistory)
+        #expect(model.mode?.kind != .clipboardHistory)
         #expect(opened.hud == ["Choose a clipboard app in Settings"])
         #expect(!settings.recordsClipboardHistory)
     }
@@ -313,7 +313,7 @@ struct ClipboardAppTests {
     @Test func withFloeTheCommandShowsFloesHistory() {
         let model = makeModel()
         model.activate(.clipboardHistory)
-        #expect(model.isShowingClipboardHistory)
+        #expect(model.mode?.kind == .clipboardHistory)
         #expect(opened.apps.isEmpty && opened.links.isEmpty && opened.hud.isEmpty)
     }
 
@@ -327,7 +327,7 @@ struct ClipboardAppTests {
         model.activate(row ?? .clipboardHistory)
         #expect(opened.apps == [Fake.clippy])
         #expect(opened.hides == 1)
-        #expect(!model.isShowingClipboardHistory)
+        #expect(model.mode?.kind != .clipboardHistory)
         #expect(model.query.isEmpty)
         #expect(opened.hud.isEmpty)
     }
@@ -339,7 +339,7 @@ struct ClipboardAppTests {
         model.activate(.clipboardHistory)
         model.openClipboardHistory()
         #expect(opened.apps == [Fake.clippy, Fake.clippy])
-        #expect(!model.isShowingClipboardHistory, "nothing leads to Floe's history while another app keeps it")
+        #expect(model.mode?.kind != .clipboardHistory, "nothing leads to Floe's history while another app keeps it")
     }
 
     @Test func withAKnownAppTheCommandOpensItsLinkInThatApp() {
@@ -371,7 +371,7 @@ struct ClipboardAppTests {
         model.openClipboardHistory()
         #expect(opened.hud == ["Raycast isn't installed"])
         #expect(opened.apps.isEmpty && opened.links.isEmpty)
-        #expect(!model.isShowingClipboardHistory)
+        #expect(model.mode?.kind != .clipboardHistory)
         #expect(!settings.recordsClipboardHistory, "the choice is still not Floe")
     }
 
@@ -383,19 +383,19 @@ struct ClipboardAppTests {
         model.openClipboardHistory()
         #expect(opened.hud == ["Set a link for your clipboard app in Settings", "The clipboard link isn't a URL. Change it in Settings"])
         #expect(opened.links.isEmpty)
-        #expect(!model.isShowingClipboardHistory)
+        #expect(model.mode?.kind != .clipboardHistory)
     }
 
     @Test func choosingAnotherAppInSettingsClosesFloesHistoryAndRedrawsTheRow() async {
         let model = makeModel()
         let following = model.followClipboardRole()
         model.openClipboardHistory()
-        #expect(model.isShowingClipboardHistory)
+        #expect(model.mode?.kind == .clipboardHistory)
 
         settings.clipboardApp = Fake.clippyChoice
         settings.clipboardHandler = .app
         await drainMainQueue()
-        #expect(!model.isShowingClipboardHistory)
+        #expect(model.mode?.kind != .clipboardHistory)
         #expect(model.results.first { $0.item.id == RootItem.clipboardHistoryKey }?.item.rowLabel == "Clippy")
 
         settings.clipboardHandler = .floe

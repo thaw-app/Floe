@@ -31,6 +31,13 @@ struct CheckpointsTests {
         return model
     }
 
+    /// The checkpoints alone, kept in the folder. What they ask of the launcher goes to their host, which a test sets.
+    private func checkpoints(in folder: URL) -> CheckpointRows {
+        let checkpoints = CheckpointRows()
+        checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
+        return checkpoints
+    }
+
     @Test(arguments: [
         ("pause website redesign", "website redesign", ""),
         ("Pause  taxes : call the accountant", "taxes", "call the accountant"),
@@ -132,48 +139,48 @@ struct CheckpointsTests {
     @Test func savingReadsFinderOffTheMainThread() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
+        let checkpoints = checkpoints(in: folder)
         let log = ThreadLog()
-        model.features.checkpoints.environment.finderItems = {
+        checkpoints.environment.finderItems = {
             log.note("finder")
             return []
         }
-        model.features.checkpoints.environment.tabs = { [] }
-        await model.features.checkpoints.saveCheckpoint(named: "thought", note: "call the bank").value
+        checkpoints.environment.tabs = { [] }
+        await checkpoints.saveCheckpoint(named: "thought", note: "call the bank").value
         #expect(log.onMain == ["finder": false])
-        #expect(model.features.checkpoints.store.all.map(\.name) == ["thought"])
+        #expect(checkpoints.store.all.map(\.name) == ["thought"])
     }
 
     @Test func nothingSelectedNoBrowserAndNoNoteSavesNothing() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
+        let checkpoints = checkpoints(in: folder)
         var said: [String] = []
-        model.panelHost.showHUD = { said.append($0) }
-        model.features.checkpoints.environment.finderItems = { [] }
-        model.features.checkpoints.environment.tabs = { [] }
-        await model.features.checkpoints.saveCheckpoint(named: "empty", note: "").value
-        #expect(model.features.checkpoints.store.all.isEmpty)
+        checkpoints.host.showHUD = { said.append($0) }
+        checkpoints.environment.finderItems = { [] }
+        checkpoints.environment.tabs = { [] }
+        await checkpoints.saveCheckpoint(named: "empty", note: "").value
+        #expect(checkpoints.store.all.isEmpty)
         #expect(said.first?.hasPrefix("Nothing to save.") == true)
-        await model.features.checkpoints.saveCheckpoint(named: "thought", note: "call the bank").value
-        #expect(model.features.checkpoints.store.all.map(\.summary) == ["a note"], "a note alone is worth keeping")
+        await checkpoints.saveCheckpoint(named: "thought", note: "call the bank").value
+        #expect(checkpoints.store.all.map(\.summary) == ["a note"], "a note alone is worth keeping")
     }
 
     @Test func resumeOpensWhatIsThereAndSaysWhatIsGone() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
+        let checkpoints = checkpoints(in: folder)
         var said: [String] = []
-        model.panelHost.showHUD = { said.append($0) }
+        checkpoints.host.showHUD = { said.append($0) }
         var opened: [String] = []
-        model.features.checkpoints.environment.openFile = { opened.append($0.path) }
+        checkpoints.environment.openFile = { opened.append($0.path) }
         var shown: [String] = []
-        model.features.shell.environment.showOutput = { title, text in shown.append("\(title)|\(text.contains("Missing: "))") }
+        checkpoints.host.showOutput = { title, text in shown.append("\(title)|\(text.contains("Missing: "))") }
         let here = folder.appendingPathComponent("index.html")
         try Data().write(to: here)
 
         let whole = Checkpoint(name: "site", note: "fix the nav", items: [.init(kind: .file, value: here.path, title: "index.html")], saved: Date())
-        model.features.checkpoints.resume(whole)
+        checkpoints.resume(whole)
         #expect(opened == [here.path])
         #expect(said == ["fix the nav"], "the note of the next step is what is said")
         #expect(shown.isEmpty)
@@ -183,7 +190,7 @@ struct CheckpointsTests {
             items: [.init(kind: .file, value: here.path, title: "index.html"), .init(kind: .file, value: folder.appendingPathComponent("gone.css").path, title: "gone.css")],
             saved: Date()
         )
-        model.features.checkpoints.resume(broken)
+        checkpoints.resume(broken)
         #expect(opened == [here.path, here.path], "what is there still opens")
         #expect(said.last == "1 of 2 are missing")
         #expect(shown == ["old|true"], "and the list says which")
@@ -199,23 +206,23 @@ struct CheckpointsTests {
         .init(kind: .app, value: "/Applications/Notes.app", title: "Notes")
     }
 
-    /// A model that records what it did to apps, with those two open and no Finder or browser to ask.
-    private func appsModel(in folder: URL, did: @escaping (String) -> Void) -> LauncherModel {
-        let model = model(in: folder)
-        model.features.checkpoints.environment.finderItems = { [] }
-        model.features.checkpoints.environment.tabs = { [] }
-        model.features.checkpoints.environment.openApps = { [mail, notes] in [mail, notes] }
-        model.features.checkpoints.environment.hideApps = { did("hide \($0.map(\.title).joined(separator: "+"))") }
-        model.features.checkpoints.environment.quitApps = { did("quit \($0.map(\.title).joined(separator: "+"))") }
-        return model
+    /// Checkpoints that record what they did to apps, with those two open and no Finder or browser to ask.
+    private func appsCheckpoints(in folder: URL, did: @escaping (String) -> Void) -> CheckpointRows {
+        let checkpoints = checkpoints(in: folder)
+        checkpoints.environment.finderItems = { [] }
+        checkpoints.environment.tabs = { [] }
+        checkpoints.environment.openApps = { [mail, notes] in [mail, notes] }
+        checkpoints.environment.hideApps = { did("hide \($0.map(\.title).joined(separator: "+"))") }
+        checkpoints.environment.quitApps = { did("quit \($0.map(\.title).joined(separator: "+"))") }
+        return checkpoints
     }
 
     @Test func returnSavesNoAppsAndTheMenuHidesOrQuitsThemOnceSaved() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
         var did: [String] = []
-        let model = appsModel(in: folder) { did.append($0) }
-        let rows = model.features.checkpoints
+        let checkpoints = appsCheckpoints(in: folder) { did.append($0) }
+        let rows = checkpoints
 
         await rows.saveCheckpoint(named: "plain", note: "just a note").value
         #expect(rows.store.all.first?.holdsApps == false)
@@ -236,8 +243,8 @@ struct CheckpointsTests {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
         var did: [String] = []
-        let model = appsModel(in: folder) { did.append($0) }
-        let rows = model.features.checkpoints
+        let checkpoints = appsCheckpoints(in: folder) { did.append($0) }
+        let rows = checkpoints
         let inTheWay = folder.appendingPathComponent("a file")
         try Data().write(to: inTheWay)
         rows.store = CheckpointStore(file: inTheWay.appendingPathComponent("Checkpoints.json"))
@@ -250,8 +257,8 @@ struct CheckpointsTests {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
         var did: [String] = []
-        let model = appsModel(in: folder) { did.append($0) }
-        let rows = model.features.checkpoints
+        let checkpoints = appsCheckpoints(in: folder) { did.append($0) }
+        let rows = checkpoints
         await rows.saveCheckpoint(named: "desk", note: "", apps: .listed).value
         #expect(rows.store.all.first?.holdsApps == true)
         #expect(did.isEmpty)
@@ -266,12 +273,12 @@ struct CheckpointsTests {
     @Test func resumeBringsAppsBackWithTheLastInFrontAndSaysWhichAreGone() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
+        let checkpoints = checkpoints(in: folder)
         var back: [String] = []
-        model.features.checkpoints.environment.bringBack = { back.append("\($0.lastPathComponent) \($1)") }
+        checkpoints.environment.bringBack = { back.append("\($0.lastPathComponent) \($1)") }
         var said: [String] = []
-        model.panelHost.showHUD = { said.append($0) }
-        model.features.shell.environment.showOutput = { _, _ in
+        checkpoints.host.showHUD = { said.append($0) }
+        checkpoints.host.showOutput = { _, _ in
             // Listing what is gone is another test's.
         }
         let here = folder.appendingPathComponent("One.app")
@@ -284,7 +291,7 @@ struct CheckpointsTests {
             .init(kind: .app, value: there.path, title: "Two"),
             gone,
         ]
-        model.features.checkpoints.resume(Checkpoint(name: "desk", note: "", items: items, saved: Date()))
+        checkpoints.resume(Checkpoint(name: "desk", note: "", items: items, saved: Date()))
         #expect(back == ["One.app false", "Two.app true"])
         #expect(said.last == "1 of 3 are missing")
     }
@@ -292,8 +299,8 @@ struct CheckpointsTests {
     @Test func resumingWithAppsOpensOnlyTheTabsThatAreNotOpenAlready() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
-        let rows = model.features.checkpoints
+        let checkpoints = checkpoints(in: folder)
+        let rows = checkpoints
         rows.environment.bringBack = { _, _ in
             // No app is touched here.
         }
@@ -318,8 +325,8 @@ struct CheckpointsTests {
     @Test func aBrowserThatStartsIsGivenTimeToRestoreItsTabsBeforeLinksOpen() async throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
-        let rows = model.features.checkpoints
+        let checkpoints = checkpoints(in: folder)
+        let rows = checkpoints
         let app = folder.appendingPathComponent("Browser.app")
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         rows.environment.isStoppedBrowser = { _ in true }
@@ -456,17 +463,17 @@ struct CheckpointsTests {
     @Test func deletingAsksFirstAndLeavesTheFilesAlone() throws {
         let folder = try scratch()
         defer { try? FileManager.default.removeItem(at: folder) }
-        let model = model(in: folder)
+        let checkpoints = checkpoints(in: folder)
         let checkpoint = Checkpoint(name: "site", note: "", items: [], saved: Date())
-        model.features.checkpoints.store.save(checkpoint)
-        model.features.checkpoints.reload()
-        let delete = try #require(model.features.checkpoints.checkpointActions(checkpoint).last ?? nil)
-        model.features.checkpoints.environment.confirmsDelete = { _, _ in }
+        checkpoints.store.save(checkpoint)
+        checkpoints.reload()
+        let delete = try #require(checkpoints.checkpointActions(checkpoint).last ?? nil)
+        checkpoints.environment.confirmsDelete = { _, _ in }
         delete.run()
-        #expect(model.features.checkpoints.store.all.count == 1)
-        model.features.checkpoints.environment.confirmsDelete = { _, goAhead in goAhead() }
+        #expect(checkpoints.store.all.count == 1)
+        checkpoints.environment.confirmsDelete = { _, goAhead in goAhead() }
         delete.run()
-        #expect(model.features.checkpoints.store.all.isEmpty)
-        #expect(model.features.checkpoints.checkpoints.isEmpty)
+        #expect(checkpoints.store.all.isEmpty)
+        #expect(checkpoints.checkpoints.isEmpty)
     }
 }

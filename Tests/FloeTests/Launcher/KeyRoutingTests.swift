@@ -27,20 +27,20 @@ struct KeyRoutingTests {
 
     private func open(_ mode: Mode) {
         switch mode {
-        case .menuBarSearch: model.isSearchingMenuBar = true
+        case .menuBarSearch: model.enter(.menuBarSearch)
         // No front app and no Accessibility, so nothing outside the test is read.
-        case .menuItemSearch: model.menuItemSearch = MenuItemSearchModel(environment: .init(frontApp: { nil }, isTrusted: { false }))
-        case .clipboardHistory: model.isShowingClipboardHistory = true
-        case .fileSearch: model.isSearchingFiles = true
-        case .noteDesk: model.noteDesk = NoteDeskModel(place: .elsewhere("Notes"), store: FolderNoteStore(folder: nil))
+        case .menuItemSearch: model.enter(.menuItemSearch(MenuItemSearchModel(environment: .init(frontApp: { nil }, isTrusted: { false }))))
+        case .clipboardHistory: model.enter(.clipboardHistory)
+        case .fileSearch: model.enter(.fileSearch)
+        case .noteDesk: model.enter(.noteDesk(NoteDeskModel(place: .elsewhere("Notes"), store: FolderNoteStore(folder: nil))))
         }
     }
 
     private func isOpen(_ mode: Mode) -> Bool {
         switch mode {
-        case .menuBarSearch: model.isSearchingMenuBar
+        case .menuBarSearch: model.mode?.kind == .menuBarSearch
         case .menuItemSearch: model.menuItemSearch != nil
-        case .clipboardHistory: model.isShowingClipboardHistory
+        case .clipboardHistory: model.mode?.kind == .clipboardHistory
         case .fileSearch: model.isSearchingFiles
         case .noteDesk: model.noteDesk != nil
         }
@@ -102,7 +102,7 @@ struct KeyRoutingTests {
     }
 
     @Test func anAlertTakesReturnOverAMenuBarSearchBehindIt() throws {
-        model.isSearchingMenuBar = true
+        model.enter(.menuBarSearch)
         let session = try start()
         session.alert = AlertState(id: 7, title: "Delete?", message: nil, primaryTitle: "Delete", isDestructive: true, dismissTitle: "Cancel")
         #expect(model.handleKey(try returnKey()))
@@ -115,7 +115,7 @@ struct KeyRoutingTests {
 
     @Test func aSetupFormIsInFrontOfARunningCommand() throws {
         _ = try start()
-        model.isShowingClipboardHistory = true
+        model.enter(.clipboardHistory)
         model.setup = SetupRequest(command: Fixture.command("hello"), kind: .arguments, fields: [])
         #expect(isSetup(model.onScreen))
         #expect(model.handleKey(try escape()))
@@ -124,14 +124,14 @@ struct KeyRoutingTests {
     }
 
     @Test func aCommandWithNoViewLeavesTheKeysWhereTheyWere() throws {
-        model.isShowingClipboardHistory = true
+        model.enter(.clipboardHistory)
         _ = try start(Fixture.command("tick", mode: "no-view"))
         #expect(isClipboardHistory(model.onScreen))
     }
 
     @Test func withNothingOpenTheRootSearchIsOnScreen() {
         #expect(isRootSearch(model.onScreen))
-        model.askAI = AskAIModel(question: "q", source: nil, request: { _, _ in "" })
+        model.enter(.askAI(AskAIModel(question: "q", source: nil, request: { _, _ in "" })))
         #expect(isAskAI(model.onScreen))
     }
 }

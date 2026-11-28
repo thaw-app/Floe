@@ -35,7 +35,20 @@ struct TimersTests {
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
         model.features.receipts.store = ReceiptStore(file: folder.appendingPathComponent("Receipts.json"))
         model.features.checkpoints.store = CheckpointStore(file: folder.appendingPathComponent("Checkpoints.json"))
-        model.features.timers.environment = TimerEnvironment(
+        model.features.timers.environment = environment(stand)
+        return model
+    }
+
+    /// The timers alone, run by the stand-in, with what they say going to the closure.
+    private func timers(stand: Stand, said: @escaping (String) -> Void) -> TimerRows {
+        let timers = TimerRows()
+        timers.environment = environment(stand)
+        timers.host = RowHost(showHUD: said)
+        return timers
+    }
+
+    private func environment(_ stand: Stand) -> TimerEnvironment {
+        TimerEnvironment(
             now: { stand.now },
             requestAccess: {
                 stand.asked += 1
@@ -47,7 +60,6 @@ struct TimersTests {
                 return { stand.calledOff += 1 }
             }
         )
-        return model
     }
 
     // MARK: The length
@@ -223,44 +235,38 @@ struct TimersTests {
     // MARK: The end
 
     @Test func whenItEndsANotificationSaysSoAndTheTimerIsOffTheList() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
         let stand = Stand()
-        let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.panelHost.showHUD = { said.append($0) }
-        await model.features.timers.startTimer(TimerDraft(duration: 300, label: "tea")).value
-        await model.features.timers.startTimer(TimerDraft(duration: 600)).value
+        let timers = timers(stand: stand) { said.append($0) }
+        await timers.startTimer(TimerDraft(duration: 300, label: "tea")).value
+        await timers.startTimer(TimerDraft(duration: 600)).value
         said.removeAll()
 
         stand.waits[0].fire()
-        #expect(model.features.timers.running.all.map(\.duration) == [600])
-        await model.features.timers.running.announcement?.value
+        #expect(timers.running.all.map(\.duration) == [600])
+        await timers.running.announcement?.value
         #expect(stand.notified.map(\.name) == ["tea"])
         #expect(said.isEmpty, "the notification says it, so the HUD does not")
         #expect(stand.calledOff == 1)
 
         stand.waits[0].fire()
-        await model.features.timers.running.announcement?.value
+        await timers.running.announcement?.value
         #expect(stand.notified.count == 1, "a timer ends once")
     }
 
     @Test func withNotificationsRefusedTheHUDSaysItEnded() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
         let stand = Stand()
         stand.isAllowed = false
-        let model = model(in: folder, stand: stand)
         var said: [String] = []
-        model.panelHost.showHUD = { said.append($0) }
-        await model.features.timers.startTimer(TimerDraft(duration: 300, label: "tea")).value
+        let timers = timers(stand: stand) { said.append($0) }
+        await timers.startTimer(TimerDraft(duration: 300, label: "tea")).value
         #expect(said == ["Timer started: tea"])
 
         stand.waits[0].fire()
-        await model.features.timers.running.announcement?.value
+        await timers.running.announcement?.value
         #expect(stand.notified.isEmpty)
         #expect(said.last == "Timer ended: tea")
-        #expect(model.features.timers.running.all.isEmpty)
+        #expect(timers.running.all.isEmpty)
     }
 
     // MARK: Stopping

@@ -52,6 +52,14 @@ struct MusicControlsTests {
     }
 
     /// A model whose players are the stand-in. The lists it fills are the HUD's lines and the apps Automation was asked for.
+    /// The music controls alone, with what they say going to the closure.
+    private func remote(stand: Stand, said: @escaping (String) -> Void, asked: @escaping (String) -> Void = { _ in }) -> MusicRemote {
+        let remote = MusicRemote()
+        remote.environment = MusicEnvironment(isRunning: { stand.isRunning($0) }, run: stand.runner, askForAutomation: asked)
+        remote.say = said
+        return remote
+    }
+
     private func model(in folder: URL, stand: Stand, said: @escaping (String) -> Void, asked: @escaping (String) -> Void = { _ in }) -> LauncherModel {
         let defaults = MemoryDefaults()
         let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []))
@@ -185,47 +193,41 @@ struct MusicControlsTests {
     }
 
     @Test func nowPlayingShowsTheTrackAndItsArtist() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
         let stand = Stand()
         stand.state.withLock {
             $0.open = [Self.spotify]
             $0.answer = .text("So What\(MusicScripts.fieldSeparator)Miles Davis")
         }
         var said: [String] = []
-        let model = model(in: folder, stand: stand) { said.append($0) }
-        await model.features.music.controlMusic(.nowPlaying).value
+        let music = remote(stand: stand) { said.append($0) }
+        await music.controlMusic(.nowPlaying).value
         #expect(said == ["So What · Miles Davis"])
         #expect(stand.scripts == [MusicScripts.script(.nowPlaying, for: .spotify)])
 
         stand.state.withLock { $0.answer = .text("") }
-        await model.features.music.controlMusic(.nowPlaying).value
+        await music.controlMusic(.nowPlaying).value
         #expect(said.last == "Nothing is playing in Spotify")
         stand.state.withLock { $0.answer = .failed }
-        await model.features.music.controlMusic(.nextTrack).value
+        await music.controlMusic(.nextTrack).value
         #expect(said.last == "Spotify did not answer")
     }
 
     @Test func withNoPlayerOpenNothingIsScriptedButPlay() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
         let stand = Stand()
         var said: [String] = []
-        let model = model(in: folder, stand: stand) { said.append($0) }
+        let music = remote(stand: stand) { said.append($0) }
         for command in [MusicCommand.nextTrack, .previousTrack, .nowPlaying] {
-            await model.features.music.controlMusic(command).value
+            await music.controlMusic(command).value
         }
         #expect(said == Array(repeating: "Neither Spotify nor Music is open", count: 3))
         #expect(stand.scripts.isEmpty)
 
-        await model.features.music.controlMusic(.playPause).value
+        await music.controlMusic(.playPause).value
         #expect(stand.scripts == [#"tell application id "com.apple.Music" to play"#])
         #expect(said.count == 3)
     }
 
     @Test func aRefusedPermissionIsAnsweredWithWhereToAllowIt() async throws {
-        let folder = try scratch()
-        defer { try? FileManager.default.removeItem(at: folder) }
         let stand = Stand()
         stand.state.withLock {
             $0.open = [Self.spotify]
@@ -233,13 +235,13 @@ struct MusicControlsTests {
         }
         var said: [String] = []
         var asked: [String] = []
-        let model = model(in: folder, stand: stand, said: { said.append($0) }, asked: { asked.append($0) })
-        await model.features.music.controlMusic(.playPause).value
+        let music = remote(stand: stand, said: { said.append($0) }, asked: { asked.append($0) })
+        await music.controlMusic(.playPause).value
         #expect(asked == ["Spotify"])
         #expect(said.isEmpty)
 
         stand.state.withLock { $0.open = [] }
-        await model.features.music.controlMusic(.playPause).value
+        await music.controlMusic(.playPause).value
         #expect(asked == ["Spotify", "Music"], "starting Music is scripting it too")
     }
 }

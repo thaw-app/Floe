@@ -21,7 +21,9 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
-## [Unreleased]
+## [0.5.0] - 2026-11-28
+
+**macOS 26 and later · Build 13**
 
 ### New
 
@@ -32,22 +34,39 @@ these four.
 ### Changed
 
 - **A shorter welcome**: one list of permissions, each with its own Grant Access button, then a last page with your shortcut, Launch at Login and the Raycast import.
+- **Esc takes you back to the view you came from**, such as your file search after you open Clipboard History over it by its shortcut.
 
 ### Fixed
+
+#### Launcher and search
+
+- **Clicking outside the launcher closes it**, also when you click the app you were using ([#108](https://github.com/thaw-app/Floe/issues/108)).
+- **Control-Option-Space no longer opens Floe** when its shortcut is Control-Space or Option-Space ([#100](https://github.com/thaw-app/Floe/issues/100)).
+- **A web address with a slash in it**, such as `https://youtube.com`, offers to open it again instead of showing a calculator result. By @unsecretised in [#110](https://github.com/thaw-app/Floe/pull/110).
+- **Emptying the file search shows your recent files**, not what you searched for before.
+- **File search asks Spotlight when Floe's index can't follow changes on disk**, instead of showing files as they were.
+- **Searches no longer stall while a folder with thousands of files changes.**
+- **The file search opens by its shortcut** even while the menu bar search or Clipboard History is on screen.
+
+#### Extensions and passwords
 
 - **Remove Passwords from iCloud Keychain no longer deletes a password this Mac has no copy of**, and with sync off it keeps the passwords as you changed or deleted them on this Mac.
 - **A password you type as a command's argument no longer shows in the list of running processes.**
-- **Clipboard history keeps two different images that start alike**, each with its own pin.
 - **Two commands of one extension running at once no longer erase each other's cached data.**
-- **Emptying the file search shows your recent files**, not what you searched for before.
-- **File search asks Spotlight when Floe's index can't follow changes on disk**, instead of showing files as they were.
-- **Searches no longer stall while a folder with thousands of files changes, and extensions open their stored data faster.**
-- **A permission in the welcome no longer stays on “Waiting…” when you decline its prompt after a few minutes.**
-- **Clicking outside the launcher closes it**, also when you click the app you were using ([#108](https://github.com/thaw-app/Floe/issues/108)).
-- **Control-Option-Space no longer opens Floe** when its shortcut is Control-Space or Option-Space ([#100](https://github.com/thaw-app/Floe/issues/100)).
-### Fixed
+- **Extensions open their stored data faster.**
 
-- Typing a web address with a slash in it, such as `https://youtube.com`, offers to open it again instead of showing a calculator result.
+#### Everywhere else
+
+- **Clipboard history keeps two different images that start alike**, each with its own pin.
+- **A permission in the welcome no longer stays on “Waiting…” when you decline its prompt after a few minutes.**
+
+### Contributors
+
+- @unsecretised fixed web addresses with a slash in them ([#110](https://github.com/thaw-app/Floe/pull/110)).
+- @gamedevCloudy asked for finding apps despite a typo ([#112](https://github.com/thaw-app/Floe/issues/112)).
+- @nightsu asked for finding apps by their names in the Mac's language and by Pinyin ([#109](https://github.com/thaw-app/Floe/issues/109)).
+- @naiyerasif reported that clicking outside the launcher didn't close it ([#108](https://github.com/thaw-app/Floe/issues/108)).
+- @lucein1774 reported that Control-Option-Space opened Floe ([#100](https://github.com/thaw-app/Floe/issues/100)).
 
 ## [0.4.0] - 2026-11-22
 

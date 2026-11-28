@@ -13,10 +13,7 @@ extension LauncherModel {
     func openMenuBarSearch() {
         runner.endOpenCommand()
         setup = nil
-        menuItemSearch = nil
-        isShowingClipboardHistory = false
-        closeNoteDesk()
-        isSearchingMenuBar = true
+        enter(.menuBarSearch)
         if !settings.rememberMenuBarQuery {
             menuBarSearch.query = ""
         }
@@ -26,7 +23,7 @@ extension LauncherModel {
     }
 
     func closeMenuBarSearch() {
-        isSearchingMenuBar = false
+        leave(.menuBarSearch)
         focusToken += 1
     }
 }

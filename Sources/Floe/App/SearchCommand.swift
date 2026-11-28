@@ -13,8 +13,9 @@ func runSearch(query: String) -> Never {
     model.canAskAI = { AIAnswer.isAvailable }
     model.query = query
     Task { @MainActor in
-        await model.definitionSearch.settled()
-        await model.calculatorSearch.settled()
+        for late in model.lateAnswers {
+            await late.settled()
+        }
         for result in model.results.prefix(8) {
             print("\(result.section.map { "[\($0)] " } ?? "")\(result.item.title) (\(result.item.kind))\(model.alias(for: result.item).map { " (alias \($0))" } ?? "")")
         }

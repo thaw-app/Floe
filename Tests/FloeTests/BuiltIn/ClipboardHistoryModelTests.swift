@@ -150,7 +150,7 @@ final class ClipboardHistoryModelTests {
         launcher.clipboardHistory.query = "left over"
         launcher.clipboardHistory.selection = 4
         launcher.openClipboardHistory()
-        #expect(launcher.isShowingClipboardHistory)
+        #expect(launcher.mode?.kind == .clipboardHistory)
         #expect(launcher.clipboardHistory.query.isEmpty, "the history opens on everything")
         #expect(launcher.clipboardHistory.selection == 0)
 
@@ -163,9 +163,9 @@ final class ClipboardHistoryModelTests {
 
         #expect(try launcher.handleKey(key(53)))
         #expect(launcher.clipboardHistory.query.isEmpty)
-        #expect(launcher.isShowingClipboardHistory)
+        #expect(launcher.mode?.kind == .clipboardHistory)
         #expect(try launcher.handleKey(key(53)))
-        #expect(!launcher.isShowingClipboardHistory)
+        #expect(launcher.mode?.kind != .clipboardHistory)
     }
 
     @Test func theCopiesAreGroupedByDayNewestDayFirstAndKeepTheirOrderInsideADay() {

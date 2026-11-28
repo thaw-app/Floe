@@ -24,9 +24,7 @@ extension LauncherModel {
         }
         runner.endOpenCommand()
         setup = nil
-        isSearchingMenuBar = false
-        menuItemSearch = nil
-        isShowingClipboardHistory = true
+        enter(.clipboardHistory)
         clipboardHistory.query = ""
         clipboardHistory.selection = 0
         panelHost.showPanel()
@@ -54,7 +52,7 @@ extension LauncherModel {
             .sink { [weak self] handler, _, _ in
                 DispatchQueue.main.async {
                     if handler != .floe {
-                        self?.isShowingClipboardHistory = false
+                        self?.leave(.clipboardHistory)
                     }
                     self?.refresh()
                 }
@@ -62,7 +60,7 @@ extension LauncherModel {
     }
 
     func closeClipboardHistory() {
-        isShowingClipboardHistory = false
+        leave(.clipboardHistory)
         focusToken += 1
     }
 }

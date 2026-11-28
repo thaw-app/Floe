@@ -13,13 +13,9 @@ extension LauncherModel {
     func openMenuItemSearch() {
         runner.endOpenCommand()
         setup = nil
-        isSearchingMenuBar = false
-        isShowingClipboardHistory = false
-        isSearchingFiles = false
-        closeNoteDesk()
         let search = MenuItemSearchModel(environment: menuItemEnvironment)
         search.host = modeHost { [weak self] in self?.closeMenuItemSearch() }
-        menuItemSearch = search
+        enter(.menuItemSearch(search))
         panelHost.showPanel()
         focusToken += 1
         search.scan()
@@ -29,12 +25,15 @@ extension LauncherModel {
     /// other apps read them now.
     func accessibilityWasGranted() {
         menuBarSearch.accessWasGranted()
-        menuItemSearch?.scan()
+        // Also a search under another mode, so it shows the menus when it is back on screen.
+        for case let .menuItemSearch(search) in modes.modes {
+            search.scan()
+        }
         refresh()
     }
 
     func closeMenuItemSearch() {
-        menuItemSearch = nil
+        leave(.menuItemSearch)
         focusToken += 1
     }
 }

@@ -39,20 +39,25 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
 
 - `Sources/Floe`: the app: panel, hotkey, app index, and a renderer for the JSON tree the host sends. One folder per
   area, and no Swift file outside a folder:
-  - `App`: the entry point and app delegate (`main.swift`), the main menu, the `floe://` link router and what decides
-    what a link is (`IncomingLink.swift`, which `Tests/Fuzzing` compiles on its own), the debug
-    options, the update rules and the generated credits. Also the launcher's side of Settings: the process handle
-    (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the launcher does with them.
-  - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
-    and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the action panel an extension's ⌘K and Floe's own Actions menu share
-    (`ActionPanel.swift`, with Floe's rows in `ItemActionPanel.swift`), the catalog
+  - `App`: the entry point and app delegate (`main.swift`), the launcher's window (`LauncherPanel.swift`), the main
+    menu, the `floe://` link router and what decides what a link is (`IncomingLink.swift`, which `Tests/Fuzzing`
+    compiles on its own), the debug options and the terminal modes they start (`SelfTest.swift`, `DebugModes.swift`,
+    `SearchCommand.swift`, `SearchBench.swift`), the update rules and the generated credits. Also the launcher's side
+    of Settings: the process handle (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the
+    launcher does with them.
+  - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys),
+    the views it shows instead of the root search as a stack of `LauncherMode`s (`LauncherMode.swift`, entered and
+    left in `Model+Mode.swift`; one opened over another waits underneath until it is left), its root views
+    (`Views.swift`, `IconView.swift`), its layout and appearance, the action panel an extension's ⌘K and Floe's own
+    Actions menu share (`ActionPanel.swift`, with Floe's rows in `ItemActionPanel.swift`), the catalog
     of apps and commands with its scans (`Catalog.swift`, which also holds `Paths`), and Markdown.
   - `Actions`: the keys and the user's choices for a result's Actions menu, by kind of result (app, file, folder or
     link). Floe's own keys for its rows (`ActionKeys.swift`, with `SubjectKind` and `KeyLayout`), the choices for one
     kind and the rules they follow (`ActionChoices.swift`), what the launcher asks for Return, the menu and the keys
     (`AlternativeActions.swift`), what the Actions page in Settings lists and writes (`ActionOptions.swift`), and the
     user's script commands as rows of the menu, with what they are told about the result (`ScriptActions.swift`).
-  - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
+  - `Search`: ranking and fuzzy matching, how often and how recently each result was opened (`UsageStore.swift`), the
+    command lookup the App Intents use, and `SearchProviders` (below).
   - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
     clipboard history, snippets and their expander, quicklinks, the calendar, the file search and its index of file
     names (`FileIndexService.swift`; the index itself is Rust, in `Vendor/FloeRust/rust/src/index.rs`, and is saved
@@ -92,6 +97,9 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
   and merges what they answer. `LauncherModel.refresh()` only builds the context they read.
   - Dictionary answers are read by `BuiltIn/DefinitionSearch.swift` off the main thread, except the spell checker's word list. It keeps only the current
     query's answer, drops late results, and hands the entry to `DefinitionSearchProvider` through `SearchContext`.
+  - The dictionary and the calculator answer after the list is shown. Each is a `LateAnswer` (`LateAnswer.swift`):
+    the model starts every one in `lateAnswers` for an ordinary search, and each puts what it knows into the
+    `SearchContext` that its `LateSearchProvider` reads. Another answer that arrives late is one more entry there.
   - A scope (`SearchScope.swift`) is a search of its own inside the root search: `files invoice`, `clipboard meeting`
     and `menu wifi` show only that scope's rows. It triggers on its keyword, a space and some text; the keyword alone
     is an ordinary search. A scope may deliver rows later through an `AsyncStream`, each batch replacing the last;
@@ -129,8 +137,8 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     `Extensions/ExtensionEnvironment.swift` lists, unless its page in Settings passes it everything.
   - `AI.ask` is answered by a one-shot run of a command line tool (`TextGeneration.swift`: `claude`, `codex`,
     `opencode` or `pi`, each with no tools of its own) or by a streamed request to an OpenAI-compatible API
-    (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice and the request an
-    extension makes are in `Extensions/HostRequest.swift`, and which tool answers is in `AI/AITool.swift`.
+    (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice is in `AI/AIEndpoint.swift`, the
+    request an extension makes in `Extensions/HostRequest.swift`, and which tool answers in `AI/AITool.swift`.
   - `ToolTextStream.swift` reads a tool's JSON lines as they are printed. What a line means is in
     `ClaudeTextStream.swift`, `OpencodeTextStream.swift` and `PiTextStream.swift`, beside each tool's arguments.
   - `HangWatchdog.swift` samples the app when its main thread stops answering for four seconds and writes the stacks
