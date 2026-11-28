@@ -56,7 +56,8 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     kind and the rules they follow (`ActionChoices.swift`), what the launcher asks for Return, the menu and the keys
     (`AlternativeActions.swift`), what the Actions page in Settings lists and writes (`ActionOptions.swift`), and the
     user's script commands as rows of the menu, with what they are told about the result (`ScriptActions.swift`).
-  - `Search`: ranking and fuzzy matching, the command lookup the App Intents use, and `SearchProviders` (below).
+  - `Search`: ranking and fuzzy matching, how often and how recently each result was opened (`UsageStore.swift`), the
+    command lookup the App Intents use, and `SearchProviders` (below).
   - `BuiltIn`: what Floe does itself: the calculator, system commands and toggles, System Settings panes, emoji,
     clipboard history, snippets and their expander, quicklinks, the calendar, the file search and its index of file
     names (`FileIndexService.swift`; the index itself is Rust, in `Vendor/FloeRust/rust/src/index.rs`, and is saved
