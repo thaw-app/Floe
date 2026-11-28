@@ -5,41 +5,8 @@
 //  Copyright (Floe) © 2026 René Jiménez
 //  Licensed under the GNU AGPLv3
 
-import Algorithms
 import AppKit
 import Combine
-import CryptoKit
-import SwiftUI
-import ThawUI
-
-final class LauncherPanel: NSPanel {
-    /// The floating, borderless, see-through window the launcher and the picker both draw their glass in.
-    convenience init(size: NSSize) {
-        self.init(contentRect: NSRect(origin: .zero, size: size), styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-        level = .floating
-        isOpaque = false
-        backgroundColor = .clear
-        // See LauncherView.margin: the window's own shadow is square.
-        hasShadow = false
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-    }
-
-    override var canBecomeKey: Bool {
-        true
-    }
-}
-
-extension NSView {
-    /// Draws the view into a PNG file, for the modes that check a look without showing it.
-    /// Answers whether there was anything to draw.
-    @discardableResult
-    func writePNG(to file: URL) -> Bool {
-        guard let rep = bitmapImageRepForCachingDisplay(in: bounds) else { return false }
-        cacheDisplay(in: bounds, to: rep)
-        try? rep.representation(using: .png, properties: [:])?.write(to: file)
-        return true
-    }
-}
 
 /// Floe itself: the launcher and everything it keeps running, in one process that stays. Only Settings is a process
 /// of its own, started when it opens and gone when it closes.
@@ -217,60 +184,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// `Floe --selftest <extension> <command>` runs a command without UI and reports the first list it renders.
-func runSelfTest(extensionName: String, commandName: String) -> Never {
-    guard let command = ExtensionCommand.scan().first(where: { $0.extensionName == extensionName && $0.name == commandName }) else {
-        print("SELFTEST FAIL: no command \(extensionName)/\(commandName)")
-        exit(1)
-    }
-    let missing = PreferenceStore.missingRequired(for: command).map(\.name)
-    if !missing.isEmpty {
-        print("SELFTEST missing required preferences: \(missing)")
-    }
-    let session = ExtensionSession(command: command)
-    session.onMessage = { print("SELFTEST message:", $0["type"] ?? "?") }
-    let observer = session.objectWillChange.sink { _ in
-        DispatchQueue.main.async {
-            if let failure = session.failure {
-                print("SELFTEST FAILURE: kind=\(failure.kind) message=\(failure.message.debugDescription) logLines=\(failure.details.split(separator: "\n").count)")
-                session.forceStop()
-                exit(0)
-            }
-            if let toast = session.toast, toast.style == "failure" {
-                print("SELFTEST TOAST: \(toast.title): \(toast.message ?? "")")
-            }
-            let rows = session.rows
-            let markdown = session.view?.type == "Detail" ? session.view?.string("markdown") : nil
-            guard rows.first != nil || markdown != nil else { return }
-            let actions = session.actions.compactMap { $0.string("title") }.joined(separator: " | ")
-            let summary = markdown.map { "markdown=\($0.prefix(60).debugDescription)" }
-                ?? "rows=\(rows.count) first=\"\(rows[0].node.string("title") ?? "")\""
-            print("SELFTEST OK: view=\(session.view?.type ?? "?") \(summary) actions=[\(actions)]")
-            let describe = { (entries: [MenuEntry]) in
-                entries.map { "\($0.section.map { "[\($0)] " } ?? "")\($0.node.string("title") ?? "?")\($0.isSubmenu ? " ›" : "")" }.joined(separator: ", ")
-            }
-            print("SELFTEST MENU: \(describe(session.menuEntries))")
-            if let submenu = session.menuEntries.first(where: \.isSubmenu) {
-                session.openSubmenu(submenu.node)
-                print("SELFTEST SUBMENU: \(describe(session.menuEntries))")
-                session.closeSubmenuOrMenu()
-            }
-            session.actionQuery = "copy"
-            print("SELFTEST MENU SEARCH copy: \(describe(session.menuEntries))")
-            session.forceStop()
-            exit(0)
-        }
-    }
-    session.start()
-    DispatchQueue.main.asyncAfter(deadline: .now() + 20) {
-        print("SELFTEST FAIL: timed out; view=\(session.view?.type ?? "none") toast=\(session.toast?.title ?? "none")")
-        session.forceStop()
-        exit(1)
-    }
-    withExtendedLifetime(observer) { RunLoop.main.run() }
-    exit(1)
-}
-
 Paths.prepareSupportFolders()
 StorageKey.isEnabled = true
 EarlierIdentifier.importSettings()
@@ -295,155 +208,20 @@ if options.benchSearch {
     runSearchBench(queries: options.rest)
 }
 
-// Catches slow page switches.
 if options.benchSettings {
-    _ = NSApplication.shared
-    let catalog = CatalogStore(snapshot: .scanningNow(includeRaycast: AppSettings.shared.includeRaycastExtensions))
-    let selection = SettingsSelection()
-    let window = NSWindow(contentRect: NSRect(x: -4000, y: -4000, width: 820, height: 560), styleMask: [.titled], backing: .buffered, defer: false)
-    let search = SearchModel()
-    window.contentView = NSHostingView(rootView: SettingsView(catalog: catalog, stores: .live(), selection: selection, search: search).thawTheme(.floe))
-    window.orderFrontRegardless()
-    let pages: [(String, SettingsPage)] = [("general", .general), ("applications", .applications), ("ai", .ai), ("sync", .sync), ("privacy", .privacy), ("about", .about), ("extension", .extensionPage("kill-process"))]
-    for (name, page) in pages {
-        let start = Date()
-        selection.page = page
-        // Let SwiftUI process the change, then force layout and drawing.
-        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
-        window.contentView?.layoutSubtreeIfNeeded()
-        window.displayIfNeeded()
-        print("BENCH \(name): \(Int(Date().timeIntervalSince(start) * 1000 - 50)) ms")
-        if let directory = ProcessInfo.processInfo.environment["FLOE_BENCH_DUMP"] {
-            window.contentView?.writePNG(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
-        }
-    }
-    runSettingsSearchBench(search: search, window: window)
-    // The AI page shows one state at a time, so each is drawn on its own, on scratch settings that are never saved.
-    if let directory = ProcessInfo.processInfo.environment["FLOE_BENCH_DUMP"], let scratch = UserDefaults(suiteName: "floe.bench.ai") {
-        // Name, source, the API's model and key, the tool chosen by name, and the API's service.
-        let states: [(String, AISource, String, String?, AITool?, AIService)] = [
-            ("ai-tools", .tools, "", nil, nil, .openAI), ("ai-tool-model", .tools, "", nil, .opencode, .openAI),
-            ("ai-api", .api, "small", "key-123", nil, .openAI), ("ai-api-incomplete", .api, "", nil, nil, .openAI), ("ai-api-zai", .api, "", nil, nil, .zai),
-        ]
-        for (name, source, aiModel, key, tool, service) in states {
-            let settings = AppSettings(defaults: scratch, savesAfterEdits: false)
-            settings.aiSource = source
-            settings.aiModel = aiModel
-            settings.aiTool = tool
-            settings.aiBaseURL = service.baseURL ?? ""
-            let section = Form { AISettingsSection(settings: settings, storedKey: key ?? "") }.formStyle(.grouped).frame(width: 600, height: 320)
-            window.contentView = NSHostingView(rootView: section.thawTheme(.floe))
-            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
-            window.contentView?.layoutSubtreeIfNeeded()
-            window.displayIfNeeded()
-            window.contentView?.writePNG(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
-        }
-    }
-    exit(0)
+    runSettingsPageBench()
 }
 
-// Mixed-up or invisible icons show up without opening the window.
 if options.iconCheck {
-    _ = NSApplication.shared
-    let samples: [(String, Any, String)] = ExtensionCommand.scan().uniqued(on: \.extensionName).map { command in
-        (command.extensionName, command.icon ?? "", command.assetsPath)
-    } + [("kill-process accessory", ["source": "cpu.svg", "tintColor": "color:PrimaryText"], ExtensionCommand.scan().first { $0.extensionName == "kill-process" }?.assetsPath ?? "")]
-    for (name, value, assets) in samples {
-        let renderer = ImageRenderer(content: IconView(value: value, assetsPath: assets, size: 32, waitsForImage: true).environment(\.colorScheme, .dark))
-        renderer.scale = 1
-        guard let image = renderer.cgImage, let data = image.dataProvider?.data as Data? else { print("\(name): no image"); continue }
-        // A pixel counts as drawn when any of its four bytes is set, whatever the channel order.
-        let pixels = stride(from: 0, to: data.count - 3, by: 4).filter { data[$0] | data[$0 + 1] | data[$0 + 2] | data[$0 + 3] > 8 }.count
-        let digest = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined().prefix(8)
-        if let directory = ProcessInfo.processInfo.environment["FLOE_ICON_DUMP"] {
-            let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:])
-            try? png?.write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
-        }
-        print("\(name.padding(toLength: 24, withPad: " ", startingAt: 0)) sha=\(digest) drawn=\(pixels * 100 / max(1, data.count / 4))%")
-    }
-    exit(0)
+    runIconCheck()
 }
 
 if options.menuBar {
-    let query = options.rest.first ?? ""
-    let extras = MenuBarExtras.scan()
-    print("MENUBAR trusted=\(MenuBarExtras.isTrusted) items=\(extras.count)")
-    let ranked = query.isEmpty ? extras : extras.filter { Fuzzy.score(query, $0.name) != nil || Fuzzy.score(query, $0.ownerName) != nil }
-    for extra in ranked.prefix(30) {
-        print("  \(extra.name) (\(extra.ownerName)) at \(Int(extra.frame.minX)),\(Int(extra.frame.minY))")
-    }
-    exit(0)
+    runMenuBarListing(query: options.rest.first ?? "")
 }
 
 if let path = options.panelSnapshot {
-    _ = NSApplication.shared
-    let folder = URL(fileURLWithPath: path)
-    let model = LauncherModel(snapshot: .scanningNow(includeRaycast: AppSettings.shared.includeRaycastExtensions))
-    // Scratch settings, so drawing the compact layout leaves the saved one alone.
-    let settings = AppSettings(defaults: UserDefaults(suiteName: "floe.snapshot") ?? .standard)
-    let window = NSWindow(contentRect: NSRect(origin: NSPoint(x: -4000, y: -4000), size: model.panelState.windowSize(in: settings.launcherLayout)), styleMask: [.borderless], backing: .buffered, defer: false)
-    window.contentView = NSHostingView(rootView: LauncherView(model: model, settings: settings).thawTheme(.floe))
-    window.orderFrontRegardless()
-    let resizing = model.panelWindowSizes(settings: settings).sink { window.resizeKeepingTop(to: $0) }
-    func snapshot(_ name: String, wait: TimeInterval = 1) {
-        RunLoop.main.run(until: Date().addingTimeInterval(wait))
-        guard window.contentView?.writePNG(to: folder.appendingPathComponent("\(name).png")) == true else { return }
-        print("SNAPSHOT \(name) \(Int(window.frame.width))x\(Int(window.frame.height)) top=\(Int(window.frame.maxY))")
-    }
-    model.query = "co"
-    snapshot("root")
-    settings.launcherLayout = .compact
-    snapshot("compact-query")
-    model.query = ""
-    snapshot("compact")
-    settings.launcherLayout = .extended
-    for shape in [SearchFieldShape.capsule, .square] {
-        settings.searchFieldCorners = SearchFieldCorners(shape)
-        snapshot("field-\(shape.rawValue)")
-    }
-    settings.searchFieldCorners = .rounded
-    // The answer view with a canned answer: nothing is asked of any source.
-    model.askAIRequest = { conversation, _ in conversation.earlier.isEmpty ? AskAI.sampleAnswer : AskAI.sampleFollowUp }
-    MarkdownView.isSelectable = false
-    model.openAskAI("how do tides work")
-    snapshot("ask-ai")
-    model.closeAskAI()
-    model.openMenuBarSearch()
-    snapshot("menubar", wait: 5)
-    // The field as its own piece, last so the pictures above are drawn as they always were.
-    settings.separatesSearchField = true
-    snapshot("separate-menubar")
-    model.closeMenuBarSearch()
-    model.query = "co"
-    for shape in SearchFieldShape.allCases {
-        settings.searchFieldCorners = SearchFieldCorners(shape)
-        snapshot("separate-\(shape.rawValue)")
-    }
-    settings.searchFieldCorners = .rounded
-    settings.launcherLayout = .compact
-    model.query = ""
-    snapshot("separate-compact")
-    settings.launcherLayout = .extended
-    settings.separatesSearchField = false
-    // A follow-up under its first answer, both canned, and last for the same reason. The look
-    // settles first: a change of it draws the whole panel anew, which the answer view takes as leaving.
-    RunLoop.main.run(until: Date().addingTimeInterval(0.5))
-    model.openAskAI("how do tides work")
-    RunLoop.main.run(until: Date().addingTimeInterval(1))
-    model.askAI?.draft = "and why two a day"
-    model.askAI?.askFollowUp()
-    snapshot("ask-ai-follow-up")
-    // Three presses of the up arrow: the end of the first answer over the follow-up.
-    for _ in 0 ..< 3 {
-        model.askAI?.scroll(by: -1)
-        RunLoop.main.run(until: Date().addingTimeInterval(0.3))
-    }
-    snapshot("ask-ai-earlier")
-    model.closeAskAI()
-    // Saved now: the edit is otherwise written a moment later, after this has exited.
-    settings.save()
-    resizing.cancel()
-    exit(0)
+    runPanelSnapshot(path: path)
 }
 
 if options.selftest.count == 2 {

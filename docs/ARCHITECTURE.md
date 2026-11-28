@@ -39,10 +39,12 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
 
 - `Sources/Floe`: the app: panel, hotkey, app index, and a renderer for the JSON tree the host sends. One folder per
   area, and no Swift file outside a folder:
-  - `App`: the entry point and app delegate (`main.swift`), the main menu, the `floe://` link router and what decides
-    what a link is (`IncomingLink.swift`, which `Tests/Fuzzing` compiles on its own), the debug
-    options, the update rules and the generated credits. Also the launcher's side of Settings: the process handle
-    (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the launcher does with them.
+  - `App`: the entry point and app delegate (`main.swift`), the launcher's window (`LauncherPanel.swift`), the main
+    menu, the `floe://` link router and what decides what a link is (`IncomingLink.swift`, which `Tests/Fuzzing`
+    compiles on its own), the debug options and the terminal modes they start (`SelfTest.swift`, `DebugModes.swift`,
+    `SearchCommand.swift`, `SearchBench.swift`), the update rules and the generated credits. Also the launcher's side
+    of Settings: the process handle (`SettingsProcess.swift`), the messages (`ProcessLink.swift`) and what the
+    launcher does with them.
   - `Launcher`: the panel's model (`Model.swift`, with one `Model+….swift` per view it drives and one for the keys)
     and its root views (`Views.swift`, `IconView.swift`), its layout and appearance, the action panel an extension's ⌘K and Floe's own Actions menu share
     (`ActionPanel.swift`, with Floe's rows in `ItemActionPanel.swift`), the catalog
@@ -129,8 +131,8 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
     `Extensions/ExtensionEnvironment.swift` lists, unless its page in Settings passes it everything.
   - `AI.ask` is answered by a one-shot run of a command line tool (`TextGeneration.swift`: `claude`, `codex`,
     `opencode` or `pi`, each with no tools of its own) or by a streamed request to an OpenAI-compatible API
-    (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice and the request an
-    extension makes are in `Extensions/HostRequest.swift`, and which tool answers is in `AI/AITool.swift`.
+    (`ChatCompletionStream.swift`). Settings › AI picks between them; the choice is in `AI/AIEndpoint.swift`, the
+    request an extension makes in `Extensions/HostRequest.swift`, and which tool answers in `AI/AITool.swift`.
   - `ToolTextStream.swift` reads a tool's JSON lines as they are printed. What a line means is in
     `ClaudeTextStream.swift`, `OpencodeTextStream.swift` and `PiTextStream.swift`, beside each tool's arguments.
   - `HangWatchdog.swift` samples the app when its main thread stops answering for four seconds and writes the stacks

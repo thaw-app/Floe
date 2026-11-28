@@ -142,7 +142,7 @@ CodeQL, SonarCloud and SwiftLint run in CI. A nightly fuzz run with AddressSanit
 | Sign-in and token rules | `Sources/Floe/Extensions/OAuthBroker.swift` |
 | Process messages | `Sources/Floe/App/ProcessLink.swift` |
 | What an extension gets of the shell's environment | `Sources/Floe/Extensions/ExtensionEnvironment.swift`, `takePreferences` in `runtime/bridge.ts` |
-| AI key rules | `Sources/Floe/AI/AISources.swift`, `AIEndpoint` in `Sources/Floe/Extensions/HostRequest.swift` |
+| AI key rules | `Sources/Floe/AI/AISources.swift`, `Sources/Floe/AI/AIEndpoint.swift` |
 | Update and release authenticity | [Verifying releases](VERIFYING_RELEASES.md), `.github/workflows/release.yml` |
 | Architecture | [Architecture](ARCHITECTURE.md) |
 | Automated analysis | `.github/workflows/ci.yml`, `codeql.yml`, `dependency-sca.yml`, `fuzz.yml`, SonarCloud project `thaw-app_Floe` |
