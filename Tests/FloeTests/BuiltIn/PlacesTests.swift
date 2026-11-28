@@ -65,9 +65,8 @@ import Testing
     }
 
     @Test func aPlaceOffersTheWayThereAndItsAddress() {
-        let defaults = MemoryDefaults()
-        let model = LauncherModel(settings: AppSettings(defaults: defaults), usage: UsageStore(defaults: defaults), snapshot: CatalogSnapshot(apps: [], commands: []), scopes: [], sources: [])
-        #expect(model.features.places.placeActions(for: cafe).compactMap { $0?.title } == ["Get Directions", "Copy Address"])
-        #expect(model.features.places.actions(for: .place(cafe))?.count == 3)
+        let places = PlaceRows()
+        #expect(places.placeActions(for: cafe).compactMap { $0?.title } == ["Get Directions", "Copy Address"])
+        #expect(places.actions(for: .place(cafe))?.count == 3)
     }
 }

@@ -12,17 +12,13 @@ extension LauncherModel {
     func openNoteDesk() {
         runner.endOpenCommand()
         setup = nil
-        isSearchingMenuBar = false
-        menuItemSearch = nil
-        isShowingClipboardHistory = false
-        isSearchingFiles = false
-        closeNoteDesk()
         let desk = NoteDeskModel(app: settings.notesApp, folder: settings.notesFolder) { [weak self] in self?.record($0) }
         desk.host = modeHost { [weak self] in
             self?.closeNoteDesk()
             self?.focusToken += 1
         }
-        noteDesk = desk
+        // A desk open before is saved as this one replaces it.
+        enter(.noteDesk(desk))
         if let saving = noteDeskSave {
             // The desk closed last may still be writing a note this one is about to read.
             Task {
@@ -43,11 +39,8 @@ extension LauncherModel {
         panelHost.showFloatingNote()
     }
 
-    /// Saves what is being written as the view goes. The save is kept, for the next desk and the end of the process to wait on.
+    /// Saves what is being written as the view goes.
     func closeNoteDesk() {
-        if let noteDesk {
-            noteDeskSave = noteDesk.close()
-        }
-        noteDesk = nil
+        leave(.noteDesk)
     }
 }

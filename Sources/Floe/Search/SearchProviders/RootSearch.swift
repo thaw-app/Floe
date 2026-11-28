@@ -98,10 +98,9 @@ struct RootSearchAnswer {
         ranked = RootSearch.rank(contributions, context: context)
     }
 
-    /// Asks the late providers again, with the answers they wait on as they are now.
-    mutating func update(definitions: [WordDefinition], calculation: CalculatorRow?) {
-        context.definitions = definitions
-        context.calculation = calculation
+    /// Asks the late providers again, once fill has put the late answers as they are now into the context.
+    mutating func update(_ fill: (inout SearchContext) -> Void) {
+        fill(&context)
         for (index, provider) in providers.enumerated() where provider is any LateSearchProvider {
             contributions[index] = provider.contribution(for: context)
         }

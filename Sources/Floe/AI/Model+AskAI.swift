@@ -12,7 +12,6 @@ extension LauncherModel {
     /// Replaces the list with the answer to a question, as a conversation of its own: one that was open is dropped.
     /// The query stays, for when the view is left.
     func openAskAI(_ question: String) {
-        askAI?.leave()
         let asking = AskAIModel(
             question: question,
             source: AskAI.configuredSource(settings),
@@ -20,23 +19,21 @@ extension LauncherModel {
             request: askAIRequest
         )
         asking.host = modeHost { [weak self] in self?.closeAskAI() }
-        askAI = asking
+        enter(.askAI(asking))
         asking.ask()
     }
 
     /// Back to the root search. The request stops and the conversation is gone: nothing of it is saved.
     func closeAskAI() {
-        guard let asking = askAI else { return }
-        asking.leave()
-        askAI = nil
+        guard modes.contains(.askAI) else { return }
+        leave(.askAI)
         focusToken += 1
     }
 
-    /// The answer view went off screen, because something else took the panel.
+    /// The answer view went off screen. Under another mode the conversation waits to be shown again; one no longer
+    /// open stops.
     func leaveAskAI(_ asking: AskAIModel) {
-        if askAI === asking {
-            closeAskAI()
-        } else {
+        if !modes.holds(asking) {
             asking.leave()
         }
     }

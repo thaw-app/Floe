@@ -21,6 +21,16 @@ section's name.
 Anything else goes before the first section, or in its own section after
 these four.
 
+## [Unreleased]
+
+### Changed
+
+- **Esc takes you back to the view you came from**, such as your file search after you open Clipboard History over it by its shortcut.
+
+### Fixed
+
+- **The file search opens by its shortcut** even while the menu bar search or Clipboard History is on screen.
+
 ## [0.5.0] - 2026-11-27
 
 **macOS 26 and later · Build 13**

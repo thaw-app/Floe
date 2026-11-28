@@ -55,8 +55,8 @@ final class LauncherModel: ObservableObject {
     /// The apps, commands, scripts, panes and hosts the search finds; the model refreshes when a part changes.
     let catalog: CatalogStore
 
-    /// True while the panel shows the file search instead of the root search.
-    @Published var isSearchingFiles = false
+    /// The views open instead of the root search, the one on screen last. Changed through enter and leave only.
+    @Published var modes = ModeStack()
     /// The file search's own state. Not published: its changes redraw its view only.
     var fileSearch: FileSearchModel {
         if let madeFileSearch {
@@ -70,20 +70,12 @@ final class LauncherModel: ObservableObject {
     /// Nil until the file search is first used, so a reset does not make one only to cancel it.
     private var madeFileSearch: FileSearchModel?
 
-    /// True while the panel shows the menu bar item search instead of the root search.
-    @Published var isSearchingMenuBar = false
-    /// True while the panel shows the clipboard history instead of the root search.
-    @Published var isShowingClipboardHistory = false
     /// The clipboard history view's own state. Not published: its changes redraw its view only.
     lazy var clipboardHistory = makeClipboardHistory()
     /// The clipboard history the panel shows, recorded since Floe started.
     let clipboard: ClipboardHistoryStore
-    /// The notes of the user's folder, while the panel shows them instead of the root search.
-    @Published var noteDesk: NoteDeskModel?
     /// The last save of the notes view closed last: true once it is written.
     var noteDeskSave: Task<Bool, Never>?
-    /// The question on screen and its answer, while the panel shows them instead of the root search.
-    @Published var askAI: AskAIModel?
     /// A question asked before something that cannot be taken back, over whatever the panel shows.
     @Published var question: PanelQuestion?
     /// Answers the question. A test replaces it: the real thing reaches the chosen AI source.
@@ -92,8 +84,6 @@ final class LauncherModel: ObservableObject {
     var canAskAI: () -> Bool = { false }
     /// The menu bar item search's own state. Not published: its changes redraw its view only.
     lazy var menuBarSearch = makeMenuBarSearch()
-    /// The front app's menu commands, while the panel shows them instead of the root search.
-    @Published var menuItemSearch: MenuItemSearchModel?
     /// What that search asks of the system. A test replaces it: the real thing reads another app's menus.
     var menuItemEnvironment = MenuItemSearchModel.Environment()
 
@@ -115,6 +105,10 @@ final class LauncherModel: ObservableObject {
     var rootAnswer: RootSearchAnswer?
     lazy var definitionSearch = DefinitionSearch()
     lazy var calculatorSearch = CalculatorSearch()
+    /// The work each ordinary search starts that answers after the list is shown.
+    var lateAnswers: [any LateAnswer] {
+        [definitionSearch, calculatorSearch]
+    }
 
     let settings: AppSettings
     /// The apps the roles resolve to, kept until something they depend on changes.
@@ -189,12 +183,11 @@ final class LauncherModel: ObservableObject {
             selection = 0
             // The list is shown at once; a source's rows join it when they arrive.
             sourceSearch.search(context, sources: enabled) { [weak self] in self?.showSourceRows() }
-            definitionSearch.search(context) { [weak self] in self?.showLateAnswers() }
-            calculatorSearch.search(context) { [weak self] in self?.showLateAnswers() }
-            context.definitions = definitionSearch.definitions
-            context.calculation = calculatorSearch.row
-            // No spinner for the calculator: its answer is almost always a moment away.
-            isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
+            for late in lateAnswers {
+                late.start(context) { [weak self] in self?.showLateAnswers() }
+                late.answer(into: &context)
+            }
+            isAwaitingResults = isWaitingOnAnswers
             let answer = RootSearchAnswer(for: context)
             rootAnswer = answer
             results = answer.results(sources: sourceSearch.rows)
@@ -203,8 +196,7 @@ final class LauncherModel: ObservableObject {
         // A refresh that is not a new query, such as a rescan or a favorite, leaves a running scope alone.
         guard match.query != activeScope?.query else { return }
         sourceSearch.cancel()
-        definitionSearch.cancel()
-        calculatorSearch.cancel()
+        lateAnswers.forEach { $0.cancel() }
         rootAnswer = nil
         activeScope = match
         selection = 0
@@ -214,6 +206,11 @@ final class LauncherModel: ObservableObject {
         } finish: { [weak self] in
             self?.isAwaitingResults = false
         }
+    }
+
+    /// Whether a source or a late answer that shows a spinner is still working on the ordinary search.
+    private var isWaitingOnAnswers: Bool {
+        sourceSearch.isSearching || lateAnswers.contains { $0.showsProgress }
     }
 
     /// Rows that arrived after the query was typed. A selection the user moved stays on its row.
@@ -228,7 +225,7 @@ final class LauncherModel: ObservableObject {
     func showSourceRows() {
         guard let rootAnswer else { return }
         let selected = selectedRootItem?.id
-        isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
+        isAwaitingResults = isWaitingOnAnswers
         results = rootAnswer.results(sources: sourceSearch.rows)
         selection = selected.flatMap { id in results.firstIndex { $0.id == id } } ?? min(selection, max(results.count - 1, 0))
     }
@@ -323,13 +320,8 @@ final class LauncherModel: ObservableObject {
         isHeldUntilShown = false
         runner.endOpenCommand()
         setup = nil
-        isSearchingMenuBar = false
-        menuItemSearch = nil
-        isShowingClipboardHistory = false
-        isSearchingFiles = false
+        leaveAllModes()
         madeFileSearch?.cancel()
-        closeNoteDesk()
-        closeAskAI()
         recalledQuery = nil
         actionPanel.close()
         query = ""

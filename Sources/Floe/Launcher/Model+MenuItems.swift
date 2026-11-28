@@ -13,13 +13,9 @@ extension LauncherModel {
     func openMenuItemSearch() {
         runner.endOpenCommand()
         setup = nil
-        isSearchingMenuBar = false
-        isShowingClipboardHistory = false
-        isSearchingFiles = false
-        closeNoteDesk()
         let search = MenuItemSearchModel(environment: menuItemEnvironment)
         search.host = modeHost { [weak self] in self?.closeMenuItemSearch() }
-        menuItemSearch = search
+        enter(.menuItemSearch(search))
         panelHost.showPanel()
         focusToken += 1
         search.scan()
@@ -34,7 +30,7 @@ extension LauncherModel {
     }
 
     func closeMenuItemSearch() {
-        menuItemSearch = nil
+        leave(.menuItemSearch)
         focusToken += 1
     }
 }
