@@ -97,6 +97,9 @@ can sync through iCloud; see [Settings sync](DEVELOPMENT.md#settings-sync).
   and merges what they answer. `LauncherModel.refresh()` only builds the context they read.
   - Dictionary answers are read by `BuiltIn/DefinitionSearch.swift` off the main thread, except the spell checker's word list. It keeps only the current
     query's answer, drops late results, and hands the entry to `DefinitionSearchProvider` through `SearchContext`.
+  - The dictionary and the calculator answer after the list is shown. Each is a `LateAnswer` (`LateAnswer.swift`):
+    the model starts every one in `lateAnswers` for an ordinary search, and each puts what it knows into the
+    `SearchContext` that its `LateSearchProvider` reads. Another answer that arrives late is one more entry there.
   - A scope (`SearchScope.swift`) is a search of its own inside the root search: `files invoice`, `clipboard meeting`
     and `menu wifi` show only that scope's rows. It triggers on its keyword, a space and some text; the keyword alone
     is an ordinary search. A scope may deliver rows later through an `AsyncStream`, each batch replacing the last;

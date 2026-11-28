@@ -105,6 +105,10 @@ final class LauncherModel: ObservableObject {
     var rootAnswer: RootSearchAnswer?
     lazy var definitionSearch = DefinitionSearch()
     lazy var calculatorSearch = CalculatorSearch()
+    /// The work each ordinary search starts that answers after the list is shown.
+    var lateAnswers: [any LateAnswer] {
+        [definitionSearch, calculatorSearch]
+    }
 
     let settings: AppSettings
     /// The apps the roles resolve to, kept until something they depend on changes.
@@ -179,12 +183,11 @@ final class LauncherModel: ObservableObject {
             selection = 0
             // The list is shown at once; a source's rows join it when they arrive.
             sourceSearch.search(context, sources: enabled) { [weak self] in self?.showSourceRows() }
-            definitionSearch.search(context) { [weak self] in self?.showLateAnswers() }
-            calculatorSearch.search(context) { [weak self] in self?.showLateAnswers() }
-            context.definitions = definitionSearch.definitions
-            context.calculation = calculatorSearch.row
-            // No spinner for the calculator: its answer is almost always a moment away.
-            isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
+            for late in lateAnswers {
+                late.start(context) { [weak self] in self?.showLateAnswers() }
+                late.answer(into: &context)
+            }
+            isAwaitingResults = isWaitingOnAnswers
             let answer = RootSearchAnswer(for: context)
             rootAnswer = answer
             results = answer.results(sources: sourceSearch.rows)
@@ -193,8 +196,7 @@ final class LauncherModel: ObservableObject {
         // A refresh that is not a new query, such as a rescan or a favorite, leaves a running scope alone.
         guard match.query != activeScope?.query else { return }
         sourceSearch.cancel()
-        definitionSearch.cancel()
-        calculatorSearch.cancel()
+        lateAnswers.forEach { $0.cancel() }
         rootAnswer = nil
         activeScope = match
         selection = 0
@@ -204,6 +206,11 @@ final class LauncherModel: ObservableObject {
         } finish: { [weak self] in
             self?.isAwaitingResults = false
         }
+    }
+
+    /// Whether a source or a late answer that shows a spinner is still working on the ordinary search.
+    private var isWaitingOnAnswers: Bool {
+        sourceSearch.isSearching || lateAnswers.contains { $0.showsProgress }
     }
 
     /// Rows that arrived after the query was typed. A selection the user moved stays on its row.
@@ -218,7 +225,7 @@ final class LauncherModel: ObservableObject {
     func showSourceRows() {
         guard let rootAnswer else { return }
         let selected = selectedRootItem?.id
-        isAwaitingResults = sourceSearch.isSearching || definitionSearch.isSearching
+        isAwaitingResults = isWaitingOnAnswers
         results = rootAnswer.results(sources: sourceSearch.rows)
         selection = selected.flatMap { id in results.firstIndex { $0.id == id } } ?? min(selection, max(results.count - 1, 0))
     }
