@@ -248,4 +248,8 @@ nonisolated struct AppEntry: Sendable {
     let url: URL
     /// What tells this app from another of its name: the folder it is in, or its file's name. Nil for a name of its own.
     var origin: String?
+    /// Other names the app answers to as it does to its own: its name in the Mac's language and Spotlight's others.
+    var otherNames: [String] = []
+    /// Its names as typed on a Latin keyboard, for a name in another script or with accents.
+    var spellings: [String] = []
 }

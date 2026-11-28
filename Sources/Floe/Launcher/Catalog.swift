@@ -116,7 +116,7 @@ nonisolated extension AppEntry {
         scan(in: folders() + systemFolders, apps: systemApps)
     }
 
-    static func scan(in folders: [String], apps: [String] = []) -> [AppEntry] {
+    static func scan(in folders: [String], apps: [String] = [], names: @Sendable (URL) -> [String] = AppNames.spotlight) -> [AppEntry] {
         let inFolders = folders.flatMap { folder -> [URL] in
             let entries = (try? FileManager.default.contentsOfDirectory(atPath: folder)) ?? []
             return entries.filter { $0.hasSuffix(".app") }.map { URL(fileURLWithPath: folder).appendingPathComponent($0) }
@@ -126,7 +126,7 @@ nonisolated extension AppEntry {
             // Only a trailing ".app" goes: one in the middle of a name is part of it, as "Foo.app Maker" keeps.
             return AppEntry(name: shown.hasSuffix(".app") ? String(shown.dropLast(4)) : shown, url: url)
         }
-        return distinct(found).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        return AppNames.filling(distinct(found), read: names).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     /// One entry for each app. Safari is in the cryptex and again in /Applications: one app, by its identifier.
@@ -147,7 +147,9 @@ nonisolated extension AppEntry {
             // Two in one folder under one shown name, as Siri and Siri AI are: the name of the file tells them apart.
             let sharesAFolder = Set(apart.map { $0.url.deletingLastPathComponent().path }).count < apart.count
             return apart.map { one in
-                AppEntry(name: one.name, url: one.url, origin: sharesAFolder ? one.url.deletingPathExtension().lastPathComponent : folderName(one.url))
+                var one = one
+                one.origin = sharesAFolder ? one.url.deletingPathExtension().lastPathComponent : folderName(one.url)
+                return one
             }
         }
     }
